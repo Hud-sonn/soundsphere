@@ -359,7 +359,7 @@ class MainActivity : ComponentActivity() {
                                     val intent = Intent(Intent.ACTION_VIEW, downloadUrl.toUri())
 
                                     val flags = PendingIntent.FLAG_UPDATE_CURRENT or
-                                        (if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) PendingIntent.FLAG_IMMUTABLE else 0)
+                                        (PendingIntent.FLAG_IMMUTABLE)
                                     val pending = PendingIntent.getActivity(this@MainActivity, 1001, intent, flags)
 
                                     val notif = NotificationCompat.Builder(this@MainActivity, "updates")
