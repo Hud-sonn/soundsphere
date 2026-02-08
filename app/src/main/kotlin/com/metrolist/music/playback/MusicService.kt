@@ -174,6 +174,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -279,7 +280,12 @@ class MusicService :
     lateinit var downloadCache: SimpleCache
 
     lateinit var player: ExoPlayer
+        private set
     private lateinit var mediaSession: MediaLibrarySession
+    
+    // Tracks if player has been properly initilized
+    private val playerInitialized = MutableStateFlow(false)
+    val isPlayerReady: kotlinx.coroutines.flow.StateFlow<Boolean> = playerInitialized.asStateFlow()
 
     // Custom Audio Processor
     private val customEqualizerAudioProcessor = CustomEqualizerAudioProcessor()
@@ -348,7 +354,10 @@ class MusicService :
 
     override fun onCreate() {
         super.onCreate()
-
+        
+        // Player rediness reset to false
+        playerInitialized.value = false
+        
         // 3. Connect the processor to the service
         equalizerService.setAudioProcessor(customEqualizerAudioProcessor)
 
@@ -376,6 +385,7 @@ class MusicService :
                 .build()
             startForeground(NOTIFICATION_ID, notification)
         } catch (e: Exception) {
+            Timber.tag(TAG).e(e, "Failed to create foreground notification")
             reportException(e)
         }
 
@@ -415,6 +425,10 @@ class MusicService :
                     addAnalyticsListener(PlaybackStatsListener(false, this@MusicService))
                     setOffloadEnabled(dataStore.get(AudioOffload, false))
                 }
+        
+        // Mark player as initialized after successful creation
+        playerInitialized.value = true
+        Timber.tag(TAG).d("Player successfully initialized")
 
         audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
         setupAudioFocusRequest()
@@ -1038,6 +1052,17 @@ class MusicService :
         playWhenReady: Boolean = true,
     ) {
         if (!scope.isActive) scope = CoroutineScope(Dispatchers.Main) + Job()
+        
+        // Safety Check : Ensuring player is initilized
+        if (!playerInitialized.value) {
+            Timber.tag(TAG).w("playQueue called before player initialization, queuing request")
+            scope.launch {
+                playerInitialized.first { it }
+                playQueue(queue, playWhenReady)
+            }
+            return
+        }
+        
         currentQueue = queue
         queueTitle = null
         val persistShuffleAcrossQueues = dataStore.get(PersistentShuffleAcrossQueuesKey, false)
@@ -1101,6 +1126,12 @@ class MusicService :
     }
 
     fun startRadioSeamlessly() {
+        // Safety Check: Ensure Player is initilized
+        if (!playerInitialized.value) {
+            Timber.tag(TAG).w("startRadioSeamlessly called before player initialization")
+            return
+        }
+        
         val currentMediaMetadata = player.currentMetadata ?: return
 
         val currentIndex = player.currentMediaItemIndex
@@ -1465,8 +1496,7 @@ class MusicService :
                             }
                         } else {
                             loudnessEnhancer?.enabled = false
-                            Timber.tag(TAG)
-                                .d("Normalization enabled but no loudness data available - no normalization applied")
+                            Timber.tag(TAG).w("Normalization enabled but no loudness data available - no normalization applied")
                         }
                     }
                 } else {
@@ -1482,14 +1512,13 @@ class MusicService :
         }
     }
 
-
     private fun releaseLoudnessEnhancer() {
         try {
             loudnessEnhancer?.release()
             Timber.tag(TAG).d("LoudnessEnhancer released")
         } catch (e: Exception) {
             reportException(e)
-            Timber.tag(TAG).e("Error releasing LoudnessEnhancer: ${e.message}")
+            Timber.tag(TAG).e(e, "Error releasing LoudnessEnhancer: ${e.message}")
         } finally {
             loudnessEnhancer = null
         }
@@ -1848,9 +1877,15 @@ class MusicService :
 
     override fun onPlayerError(error: PlaybackException) {
         super.onPlayerError(error)
-
+        
+        // Safety check : ensuring player is still initialized
+        if (!playerInitialized.value) {
+            Timber.tag(TAG).e(error, "Player error occurred but player not initialized")
+            return
+        }
+        
         val mediaId = player.currentMediaItem?.mediaId
-        Timber.tag(TAG).w(error, "Player error occurred for $mediaId: ${error.message}")
+        Timber.tag(TAG).w(error, "Player error occurred for $mediaId: errorCode=${error.errorCode}, message=${error.message}")
         reportException(error)
 
         // Check if this song has failed too many times
@@ -1908,14 +1943,14 @@ class MusicService :
             stopOnError()
         }
     }
-    
+
     /**
      * Performs aggressive cache clearing for a media item.
      * Clears both player cache and download cache, plus URL cache.
      */
     private fun performAggressiveCacheClear(mediaId: String) {
         Timber.tag(TAG).d("Performing aggressive cache clear for $mediaId")
-
+        
         // Clear URL cache
         songUrlCache.remove(mediaId)
         
@@ -2371,7 +2406,7 @@ class MusicService :
 
     private fun saveQueueToDisk() {
         if (player.mediaItemCount == 0) {
-            Timber.tag(TAG).v("Skipping queue save - no media items")
+            Timber.tag(TAG).d("Skipping queue save - no media items")
             return
         }
 
@@ -2409,6 +2444,7 @@ class MusicService :
                         oos.writeObject(persistQueue)
                     }
                 }
+                Timber.tag(TAG).d("Queue saved successfully")
             }.onFailure {
                 Timber.tag(TAG).e(it, "Failed to save queue")
                 reportException(it)
