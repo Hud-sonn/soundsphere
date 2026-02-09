@@ -1,9 +1,9 @@
 package com.metrolist.music.ui.component
 
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.material3.MaterialTheme
 
 /**
  * Stub CastButton for F-Droid builds.

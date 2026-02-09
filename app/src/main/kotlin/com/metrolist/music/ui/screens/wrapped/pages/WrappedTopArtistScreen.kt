@@ -39,7 +39,6 @@ import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import com.metrolist.music.R
 import com.metrolist.music.db.entities.Artist
-import kotlinx.coroutines.delay
 
 @Composable
 fun WrappedTopArtistScreen(topArtist: Artist?, isVisible: Boolean) {

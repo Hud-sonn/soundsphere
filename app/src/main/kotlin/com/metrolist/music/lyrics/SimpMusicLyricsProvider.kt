@@ -6,10 +6,10 @@
 package com.metrolist.music.lyrics
 
 import android.content.Context
-import com.metrolist.simpmusic.SimpMusicLyrics
 import com.metrolist.music.constants.EnableSimpMusicKey
 import com.metrolist.music.utils.dataStore
 import com.metrolist.music.utils.get
+import com.metrolist.simpmusic.SimpMusicLyrics
 
 object SimpMusicLyricsProvider : LyricsProvider {
     override val name = "SimpMusic"

@@ -5,15 +5,6 @@
 
 package com.metrolist.music.ui.screens.settings
 
-import android.annotation.TargetApi
-import android.content.Context
-import android.content.Intent
-import android.content.res.Configuration
-import android.os.Build
-import android.provider.Settings
-import android.os.LocaleList
-import android.util.Log
-import android.widget.Toast
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
@@ -23,33 +14,33 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.capitalize
-import androidx.compose.ui.text.toLowerCase
-import androidx.datastore.preferences.core.booleanPreferencesKey
-import androidx.datastore.preferences.core.floatPreferencesKey
-import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.navigation.NavController
-import com.metrolist.innertube.YouTube
 import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.R
-import com.metrolist.music.constants.*
-import com.metrolist.music.ui.component.*
+import com.metrolist.music.constants.LyricsRomanizeBelarusianKey
+import com.metrolist.music.constants.LyricsRomanizeBulgarianKey
+import com.metrolist.music.constants.LyricsRomanizeChineseKey
+import com.metrolist.music.constants.LyricsRomanizeCyrillicByLineKey
+import com.metrolist.music.constants.LyricsRomanizeJapaneseKey
+import com.metrolist.music.constants.LyricsRomanizeKoreanKey
+import com.metrolist.music.constants.LyricsRomanizeKyrgyzKey
+import com.metrolist.music.constants.LyricsRomanizeMacedonianKey
+import com.metrolist.music.constants.LyricsRomanizeRussianKey
+import com.metrolist.music.constants.LyricsRomanizeSerbianKey
+import com.metrolist.music.constants.LyricsRomanizeUkrainianKey
+import com.metrolist.music.ui.component.ActionPromptDialog
+import com.metrolist.music.ui.component.IconButton
+import com.metrolist.music.ui.component.PreferenceGroupTitle
+import com.metrolist.music.ui.component.SwitchPreference
 import com.metrolist.music.ui.utils.backToMain
-import com.metrolist.music.utils.rememberEnumPreference
 import com.metrolist.music.utils.rememberPreference
-import java.net.Proxy
-import java.util.Locale
-import androidx.core.net.toUri
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

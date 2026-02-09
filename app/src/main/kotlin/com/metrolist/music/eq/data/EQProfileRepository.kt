@@ -2,6 +2,7 @@ package com.metrolist.music.eq.data
 
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.core.content.edit
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,7 +13,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import javax.inject.Inject
 import javax.inject.Singleton
-import androidx.core.content.edit
 
 /**
  * Saved EQ Profile with metadata

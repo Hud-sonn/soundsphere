@@ -7,7 +7,14 @@ package com.metrolist.music.utils
 
 import android.content.ContentValues
 import android.content.Context
-import android.graphics.*
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.Path
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffColorFilter
+import android.graphics.RectF
+import android.graphics.Typeface
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
@@ -15,7 +22,6 @@ import android.provider.MediaStore
 import android.text.Layout
 import android.text.StaticLayout
 import android.text.TextPaint
-import androidx.annotation.RequiresApi
 import androidx.core.content.FileProvider
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.drawable.toBitmap

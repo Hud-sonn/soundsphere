@@ -48,28 +48,28 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.metrolist.lastfm.LastFM
 import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.R
-import com.metrolist.music.ui.component.IconButton
-import com.metrolist.music.ui.component.PreferenceEntry
-import com.metrolist.music.ui.component.PreferenceGroupTitle
-import com.metrolist.music.ui.utils.backToMain
-import com.metrolist.music.utils.rememberPreference
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import com.metrolist.lastfm.LastFM
 import com.metrolist.music.constants.EnableLastFMScrobblingKey
 import com.metrolist.music.constants.LastFMSessionKey
 import com.metrolist.music.constants.LastFMUseNowPlaying
 import com.metrolist.music.constants.LastFMUseSendLikes
 import com.metrolist.music.constants.LastFMUsernameKey
-import com.metrolist.music.constants.ScrobbleMinSongDurationKey
 import com.metrolist.music.constants.ScrobbleDelayPercentKey
 import com.metrolist.music.constants.ScrobbleDelaySecondsKey
+import com.metrolist.music.constants.ScrobbleMinSongDurationKey
 import com.metrolist.music.ui.component.DefaultDialog
+import com.metrolist.music.ui.component.IconButton
+import com.metrolist.music.ui.component.PreferenceEntry
+import com.metrolist.music.ui.component.PreferenceGroupTitle
 import com.metrolist.music.ui.component.SwitchPreference
+import com.metrolist.music.ui.utils.backToMain
 import com.metrolist.music.utils.makeTimeString
+import com.metrolist.music.utils.rememberPreference
 import com.metrolist.music.utils.reportException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)

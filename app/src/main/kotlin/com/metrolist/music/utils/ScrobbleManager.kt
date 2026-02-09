@@ -5,10 +5,12 @@
 
 package com.metrolist.music.utils
 
-import com.metrolist.music.models.MediaMetadata
 import com.metrolist.lastfm.LastFM
-import kotlinx.coroutines.*
-import timber.log.Timber
+import com.metrolist.music.models.MediaMetadata
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlin.math.min
 
 class ScrobbleManager(

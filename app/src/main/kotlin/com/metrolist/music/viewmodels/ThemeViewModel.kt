@@ -6,16 +6,11 @@
 package com.metrolist.music.viewmodels
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import com.metrolist.music.constants.DarkModeKey
-import com.metrolist.music.constants.PureBlackKey
-import com.metrolist.music.constants.SelectedThemeColorKey
 import com.metrolist.music.ui.screens.settings.DarkMode
 import com.metrolist.music.ui.theme.DefaultThemeColor
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
 
 class ThemeViewModel : ViewModel() {
     // Theme state flows

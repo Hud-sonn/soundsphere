@@ -6,8 +6,6 @@
 package com.metrolist.music.playback
 
 import android.content.Context
-import android.util.Log
-import timber.log.Timber
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
@@ -35,6 +33,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class PlayerConnection(
@@ -210,7 +209,7 @@ class PlayerConnection(
     fun startRadioSeamlessly() {
         // Block if Listen Together guest
         if (shouldBlockPlaybackChanges?.invoke() == true) {
-            Log.d("PlayerConnection", "startRadioSeamlessly blocked - Listen Together guest")
+            Timber.tag("PlayerConnection").d("startRadioSeamlessly blocked - Listen Together guest")
             return
         }
         if (!playerReadinessFlow.value) {
@@ -229,7 +228,7 @@ class PlayerConnection(
     fun playNext(items: List<MediaItem>) {
         // Block if Listen Together guest (unless internal sync)
         if (!allowInternalSync && shouldBlockPlaybackChanges?.invoke() == true) {
-            Log.d("PlayerConnection", "playNext blocked - Listen Together guest")
+            Timber.tag("PlayerConnection").d("playNext blocked - Listen Together guest")
             return
         }
         try {
@@ -245,7 +244,7 @@ class PlayerConnection(
     fun addToQueue(items: List<MediaItem>) {
         // Block if Listen Together guest (unless internal sync)
         if (!allowInternalSync && shouldBlockPlaybackChanges?.invoke() == true) {
-            Log.d("PlayerConnection", "addToQueue blocked - Listen Together guest")
+            Timber.tag("PlayerConnection").d("addToQueue blocked - Listen Together guest")
             return
         }
         try {
@@ -475,9 +474,9 @@ class PlayerConnection(
     fun dispose() {
         try {
             player.removeListener(this)
-            Log.d(TAG, "PlayerConnection disposed successfully")
+            Timber.tag(TAG).d("PlayerConnection disposed successfully")
         } catch (e: Exception) {
-            Log.e(TAG, "Error during PlayerConnection disposal", e)
+            Timber.tag(TAG).e(e, "Error during PlayerConnection disposal")
         }
     }
 }

@@ -17,13 +17,13 @@ import androidx.media3.common.MediaMetadata
 import androidx.media3.exoplayer.offline.Download
 import androidx.media3.session.LibraryResult
 import androidx.media3.session.MediaLibraryService
-import coil3.imageLoader
 import androidx.media3.session.MediaLibraryService.MediaLibrarySession
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSession.MediaItemsWithStartPosition
 import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionError
 import androidx.media3.session.SessionResult
+import coil3.imageLoader
 import com.google.common.collect.ImmutableList
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
@@ -43,9 +43,7 @@ import com.metrolist.music.db.entities.PlaylistEntity
 import com.metrolist.music.db.entities.Song
 import com.metrolist.music.extensions.toMediaItem
 import com.metrolist.music.extensions.toggleRepeatMode
-import com.metrolist.music.extensions.metadata
 import com.metrolist.music.models.toMediaMetadata
-import com.metrolist.music.playback.queues.ListQueue
 import com.metrolist.music.utils.dataStore
 import com.metrolist.music.utils.get
 import com.metrolist.music.utils.reportException
@@ -53,13 +51,11 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.guava.future
 import kotlinx.coroutines.plus
-import kotlinx.coroutines.withTimeoutOrNull
 import javax.inject.Inject
 
 class MediaLibrarySessionCallback

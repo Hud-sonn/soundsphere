@@ -5,13 +5,13 @@
 
 package com.metrolist.music.ui.utils
 
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.text.format.Formatter
 import android.widget.Toast
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -26,52 +26,32 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.BasicText
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.DialogProperties
-import androidx.media3.common.util.UnstableApi
 import com.metrolist.innertube.YouTube
 import com.metrolist.innertube.models.MediaInfo
 import com.metrolist.music.LocalDatabase
 import com.metrolist.music.LocalPlayerConnection
 import com.metrolist.music.R
-import com.metrolist.music.constants.DarkModeKey
-import com.metrolist.music.constants.PureBlackKey
 import com.metrolist.music.db.entities.FormatEntity
 import com.metrolist.music.db.entities.Song
-import com.metrolist.music.ui.component.LocalMenuState
-import com.metrolist.music.ui.component.MenuState
 import com.metrolist.music.ui.component.shimmer.ShimmerHost
 import com.metrolist.music.ui.component.shimmer.TextPlaceholder
-import com.metrolist.music.ui.screens.settings.DarkMode
-import com.metrolist.music.utils.rememberEnumPreference
-import com.metrolist.music.utils.rememberPreference
-import android.content.ClipData
-import android.content.ClipboardManager
 
 @Composable
 fun ShowMediaInfo(videoId: String) {

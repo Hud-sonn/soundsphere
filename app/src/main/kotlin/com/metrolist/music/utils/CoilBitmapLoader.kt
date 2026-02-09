@@ -9,7 +9,6 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
-import android.util.Log
 import androidx.core.graphics.createBitmap
 import androidx.media3.common.util.BitmapLoader
 import coil3.imageLoader

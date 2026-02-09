@@ -1,8 +1,5 @@
 package com.metrolist.music.eq.data
 
-import com.metrolist.music.eq.data.ParametricEQ
-import com.metrolist.music.eq.data.ParametricEQBand
-import com.metrolist.music.eq.data.FilterType
 import java.io.File
 
 /**

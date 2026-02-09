@@ -5,14 +5,8 @@
 
 package com.metrolist.music.ui.screens.settings
 
-import android.content.ActivityNotFoundException
-import android.content.Context
-import android.content.Intent
-import android.net.Uri
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -32,7 +26,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -56,7 +49,6 @@ import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.metrolist.innertube.YouTube
 import com.metrolist.innertube.utils.parseCookieString
-import com.metrolist.music.App.Companion.forgetAccount
 import com.metrolist.music.BuildConfig
 import com.metrolist.music.R
 import com.metrolist.music.constants.AccountChannelHandleKey
@@ -69,13 +61,12 @@ import com.metrolist.music.constants.VisitorDataKey
 import com.metrolist.music.constants.YtmSyncKey
 import com.metrolist.music.ui.component.InfoLabel
 import com.metrolist.music.ui.component.PreferenceEntry
-import com.metrolist.music.ui.component.ReleaseNotesCard
 import com.metrolist.music.ui.component.SwitchPreference
 import com.metrolist.music.ui.component.TextFieldDialog
 import com.metrolist.music.utils.Updater
 import com.metrolist.music.utils.rememberPreference
-import com.metrolist.music.viewmodels.HomeViewModel
 import com.metrolist.music.viewmodels.AccountSettingsViewModel
+import com.metrolist.music.viewmodels.HomeViewModel
 
 @Composable
 fun AccountSettings(

@@ -12,10 +12,10 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.RawQuery
 import androidx.room.RewriteQueriesToDropUnusedColumns
+import androidx.room.RoomWarnings
 import androidx.room.Transaction
 import androidx.room.Update
 import androidx.room.Upsert
-import androidx.room.RoomWarnings
 import androidx.sqlite.db.SupportSQLiteQuery
 import com.metrolist.innertube.models.PlaylistItem
 import com.metrolist.innertube.models.SongItem
@@ -29,7 +29,6 @@ import com.metrolist.music.constants.SongSortType
 import com.metrolist.music.db.entities.Album
 import com.metrolist.music.db.entities.AlbumArtistMap
 import com.metrolist.music.db.entities.AlbumEntity
-import com.metrolist.music.db.entities.PlayCountEntity
 import com.metrolist.music.db.entities.AlbumWithSongs
 import com.metrolist.music.db.entities.Artist
 import com.metrolist.music.db.entities.ArtistEntity
@@ -37,6 +36,7 @@ import com.metrolist.music.db.entities.Event
 import com.metrolist.music.db.entities.EventWithSong
 import com.metrolist.music.db.entities.FormatEntity
 import com.metrolist.music.db.entities.LyricsEntity
+import com.metrolist.music.db.entities.PlayCountEntity
 import com.metrolist.music.db.entities.Playlist
 import com.metrolist.music.db.entities.PlaylistEntity
 import com.metrolist.music.db.entities.PlaylistSong
@@ -54,13 +54,10 @@ import com.metrolist.music.extensions.toSQLiteQuery
 import com.metrolist.music.models.MediaMetadata
 import com.metrolist.music.models.toMediaMetadata
 import com.metrolist.music.ui.utils.resize
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.launch
 import java.text.Collator
 import java.time.LocalDateTime
 import java.time.ZoneOffset

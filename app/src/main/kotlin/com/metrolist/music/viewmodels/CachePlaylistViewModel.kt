@@ -8,10 +8,13 @@ package com.metrolist.music.viewmodels
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.media3.datasource.cache.SimpleCache
 import com.metrolist.music.constants.HideExplicitKey
 import com.metrolist.music.constants.HideVideoSongsKey
 import com.metrolist.music.db.MusicDatabase
 import com.metrolist.music.db.entities.Song
+import com.metrolist.music.di.DownloadCache
+import com.metrolist.music.di.PlayerCache
 import com.metrolist.music.extensions.filterExplicit
 import com.metrolist.music.extensions.filterVideoSongs
 import com.metrolist.music.utils.dataStore
@@ -19,13 +22,11 @@ import com.metrolist.music.utils.get
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import javax.inject.Inject
-import com.metrolist.music.di.PlayerCache
-import com.metrolist.music.di.DownloadCache
-import androidx.media3.datasource.cache.SimpleCache
 import java.time.LocalDateTime
+import javax.inject.Inject
 
 @HiltViewModel
 class CachePlaylistViewModel @Inject constructor(

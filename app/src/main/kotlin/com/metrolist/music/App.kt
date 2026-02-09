@@ -32,7 +32,6 @@ import com.metrolist.music.extensions.toEnum
 import com.metrolist.music.extensions.toInetSocketAddress
 import com.metrolist.music.utils.CrashHandler
 import com.metrolist.music.utils.dataStore
-import com.metrolist.music.utils.get
 import com.metrolist.music.utils.reportException
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope

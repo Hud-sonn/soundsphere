@@ -5,13 +5,17 @@
 
 package com.metrolist.music.listentogether
 
+import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.PowerManager
 import android.widget.Toast
+import androidx.annotation.RequiresPermission
+import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.getSystemService
@@ -565,8 +569,9 @@ class ListenTogetherClient @Inject constructor(
             )
         }
         if (wakeLock?.isHeld == false) {
-            // Acquire with timeout of 30 minutes - will be re-acquired if still in room
-            wakeLock?.acquire(30 * 60 * 1000L)
+            // Acquire with timeout of 10 minutes instead of 30 to reduce battery drain
+            // Will be re-acquired if still in room and receiving messages
+            wakeLock?.acquire(10 * 60 * 1000L)
             log(LogLevel.DEBUG, "Wake lock acquired")
         }
     }
@@ -596,6 +601,7 @@ class ListenTogetherClient @Inject constructor(
         }
     }
 
+    @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     private fun showJoinRequestNotification(payload: JoinRequestPayload) {
         val notifId = (System.currentTimeMillis() % Int.MAX_VALUE).toInt()
         
@@ -627,9 +633,12 @@ class ListenTogetherClient @Inject constructor(
             .addAction(0, context.getString(R.string.approve), approvePI)
             .addAction(0, context.getString(R.string.reject), rejectPI)
 
-        NotificationManagerCompat.from(context).notify(notifId, builder.build())
+        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
+            NotificationManagerCompat.from(context).notify(notifId, builder.build())
+        }
     }
 
+    @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     private fun showSuggestionNotification(payload: SuggestionReceivedPayload) {
         val notifId = (System.currentTimeMillis() % Int.MAX_VALUE).toInt()
         
@@ -661,7 +670,9 @@ class ListenTogetherClient @Inject constructor(
             .addAction(0, context.getString(R.string.approve), approvePI)
             .addAction(0, context.getString(R.string.reject), rejectPI)
 
-        NotificationManagerCompat.from(context).notify(notifId, builder.build())
+        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
+            NotificationManagerCompat.from(context).notify(notifId, builder.build())
+        }
     }
 
     private fun handleDisconnect() {
@@ -819,7 +830,9 @@ class ListenTogetherClient @Inject constructor(
                             approveJoin(payload.userId)
                         } else {
                             // Notify host with Approve/Reject actions
-                            showJoinRequestNotification(payload)
+                            if (ActivityCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
+                                showJoinRequestNotification(payload)
+                            }
                         }
                     }
                     scope.launch { _events.emit(ListenTogetherEvent.JoinRequestReceived(payload.userId, payload.username)) }
@@ -998,7 +1011,9 @@ class ListenTogetherClient @Inject constructor(
                         _pendingSuggestions.value += payload
                         log(LogLevel.INFO, "Suggestion received", "${payload.fromUsername}: ${payload.trackInfo.title}")
                         // Notify the host with actionable notification
-                        showSuggestionNotification(payload)
+                        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
+                            showSuggestionNotification(payload)
+                        }
                     }
                 }
 
@@ -1042,7 +1057,7 @@ class ListenTogetherClient @Inject constructor(
                                     delay(500) // Small delay before rejoin attempt
                                     joinRoom(storedRoomCode!!, storedUsername!!)
                                 }
-                            } else if (storedRoomCode != null && storedUsername != null && wasHost) {
+                            } else if (storedRoomCode != null && storedUsername != null) {
                                 // Host session expired - would need to create new room
                                 log(LogLevel.WARNING, "Host session expired", 
                                     "Room: $storedRoomCode - manual intervention may be needed")

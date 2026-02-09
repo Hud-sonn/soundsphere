@@ -11,13 +11,12 @@ import androidx.media3.database.StandaloneDatabaseProvider
 import androidx.media3.datasource.cache.LeastRecentlyUsedCacheEvictor
 import androidx.media3.datasource.cache.NoOpCacheEvictor
 import androidx.media3.datasource.cache.SimpleCache
+import androidx.room.Room
 import com.metrolist.music.constants.MaxSongCacheSizeKey
 import com.metrolist.music.db.InternalDatabase
-import com.metrolist.music.db.MIGRATION_1_2
 import com.metrolist.music.db.MusicDatabase
 import com.metrolist.music.listentogether.ListenTogetherClient
 import com.metrolist.music.listentogether.ListenTogetherManager
-import androidx.room.Room
 import com.metrolist.music.utils.dataStore
 import com.metrolist.music.utils.get
 import dagger.Module

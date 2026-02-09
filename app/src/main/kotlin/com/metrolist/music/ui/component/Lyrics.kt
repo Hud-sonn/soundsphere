@@ -10,21 +10,19 @@ import android.app.Activity
 import android.content.Intent
 import android.content.res.Configuration
 import android.text.Layout
-import android.os.Build
 import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
-import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -54,7 +52,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.BasicAlertDialog
@@ -86,29 +83,25 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.graphics.Shadow
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.tween
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -121,29 +114,29 @@ import coil3.ImageLoader
 import coil3.request.ImageRequest
 import coil3.request.allowHardware
 import coil3.toBitmap
-import com.metrolist.music.LocalPlayerConnection
 import com.metrolist.music.LocalListenTogetherManager
+import com.metrolist.music.LocalPlayerConnection
 import com.metrolist.music.R
 import com.metrolist.music.constants.DarkModeKey
-import com.metrolist.music.constants.LyricsClickKey
-import com.metrolist.music.constants.LyricsRomanizeBelarusianKey
-import com.metrolist.music.constants.LyricsRomanizeBulgarianKey
-import com.metrolist.music.constants.LyricsRomanizeCyrillicByLineKey
-import com.metrolist.music.constants.LyricsGlowEffectKey
 import com.metrolist.music.constants.LyricsAnimationStyle
 import com.metrolist.music.constants.LyricsAnimationStyleKey
-import com.metrolist.music.constants.LyricsTextSizeKey
+import com.metrolist.music.constants.LyricsClickKey
+import com.metrolist.music.constants.LyricsGlowEffectKey
 import com.metrolist.music.constants.LyricsLineSpacingKey
+import com.metrolist.music.constants.LyricsRomanizeBelarusianKey
+import com.metrolist.music.constants.LyricsRomanizeBulgarianKey
 import com.metrolist.music.constants.LyricsRomanizeChineseKey
+import com.metrolist.music.constants.LyricsRomanizeCyrillicByLineKey
 import com.metrolist.music.constants.LyricsRomanizeJapaneseKey
 import com.metrolist.music.constants.LyricsRomanizeKoreanKey
 import com.metrolist.music.constants.LyricsRomanizeKyrgyzKey
+import com.metrolist.music.constants.LyricsRomanizeMacedonianKey
 import com.metrolist.music.constants.LyricsRomanizeRussianKey
 import com.metrolist.music.constants.LyricsRomanizeSerbianKey
 import com.metrolist.music.constants.LyricsRomanizeUkrainianKey
-import com.metrolist.music.constants.LyricsRomanizeMacedonianKey
 import com.metrolist.music.constants.LyricsScrollKey
 import com.metrolist.music.constants.LyricsTextPositionKey
+import com.metrolist.music.constants.LyricsTextSizeKey
 import com.metrolist.music.constants.PlayerBackgroundStyle
 import com.metrolist.music.constants.OpenRouterApiKey
 import com.metrolist.music.constants.OpenRouterBaseUrlKey
@@ -157,16 +150,17 @@ import com.metrolist.music.db.entities.LyricsEntity.Companion.LYRICS_NOT_FOUND
 import com.metrolist.music.lyrics.LyricsEntry
 import com.metrolist.music.lyrics.LyricsUtils.findCurrentLineIndex
 import com.metrolist.music.lyrics.LyricsUtils.isBelarusian
+import com.metrolist.music.lyrics.LyricsUtils.isBulgarian
 import com.metrolist.music.lyrics.LyricsUtils.isChinese
 import com.metrolist.music.lyrics.LyricsUtils.isJapanese
 import com.metrolist.music.lyrics.LyricsUtils.isKorean
 import com.metrolist.music.lyrics.LyricsUtils.isKyrgyz
+import com.metrolist.music.lyrics.LyricsUtils.isMacedonian
 import com.metrolist.music.lyrics.LyricsUtils.isRussian
 import com.metrolist.music.lyrics.LyricsUtils.isSerbian
-import com.metrolist.music.lyrics.LyricsUtils.isBulgarian
 import com.metrolist.music.lyrics.LyricsUtils.isUkrainian
-import com.metrolist.music.lyrics.LyricsUtils.isMacedonian
 import com.metrolist.music.lyrics.LyricsUtils.parseLyrics
+import com.metrolist.music.lyrics.LyricsUtils.romanizeChinese
 import com.metrolist.music.lyrics.LyricsUtils.romanizeCyrillic
 import com.metrolist.music.lyrics.LyricsUtils.romanizeJapanese
 import com.metrolist.music.lyrics.LyricsUtils.romanizeKorean
@@ -200,12 +194,9 @@ fun Lyrics(
     val menuState = LocalMenuState.current
     val density = LocalDensity.current
     val context = LocalContext.current
-    val configuration = LocalConfiguration.current // Get configuration
+    val configuration = LocalWindowInfo.current
     val listenTogetherManager = LocalListenTogetherManager.current
     val isGuest = listenTogetherManager?.isInRoom == true && !listenTogetherManager.isHost
-
-    val landscapeOffset =
-        configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
     val lyricsTextPosition by rememberEnumPreference(LyricsTextPositionKey, LyricsPosition.CENTER)
     val changeLyrics by rememberPreference(LyricsClickKey, true)
@@ -1736,7 +1727,7 @@ fun Lyrics(
         val coverUrl = mediaMetadata?.thumbnailUrl
         val paletteColors = remember { mutableStateListOf<Color>() }
 
-        val previewCardWidth = configuration.screenWidthDp.dp * 0.90f
+        val previewCardWidth = configuration.containerDpSize.width * 0.90f
         val previewPadding = 20.dp * 2
         val previewBoxPadding = 28.dp * 2
         val previewAvailableWidth = previewCardWidth - previewPadding - previewBoxPadding
@@ -1892,8 +1883,8 @@ fun Lyrics(
                             showProgressDialog = true
                             scope.launch {
                                 try {
-                                    val screenWidth = configuration.screenWidthDp
-                                    val screenHeight = configuration.screenHeightDp
+                                    val screenWidth = configuration.containerSize.width
+                                    val screenHeight = configuration.containerSize.height
 
                                     val image = ComposeToImage.createLyricsImage(
                                         context = context,

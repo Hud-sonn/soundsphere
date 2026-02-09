@@ -2,12 +2,11 @@ package com.metrolist.music.eq
 
 
 import android.annotation.SuppressLint
-import android.util.Log
 import androidx.annotation.OptIn
 import androidx.media3.common.util.UnstableApi
-import com.metrolist.music.eq.data.SavedEQProfile
 import com.metrolist.music.eq.audio.CustomEqualizerAudioProcessor
 import com.metrolist.music.eq.data.ParametricEQ
+import com.metrolist.music.eq.data.SavedEQProfile
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton

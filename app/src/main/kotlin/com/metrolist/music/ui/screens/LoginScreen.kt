@@ -19,12 +19,14 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
+import com.metrolist.innertube.YouTube
 import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.R
 import com.metrolist.music.constants.AccountChannelHandleKey
@@ -37,10 +39,7 @@ import com.metrolist.music.ui.component.IconButton
 import com.metrolist.music.ui.utils.backToMain
 import com.metrolist.music.utils.rememberPreference
 import com.metrolist.music.utils.reportException
-import com.metrolist.innertube.YouTube
-import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
 @SuppressLint("SetJavaScriptEnabled")

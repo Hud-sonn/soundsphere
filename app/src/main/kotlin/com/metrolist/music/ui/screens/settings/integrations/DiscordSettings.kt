@@ -6,7 +6,6 @@
 package com.metrolist.music.ui.screens.settings.integrations
 
 import android.content.Intent
-import android.net.Uri
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
@@ -58,6 +57,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
 import androidx.media3.common.Player.STATE_READY
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
@@ -67,8 +67,8 @@ import com.metrolist.music.R
 import com.metrolist.music.constants.DiscordInfoDismissedKey
 import com.metrolist.music.constants.DiscordNameKey
 import com.metrolist.music.constants.DiscordTokenKey
-import com.metrolist.music.constants.DiscordUsernameKey
 import com.metrolist.music.constants.DiscordUseDetailsKey
+import com.metrolist.music.constants.DiscordUsernameKey
 import com.metrolist.music.constants.EnableDiscordRPCKey
 import com.metrolist.music.db.entities.Song
 import com.metrolist.music.ui.component.IconButton
@@ -78,15 +78,14 @@ import com.metrolist.music.ui.component.PreferenceGroupTitle
 import com.metrolist.music.ui.component.SwitchPreference
 import com.metrolist.music.ui.component.TextFieldDialog
 import com.metrolist.music.ui.utils.backToMain
+import com.metrolist.music.utils.SuperProperties
 import com.metrolist.music.utils.makeTimeString
 import com.metrolist.music.utils.rememberPreference
-import com.metrolist.music.utils.SuperProperties
 import com.my.kizzy.rpc.KizzyRPC
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import androidx.core.net.toUri
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

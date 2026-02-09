@@ -48,7 +48,6 @@ import com.metrolist.music.constants.GridItemSize
 import com.metrolist.music.constants.GridItemsSizeKey
 import com.metrolist.music.constants.GridThumbnailHeight
 import com.metrolist.music.models.toMediaMetadata
-import com.metrolist.music.utils.rememberEnumPreference
 import com.metrolist.music.playback.queues.YouTubeQueue
 import com.metrolist.music.ui.component.IconButton
 import com.metrolist.music.ui.component.LocalMenuState
@@ -62,6 +61,7 @@ import com.metrolist.music.ui.menu.YouTubeArtistMenu
 import com.metrolist.music.ui.menu.YouTubePlaylistMenu
 import com.metrolist.music.ui.menu.YouTubeSongMenu
 import com.metrolist.music.ui.utils.backToMain
+import com.metrolist.music.utils.rememberEnumPreference
 import com.metrolist.music.viewmodels.ArtistItemsViewModel
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)

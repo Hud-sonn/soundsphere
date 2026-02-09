@@ -3,8 +3,8 @@ package com.metrolist.music.utils
 import android.os.Build
 import android.util.Base64
 import org.json.JSONObject
-import java.util.UUID
 import java.util.Locale
+import java.util.UUID
 
 object SuperProperties {
     // Constants from research for Discord Android 314.13

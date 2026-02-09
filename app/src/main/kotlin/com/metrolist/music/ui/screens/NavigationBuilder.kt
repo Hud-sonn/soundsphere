@@ -25,7 +25,6 @@ import androidx.navigation.compose.dialog
 import androidx.navigation.navArgument
 import com.metrolist.music.constants.DarkModeKey
 import com.metrolist.music.constants.PureBlackKey
-import com.metrolist.music.eq.data.EQProfileRepository
 import com.metrolist.music.ui.screens.artist.ArtistAlbumsScreen
 import com.metrolist.music.ui.screens.artist.ArtistItemsScreen
 import com.metrolist.music.ui.screens.artist.ArtistScreen
@@ -40,7 +39,6 @@ import com.metrolist.music.ui.screens.playlist.TopPlaylistScreen
 import com.metrolist.music.ui.screens.search.OnlineSearchResult
 import com.metrolist.music.ui.screens.search.SearchScreen
 import com.metrolist.music.ui.screens.settings.AboutScreen
-import com.metrolist.music.ui.screens.settings.AccountSettings
 import com.metrolist.music.ui.screens.settings.AppearanceSettings
 import com.metrolist.music.ui.screens.settings.BackupAndRestore
 import com.metrolist.music.ui.screens.settings.ContentSettings

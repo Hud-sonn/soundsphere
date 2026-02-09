@@ -12,8 +12,8 @@ import com.metrolist.innertube.models.AlbumItem
 import com.metrolist.innertube.models.ArtistItem
 import com.metrolist.innertube.models.PlaylistItem
 import com.metrolist.innertube.utils.completed
-import com.metrolist.music.utils.reportException
 import com.metrolist.music.ui.utils.resize
+import com.metrolist.music.utils.reportException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch

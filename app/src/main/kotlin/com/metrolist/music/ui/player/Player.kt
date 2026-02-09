@@ -37,7 +37,6 @@ import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
@@ -126,7 +125,6 @@ import coil3.toBitmap
 import com.metrolist.music.LocalDatabase
 import com.metrolist.music.LocalDownloadUtil
 import com.metrolist.music.LocalListenTogetherManager
-import com.metrolist.music.listentogether.RoomRole
 import com.metrolist.music.LocalPlayerConnection
 import com.metrolist.music.R
 import com.metrolist.music.constants.CropAlbumArtKey
@@ -147,6 +145,7 @@ import com.metrolist.music.constants.UseNewPlayerDesignKey
 import com.metrolist.music.db.entities.LyricsEntity
 import com.metrolist.music.extensions.togglePlayPause
 import com.metrolist.music.extensions.toggleRepeatMode
+import com.metrolist.music.listentogether.RoomRole
 import com.metrolist.music.models.MediaMetadata
 import com.metrolist.music.ui.component.BottomSheet
 import com.metrolist.music.ui.component.BottomSheetState
@@ -155,6 +154,7 @@ import com.metrolist.music.ui.component.LocalMenuState
 import com.metrolist.music.ui.component.Lyrics
 import com.metrolist.music.ui.component.PlayerSliderTrack
 import com.metrolist.music.ui.component.ResizableIconButton
+import com.metrolist.music.ui.component.SquigglySlider
 import com.metrolist.music.ui.component.WavySlider
 import com.metrolist.music.ui.component.rememberBottomSheetState
 import com.metrolist.music.ui.menu.PlayerMenu
@@ -172,7 +172,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import com.metrolist.music.ui.component.SquigglySlider
 import kotlin.math.max
 import kotlin.math.roundToInt
 import com.metrolist.music.ui.component.Icon as MIcon

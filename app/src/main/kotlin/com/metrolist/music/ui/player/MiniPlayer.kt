@@ -130,11 +130,6 @@ fun MiniPlayer(
     // Create stable progress state - doesn't cause recomposition on position changes
     val progressState = remember { ProgressState(positionState, durationState) }
 
-    val configuration = LocalConfiguration.current
-    val isTabletLandscape = remember(configuration.screenWidthDp, configuration.orientation) {
-        configuration.screenWidthDp >= 600 && configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
-    }
-
     if (useNewMiniPlayerDesign) {
         NewMiniPlayer(
             progressState = progressState,

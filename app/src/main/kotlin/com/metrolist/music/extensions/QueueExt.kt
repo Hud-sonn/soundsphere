@@ -5,12 +5,15 @@
 
 package com.metrolist.music.extensions
 
+import com.metrolist.music.models.MediaMetadata
 import com.metrolist.music.models.PersistQueue
 import com.metrolist.music.models.QueueData
 import com.metrolist.music.models.QueueType
-import com.metrolist.music.models.MediaMetadata
-import com.metrolist.music.playback.queues.*
-import com.metrolist.music.db.entities.AlbumEntity
+import com.metrolist.music.playback.queues.ListQueue
+import com.metrolist.music.playback.queues.LocalAlbumRadio
+import com.metrolist.music.playback.queues.Queue
+import com.metrolist.music.playback.queues.YouTubeAlbumRadio
+import com.metrolist.music.playback.queues.YouTubeQueue
 
 fun Queue.toPersistQueue(
     title: String?,

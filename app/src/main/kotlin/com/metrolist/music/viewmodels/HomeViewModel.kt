@@ -6,6 +6,7 @@
 package com.metrolist.music.viewmodels
 
 import android.content.Context
+import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.metrolist.innertube.YouTube
@@ -22,7 +23,8 @@ import com.metrolist.music.constants.HideVideoSongsKey
 import com.metrolist.music.constants.InnerTubeCookieKey
 import com.metrolist.music.constants.QuickPicks
 import com.metrolist.music.constants.QuickPicksKey
-import com.metrolist.music.constants.YtmSyncKey
+import com.metrolist.music.constants.ShowWrappedCardKey
+import com.metrolist.music.constants.WrappedSeenKey
 import com.metrolist.music.db.MusicDatabase
 import com.metrolist.music.db.entities.Album
 import com.metrolist.music.db.entities.LocalItem
@@ -30,28 +32,24 @@ import com.metrolist.music.db.entities.Song
 import com.metrolist.music.extensions.filterVideoSongs
 import com.metrolist.music.extensions.toEnum
 import com.metrolist.music.models.SimilarRecommendation
+import com.metrolist.music.ui.screens.wrapped.WrappedAudioService
+import com.metrolist.music.ui.screens.wrapped.WrappedManager
+import com.metrolist.music.utils.SyncUtils
 import com.metrolist.music.utils.dataStore
 import com.metrolist.music.utils.get
 import com.metrolist.music.utils.reportException
-import com.metrolist.music.utils.SyncUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import com.metrolist.music.constants.ShowWrappedCardKey
-import com.metrolist.music.constants.WrappedSeenKey
-import com.metrolist.music.ui.screens.wrapped.WrappedAudioService
-import com.metrolist.music.ui.screens.wrapped.WrappedManager
-import java.time.LocalDate
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import androidx.datastore.preferences.core.edit
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 import javax.inject.Inject
 
 @HiltViewModel

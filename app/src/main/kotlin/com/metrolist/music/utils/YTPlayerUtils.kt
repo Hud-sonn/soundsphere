@@ -7,14 +7,13 @@ package com.metrolist.music.utils
 
 import android.net.ConnectivityManager
 import androidx.media3.common.PlaybackException
-import com.metrolist.music.constants.AudioQuality
 import com.metrolist.innertube.NewPipeExtractor
 import com.metrolist.innertube.YouTube
 import com.metrolist.innertube.models.YouTubeClient
 import com.metrolist.innertube.models.YouTubeClient.Companion.ANDROID_CREATOR
-import com.metrolist.innertube.models.YouTubeClient.Companion.ANDROID_VR_NO_AUTH
 import com.metrolist.innertube.models.YouTubeClient.Companion.ANDROID_VR_1_43_32
 import com.metrolist.innertube.models.YouTubeClient.Companion.ANDROID_VR_1_61_48
+import com.metrolist.innertube.models.YouTubeClient.Companion.ANDROID_VR_NO_AUTH
 import com.metrolist.innertube.models.YouTubeClient.Companion.IOS
 import com.metrolist.innertube.models.YouTubeClient.Companion.IPADOS
 import com.metrolist.innertube.models.YouTubeClient.Companion.MOBILE
@@ -24,6 +23,10 @@ import com.metrolist.innertube.models.YouTubeClient.Companion.WEB
 import com.metrolist.innertube.models.YouTubeClient.Companion.WEB_CREATOR
 import com.metrolist.innertube.models.YouTubeClient.Companion.WEB_REMIX
 import com.metrolist.innertube.models.response.PlayerResponse
+import com.metrolist.music.constants.AudioQuality
+import com.metrolist.music.utils.YTPlayerUtils.MAIN_CLIENT
+import com.metrolist.music.utils.YTPlayerUtils.STREAM_FALLBACK_CLIENTS
+import com.metrolist.music.utils.YTPlayerUtils.validateStatus
 import okhttp3.OkHttpClient
 import timber.log.Timber
 

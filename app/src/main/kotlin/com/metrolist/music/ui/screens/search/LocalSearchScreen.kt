@@ -9,18 +9,38 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -36,12 +56,17 @@ import com.metrolist.music.db.entities.Playlist
 import com.metrolist.music.db.entities.Song
 import com.metrolist.music.extensions.toMediaItem
 import com.metrolist.music.playback.queues.ListQueue
-import com.metrolist.music.ui.component.*
+import com.metrolist.music.ui.component.AlbumListItem
+import com.metrolist.music.ui.component.ArtistListItem
+import com.metrolist.music.ui.component.ChipsRow
+import com.metrolist.music.ui.component.EmptyPlaceholder
+import com.metrolist.music.ui.component.LocalMenuState
+import com.metrolist.music.ui.component.PlaylistListItem
+import com.metrolist.music.ui.component.SongListItem
 import com.metrolist.music.ui.menu.SongMenu
 import com.metrolist.music.viewmodels.LocalFilter
 import com.metrolist.music.viewmodels.LocalSearchViewModel
 import kotlinx.coroutines.flow.drop
-import kotlinx.coroutines.flow.collect
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -78,8 +103,8 @@ fun LocalSearchScreen(
         viewModel.query.value = query
     }
 
-    val configuration = LocalConfiguration.current
-    val isLandscape = configuration.screenWidthDp > configuration.screenHeightDp
+    val configuration = LocalWindowInfo.current
+    val isLandscape = configuration.containerSize.width > configuration.containerSize.height
 
     Column(
         modifier = Modifier

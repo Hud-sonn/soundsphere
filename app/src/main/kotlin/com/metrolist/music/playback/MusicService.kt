@@ -7,22 +7,10 @@
 
 package com.metrolist.music.playback
 
-import android.graphics.Bitmap
-import coil3.ImageLoader
-import coil3.request.ImageRequest
-import coil3.request.SuccessResult
-import coil3.toBitmap
-import kotlinx.coroutines.launch
-import com.metrolist.music.widget.MusicWidgetReceiver
-import com.metrolist.music.widget.MetrolistWidgetManager
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.appwidget.AppWidgetManager
-import android.widget.RemoteViews
 import android.app.PendingIntent
-import android.os.Build
-import androidx.core.app.NotificationCompat
 import android.content.BroadcastReceiver
 import android.content.ComponentName
 import android.content.Context
@@ -35,7 +23,7 @@ import android.media.audiofx.AudioEffect
 import android.media.audiofx.LoudnessEnhancer
 import android.net.ConnectivityManager
 import android.os.Binder
-import android.util.Log
+import androidx.core.app.NotificationCompat
 import androidx.core.content.getSystemService
 import androidx.core.net.toUri
 import androidx.datastore.preferences.core.edit
@@ -102,9 +90,6 @@ import com.metrolist.music.constants.HideExplicitKey
 import com.metrolist.music.constants.HideVideoSongsKey
 import com.metrolist.music.constants.HistoryDuration
 import com.metrolist.music.constants.LastFMUseNowPlaying
-import com.metrolist.music.constants.ScrobbleDelayPercentKey
-import com.metrolist.music.constants.ScrobbleMinSongDurationKey
-import com.metrolist.music.constants.ScrobbleDelaySecondsKey
 import com.metrolist.music.constants.MediaSessionConstants.CommandToggleLike
 import com.metrolist.music.constants.MediaSessionConstants.CommandToggleRepeatMode
 import com.metrolist.music.constants.MediaSessionConstants.CommandToggleShuffle
@@ -116,6 +101,9 @@ import com.metrolist.music.constants.PersistentShuffleAcrossQueuesKey
 import com.metrolist.music.constants.PlayerVolumeKey
 import com.metrolist.music.constants.RememberShuffleAndRepeatKey
 import com.metrolist.music.constants.RepeatModeKey
+import com.metrolist.music.constants.ScrobbleDelayPercentKey
+import com.metrolist.music.constants.ScrobbleDelaySecondsKey
+import com.metrolist.music.constants.ScrobbleMinSongDurationKey
 import com.metrolist.music.constants.ShowLyricsKey
 import com.metrolist.music.constants.ShuffleModeKey
 import com.metrolist.music.constants.ShufflePlaylistFirstKey
@@ -137,10 +125,10 @@ import com.metrolist.music.extensions.collect
 import com.metrolist.music.extensions.collectLatest
 import com.metrolist.music.extensions.currentMetadata
 import com.metrolist.music.extensions.findNextMediaItemById
-import com.metrolist.music.extensions.toEnum
 import com.metrolist.music.extensions.mediaItems
 import com.metrolist.music.extensions.metadata
 import com.metrolist.music.extensions.setOffloadEnabled
+import com.metrolist.music.extensions.toEnum
 import com.metrolist.music.extensions.toMediaItem
 import com.metrolist.music.extensions.toPersistQueue
 import com.metrolist.music.extensions.toQueue
@@ -148,12 +136,12 @@ import com.metrolist.music.lyrics.LyricsHelper
 import com.metrolist.music.models.PersistPlayerState
 import com.metrolist.music.models.PersistQueue
 import com.metrolist.music.models.toMediaMetadata
+import com.metrolist.music.playback.audio.SilenceDetectorAudioProcessor
 import com.metrolist.music.playback.queues.EmptyQueue
 import com.metrolist.music.playback.queues.Queue
 import com.metrolist.music.playback.queues.YouTubeQueue
 import com.metrolist.music.playback.queues.filterExplicit
 import com.metrolist.music.playback.queues.filterVideoSongs
-import com.metrolist.music.playback.audio.SilenceDetectorAudioProcessor
 import com.metrolist.music.utils.CoilBitmapLoader
 import com.metrolist.music.utils.DiscordRPC
 import com.metrolist.music.utils.NetworkConnectivityObserver
@@ -161,9 +149,10 @@ import com.metrolist.music.utils.ScrobbleManager
 import com.metrolist.music.utils.SyncUtils
 import com.metrolist.music.utils.YTPlayerUtils
 import com.metrolist.music.utils.dataStore
-import com.metrolist.music.utils.enumPreference
 import com.metrolist.music.utils.get
 import com.metrolist.music.utils.reportException
+import com.metrolist.music.widget.MetrolistWidgetManager
+import com.metrolist.music.widget.MusicWidgetReceiver
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -183,16 +172,17 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import kotlin.coroutines.coroutineContext
 import okhttp3.OkHttpClient
 import timber.log.Timber
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import java.time.LocalDateTime
 import javax.inject.Inject
+import kotlin.coroutines.coroutineContext
 import kotlin.time.Duration.Companion.seconds
 
 private const val INSTANT_SILENCE_SKIP_STEP_MS = 15_000L
@@ -1883,6 +1873,17 @@ class MusicService :
                 (error.cause as? PlaybackException)?.errorCode == PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED
     }
 
+    /**
+     * Checks if the error is caused by AudioTrack write or initialization failures.
+     * These errors indicate the audio renderer is in a corrupted/invalid state.
+     */
+    private fun isAudioRendererError(error: PlaybackException): Boolean {
+        return error.errorCode == PlaybackException.ERROR_CODE_AUDIO_TRACK_WRITE_FAILED ||
+                error.errorCode == PlaybackException.ERROR_CODE_AUDIO_TRACK_INIT_FAILED ||
+                (error.cause as? PlaybackException)?.errorCode == PlaybackException.ERROR_CODE_AUDIO_TRACK_WRITE_FAILED ||
+                (error.cause as? PlaybackException)?.errorCode == PlaybackException.ERROR_CODE_AUDIO_TRACK_INIT_FAILED
+    }
+
     override fun onPlayerError(error: PlaybackException) {
         super.onPlayerError(error)
         
@@ -1911,6 +1912,11 @@ class MusicService :
 
         // Handle specific error types with strict strategies
         when {
+            isAudioRendererError(error) -> {
+                Timber.tag(TAG).d("AudioTrack error detected (${error.errorCode}), performing safe recovery")
+                handleAudioRendererError(mediaId)
+                return
+            }
             isRangeNotSatisfiableError(error) -> {
                 Timber.tag(TAG).d("Range Not Satisfiable (416) detected, performing strict recovery")
                 handleRangeNotSatisfiableError(mediaId)
@@ -2017,6 +2023,64 @@ class MusicService :
             delay(5 * 60 * 1000L) // 5 minutes
             recentlyFailedSongs.clear()
             Timber.tag(TAG).d("Cleared recently failed songs list")
+        }
+    }
+    
+    /**
+     * Handles AudioTrack errors (write failed, init failed) with safe recovery.
+     * These errors indicate the audio renderer is corrupted and needs careful reset.
+     */
+    private fun handleAudioRendererError(mediaId: String?) {
+        if (mediaId == null) {
+            handleFinalFailure()
+            return
+        }
+        
+        incrementRetryCount(mediaId)
+        
+        retryJob?.cancel()
+        retryJob = scope.launch {
+            try {
+                // Pause playback immediately to stop the renderer
+                player.pause()
+                Timber.tag(TAG).d("Paused playback due to AudioTrack error")
+                
+                // Wait longer for audio renderer to settle before retry
+                // This prevents the renderer from continuing to fail in a loop
+                delay(RETRY_DELAY_MS * 3) // 3 seconds instead of 1 second
+                
+                // Check if player is still initialized before attempting recovery
+                if (!playerInitialized.value) {
+                    Timber.tag(TAG).w("Player no longer initialized, aborting AudioTrack recovery")
+                    return@launch
+                }
+                
+                val currentIndex = player.currentMediaItemIndex
+                if (currentIndex != C.INDEX_UNSET) {
+                    // Seek to current position to force a clean audio renderer reinit
+                    val currentPosition = player.currentPosition
+                    player.seekTo(currentIndex, currentPosition)
+                    player.prepare()
+                    
+                    Timber.tag(TAG).d("Retrying playback for $mediaId after AudioTrack error")
+                    
+                    // Resume playback if it wasn't paused by user
+                    if (wasPlayingBeforeAudioFocusLoss) {
+                        delay(500) // Brief delay to allow renderer to be ready
+                        if (hasAudioFocus && playerInitialized.value) {
+                            if (castConnectionHandler?.isCasting?.value != true) {
+                                player.play()
+                            }
+                        }
+                    }
+                } else {
+                    Timber.tag(TAG).w("Invalid media item index during AudioTrack recovery")
+                    handleFinalFailure()
+                }
+            } catch (e: Exception) {
+                Timber.tag(TAG).e(e, "Error during AudioTrack error recovery")
+                handleFinalFailure()
+            }
         }
     }
     

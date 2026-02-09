@@ -27,12 +27,12 @@ import com.metrolist.music.utils.reportException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
+import timber.log.Timber
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.util.zip.ZipEntry
 import javax.inject.Inject
 import kotlin.system.exitProcess
-import timber.log.Timber
 
 @HiltViewModel
 class BackupRestoreViewModel @Inject constructor(

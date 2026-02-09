@@ -6,13 +6,8 @@
 package com.metrolist.music.viewmodels
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import com.metrolist.music.listentogether.ListenTogetherEvent
 import com.metrolist.music.listentogether.ListenTogetherManager
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel

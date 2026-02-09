@@ -17,7 +17,6 @@ import android.os.Bundle
 import android.os.IBinder
 import android.view.View
 import android.view.WindowManager
-import timber.log.Timber
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedVisibility
@@ -86,9 +85,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
@@ -193,6 +192,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import java.net.URLDecoder
 import java.net.URLEncoder
 import java.util.Locale
@@ -476,7 +476,7 @@ class MainActivity : ComponentActivity() {
             ) {
                 val focusManager = LocalFocusManager.current
                 val density = LocalDensity.current
-                val configuration = LocalConfiguration.current
+                val configuration = LocalWindowInfo.current
                 val cutoutInsets = WindowInsets.displayCutout
                 val windowsInsets = WindowInsets.systemBars
                 val bottomInset = with(density) { windowsInsets.getBottom(density).toDp() }
@@ -548,7 +548,7 @@ class MainActivity : ComponentActivity() {
                         currentRoute!!.startsWith("search/")
                 }
 
-                val isLandscape = configuration.screenWidthDp > configuration.screenHeightDp
+                val isLandscape = configuration.containerDpSize.width > configuration.containerDpSize.height
 
                 val showRail = isLandscape && !inSearchScreen
 

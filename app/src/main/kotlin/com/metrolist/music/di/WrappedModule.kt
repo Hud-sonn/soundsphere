@@ -2,8 +2,8 @@ package com.metrolist.music.di
 
 import android.content.Context
 import com.metrolist.music.db.DatabaseDao
-import com.metrolist.music.ui.screens.wrapped.WrappedManager
 import com.metrolist.music.ui.screens.wrapped.WrappedAudioService
+import com.metrolist.music.ui.screens.wrapped.WrappedManager
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

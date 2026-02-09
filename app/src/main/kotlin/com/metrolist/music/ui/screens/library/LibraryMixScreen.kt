@@ -58,11 +58,10 @@ import com.metrolist.music.constants.LibraryViewType
 import com.metrolist.music.constants.MixSortDescendingKey
 import com.metrolist.music.constants.MixSortType
 import com.metrolist.music.constants.MixSortTypeKey
-import com.metrolist.music.constants.ShowLikedPlaylistKey
-import com.metrolist.music.constants.ShowDownloadedPlaylistKey
-import com.metrolist.music.constants.ShowTopPlaylistKey
 import com.metrolist.music.constants.ShowCachedPlaylistKey
-import com.metrolist.music.constants.ShowUploadedPlaylistKey
+import com.metrolist.music.constants.ShowDownloadedPlaylistKey
+import com.metrolist.music.constants.ShowLikedPlaylistKey
+import com.metrolist.music.constants.ShowTopPlaylistKey
 import com.metrolist.music.constants.YtmSyncKey
 import com.metrolist.music.db.entities.Album
 import com.metrolist.music.db.entities.Artist

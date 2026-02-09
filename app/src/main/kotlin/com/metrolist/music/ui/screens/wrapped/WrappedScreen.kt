@@ -5,7 +5,7 @@
 
 package com.metrolist.music.ui.screens.wrapped
 
-import android.net.ConnectivityManager
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -31,15 +31,13 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.platform.LocalView
-import androidx.activity.compose.BackHandler
 import androidx.compose.ui.res.painterResource
-import androidx.core.content.ContextCompat.getSystemService
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
 import com.metrolist.music.R
 import com.metrolist.music.ui.screens.wrapped.pages.ConclusionPage
@@ -47,15 +45,15 @@ import com.metrolist.music.ui.screens.wrapped.pages.PlaylistPage
 import com.metrolist.music.ui.screens.wrapped.pages.WrappedIntro
 import com.metrolist.music.ui.screens.wrapped.pages.WrappedMinutesScreen
 import com.metrolist.music.ui.screens.wrapped.pages.WrappedMinutesTease
+import com.metrolist.music.ui.screens.wrapped.pages.WrappedTop5AlbumsScreen
 import com.metrolist.music.ui.screens.wrapped.pages.WrappedTop5ArtistsScreen
 import com.metrolist.music.ui.screens.wrapped.pages.WrappedTop5SongsScreen
+import com.metrolist.music.ui.screens.wrapped.pages.WrappedTopAlbumScreen
 import com.metrolist.music.ui.screens.wrapped.pages.WrappedTopArtistScreen
 import com.metrolist.music.ui.screens.wrapped.pages.WrappedTopSongScreen
+import com.metrolist.music.ui.screens.wrapped.pages.WrappedTotalAlbumsScreen
 import com.metrolist.music.ui.screens.wrapped.pages.WrappedTotalArtistsScreen
 import com.metrolist.music.ui.screens.wrapped.pages.WrappedTotalSongsScreen
-import com.metrolist.music.ui.screens.wrapped.pages.WrappedTotalAlbumsScreen
-import com.metrolist.music.ui.screens.wrapped.pages.WrappedTopAlbumScreen
-import com.metrolist.music.ui.screens.wrapped.pages.WrappedTop5AlbumsScreen
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 

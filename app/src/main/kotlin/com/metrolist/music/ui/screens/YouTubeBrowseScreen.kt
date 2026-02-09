@@ -36,7 +36,6 @@ import com.metrolist.music.R
 import com.metrolist.music.constants.GridItemSize
 import com.metrolist.music.constants.GridItemsSizeKey
 import com.metrolist.music.constants.GridThumbnailHeight
-import com.metrolist.music.utils.rememberEnumPreference
 import com.metrolist.music.models.toMediaMetadata
 import com.metrolist.music.playback.queues.YouTubeQueue
 import com.metrolist.music.ui.component.IconButton
@@ -49,6 +48,7 @@ import com.metrolist.music.ui.menu.YouTubeArtistMenu
 import com.metrolist.music.ui.menu.YouTubePlaylistMenu
 import com.metrolist.music.ui.menu.YouTubeSongMenu
 import com.metrolist.music.ui.utils.backToMain
+import com.metrolist.music.utils.rememberEnumPreference
 import com.metrolist.music.viewmodels.YouTubeBrowseViewModel
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -112,7 +112,6 @@ fun YouTubeBrowseScreen(
                                 is AlbumItem -> navController.navigate("album/${item.id}")
                                 is ArtistItem -> navController.navigate("artist/${item.id}")
                                 is PlaylistItem -> navController.navigate("online_playlist/${item.id}")
-                                else -> {}
                             }
                         },
                         onLongClick = {
