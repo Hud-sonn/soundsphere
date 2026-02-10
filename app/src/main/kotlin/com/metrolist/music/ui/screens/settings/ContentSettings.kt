@@ -36,6 +36,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -124,6 +125,31 @@ fun ContentSettings(
     val (lengthTop, onLengthTopChange) = rememberPreference(key = TopSize, defaultValue = "50")
     val (quickPicks, onQuickPicksChange) = rememberEnumPreference(key = QuickPicksKey, defaultValue = QuickPicks.QUICK_PICKS)
     val (showWrappedCard, onShowWrappedCardChange) = rememberPreference(key = ShowWrappedCardKey, defaultValue = false)
+
+    // Auto-switch preferred provider if current one is disabled
+    LaunchedEffect(enableLrclib, enableKugou, enableBetterLyrics, enableSimpMusic, preferredProvider) {
+        val isPreferredProviderEnabled = when (preferredProvider) {
+            PreferredLyricsProvider.LRCLIB -> enableLrclib
+            PreferredLyricsProvider.KUGOU -> enableKugou
+            PreferredLyricsProvider.BETTER_LYRICS -> enableBetterLyrics
+            PreferredLyricsProvider.SIMPMUSIC -> enableSimpMusic
+        }
+        
+        if (!isPreferredProviderEnabled) {
+            val firstEnabledProvider = PreferredLyricsProvider.values().firstOrNull { provider ->
+                when (provider) {
+                    PreferredLyricsProvider.LRCLIB -> enableLrclib
+                    PreferredLyricsProvider.KUGOU -> enableKugou
+                    PreferredLyricsProvider.BETTER_LYRICS -> enableBetterLyrics
+                    PreferredLyricsProvider.SIMPMUSIC -> enableSimpMusic
+                }
+            }
+            firstEnabledProvider?.let { onPreferredProviderChange(it) }
+        }
+    }
+
+    // Calculate enabled providers count for UI logic
+    val enabledProvidersCount = listOf(enableLrclib, enableKugou, enableBetterLyrics, enableSimpMusic).count { it }
 
     var showProxyConfigurationDialog by rememberSaveable {
         mutableStateOf(false)
@@ -321,7 +347,14 @@ fun ContentSettings(
             },
             title = stringResource(R.string.set_first_lyrics_provider),
             current = preferredProvider,
-            values = PreferredLyricsProvider.values().toList(),
+            values = PreferredLyricsProvider.values().toList().filter { provider ->
+                when (provider) {
+                    PreferredLyricsProvider.LRCLIB -> enableLrclib
+                    PreferredLyricsProvider.KUGOU -> enableKugou
+                    PreferredLyricsProvider.BETTER_LYRICS -> enableBetterLyrics
+                    PreferredLyricsProvider.SIMPMUSIC -> enableSimpMusic
+                }
+            },
             valueText = {
                 when (it) {
                     PreferredLyricsProvider.LRCLIB -> "LrcLib"
@@ -706,7 +739,12 @@ fun ContentSettings(
                             }
                         )
                     },
-                    onClick = { showPreferredProviderDialog = true }
+                    onClick = { 
+                        if (enabledProvidersCount >= 2) {
+                            showPreferredProviderDialog = true
+                        }
+                    },
+                    enabled = enabledProvidersCount >= 2
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.language_korean_latin),

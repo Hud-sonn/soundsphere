@@ -99,7 +99,7 @@ private fun Material3SettingsItemRow(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(
-                enabled = item.onClick != null,
+                enabled = item.enabled && item.onClick != null,
                 onClick = { item.onClick?.invoke() }
             )
             .padding(horizontal = 20.dp, vertical = 16.dp),
@@ -129,7 +129,9 @@ private fun Material3SettingsItemRow(
                         Icon(
                             painter = icon,
                             contentDescription = null,
-                            tint = if (item.isHighlighted)
+                            tint = if (!item.enabled)
+                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                            else if (item.isHighlighted)
                                 MaterialTheme.colorScheme.primary
                             else
                                 MaterialTheme.colorScheme.primary.copy(alpha = 0.9f),
@@ -140,7 +142,9 @@ private fun Material3SettingsItemRow(
                     Icon(
                         painter = icon,
                         contentDescription = null,
-                        tint = if (item.isHighlighted)
+                        tint = if (!item.enabled)
+                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                        else if (item.isHighlighted)
                             MaterialTheme.colorScheme.primary
                         else
                             MaterialTheme.colorScheme.primary.copy(alpha = 0.9f),
@@ -157,7 +161,14 @@ private fun Material3SettingsItemRow(
             modifier = Modifier.weight(1f)
         ) {
             // Title content
-            ProvideTextStyle(MaterialTheme.typography.titleMedium) {
+            ProvideTextStyle(
+                MaterialTheme.typography.titleMedium.copy(
+                    color = if (!item.enabled) 
+                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                    else
+                        MaterialTheme.colorScheme.onSurface
+                )
+            ) {
                 item.title()
             }
 
@@ -166,7 +177,10 @@ private fun Material3SettingsItemRow(
                 Spacer(modifier = Modifier.height(2.dp))
                 ProvideTextStyle(
                     MaterialTheme.typography.bodyMedium.copy(
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = if (!item.enabled)
+                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                        else
+                            MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 ) {
                     desc()
@@ -192,5 +206,6 @@ data class Material3SettingsItem(
     val trailingContent: (@Composable () -> Unit)? = null,
     val showBadge: Boolean = false,
     val isHighlighted: Boolean = false,
+    val enabled: Boolean = true,
     val onClick: (() -> Unit)? = null
 )
