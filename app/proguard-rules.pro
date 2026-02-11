@@ -119,3 +119,34 @@
 
 ## JSoup re2j optional dependency
 -dontwarn com.google.re2j.**
+
+# Vibra fingerprint library
+-keep class com.metrolist.music.recognition.VibraSignature { *; }
+-keepclassmembers class com.metrolist.music.recognition.VibraSignature {
+    native <methods>;
+}
+
+## Kotlin Reflection Fix
+-keep class kotlin.Metadata { *; }
+-keep class kotlin.reflect.** { *; }
+-dontwarn kotlin.reflect.**
+
+## Ktor Serialization
+-keep class io.ktor.** { *; }
+-keepclassmembers class io.ktor.** { *; }
+-dontwarn io.ktor.**
+
+## Shazam Models
+-keep class com.metrolist.shazamkit.models.** { *; }
+-keepclassmembers class com.metrolist.shazamkit.models.** {
+    *;
+}
+
+## Kotlinx Serialization
+-keepattributes *Annotation*
+-keepclassmembers class com.metrolist.shazamkit.models.** {
+    *** Companion;
+}
+-keepclasseswithmembers class com.metrolist.shazamkit.models.** {
+    kotlinx.serialization.KSerializer serializer(...);
+}
