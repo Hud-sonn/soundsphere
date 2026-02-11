@@ -10,6 +10,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -49,6 +52,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.metrolist.music.LocalDatabase
+import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.R
 import com.metrolist.music.constants.ThumbnailCornerRadius
 import com.metrolist.music.db.entities.RecognitionHistory
@@ -199,7 +203,10 @@ fun RecognitionHistoryScreen(
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(paddingValues)
+                    .padding(paddingValues),
+                contentPadding = LocalPlayerAwareWindowInsets.current
+                    .only(WindowInsetsSides.Bottom)
+                    .asPaddingValues()
             ) {
                 items(
                     items = historyItems,
