@@ -21,6 +21,7 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
@@ -30,6 +31,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -41,6 +43,9 @@ import com.metrolist.music.constants.AudioOffload
 import com.metrolist.music.constants.AudioQuality
 import com.metrolist.music.constants.AudioQualityKey
 import com.metrolist.music.constants.AutoDownloadOnLikeKey
+import com.metrolist.music.constants.CrossfadeDurationKey
+import com.metrolist.music.constants.CrossfadeEnabledKey
+import com.metrolist.music.constants.CrossfadeGaplessKey
 import com.metrolist.music.constants.AutoLoadMoreKey
 import com.metrolist.music.constants.AutoSkipNextOnErrorKey
 import com.metrolist.music.constants.DisableLoadMoreWhenRepeatAllKey
@@ -57,6 +62,7 @@ import com.metrolist.music.constants.SimilarContent
 import com.metrolist.music.constants.SkipSilenceInstantKey
 import com.metrolist.music.constants.SkipSilenceKey
 import com.metrolist.music.constants.StopMusicOnTaskClearKey
+import com.metrolist.music.ui.component.DefaultDialog
 import com.metrolist.music.ui.component.EnumDialog
 import com.metrolist.music.ui.component.IconButton
 import com.metrolist.music.ui.component.Material3SettingsGroup
@@ -75,6 +81,18 @@ fun PlayerSettings(
     val (audioQuality, onAudioQualityChange) = rememberEnumPreference(
         AudioQualityKey,
         defaultValue = AudioQuality.AUTO
+    )
+    val (crossfadeEnabled, onCrossfadeEnabledChange) = rememberPreference(
+        CrossfadeEnabledKey,
+        defaultValue = false
+    )
+    val (crossfadeDuration, onCrossfadeDurationChange) = rememberPreference(
+        CrossfadeDurationKey,
+        defaultValue = 5
+    )
+    val (crossfadeGapless, onCrossfadeGaplessChange) = rememberPreference(
+        CrossfadeGaplessKey,
+        defaultValue = true
     )
     val (persistentQueue, onPersistentQueueChange) = rememberPreference(
         PersistentQueueKey,
@@ -191,6 +209,28 @@ fun PlayerSettings(
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 16.dp)
     ) {
+        var showCrossfadeBetaDialog by remember { mutableStateOf(false) }
+
+        if (showCrossfadeBetaDialog) {
+            DefaultDialog(
+                onDismiss = { showCrossfadeBetaDialog = false },
+                title = { Text(stringResource(R.string.crossfade_beta_title)) },
+                buttons = {
+                    TextButton(onClick = { showCrossfadeBetaDialog = false }) {
+                        Text(stringResource(R.string.cancel))
+                    }
+                    TextButton(onClick = {
+                        showCrossfadeBetaDialog = false
+                        onCrossfadeEnabledChange(true)
+                    }) {
+                        Text(stringResource(R.string.enable))
+                    }
+                }
+            ) {
+                Text(stringResource(R.string.crossfade_beta_message))
+            }
+        }
+
         Spacer(
             Modifier.windowInsetsPadding(
                 LocalPlayerAwareWindowInsets.current.only(
@@ -216,6 +256,78 @@ fun PlayerSettings(
                     },
                     onClick = { showAudioQualityDialog = true }
                 ))
+                add(Material3SettingsItem(
+                    icon = painterResource(R.drawable.linear_scale),
+                    title = { Text(stringResource(R.string.crossfade)) },
+                    description = { Text(stringResource(R.string.crossfade_desc)) },
+                    showBadge = true,
+                    trailingContent = {
+                        Switch(
+                            checked = crossfadeEnabled,
+                            onCheckedChange = {
+                                if (!crossfadeEnabled) {
+                                    showCrossfadeBetaDialog = true
+                                } else {
+                                    onCrossfadeEnabledChange(false)
+                                }
+                            },
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (crossfadeEnabled) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = {
+                        if (!crossfadeEnabled) {
+                            showCrossfadeBetaDialog = true
+                        } else {
+                            onCrossfadeEnabledChange(false)
+                        }
+                    }
+                ))
+                if (crossfadeEnabled) {
+                    add(Material3SettingsItem(
+                        icon = painterResource(R.drawable.timer),
+                        title = { Text(stringResource(R.string.crossfade_duration)) },
+                        description = {
+                            Column {
+                                Text(pluralStringResource(R.plurals.seconds, crossfadeDuration, crossfadeDuration))
+                                Slider(
+                                    value = crossfadeDuration.toFloat(),
+                                    onValueChange = { onCrossfadeDurationChange(it.toInt()) },
+                                    valueRange = 1f..12f,
+                                    steps = 11
+                                )
+                            }
+                        }
+                    ))
+                    add(Material3SettingsItem(
+                        icon = painterResource(R.drawable.album),
+                        title = { Text(stringResource(R.string.crossfade_gapless)) },
+                        description = { Text(stringResource(R.string.crossfade_gapless_desc)) },
+                        trailingContent = {
+                            Switch(
+                                checked = crossfadeGapless,
+                                onCheckedChange = onCrossfadeGaplessChange,
+                                thumbContent = {
+                                    Icon(
+                                        painter = painterResource(
+                                            id = if (crossfadeGapless) R.drawable.check else R.drawable.close
+                                        ),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(SwitchDefaults.IconSize)
+                                    )
+                                }
+                            )
+                        },
+                        onClick = { onCrossfadeGaplessChange(!crossfadeGapless) }
+                    ))
+                }
                 add(Material3SettingsItem(
                     icon = painterResource(R.drawable.history),
                     title = { Text(stringResource(R.string.history_duration)) },
@@ -296,15 +408,21 @@ fun PlayerSettings(
                 add(Material3SettingsItem(
                     icon = painterResource(R.drawable.graphic_eq),
                     title = { Text(stringResource(R.string.audio_offload)) },
-                    description = { Text(stringResource(R.string.audio_offload_description)) },
+                    description = {
+                        Text(
+                            if (crossfadeEnabled) stringResource(R.string.audio_offload_disabled_by_crossfade)
+                            else stringResource(R.string.audio_offload_description)
+                        )
+                    },
                     trailingContent = {
                         Switch(
-                            checked = audioOffload,
+                            checked = if (crossfadeEnabled) false else audioOffload,
                             onCheckedChange = onAudioOffloadChange,
+                            enabled = !crossfadeEnabled,
                             thumbContent = {
                                 Icon(
                                     painter = painterResource(
-                                        id = if (audioOffload) R.drawable.check else R.drawable.close
+                                        id = if (!crossfadeEnabled && audioOffload) R.drawable.check else R.drawable.close
                                     ),
                                     contentDescription = null,
                                     modifier = Modifier.size(SwitchDefaults.IconSize)
@@ -312,7 +430,7 @@ fun PlayerSettings(
                             }
                         )
                     },
-                    onClick = { onAudioOffloadChange(!audioOffload) }
+                    onClick = { if (!crossfadeEnabled) onAudioOffloadChange(!audioOffload) }
                 ))
                 // Only show Cast setting in GMS builds (not in F-Droid/FOSS)
                 if (BuildConfig.CAST_AVAILABLE) {
