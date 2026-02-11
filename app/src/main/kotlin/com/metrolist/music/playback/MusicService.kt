@@ -229,7 +229,7 @@ class MusicService :
     private var isPausedByVolumeMute = false
     
     private var crossfadeEnabled = false
-    private var crossfadeDuration = 5000
+    private var crossfadeDuration = 5000f
     private var crossfadeGapless = true
     private var crossfadeTriggerJob: Job? = null
     
@@ -686,14 +686,14 @@ class MusicService :
             .map { prefs ->
                 Triple(
                     prefs[CrossfadeEnabledKey] ?: false,
-                    prefs[CrossfadeDurationKey] ?: 5,
+                    prefs[CrossfadeDurationKey] ?: 5f,
                     prefs[CrossfadeGaplessKey] ?: true
                 )
             }
             .distinctUntilChanged()
             .collect(scope) { (enabled, duration, gapless) ->
                 crossfadeEnabled = enabled
-                crossfadeDuration = duration * 1000 // Convert to ms
+                crossfadeDuration = duration * 1000f // Convert to ms
                 crossfadeGapless = gapless
             }
 
@@ -2876,10 +2876,54 @@ class MusicService :
         return current.albumTitle != null && current.albumTitle == next.albumTitle
     }
     
+    /**
+     * Records the current song to history before crossfade completes.
+     * This ensures the song is tracked even though playback doesn't end naturally.
+     */
+    private fun recordCurrentSongToHistory() {
+        val mediaItem = player.currentMediaItem ?: return
+        val playTimeMs = player.currentPosition
+        val historyDurationMs = dataStore[HistoryDuration]?.times(1000f) ?: 30000f
+        
+        if (playTimeMs >= historyDurationMs && !dataStore.get(PauseListenHistoryKey, false)) {
+            database.query {
+                incrementTotalPlayTime(mediaItem.mediaId, playTimeMs)
+                try {
+                    insert(
+                        Event(
+                            songId = mediaItem.mediaId,
+                            timestamp = LocalDateTime.now(),
+                            playTime = playTimeMs,
+                        ),
+                    )
+                } catch (_: SQLException) {
+                }
+            }
+        }
+        
+        // Register playback with YouTube
+        if (playTimeMs >= historyDurationMs) {
+            CoroutineScope(Dispatchers.IO).launch {
+                val playbackUrl = database.format(mediaItem.mediaId).first()?.playbackUrl
+                    ?: YTPlayerUtils.playerResponseForMetadata(mediaItem.mediaId, null)
+                        .getOrNull()?.playbackTracking?.videostatsPlaybackUrl?.baseUrl
+                playbackUrl?.let {
+                    YouTube.registerPlayback(null, playbackUrl)
+                        .onFailure {
+                            reportException(it)
+                        }
+                }
+            }
+        }
+    }
+    
     private fun startCrossfade() {
         if (isCrossfading) return
         val nextIndex = player.nextMediaItemIndex
         if (nextIndex == C.INDEX_UNSET) return
+        
+        // Record current song to history before crossfade
+        recordCurrentSongToHistory()
         
         secondaryPlayer = createExoPlayer()
         val secPlayer = secondaryPlayer!!
@@ -2931,6 +2975,8 @@ class MusicService :
 
         nextPlayer.removeListener(secondaryPlayerListener)
         nextPlayer.addListener(this)
+        // Add PlaybackStatsListener to the new player for history tracking
+        nextPlayer.addAnalyticsListener(PlaybackStatsListener(false, this@MusicService))
         
         sleepTimer.player = player
         
