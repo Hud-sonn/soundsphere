@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -51,7 +50,9 @@ import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.metrolist.music.LocalDatabase
 import com.metrolist.music.R
+import com.metrolist.music.constants.ThumbnailCornerRadius
 import com.metrolist.music.db.entities.RecognitionHistory
+import com.metrolist.music.ui.component.DefaultDialog
 import com.metrolist.music.ui.component.IconButton
 import com.metrolist.music.ui.component.LocalMenuState
 import com.metrolist.music.ui.utils.backToMain
@@ -70,13 +71,22 @@ fun RecognitionHistoryScreen(
     
     val historyItems by database.recognitionHistory().collectAsState(initial = emptyList())
     var showClearDialog by remember { mutableStateOf(false) }
+    var itemToDelete by remember { mutableStateOf<RecognitionHistory?>(null) }
     
     if (showClearDialog) {
-        AlertDialog(
-            onDismissRequest = { showClearDialog = false },
+        DefaultDialog(
+            onDismiss = { showClearDialog = false },
+            icon = {
+                Icon(
+                    painter = painterResource(R.drawable.delete),
+                    contentDescription = null
+                )
+            },
             title = { Text(stringResource(R.string.clear_recognition_history)) },
-            text = { Text(stringResource(R.string.clear_recognition_history_confirm)) },
-            confirmButton = {
+            buttons = {
+                TextButton(onClick = { showClearDialog = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
                 TextButton(
                     onClick = {
                         coroutineScope.launch(Dispatchers.IO) {
@@ -89,13 +99,48 @@ fun RecognitionHistoryScreen(
                 ) {
                     Text(stringResource(R.string.clear))
                 }
+            }
+        ) {
+            Text(
+                text = stringResource(R.string.clear_recognition_history_confirm),
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
+    }
+
+    itemToDelete?.let { item ->
+        DefaultDialog(
+            onDismiss = { itemToDelete = null },
+            icon = {
+                Icon(
+                    painter = painterResource(R.drawable.delete),
+                    contentDescription = null
+                )
             },
-            dismissButton = {
-                TextButton(onClick = { showClearDialog = false }) {
+            title = { Text(stringResource(R.string.delete)) },
+            buttons = {
+                TextButton(onClick = { itemToDelete = null }) {
                     Text(stringResource(R.string.cancel))
                 }
+                TextButton(
+                    onClick = {
+                        coroutineScope.launch(Dispatchers.IO) {
+                            database.query {
+                                deleteRecognitionHistoryById(item.id)
+                            }
+                        }
+                        itemToDelete = null
+                    }
+                ) {
+                    Text(stringResource(R.string.delete))
+                }
             }
-        )
+        ) {
+            Text(
+                text = stringResource(R.string.delete_playlist_confirm, item.title),
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
     }
     
     Scaffold(
@@ -168,11 +213,7 @@ fun RecognitionHistoryScreen(
                             navController.navigate("search/${java.net.URLEncoder.encode(searchQuery, "UTF-8")}")
                         },
                         onDelete = {
-                            coroutineScope.launch(Dispatchers.IO) {
-                                database.query {
-                                    deleteRecognitionHistoryById(item.id)
-                                }
-                            }
+                            itemToDelete = item
                         }
                     )
                 }
@@ -194,7 +235,7 @@ private fun RecognitionHistoryItem(
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
             .clickable { onClick() },
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(ThumbnailCornerRadius),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
         )
@@ -211,7 +252,7 @@ private fun RecognitionHistoryItem(
                 contentDescription = null,
                 modifier = Modifier
                     .size(60.dp)
-                    .clip(RoundedCornerShape(8.dp)),
+                    .clip(RoundedCornerShape(ThumbnailCornerRadius)),
                 contentScale = ContentScale.Crop
             )
             
