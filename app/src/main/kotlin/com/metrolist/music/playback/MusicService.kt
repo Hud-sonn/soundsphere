@@ -2893,7 +2893,7 @@ class MusicService :
         
         crossfadeTriggerJob = scope.launch {
             delay(delayMs)
-            if (isActive && player.isPlaying && player.currentMediaItem?.mediaId == targetMediaId) {
+            if (isActive && player.isPlaying && player.currentMediaItem?.mediaId == targetMediaId && !sleepTimer.pauseWhenSongEnd) {
                 startCrossfade()
             }
         }
@@ -2966,6 +2966,7 @@ class MusicService :
         secondaryPlayer = null
         
         fadingPlayer?.removeListener(this)
+        fadingPlayer?.removeListener(sleepTimer)
         
         // Add listener to sync play/pause state
         player.addListener(object : Player.Listener {
@@ -2984,6 +2985,7 @@ class MusicService :
 
         nextPlayer.removeListener(secondaryPlayerListener)
         nextPlayer.addListener(this)
+        nextPlayer.addListener(sleepTimer)
         // Add PlaybackStatsListener to the new player for history tracking
         nextPlayer.addAnalyticsListener(PlaybackStatsListener(false, this@MusicService))
         
@@ -3034,6 +3036,7 @@ class MusicService :
         fadingPlayer?.release()
         fadingPlayer = null
         isCrossfading = false
+        sleepTimer.notifySongTransition()
     }
 
     companion object {
