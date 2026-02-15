@@ -595,4 +595,7 @@
     <string name="crossfade_beta_message">La transición suave es una función nueva y puede tener errores. Si experimentas algún problema, por favor repórtalo. \n\nEsta función desactiva la descarga de audio debido a limitaciones técnicas.</string>
     <string name="audio_offload_disabled_by_crossfade">Desactivado porque la transición suave está activa</string>
     <string name="crossfade">Transición suave</string>
+    <string name="hide_youtube_shorts">Ocultar YouTube Shorts</string>
+    <string name="listen_together_in_top_bar">Escuchar juntos en la barra superior</string>
+    <string name="listen_together_in_top_bar_desc">Mostrar Escuchar juntos en la barra superior en lugar de en la barra de navegación</string>
 </resources>
