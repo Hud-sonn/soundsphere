@@ -610,4 +610,7 @@
     <string name="crossfade_beta_title">ميزة تجريبية</string>
     <string name="crossfade_beta_message">التلاشي التدريجي ميزة جديدة وقد تحتوي على أخطاء إذا واجهت أي مشاكل يُرجى الإبلاغ عنها هذه الميزة تُعطّل إخراج الصوت بسبب قيود تقنية</string>
     <string name="audio_offload_disabled_by_crossfade">معطل لأن التلاشي المتقاطع نشط</string>
+    <string name="hide_youtube_shorts">إخفاء مقاطع يوتيوب القصيرة</string>
+    <string name="listen_together_in_top_bar">استمع معًا من شريط الأعلى</string>
+    <string name="listen_together_in_top_bar_desc">عرض استمعوا معًا في شريط التطبيق العلوي بدلاً من شريط التنقل</string>
 </resources>
