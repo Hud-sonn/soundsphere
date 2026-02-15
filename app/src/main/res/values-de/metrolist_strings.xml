@@ -61,7 +61,7 @@
     <string name="subscribers">Abonnenten</string>
     <string name="views">Aufrufe</string>
     <string name="likes">Likes</string>
-    <string name="dislikes">Dislikes</string>
+    <string name="dislikes">Mag ich nicht</string>
     <plurals name="seconds">
         <item quantity="one">1 Sekunde</item>
         <item quantity="other">%d Sekunden</item>
@@ -246,7 +246,7 @@
     <string name="hide_video_songs">Videosongs ausblenden</string>
     <string name="details_desc">Informationen zum Song anzeigen</string>
     <string name="edit_desc">Ändern Sie den Titel oder Interpreten</string>
-    <string name="start_radio_desc">Erstellen Sie eine Radio basierend auf diesem Song.</string>
+    <string name="start_radio_desc">Erstelle ein Radio basierend auf diesem Song.</string>
     <string name="play_next_desc">Als nächstes abspielen</string>
     <string name="add_to_queue_desc">Zum Ende Ihrer Warteschlange hinzufügen</string>
     <string name="add_to_library_desc">In Ihrer Bibliothek speichern</string>
@@ -590,4 +590,5 @@
     <string name="crossfade_beta_title">Beta-Funktion</string>
     <string name="crossfade_beta_message">Song-Überblendung (Crossfade) ist eine neue Funktion und kann Fehler enthalten. Sollten Sie Probleme feststellen, melden Sie diese bitte.\n\nDiese Funktion deaktiviert die Audioauslagerung aus technischen Gründen.</string>
     <string name="audio_offload_disabled_by_crossfade">Deaktiviert, da Song-Überblendung (Crossfade) aktiv ist.</string>
+    <string name="hide_youtube_shorts">YouTube Shorts ausblenden</string>
 </resources>
