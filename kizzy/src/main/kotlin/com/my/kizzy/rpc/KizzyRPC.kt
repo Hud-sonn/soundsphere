@@ -155,11 +155,18 @@ open class KizzyRPC(
                 }
             }.bodyAsText()
             val json = JSONObject(response)
+            val id = json.getString("id")
             val username = json.getString("username")
             val name = json.optString("global_name", username)
+            val avatarHash = json.optString("avatar")
+            val avatar = if (avatarHash.isNotEmpty() && avatarHash != "null") {
+                "https://cdn.discordapp.com/avatars/$id/$avatarHash.png"
+            } else {
+                null
+            }
             client.close()
 
-            UserInfo(username, name)
+            UserInfo(id, username, name, avatar)
         }
     }
 }

@@ -353,7 +353,7 @@ fun NavGraphBuilder.navigationBuilder(
     }
 
     composable("settings/integrations/discord") {
-        DiscordSettings(navController, scrollBehavior)
+        DiscordSettings(navController, scrollBehavior, snackbarHostState)
     }
 
     composable("settings/integrations/lastfm") {

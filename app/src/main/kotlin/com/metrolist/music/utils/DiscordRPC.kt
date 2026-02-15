@@ -22,7 +22,19 @@ class DiscordRPC(
     userAgent = SuperProperties.userAgent,
     superPropertiesBase64 = SuperProperties.superPropertiesBase64
 ) {
-    suspend fun updateSong(song: Song, currentPlaybackTimeMillis: Long, playbackSpeed: Float = 1.0f, useDetails: Boolean = false) = runCatching {
+    suspend fun updateSong(
+        song: Song,
+        currentPlaybackTimeMillis: Long,
+        playbackSpeed: Float = 1.0f,
+        useDetails: Boolean = false,
+        status: String = "online",
+        button1Text: String = "",
+        button1Visible: Boolean = true,
+        button2Text: String = "",
+        button2Visible: Boolean = true,
+        activityType: String = "listening",
+        activityName: String = "",
+    ) = runCatching {
         val currentTime = System.currentTimeMillis()
 
         val adjustedPlaybackTime = (currentPlaybackTimeMillis / playbackSpeed).toLong()
@@ -37,8 +49,35 @@ class DiscordRPC(
         val remainingDuration = song.song.duration * 1000L - currentPlaybackTimeMillis
         val adjustedRemainingDuration = (remainingDuration / playbackSpeed).toLong()
 
+        val buttonsList = mutableListOf<Pair<String, String>>()
+        if (button1Visible) {
+            val resolvedText = resolveVariables(
+                button1Text.ifEmpty { "Listen on YouTube Music" },
+                song
+            )
+            buttonsList.add(resolvedText to "https://music.youtube.com/watch?v=${song.song.id}")
+        }
+        if (button2Visible) {
+            val resolvedText = resolveVariables(
+                button2Text.ifEmpty { "Visit Metrolist" },
+                song
+            )
+            buttonsList.add(resolvedText to "https://github.com/MetrolistGroup/Metrolist")
+        }
+
+        val type = when (activityType) {
+            "playing" -> Type.PLAYING
+            "watching" -> Type.WATCHING
+            "competing" -> Type.COMPETING
+            else -> Type.LISTENING
+        }
+
+        val name = activityName.ifEmpty {
+            context.getString(R.string.app_name).removeSuffix(" Debug")
+        }
+
         setActivity(
-            name = context.getString(R.string.app_name).removeSuffix(" Debug"),
+            name = name,
             details = songTitleWithRate,
             state = song.artists.joinToString { it.name },
             detailsUrl = "https://music.youtube.com/watch?v=${song.song.id}",
@@ -46,23 +85,33 @@ class DiscordRPC(
             smallImage = song.artists.firstOrNull()?.thumbnailUrl?.let { RpcImage.ExternalImage(it) },
             largeText = song.album?.title,
             smallText = song.artists.firstOrNull()?.name,
-            buttons = listOf(
-                "Listen on YouTube Music" to "https://music.youtube.com/watch?v=${song.song.id}",
-                "Visit Metrolist" to "https://github.com/MetrolistGroup/Metrolist"
-            ),
-            type = Type.LISTENING,
+            buttons = if (buttonsList.isNotEmpty()) buttonsList else null,
+            type = type,
             statusDisplayType = if (useDetails) StatusDisplayType.DETAILS else StatusDisplayType.STATE,
             since = currentTime,
             startTime = calculatedStartTime,
             endTime = currentTime + adjustedRemainingDuration,
-            applicationId = APPLICATION_ID
+            applicationId = APPLICATION_ID,
+            status = status
         )
     }
 
     override suspend fun close() {
         super.close()
     }
+
     companion object {
         private const val APPLICATION_ID = "1411019391843172514"
+
+        /**
+         * Resolves template variables in text.
+         * Supported: {song_name}, {artist_name}, {album_name}
+         */
+        fun resolveVariables(text: String, song: Song): String {
+            return text
+                .replace("{song_name}", song.song.title)
+                .replace("{artist_name}", song.artists.joinToString { it.name })
+                .replace("{album_name}", song.album?.title ?: "")
+        }
     }
 }

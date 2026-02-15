@@ -85,6 +85,18 @@ import com.metrolist.music.constants.CrossfadeDurationKey
 import com.metrolist.music.constants.CrossfadeEnabledKey
 import com.metrolist.music.constants.CrossfadeGaplessKey
 import com.metrolist.music.constants.DisableLoadMoreWhenRepeatAllKey
+import android.os.Handler
+import android.os.Looper
+import android.widget.Toast
+import com.metrolist.music.constants.DiscordActivityNameKey
+import com.metrolist.music.constants.DiscordActivityTypeKey
+import com.metrolist.music.constants.DiscordAdvancedModeKey
+import com.metrolist.music.constants.DiscordAvatarKey
+import com.metrolist.music.constants.DiscordButton1TextKey
+import com.metrolist.music.constants.DiscordButton1VisibleKey
+import com.metrolist.music.constants.DiscordButton2TextKey
+import com.metrolist.music.constants.DiscordButton2VisibleKey
+import com.metrolist.music.constants.DiscordStatusKey
 import com.metrolist.music.constants.DiscordTokenKey
 import com.metrolist.music.constants.DiscordUseDetailsKey
 import com.metrolist.music.constants.EnableDiscordRPCKey
@@ -119,6 +131,7 @@ import com.metrolist.music.db.entities.Event
 import com.metrolist.music.db.entities.FormatEntity
 import com.metrolist.music.db.entities.LyricsEntity
 import com.metrolist.music.db.entities.RelatedSongMap
+import com.metrolist.music.db.entities.Song
 import com.metrolist.music.di.DownloadCache
 import com.metrolist.music.di.PlayerCache
 import com.metrolist.music.eq.EqualizerService
@@ -372,7 +385,7 @@ class MusicService :
                     if (player.isPlaying) {
                         scope.launch {
                             currentSong.value?.let { song ->
-                                discordRpc?.updateSong(song, player.currentPosition, player.playbackParameters.speed, dataStore.get(DiscordUseDetailsKey, false))
+                                updateDiscordRPC(song)
                             }
                         }
                     }
@@ -518,7 +531,7 @@ class MusicService :
                     val mediaId = player.currentMetadata?.id
                     if (mediaId != null) {
                         database.song(mediaId).first()?.let { song ->
-                            discordRpc?.updateSong(song, player.currentPosition, player.playbackParameters.speed, dataStore.get(DiscordUseDetailsKey, false))
+                            updateDiscordRPC(song)
                         }
                     }
                 }
@@ -620,25 +633,33 @@ class MusicService :
                     discordRpc = DiscordRPC(this, key)
                     if (player.playbackState == Player.STATE_READY && player.playWhenReady) {
                         currentSong.value?.let {
-                            discordRpc?.updateSong(it, player.currentPosition, player.playbackParameters.speed, dataStore.get(DiscordUseDetailsKey, false))
+                            updateDiscordRPC(it, true)
                         }
                     }
                 }
             }
 
-        // details key stuff
+        // Watch all Discord customization preferences
         dataStore.data
-            .map { it[DiscordUseDetailsKey] ?: false }
-            .debounce(1000)
+            .map {
+                listOf(
+                    it[DiscordUseDetailsKey],
+                    it[DiscordAdvancedModeKey],
+                    it[DiscordStatusKey],
+                    it[DiscordButton1TextKey],
+                    it[DiscordButton1VisibleKey],
+                    it[DiscordButton2TextKey],
+                    it[DiscordButton2VisibleKey],
+                    it[DiscordActivityTypeKey],
+                    it[DiscordActivityNameKey]
+                )
+            }
+            .debounce(300)
             .distinctUntilChanged()
-            .collect(scope) { useDetails ->
-                if (player.playbackState == Player.STATE_READY && player.playWhenReady) {
+            .collect(scope) {
+                if (player.playbackState == Player.STATE_READY) {
                     currentSong.value?.let { song ->
-                        discordUpdateJob?.cancel()
-                        discordUpdateJob = scope.launch {
-                            delay(1000)
-                            discordRpc?.updateSong(song, player.currentPosition, player.playbackParameters.speed, useDetails)
-                        }
+                        updateDiscordRPC(song, true)
                     }
                 }
             }
@@ -1874,7 +1895,7 @@ class MusicService :
                 scope.launch {
                     // Fetch song from database to get full info
                     database.song(mediaId).first()?.let { song ->
-                        discordRpc?.updateSong(song, player.currentPosition, player.playbackParameters.speed, dataStore.get(DiscordUseDetailsKey, false))
+                        updateDiscordRPC(song)
                     }
                 }
             }
@@ -1985,7 +2006,7 @@ class MusicService :
                 delay(1000)
                 if (player.playWhenReady && player.playbackState == Player.STATE_READY) {
                     currentSong.value?.let { song ->
-                        discordRpc?.updateSong(song, player.currentPosition, playbackParameters.speed, dataStore.get(DiscordUseDetailsKey, false))
+                        updateDiscordRPC(song)
                     }
                 }
             }
@@ -2499,6 +2520,43 @@ class MusicService :
             }
         } finally {
             isSilenceSkipping = false
+        }
+    }
+
+    private fun updateDiscordRPC(song: Song, showFeedback: Boolean = false) {
+        val useDetails = dataStore.get(DiscordUseDetailsKey, false)
+        val advancedMode = dataStore.get(DiscordAdvancedModeKey, false)
+
+        val status = if (advancedMode) dataStore.get(DiscordStatusKey, "online") else "online"
+        val b1Text = if (advancedMode) dataStore.get(DiscordButton1TextKey, "") else ""
+        val b1Visible = if (advancedMode) dataStore.get(DiscordButton1VisibleKey, true) else true
+        val b2Text = if (advancedMode) dataStore.get(DiscordButton2TextKey, "") else ""
+        val b2Visible = if (advancedMode) dataStore.get(DiscordButton2VisibleKey, true) else true
+        val activityType = if (advancedMode) dataStore.get(DiscordActivityTypeKey, "listening") else "listening"
+        val activityName = if (advancedMode) dataStore.get(DiscordActivityNameKey, "") else ""
+
+        discordUpdateJob?.cancel()
+        discordUpdateJob = scope.launch {
+            discordRpc?.updateSong(
+                song,
+                player.currentPosition,
+                player.playbackParameters.speed,
+                useDetails,
+                status,
+                b1Text,
+                b1Visible,
+                b2Text,
+                b2Visible,
+                activityType,
+                activityName
+            )?.onFailure {
+                // Rate limited or error
+                if (showFeedback) {
+                    Handler(Looper.getMainLooper()).post {
+                        Toast.makeText(this@MusicService, "Discord RPC update failed: ${it.message}", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
         }
     }
 

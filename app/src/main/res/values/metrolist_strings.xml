@@ -682,4 +682,35 @@
     <string name="column_label">Col %d</string>
     <string name="csv_import_failed">Failed to import CSV file</string>
     <string name="csv_preview_failed">Failed to preview CSV file</string>
+
+    <!-- Discord Integration Redesign -->
+    <string name="discord_integration_settings">Discord Integration</string>
+    <string name="discord_status">Status</string>
+    <string name="discord_status_online">Online</string>
+    <string name="discord_status_idle">Idle</string>
+    <string name="discord_status_dnd">Do Not Disturb</string>
+    <string name="discord_buttons">Buttons</string>
+    <string name="discord_button_1">Button 1</string>
+    <string name="discord_button_2">Button 2</string>
+    <string name="button_text">Button text</string>
+    <string name="button_visible">Visible</string>
+    <string name="login_successful">Login successful!</string>
+    <string name="discord_information_warning">This feature uses the KizzyRPC library to connect to Discord\'s Gateway and set your Rich Presence status. While no known account suspensions have occurred from similar usage, this method is not officially supported by Discord and may be considered a Terms of Service violation. Your token is extracted locally and never sent to third-party servers. Proceed at your own discretion.</string>
+    <string name="discord_activity_type">Activity type</string>
+    <string name="discord_activity_playing">Playing</string>
+    <string name="discord_activity_listening">Listening</string>
+    <string name="discord_activity_watching">Watching</string>
+    <string name="discord_activity_competing">Competing</string>
+    <string name="discord_customization">Customization</string>
+    <string name="discord_button_text_variables">Variables: {song_name}, {artist_name}, {album_name}</string>
+    <string name="discord_rpc_preview">Rich Presence Preview</string>
+    <string name="discord_presence">Presence</string>
+    <string name="discord_connect_description">Sign in with Discord to share what you\'re listening to</string>
+    <string name="discord_playing_metrolist">Playing Metrolist</string>
+    <string name="discord_watching_metrolist">Watching Metrolist</string>
+    <string name="discord_competing_metrolist">Competing in Metrolist</string>
+    <string name="discord_activity_name">Activity name</string>
+    <string name="discord_activity_name_description">Custom name for the activity (leave empty for default)</string>
+    <string name="discord_advanced_mode">Advanced mode</string>
+    <string name="discord_advanced_mode_description">Show additional customization options for Rich Presence</string>
 </resources>
