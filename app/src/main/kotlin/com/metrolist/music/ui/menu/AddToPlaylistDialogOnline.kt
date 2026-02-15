@@ -164,7 +164,7 @@ fun AddToPlaylistDialogOnline(
                                 var allArtists = ""
                                 song.artists.forEach {
                                         artist ->
-                                    allArtists += " ${URLDecoder.decode(artist.name, StandardCharsets.UTF_8.toString())}"
+                                    allArtists += " ${try { URLDecoder.decode(artist.name, StandardCharsets.UTF_8.toString()) } catch (e: IllegalArgumentException) { artist.name }}"
                                 }
                                 val query = "${song.title} - $allArtists"
 
@@ -226,7 +226,7 @@ fun AddToPlaylistDialogOnline(
                                 var allArtists = ""
                                 song.artists.forEach {
                                         artist ->
-                                    allArtists += " ${URLDecoder.decode(artist.name, StandardCharsets.UTF_8.toString())}"
+                                    allArtists += " ${try { URLDecoder.decode(artist.name, StandardCharsets.UTF_8.toString()) } catch (e: IllegalArgumentException) { artist.name }}"
                                 }
                                 val query = "${song.title} - $allArtists"
 

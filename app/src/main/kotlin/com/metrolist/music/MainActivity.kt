@@ -645,13 +645,11 @@ class MainActivity : ComponentActivity() {
                 LaunchedEffect(navBackStackEntry) {
                     if (inSearchScreen) {
                         val searchQuery = withContext(Dispatchers.IO) {
-                            if (navBackStackEntry?.arguments?.getString("query")!!.contains("%")) {
-                                navBackStackEntry?.arguments?.getString("query")!!
-                            } else {
-                                URLDecoder.decode(
-                                    navBackStackEntry?.arguments?.getString("query")!!,
-                                    "UTF-8"
-                                )
+                            val rawQuery = navBackStackEntry?.arguments?.getString("query")!!
+                            try {
+                                URLDecoder.decode(rawQuery, "UTF-8")
+                            } catch (e: IllegalArgumentException) {
+                                rawQuery
                             }
                         }
                         onQueryChange(
