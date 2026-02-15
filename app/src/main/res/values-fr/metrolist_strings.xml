@@ -595,4 +595,7 @@
     <string name="crossfade_beta_title">Fonctionnalité Bêta</string>
     <string name="crossfade_beta_message">Le fondu enchaîné est une nouvelle fonctionnalité qui peut présenter des bugs. Si vous rencontrez des problèmes, veuillez les signaler.\n\nCette fonctionnalité désactive le déchargement audio en raison de limitations techniques.</string>
     <string name="audio_offload_disabled_by_crossfade">Désactivé car le fondu enchaîné est actif</string>
+    <string name="hide_youtube_shorts">Masquer YouTube Shorts</string>
+    <string name="listen_together_in_top_bar">Écouter ensemble dans la barre supérieure</string>
+    <string name="listen_together_in_top_bar_desc">Afficher « Écouter ensemble » dans la barre d\'application supérieure au lieu de la barre de navigation</string>
 </resources>
