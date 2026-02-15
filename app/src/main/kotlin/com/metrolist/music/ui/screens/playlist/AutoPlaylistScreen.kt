@@ -129,8 +129,7 @@ fun AutoPlaylistScreen(
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
     val playlist = when (viewModel.playlist) {
         "liked" -> stringResource(R.string.liked)
-        // Uploaded feature is temporarily disabled
-        // "uploaded" -> stringResource(R.string.uploaded_playlist)
+        "uploaded" -> stringResource(R.string.uploaded_playlist)
         else -> stringResource(R.string.offline)
     }
 
@@ -163,8 +162,7 @@ fun AutoPlaylistScreen(
     val playlistType = when (playlistId) {
         "liked" -> PlaylistType.LIKE
         "downloaded" -> PlaylistType.DOWNLOAD
-        // Uploaded feature is temporarily disabled
-        // "uploaded" -> PlaylistType.UPLOADED
+        "uploaded" -> PlaylistType.UPLOADED
         else -> PlaylistType.OTHER
     }
 
@@ -201,12 +199,20 @@ fun AutoPlaylistScreen(
     }
     
     LaunchedEffect(Unit) {
+        println("[UPLOAD_DEBUG] AutoPlaylistScreen LaunchedEffect: playlistId=$playlistId, playlistType=$playlistType, ytmSync=$ytmSync")
         if (ytmSync) {
             withContext(Dispatchers.IO) {
-                if (playlistType == PlaylistType.LIKE) viewModel.syncLikedSongs()
-                // Uploaded feature is temporarily disabled
-                // if (playlistType == PlaylistType.UPLOADED) viewModel.syncUploadedSongs()
+                if (playlistType == PlaylistType.LIKE) {
+                    println("[UPLOAD_DEBUG] AutoPlaylistScreen: Calling syncLikedSongs()")
+                    viewModel.syncLikedSongs()
+                }
+                if (playlistType == PlaylistType.UPLOADED) {
+                    println("[UPLOAD_DEBUG] AutoPlaylistScreen: Calling syncUploadedSongs()")
+                    viewModel.syncUploadedSongs()
+                }
             }
+        } else {
+            println("[UPLOAD_DEBUG] AutoPlaylistScreen: ytmSync is false, not syncing")
         }
     }
 
