@@ -489,4 +489,13 @@
     <string name="reject">Rejeitar</string>
     <string name="clear">Limpar</string>
     <string name="copy">Copiar</string>
+    <string name="change">Alterar</string>
+    <string name="copied_to_clipboard">Copiado para a área de transferência</string>
+    <string name="not_set">Não definido</string>
+    <string name="hosting_room">Sala de hospedagem</string>
+    <string name="in_room">Na sala</string>
+    <string name="pending_requests">Solicitações pendentes</string>
+    <string name="pending_suggestions">Sugestões pendentes</string>
+    <string name="suggest_to_host">Sugerir para hospedar</string>
+    <string name="kick_user">Kick</string>
 </resources>
