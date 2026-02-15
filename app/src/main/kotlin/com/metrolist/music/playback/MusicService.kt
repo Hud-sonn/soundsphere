@@ -358,6 +358,9 @@ class MusicService :
     // URL cache for stream URLs - class-level so it can be invalidated on errors
     private val songUrlCache = HashMap<String, Pair<String, Long>>()
 
+    // Flag to bypass cache when quality changes - forces fresh stream fetch
+    private val bypassCacheForQualityChange = mutableSetOf<String>()
+
     // Enhanced error tracking for strict retry management
     private var currentMediaIdRetryCount = mutableMapOf<String, Int>()
     private val MAX_RETRY_PER_SONG = 3
@@ -536,6 +539,63 @@ class MusicService :
                     }
                 }
             }
+        }
+
+        // Watch for audio quality setting changes
+        var isFirstQualityEmit = true
+        scope.launch {
+            dataStore.data
+                .map { it[AudioQualityKey]?.let { value ->
+                    com.metrolist.music.constants.AudioQuality.entries.find { it.name == value }
+                } ?: com.metrolist.music.constants.AudioQuality.AUTO }
+                .distinctUntilChanged()
+                .collect { newQuality ->
+                    val oldQuality = audioQuality
+                    audioQuality = newQuality
+
+                    // Skip reload on first emit (app startup)
+                    if (isFirstQualityEmit) {
+                        isFirstQualityEmit = false
+                        Timber.tag("MusicService").i("QUALITY INIT: $newQuality")
+                        return@collect
+                    }
+
+                    Timber.tag("MusicService").i("QUALITY CHANGED: $oldQuality -> $newQuality")
+
+                    // Reload current song with new quality
+                    val mediaId = player.currentMediaItem?.mediaId ?: return@collect
+                    val currentPosition = player.currentPosition
+                    val wasPlaying = player.isPlaying
+                    val currentIndex = player.currentMediaItemIndex
+
+                    Timber.tag("MusicService").i("RELOADING STREAM: $mediaId at position ${currentPosition}ms")
+
+                    // Clear cached URL to force fresh fetch
+                    songUrlCache.remove(mediaId)
+
+                    // CRITICAL: Clear caches synchronously to prevent format parsing errors
+                    runBlocking(Dispatchers.IO) {
+                        try {
+                            playerCache.removeResource(mediaId)
+                            downloadCache.removeResource(mediaId)
+                            Timber.tag("MusicService").d("Cleared player and download cache for $mediaId")
+                        } catch (e: Exception) {
+                            Timber.tag("MusicService").e(e, "Failed to clear cache for $mediaId")
+                        }
+                    }
+
+                    // Set bypass flag so resolver skips cache checks
+                    bypassCacheForQualityChange.add(mediaId)
+                    Timber.tag("MusicService").d("Set bypass cache flag for $mediaId")
+
+                    // Reload player at same position
+                    player.stop()
+                    player.seekTo(currentIndex, currentPosition)
+                    player.prepare()
+                    if (wasPlaying) {
+                        player.play()
+                    }
+                }
         }
 
         combine(playerVolume, isMuted) { volume, muted ->
@@ -2564,22 +2624,30 @@ class MusicService :
         return ResolvingDataSource.Factory(createCacheDataSource()) { dataSpec ->
             val mediaId = dataSpec.key ?: error("No media id")
 
-            if (downloadCache.isCached(
-                    mediaId,
-                    dataSpec.position,
-                    if (dataSpec.length >= 0) dataSpec.length else 1
-                ) ||
-                playerCache.isCached(mediaId, dataSpec.position, CHUNK_LENGTH)
-            ) {
-                scope.launch(Dispatchers.IO) { recoverSong(mediaId) }
-                return@Factory dataSpec
+            // Check if we need to bypass cache for quality change
+            val shouldBypassCache = bypassCacheForQualityChange.contains(mediaId)
+
+            if (!shouldBypassCache) {
+                if (downloadCache.isCached(
+                        mediaId,
+                        dataSpec.position,
+                        if (dataSpec.length >= 0) dataSpec.length else 1
+                    ) ||
+                    playerCache.isCached(mediaId, dataSpec.position, CHUNK_LENGTH)
+                ) {
+                    scope.launch(Dispatchers.IO) { recoverSong(mediaId) }
+                    return@Factory dataSpec
+                }
+
+                songUrlCache[mediaId]?.takeIf { it.second > System.currentTimeMillis() }?.let {
+                    scope.launch(Dispatchers.IO) { recoverSong(mediaId) }
+                    return@Factory dataSpec.withUri(it.first.toUri())
+                }
+            } else {
+                Timber.tag("MusicService").i("BYPASSING CACHE for $mediaId due to quality change")
             }
 
-            songUrlCache[mediaId]?.takeIf { it.second > System.currentTimeMillis() }?.let {
-                scope.launch(Dispatchers.IO) { recoverSong(mediaId) }
-                return@Factory dataSpec.withUri(it.first.toUri())
-            }
-
+            Timber.tag("MusicService").i("FETCHING STREAM: $mediaId | quality=$audioQuality")
             val playbackData = runBlocking(Dispatchers.IO) {
                 YTPlayerUtils.playerResponseForPlayback(
                     mediaId,
@@ -2644,6 +2712,11 @@ class MusicService :
                     )
                 }
                 scope.launch(Dispatchers.IO) { recoverSong(mediaId, nonNullPlayback) }
+
+                // Clear bypass flag now that we've fetched fresh stream
+                if (bypassCacheForQualityChange.remove(mediaId)) {
+                    Timber.tag("MusicService").d("Cleared bypass cache flag for $mediaId after fresh fetch")
+                }
 
                 val streamUrl = nonNullPlayback.streamUrl
 
