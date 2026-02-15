@@ -29,6 +29,7 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -232,7 +233,8 @@ fun ListenTogetherScreen(
         state = lazyListState,
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
+            .background(MaterialTheme.colorScheme.background)
+            .imePadding(),
         contentPadding = PaddingValues(
             start = 16.dp,
             end = 16.dp,
@@ -353,6 +355,7 @@ fun ListenTogetherScreen(
                     isJoiningRoom = isJoiningRoom,
                     joinErrorMessage = joinErrorMessage,
                     waitingForApprovalText = waitingForApprovalText,
+                    bringIntoViewRequester = bringIntoViewRequester,
                     onCreateRoom = {
                         val username = usernameInput.takeIf { it.isNotBlank() } ?: savedUsername
                         val finalUsername = username.trim()
@@ -389,7 +392,7 @@ fun ListenTogetherScreen(
                     },
                     onFieldFocused = {
                         coroutineScope.launch {
-                            lazyListState.animateScrollToItem(3)
+                            bringIntoViewRequester.bringIntoView()
                         }
                     }
                 )
@@ -1019,6 +1022,7 @@ private fun JoinCreateRoomSection(
     isJoiningRoom: Boolean,
     joinErrorMessage: String?,
     waitingForApprovalText: String,
+    bringIntoViewRequester: BringIntoViewRequester,
     onCreateRoom: () -> Unit,
     onJoinRoom: () -> Unit,
     onFieldFocused: () -> Unit = {}
@@ -1100,6 +1104,7 @@ private fun JoinCreateRoomSection(
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
+                    .bringIntoViewRequester(bringIntoViewRequester)
                     .onFocusChanged { if (it.isFocused) onFieldFocused() }
             )
 
