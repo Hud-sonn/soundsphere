@@ -591,4 +591,6 @@
     <string name="crossfade_beta_message">Song-Überblendung (Crossfade) ist eine neue Funktion und kann Fehler enthalten. Sollten Sie Probleme feststellen, melden Sie diese bitte.\n\nDiese Funktion deaktiviert die Audioauslagerung aus technischen Gründen.</string>
     <string name="audio_offload_disabled_by_crossfade">Deaktiviert, da Song-Überblendung (Crossfade) aktiv ist.</string>
     <string name="hide_youtube_shorts">YouTube Shorts ausblenden</string>
+    <string name="listen_together_in_top_bar">Gemeinsam hören in der oberen Leiste anzeigen</string>
+    <string name="listen_together_in_top_bar_desc">Gemeinsam hören in der oberen App-Leiste anstelle der Navigationsleiste anzeigen</string>
 </resources>
