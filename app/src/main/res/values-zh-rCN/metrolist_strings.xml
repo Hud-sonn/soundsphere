@@ -596,7 +596,7 @@
     <string name="ai_deepl_formality_more">更正式一些</string>
     <string name="ai_deepl_formality_less">不太正式</string>
     <string name="discord_integration_settings">Discord 集成</string>
-    <string name="discord_status">地位</string>
+    <string name="discord_status">状态</string>
     <string name="discord_status_online">在线</string>
     <string name="discord_status_idle">闲置的</string>
     <string name="discord_status_dnd">请勿打扰</string>
@@ -605,7 +605,7 @@
     <string name="discord_button_2">按钮2</string>
     <string name="button_text">底部文字</string>
     <string name="button_visible">可见的</string>
-    <string name="login_successful">成功登陆!</string>
+    <string name="login_successful">登录成功！</string>
     <string name="discord_information_warning">此功能使用 KizzyRPC 库连接到 Discord 网关并设置您的 Rich Presence 状态.虽然目前尚未发现因类似使用而导致的账号封禁,但此方法并非官方方法.</string>
     <string name="discord_activity_type">活动类型</string>
     <string name="discord_activity_playing">正在播放</string>
@@ -614,7 +614,7 @@
     <string name="discord_activity_competing">正在竞争</string>
     <string name="discord_customization">定制</string>
     <string name="discord_button_text_variables">变量：{song_name},{artist_name},{album_name}</string>
-    <string name="discord_rpc_preview">富媒体预览</string>
+    <string name="discord_rpc_preview">Rich Presence 预览</string>
     <string name="discord_presence">在场</string>
     <string name="discord_connect_description">使用 Discord 登录来分享你正在收听的内容</string>
     <string name="discord_playing_metrolist">播放 Metrolist</string>
