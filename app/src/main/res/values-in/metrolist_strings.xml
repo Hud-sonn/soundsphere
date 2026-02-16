@@ -26,7 +26,7 @@
     <string name="offline">Diunduh</string>
     <string name="sync_playlist">Sinkronkan playlist</string>
     <string name="elements_selected">%1$d elemen dipilih</string>
-    <string name="allows_for_sync_witch_youtube">Catatan: Ini memungkinkan sinkronisasi dengan YouTube Music. Pengaturan ini TIDAK dapat diubah nanti.</string>
+    <string name="allows_for_sync_witch_youtube">Catatan: Ini memungkinkan sinkronisasi dengan YouTube Music. Pengaturan ini TIDAK dapat diubah di kemudian hari.</string>
     <string name="share_lyrics">Bagikan lirik</string>
     <string name="share_as_text">Bagikan sebagai teks</string>
     <string name="share_as_image">Bagikan sebagai gambar</string>
@@ -67,7 +67,7 @@
     <string name="likes">Suka</string>
     <string name="dislikes">Tidak Suka</string>
     <string name="clear_downloads_dialog">Apakah Anda yakin ingin menghapus semua unduhan?</string>
-    <string name="token_adv_login_description">Ini adalah metode login LANJUTAN. Sebagai alternatif dari portal web, Anda dapat langsung memasukkan atau memperbarui token login Anda di sini. Sebagai contoh, ini dapat mempercepat proses login di berbagai perangkat. Harap diperhatikan bahwa format token yang tidak valid yang gagal diproses oleh aplikasi tidak akan diterima</string>
+    <string name="token_adv_login_description">Ini adalah metode login LANJUTAN. Sebagai alternatif dari portal web, Anda dapat langsung memasukkan atau memperbarui token login Anda di sini. Sebagai contoh, ini dapat mempercepat proses login di beberapa perangkat sekaligus. Perlu diperhatikan bahwa format token yang tidak valid dan gagal diproses oleh aplikasi tidak akan diterima</string>
     <string name="local_history">Lokal</string>
     <string name="sort_by_last_updated">Tanggal diperbarui</string>
     <string name="link_copied">Link disalin ke papan klip</string>
@@ -96,7 +96,7 @@
     <string name="default_style">Default</string>
     <string name="secondary_color_style">Sekunder</string>
     <string name="enable_swipe_thumbnail">Aktifkan gestur geser untuk mengganti lagu</string>
-    <string name="swipe_song_to_add">Geser lagu ke kiri untuk menambahkannya ke antrean atau ke kanan untuk memutar selanjutnya</string>
+    <string name="swipe_song_to_add">Geser lagu ke kiri untuk menambahkannya ke antrean, atau ke kanan untuk memutar selanjutnya</string>
     <string name="lyrics_click_change">Ganti lirik dengan ketukan</string>
     <string name="lyrics_auto_scroll">Gulir lirik otomatis</string>
     <string name="lyrics_romanize_japanese">Romanisasi lirik Jepang</string>
@@ -145,8 +145,8 @@
     </plurals>
     <string name="new_mini_player_design">Desain pemutar musik mini baru</string>
     <string name="close">Tutup</string>
-    <string name="seek_backward">5 detik mundur</string>
-    <string name="seek_forward">5 detik maju</string>
+    <string name="seek_backward">Mundur 5 detik</string>
+    <string name="seek_forward">Maju 5 detik</string>
     <string name="seek_forward_dynamic">+%1$d detik maju</string>
     <string name="seek_backward_dynamic">-%1$d detik mundur</string>
     <string name="playlist_not_found">Playlist tidak ditemukan</string>
@@ -224,7 +224,7 @@
     <string name="download_playlist_desc">Unduh semua lagu untuk dapat diputar secara offline</string>
     <string name="remove_download_playlist_desc">Hapus semua lagu yang telah diunduh dari playlist ini</string>
     <string name="download_in_progress_desc">Pengunduhan sedang berlangsung</string>
-    <string name="share_playlist_desc">Bagikan playlist ini dengan orang lain</string>
+    <string name="share_playlist_desc">Bagikan playlist ini kepada orang lain</string>
     <string name="delete_playlist_desc">Hapus playlist ini secara permanen</string>
     <string name="sync_playlist_desc">Sinkronkan playlist dengan YouTube Music</string>
     <string name="primary_color_style">Warna primer</string>
@@ -323,7 +323,7 @@
     <string name="lyrics_glow_effect">Aktifkan efek cahaya lirik</string>
     <string name="lyrics_glow_effect_desc">Tambahkan animasi bercahaya dan efek memantul pada lirik yang aktif</string>
     <string name="shuffle_playlist_first">Acak playlist/album terlebih dahulu</string>
-    <string name="shuffle_playlist_first_desc">Saat mengacak, putar semua lagu dari playlist/album asli terlebih dahulu, lalu konten serupa</string>
+    <string name="shuffle_playlist_first_desc">Saat mengacak, putar semua lagu dari playlist/album asli terlebih dahulu, kemudian konten serupa</string>
     <string name="enable_wavy_slider">Aktifkan slider bergelombang</string>
     <string name="wavy">Bergelombang</string>
     <plurals name="profiles_count">
@@ -360,14 +360,14 @@
     <string name="lyrics_offset">Offset Lirik</string>
     <string name="show_more">Tampilkan lebih banyak</string>
     <string name="show_less">Tampilkan lebih sedikit</string>
-    <string name="skip_silence_desc">Percepat melewati bagian senyap lagu</string>
-    <string name="skip_silence_instant">Lewati keheningan secara instan</string>
+    <string name="skip_silence_desc">Lewati bagian hening pada lagu secara otomatis</string>
+    <string name="skip_silence_instant">Lewati keheningan seketika</string>
     <string name="about_artist">Tentang</string>
     <string name="artist_page_settings">Halaman artis</string>
     <string name="show_artist_description">Tampilkan deskripsi artis</string>
     <string name="show_artist_subscriber_count">Tampilkan jumlah subskriber</string>
     <string name="show_artist_monthly_listeners">Tampilkan jumlah pendengar bulanan</string>
-    <string name="skip_silence_instant_desc">Lompat ke depan saat momen hening daripada mempercepat pemutaran</string>
+    <string name="skip_silence_instant_desc">Langsung melompati bagian hening alih-alih mempercepat pemutaran</string>
     <string name="persistent_shuffle_title">Acak persisten</string>
     <string name="persistent_shuffle_desc">Pertahankan acak yang sedang aktif saat memulai lagu atau playlist baru</string>
     <string name="error_playback_failed">Pemutaran gagal</string>
@@ -621,4 +621,7 @@
     <string name="discord_activity_name_description">Nama kustom untuk aktivitas (biarkan kosong untuk default)</string>
     <string name="discord_advanced_mode">Mode lanjutan</string>
     <string name="discord_advanced_mode_description">Tampilkan opsi kustomisasi tambahan untuk Rich Presence</string>
+    <string name="enable">Aktifkan</string>
+    <string name="prevent_duplicate_tracks_in_queue">Cegah lagu yang sama di antrean</string>
+    <string name="prevent_duplicate_tracks_in_queue_desc">Saat menambahkan lagu ke antrean, hapus kemunculannya sebelumnya jika lagu tersebut sudah ada dalam antrean</string>
 </resources>
