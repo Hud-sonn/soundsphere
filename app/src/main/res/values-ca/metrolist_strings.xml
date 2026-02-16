@@ -508,8 +508,6 @@
     <string name="ai_base_url">URL Base</string>
     <string name="ai_api_key">Clau de API</string>
     <string name="ai_model">Model</string>
-    <string name="ai_auto_translate">Traduir automàticament totes les cançons</string>
-    <string name="ai_language_mismatch">Traduir únicament en cas de llengua errònia</string>
     <string name="ai_translation_mode">Mode Traducció</string>
     <string name="ai_target_language">Llengua Destí</string>
     <string name="ai_setup_guide">Guia de configuració</string>
@@ -548,13 +546,6 @@
     <string name="cd_system_mode">Mode del sistema</string>
     <string name="cd_palette_item">Paleta %1$s</string>
     <string name="play_all">Reproduir tot</string>
-    <string name="ai_setup_step_2">2. Introdueix la teua clau de API.</string>
-    <string name="ai_setup_step_3">3. Si es \'Personalitzada\', introdueix la URL Base proporcionada pel seu servei.</string>
-    <string name="ai_setup_api_need">Necessita una Clau de API? Prova</string>
-    <string name="ai_setup_api_provider">OpenRouter.ai</string>
-    <string name="ai_setup_api_end">per accedir a molts models.</string>
-    <string name="ai_language_mismatch_desc">Saltar traducció si la lletra està en la llengua del sistema</string>
     <string name="ai_api_key_required">Cal una Clau de API</string>
     <string name="ai_error_api_key_required">Cal una clau de API</string>
-    <string name="ai_setup_step_1">1. Seleccioneu el vostre Proveïdor (e.g. OpenRouter) o \"Personalitzat\'.</string>
 </resources>

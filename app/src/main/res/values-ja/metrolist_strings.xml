@@ -535,8 +535,6 @@
     <string name="ai_base_url">ベースURL</string>
     <string name="ai_api_key">APIキー</string>
     <string name="ai_model">モデル</string>
-    <string name="ai_auto_translate">すべての曲を自動で翻訳</string>
-    <string name="ai_language_mismatch">言語が異なる場合のみ翻訳</string>
     <string name="ai_translation_mode">翻訳方法</string>
     <string name="ai_target_language">翻訳先の言語</string>
     <string name="ai_setup_guide">セットアップ</string>
@@ -544,7 +542,6 @@
     <string name="ai_translation_transcribed">原文 + 書き起こし</string>
     <string name="ai_api_key_required">APIキーが必要です</string>
     <string name="ai_error_api_key_required">APIキーを入力してください</string>
-    <string name="ai_language_mismatch_desc">歌詞の言語がシステムの言語と同じ場合は翻訳しません</string>
     <string name="ai_error_no_lyrics">翻訳できる歌詞がありません</string>
     <string name="ai_error_lyrics_empty">歌詞がありません</string>
     <string name="ai_error_language_required">翻訳先の言語を設定してください</string>
