@@ -594,4 +594,15 @@
     <string name="hide_youtube_shorts">Скрыть YouTube Shorts</string>
     <string name="listen_together_in_top_bar">Совместное прослушивание в верхней панели</string>
     <string name="listen_together_in_top_bar_desc">Показывать «Совместное прослушивание» на верхней панели вместо панели навигации</string>
+    <string name="discord_advanced_mode_description">Предоставление дополнительных параметров настройки для расширения возможностей.</string>
+    <string name="discord_activity_playing">Играющий</string>
+    <string name="discord_activity_listening">Прослушивание</string>
+    <string name="discord_activity_watching">Наблюдающий</string>
+    <string name="discord_activity_competing">Конкурирующий</string>
+    <string name="discord_customization">Настройка</string>
+    <string name="discord_button_text_variables">Переменные: {название песни}, {имя исполнителя}, {название альбома}</string>
+    <string name="discord_rpc_preview">Расширенный просмотр присутствия</string>
+    <string name="discord_presence">Присутствие</string>
+    <string name="discord_connect_description">Войдите в систему Discord, чтобы поделиться тем, что вы слушаете</string>
+    <string name="discord_playing_metrolist">Играет Metrolist</string>
 </resources>
