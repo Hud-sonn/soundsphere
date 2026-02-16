@@ -531,9 +531,9 @@
     <string name="ai_model">Model</string>
     <string name="ai_translation_mode">Çeviri modu</string>
     <string name="ai_target_language">Hedef Dil</string>
-    <string name="ai_setup_guide">Kurulum talimatları</string>
-    <string name="ai_translation_literal">Orijinal + çeviri</string>
-    <string name="ai_translation_transcribed">Orijinal + Metne dökülmüş</string>
+    <string name="ai_setup_guide">API kimliği</string>
+    <string name="ai_translation_literal">Çeviri</string>
+    <string name="ai_translation_transcribed">Transkripsiyon</string>
     <string name="ai_api_key_required">API anahtarına ihtiyaç var</string>
     <string name="ai_error_api_key_required">API anahtarı zorunludur</string>
     <string name="ai_error_no_lyrics">Çevirilecek söz bulunmamakta</string>
@@ -584,4 +584,19 @@
     <string name="hide_youtube_shorts">YouTube Shorts\'u gizle</string>
     <string name="listen_together_in_top_bar">Üst çubuktan Başkaları İle Dinle</string>
     <string name="listen_together_in_top_bar_desc">Başkaları ile dinlemeyi navigasyon yerine üst çubukta göster</string>
+    <string name="prevent_duplicate_tracks_in_queue">Sırada birden fazla şarkı olmasını önle</string>
+    <string name="prevent_duplicate_tracks_in_queue_desc">Eğer listeye yeni bir şarkı eklenmişse ve daha önceden de listede varsa o şarkıyı kaldır</string>
+    <string name="ai_translation_literal_desc">Hedef dile uygun bir şekilde çevir</string>
+    <string name="ai_translation_transcribed_desc">Belirlenmiş alfabeye göre tellaffuz edilecek şekilde çevir</string>
+    <string name="ai_provider_help">API anahtarı al</string>
+    <string name="ai_provider_openrouter_help">openrouter.ai\'ın ücretli ve ücretsiz modellerini görüntüle</string>
+    <string name="ai_provider_openai_help">platform.openai.com/api-keys sitesini ziyaret et</string>
+    <string name="ai_provider_claude_help">console.anthropic.com/settings/keys sitesini ziyaret et</string>
+    <string name="ai_provider_gemini_help">aistudio.google.com/apikey sitesini ziyaret et</string>
+    <string name="ai_provider_perplexity_help">perplexity.ai/settings/api sitesini ziyaret et</string>
+    <string name="ai_provider_xai_help">console.x.ai sitesini ziyaret et</string>
+    <string name="ai_provider_deepl_help">deepl.com/pro-api sitesini ücretli ve ücretsiz planlarını görmek için ziyaret et</string>
+    <string name="ai_deepl_formality">Formalite</string>
+    <string name="ai_deepl_formality_default">Varsayılan</string>
+    <string name="ai_deepl_formality_more">Daha resmi</string>
 </resources>
