@@ -48,9 +48,14 @@ class ListenTogetherManager @Inject constructor(
     companion object {
         private const val TAG = "ListenTogetherManager"
         // Debounce threshold for playback syncs - prevents excessive seeking/pausing
-        private const val SYNC_DEBOUNCE_THRESHOLD_MS = 200L
+        // Increased from 200ms to 1000ms to reduce choppy audio for guests
+        private const val SYNC_DEBOUNCE_THRESHOLD_MS = 1000L
         // Position tolerance - only seek if difference exceeds this (prevents micro-adjustments)
-        private const val POSITION_TOLERANCE_MS = 500L
+        // Increased from 500ms to 2000ms to reduce unnecessary seeks that interrupt playback
+        private const val POSITION_TOLERANCE_MS = 2000L
+        // Large position tolerance - only seek during playback if difference exceeds this
+        // This prevents interrupting active playback for small drifts
+        private const val PLAYBACK_POSITION_TOLERANCE_MS = 3000L
     }
 
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
@@ -755,13 +760,25 @@ class ListenTogetherManager @Inject constructor(
         isSyncing = true
 
         val targetPos = pending.position
-        if (kotlin.math.abs(player.currentPosition - targetPos) > 100) {
+        val posDiff = kotlin.math.abs(player.currentPosition - targetPos)
+        val willPlay = pending.isPlaying
+        
+        // Use appropriate tolerance based on whether we're about to play
+        val tolerance = if (willPlay && player.playWhenReady) PLAYBACK_POSITION_TOLERANCE_MS else POSITION_TOLERANCE_MS
+        
+        if (posDiff > tolerance) {
+            Timber.tag(TAG).d("Applying pending sync: seeking ${player.currentPosition} -> $targetPos (diff ${posDiff}ms > ${tolerance}ms)")
             connection.seekTo(targetPos)
+        } else {
+            Timber.tag(TAG).d("Applying pending sync: skipping seek (diff ${posDiff}ms < ${tolerance}ms)")
         }
 
-        if (pending.isPlaying) {
+        // Apply play/pause state only if it needs to change
+        if (willPlay && !player.playWhenReady) {
+            Timber.tag(TAG).d("Applying pending sync: starting playback")
             connection.play()
-        } else {
+        } else if (!willPlay && player.playWhenReady) {
+            Timber.tag(TAG).d("Applying pending sync: pausing playback")
             connection.pause()
         }
 
@@ -796,7 +813,7 @@ class ListenTogetherManager @Inject constructor(
                         basePos + kotlin.math.max(0L, now - serverTime)
                     } ?: basePos
 
-                    Timber.tag(TAG).d("Guest: PLAY at position $adjustedPos")
+                    Timber.tag(TAG).d("Guest: PLAY at position $adjustedPos, currently playing=${player.playWhenReady}")
 
                     if (bufferingTrackId != null) {
                         pendingSyncState = (pendingSyncState ?: SyncStatePayload(
@@ -813,13 +830,34 @@ class ListenTogetherManager @Inject constructor(
                         return
                     }
 
-                    // Seek first for precision, then play (use larger position tolerance to reduce stuttering)
-                    if (kotlin.math.abs(player.currentPosition - adjustedPos) > POSITION_TOLERANCE_MS) {
-                        connection.seekTo(adjustedPos)
-                        Timber.tag(TAG).d("Guest: PLAY seeking from ${player.currentPosition} to $adjustedPos (diff > ${POSITION_TOLERANCE_MS}ms)")
+                    // Debounce PLAY actions when already playing and in sync
+                    val posDiff = kotlin.math.abs(player.currentPosition - adjustedPos)
+                    val alreadyPlaying = player.playWhenReady
+                    
+                    if (alreadyPlaying && posDiff < POSITION_TOLERANCE_MS && (now - lastSyncActionTime) < SYNC_DEBOUNCE_THRESHOLD_MS) {
+                        Timber.tag(TAG).d("Guest: PLAY debounced - already playing and in sync (diff ${posDiff}ms)")
+                        return
                     }
-                    // Start playback immediately for tighter sync
-                    connection.play()
+
+                    // CRITICAL: Only seek during active playback if position is VERY far off
+                    // This prevents interrupting the audio for small drifts
+                    if (alreadyPlaying) {
+                        if (posDiff > PLAYBACK_POSITION_TOLERANCE_MS) {
+                            Timber.tag(TAG).d("Guest: PLAY seeking during playback ${player.currentPosition} -> $adjustedPos (diff ${posDiff}ms)")
+                            connection.seekTo(adjustedPos)
+                        } else {
+                            Timber.tag(TAG).d("Guest: PLAY skipping seek - already playing, drift acceptable (${posDiff}ms < ${PLAYBACK_POSITION_TOLERANCE_MS}ms)")
+                        }
+                    } else {
+                        // When paused/stopped, we can seek more aggressively
+                        if (posDiff > POSITION_TOLERANCE_MS) {
+                            Timber.tag(TAG).d("Guest: PLAY seeking while paused ${player.currentPosition} -> $adjustedPos (diff ${posDiff}ms)")
+                            connection.seekTo(adjustedPos)
+                        }
+                        // Start playback
+                        Timber.tag(TAG).d("Guest: Starting playback")
+                        connection.play()
+                    }
                     lastSyncActionTime = now
                 }
                 
@@ -827,7 +865,7 @@ class ListenTogetherManager @Inject constructor(
                     val pos = action.position ?: 0L
                     val now = System.currentTimeMillis()
                     
-                    Timber.tag(TAG).d("Guest: PAUSE at position $pos")
+                    Timber.tag(TAG).d("Guest: PAUSE at position $pos, currently playing=${player.playWhenReady}")
 
                     if (bufferingTrackId != null) {
                         pendingSyncState = (pendingSyncState ?: SyncStatePayload(
@@ -844,11 +882,27 @@ class ListenTogetherManager @Inject constructor(
                         return
                     }
 
-                    // Pause first, then seek for accuracy (use larger position tolerance)
-                    connection.pause()
-                    if (kotlin.math.abs(player.currentPosition - pos) > POSITION_TOLERANCE_MS) {
+                    // Debounce PAUSE actions when already paused and in sync
+                    val posDiff = kotlin.math.abs(player.currentPosition - pos)
+                    val alreadyPaused = !player.playWhenReady
+                    
+                    if (alreadyPaused && posDiff < POSITION_TOLERANCE_MS && (now - lastSyncActionTime) < SYNC_DEBOUNCE_THRESHOLD_MS) {
+                        Timber.tag(TAG).d("Guest: PAUSE debounced - already paused and in sync (diff ${posDiff}ms)")
+                        return
+                    }
+
+                    // Pause playback first
+                    if (player.playWhenReady) {
+                        Timber.tag(TAG).d("Guest: Pausing playback")
+                        connection.pause()
+                    }
+                    
+                    // Only seek if position difference is significant
+                    if (posDiff > POSITION_TOLERANCE_MS) {
+                        Timber.tag(TAG).d("Guest: PAUSE seeking ${player.currentPosition} -> $pos (diff ${posDiff}ms)")
                         connection.seekTo(pos)
-                        Timber.tag(TAG).d("Guest: PAUSE seeking from ${player.currentPosition} to $pos (diff > ${POSITION_TOLERANCE_MS}ms)")
+                    } else {
+                        Timber.tag(TAG).d("Guest: PAUSE skipping seek (diff ${posDiff}ms < ${POSITION_TOLERANCE_MS}ms)")
                     }
                     lastSyncActionTime = now
                 }

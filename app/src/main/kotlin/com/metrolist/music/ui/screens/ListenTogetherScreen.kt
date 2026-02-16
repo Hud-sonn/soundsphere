@@ -125,7 +125,7 @@ fun ListenTogetherScreen(
     val pendingJoinRequests by listenTogetherManager.pendingJoinRequests.collectAsState()
     val pendingSuggestions by listenTogetherManager.pendingSuggestions.collectAsState()
 
-    val (listenTogetherInTopBar) = rememberPreference(ListenTogetherInTopBarKey, defaultValue = false)
+    val (listenTogetherInTopBar) = rememberPreference(ListenTogetherInTopBarKey, defaultValue = true)
     val shouldShowTopBar = showTopBar || listenTogetherInTopBar
     
     var savedUsername by rememberPreference(ListenTogetherUsernameKey, "")
@@ -397,13 +397,13 @@ fun ListenTogetherScreen(
                     }
                 )
             }
+        }
 
-            // Settings link
-            item {
-                SettingsLinkCard(
-                    onClick = { navController.navigate("settings/integrations/listen_together") }
-                )
-            }
+        // Settings link
+        item {
+            SettingsLinkCard(
+                onClick = { navController.navigate("settings/integrations/listen_together") }
+            )
         }
     }
 
