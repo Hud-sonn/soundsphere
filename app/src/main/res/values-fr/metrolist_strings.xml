@@ -579,7 +579,7 @@
     <string name="hold_to_recognize">Maintenez l\'icône de recherche enfoncée pour reconnaître la musique</string>
     <string name="enable">Activer</string>
     <string name="crossfade">Fondu enchaîné</string>
-    <string name="crossfade_desc">Fondu enchaîné entre les titres</string>
+    <string name="crossfade_desc">Fondu enchaîné entre les chansons</string>
     <string name="crossfade_duration">Durée du fondu enchaîné</string>
     <string name="crossfade_gapless">Désactiver pour les albums sans interruption</string>
     <string name="crossfade_gapless_desc">N\'utilisez pas de fondu enchaîné si l\'album est sans interruption</string>
@@ -590,11 +590,11 @@
     <string name="listen_together_in_top_bar">Écouter ensemble dans la barre supérieure</string>
     <string name="listen_together_in_top_bar_desc">Afficher « Écouter ensemble » dans la barre d\'application supérieure au lieu de la barre de navigation</string>
     <string name="prevent_duplicate_tracks_in_queue">Empêcher les doublons dans la file d\'attente</string>
-    <string name="prevent_duplicate_tracks_in_queue_desc">Lorsque vous ajoutez un titre à la file d\'attente, supprimez-le de sa position précédente s\'il y figure déjà.</string>
+    <string name="prevent_duplicate_tracks_in_queue_desc">Lorsque vous ajoutez un titre à la file d\'attente, supprimez-le de sa position précédente s\'il y figure déjà</string>
     <string name="ai_translation_literal_desc">Traduire le sens dans la langue cible</string>
     <string name="ai_translation_transcribed_desc">Convertir la prononciation en script cible</string>
     <string name="ai_provider_help">Obtenir les clés API</string>
-    <string name="ai_provider_openrouter_help">Visitez openrouter.ai pour découvrir les modèles gratuits et payants.</string>
+    <string name="ai_provider_openrouter_help">Visitez openrouter.ai pour accéder à des modèles gratuits et payants</string>
     <string name="ai_provider_openai_help">Consultez platform.openai.com/api-keys</string>
     <string name="ai_provider_claude_help">Rendez-vous sur console.anthropic.com/settings/keys</string>
     <string name="ai_provider_gemini_help">Consultez aistudio.google.com/apikey</string>
@@ -626,7 +626,7 @@
     <string name="discord_button_text_variables">Variables : {song_name}, {artist_name}, {album_name}</string>
     <string name="discord_rpc_preview">Aperçu de la présence enrichie</string>
     <string name="discord_presence">Présence</string>
-    <string name="discord_connect_description">Connectez-vous avec Discord pour partager ce que vous écoutez.</string>
+    <string name="discord_connect_description">Connectez-vous avec Discord pour partager ce que vous écoutez</string>
     <string name="discord_playing_metrolist">Jouer à Metrolist</string>
     <string name="discord_watching_metrolist">Regarder Metrolist</string>
     <string name="discord_competing_metrolist">En compétition dans Metrolist</string>
