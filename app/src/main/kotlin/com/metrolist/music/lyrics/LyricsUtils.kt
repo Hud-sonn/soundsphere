@@ -106,6 +106,45 @@ object LyricsUtils {
         )
     )
 
+    private val DEVANAGARI_ROMAJI_MAP: Map<String, String> = mapOf(
+        "अ" to "a", "आ" to "aa", "इ" to "i", "ई" to "ee", "उ" to "u", "ऊ" to "oo",
+        "ऋ" to "ri", "ए" to "e", "ऐ" to "ai", "ओ" to "o", "औ" to "au",
+        "क" to "k", "ख" to "kh", "ग" to "g", "घ" to "gh", "ङ" to "ng",
+        "च" to "ch", "छ" to "chh", "ज" to "j", "झ" to "jh", "ञ" to "ny",
+        "ट" to "t", "ठ" to "th", "ड" to "d", "ढ" to "dh", "ण" to "n",
+        "त" to "t", "थ" to "th", "द" to "d", "ध" to "dh", "न" to "n",
+        "प" to "p", "फ" to "ph", "ब" to "b", "भ" to "bh", "म" to "m",
+        "य" to "y", "र" to "r", "ल" to "l", "व" to "v",
+        "श" to "sh", "ष" to "sh", "स" to "s", "ह" to "h",
+        "क्ष" to "ksh", "त्र" to "tr", "ज्ञ" to "gy", "श्र" to "shr",
+        "ा" to "aa", "ि" to "i", "ी" to "ee", "ु" to "u", "ू" to "oo",
+        "ृ" to "ri", "े" to "e", "ै" to "ai", "ो" to "o", "ौ" to "au",
+        "ं" to "n", "ः" to "h", "ँ" to "n", "़" to "", "्" to "",
+        "०" to "0", "१" to "1", "२" to "2", "३" to "3", "४" to "4",
+        "५" to "5", "६" to "6", "७" to "7", "८" to "8", "९" to "9",
+        "ॐ" to "Om", "ऽ" to "",
+        "क़" to "q", "ख़" to "kh", "ग़" to "g", "ज़" to "z", "ड़" to "r", "ढ़" to "rh", "फ़" to "f", "य़" to "y",
+        // Decomposed characters with Nukta
+        "क\u093C" to "q", "ख\u093C" to "kh", "ग\u093C" to "g", "ज\u093C" to "z", "ड\u093C" to "r", "ढ\u093C" to "rh", "फ\u093C" to "f", "य\u093C" to "y"
+    )
+
+    private val GURMUKHI_ROMAJI_MAP: Map<String, String> = mapOf(
+        "ੳ" to "o", "ਅ" to "a", "ੲ" to "e", "ਸ" to "s", "ਹ" to "h",
+        "ਕ" to "k", "ਖ" to "kh", "ਗ" to "g", "ਘ" to "gh", "ਙ" to "ng",
+        "ਚ" to "ch", "ਛ" to "chh", "ਜ" to "j", "ਝ" to "jh", "ਞ" to "ny",
+        "ਟ" to "t", "ਠ" to "th", "ਡ" to "d", "ਢ" to "dh", "ਣ" to "n",
+        "ਤ" to "t", "ਥ" to "th", "ਦ" to "d", "ਧ" to "dh", "ਨ" to "n",
+        "ਪ" to "p", "ਫ" to "ph", "ਬ" to "b", "ਭ" to "bh", "ਮ" to "m",
+        "ਯ" to "y", "ਰ" to "r", "ਲ" to "l", "ਵ" to "v", "ੜ" to "r",
+        "ਸ਼" to "sh", "ਖ਼" to "kh", "ਗ਼" to "g", "ਜ਼" to "z", "ਫ਼" to "f", "ਲ਼" to "l",
+        "ਾ" to "aa", "ਿ" to "i", "ੀ" to "ee", "ੁ" to "u", "ੂ" to "oo",
+        "ੇ" to "e", "ੈ" to "ai", "ੋ" to "o", "ੌ" to "au",
+        "ੰ" to "n", "ਂ" to "n", "ੱ" to "", "੍" to "", "਼" to "",
+        "ੴ" to "Ek Onkar",
+        "੦" to "0", "੧" to "1", "੨" to "2", "੩" to "3", "੪" to "4",
+        "੫" to "5", "੬" to "6", "੭" to "7", "੮" to "8", "੯" to "9"
+    )
+
     private val GENERAL_CYRILLIC_ROMAJI_MAP: Map<String, String> = mapOf(
         "А" to "A", "Б" to "B", "В" to "V", "Г" to "G", "Ґ" to "G", "Д" to "D",
         "Ѓ" to "Ǵ", "Ђ" to "Đ", "Е" to "E", "Ё" to "Yo", "Є" to "Ye", "Ж" to "Zh",
@@ -1087,6 +1126,84 @@ object LyricsUtils {
         val cjkCharCount = text.count { char -> char in '\u4E00'..'\u9FFF' }
         val hiraganaKatakanaCount = text.count { char -> (char in '\u3040'..'\u309F') || (char in '\u30A0'..'\u30FF') }
         return cjkCharCount > 0 && (hiraganaKatakanaCount.toDouble() / text.length.toDouble()) < 0.1
+    }
+
+    fun isHindi(text: String): Boolean {
+        return text.any { char ->
+            char in '\u0900'..'\u097F'
+        }
+    }
+
+    suspend fun romanizeHindi(text: String): String = withContext(Dispatchers.Default) {
+        val sb = StringBuilder(text.length)
+        var i = 0
+        while (i < text.length) {
+            var consumed = false
+            // Check for 2-character sequences (e.g. char + nukta)
+            if (i + 1 < text.length) {
+                val twoCharCandidate = text.substring(i, i + 2)
+                val mappedTwoChar = DEVANAGARI_ROMAJI_MAP[twoCharCandidate]
+                if (mappedTwoChar != null) {
+                    sb.append(mappedTwoChar)
+                    i += 2
+                    consumed = true
+                }
+            }
+
+            if (!consumed) {
+                val charStr = text[i].toString()
+                sb.append(DEVANAGARI_ROMAJI_MAP[charStr] ?: charStr)
+                i += 1
+            }
+        }
+        sb.toString()
+    }
+
+    fun isPunjabi(text: String): Boolean {
+        return text.any { char ->
+            char in '\u0A00'..'\u0A7F'
+        }
+    }
+
+    suspend fun romanizePunjabi(text: String): String = withContext(Dispatchers.Default) {
+        val sb = StringBuilder(text.length)
+        var i = 0
+        while (i < text.length) {
+            val char = text[i]
+            var consumed = false
+
+            // Check for Adhak (Gemination)
+            if (char == '\u0A71') {
+                 // Double next consonant if possible
+                 if (i + 1 < text.length) {
+                     val nextCharStr = text[i+1].toString()
+                     val nextMapped = GURMUKHI_ROMAJI_MAP[nextCharStr]
+                     if (nextMapped != null && nextMapped.isNotEmpty()) {
+                         sb.append(nextMapped[0])
+                     }
+                 }
+                 i++
+                 continue
+            }
+
+            // Check for 2-character sequences (e.g. char + nukta)
+            if (i + 1 < text.length) {
+                val twoCharCandidate = text.substring(i, i + 2)
+                val mappedTwoChar = GURMUKHI_ROMAJI_MAP[twoCharCandidate]
+                if (mappedTwoChar != null) {
+                    sb.append(mappedTwoChar)
+                    i += 2
+                    consumed = true
+                }
+            }
+
+            if (!consumed) {
+                val str = char.toString()
+                sb.append(GURMUKHI_ROMAJI_MAP[str] ?: str)
+                i++
+            }
+        }
+        sb.toString()
     }
 
     private fun isCyrillicVowel(char: Char): Boolean {

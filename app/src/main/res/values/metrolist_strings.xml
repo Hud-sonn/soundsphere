@@ -274,6 +274,8 @@
     <string name="lyrics_romanize_japanese">Romanize Japanese lyrics</string>
     <string name="lyrics_romanize_korean">Romanize Korean lyrics</string>
     <string name="lyrics_romanize_chinese">Romanize Chinese lyrics</string>
+    <string name="lyrics_romanize_hindi">Romanize Hindi lyrics</string>
+    <string name="lyrics_romanize_punjabi">Romanize Punjabi lyrics</string>
     <string name="lyrics_romanize_russian">Romanize Russian lyrics</string>
     <string name="lyrics_romanize_ukrainian">Romanize Ukrainian lyrics</string>
     <string name="lyrics_romanize_belarusian">Romanize Belarusian lyrics</string>
@@ -316,6 +318,7 @@
     <string name="google_cast_description">Enable casting audio to Chromecast and other Cast-enabled devices</string>
 
     <string name="lyrics_romanize_macedonian">Romanize Macedonian lyrics</string>
+    <string name="lyrics_romanize_as_main">Show romanized lyrics as main</string>
 
     <string name="integrations">Integrations</string>
     <string name="username">Username</string>

@@ -125,10 +125,13 @@ import com.metrolist.music.constants.LyricsAnimationStyleKey
 import com.metrolist.music.constants.LyricsClickKey
 import com.metrolist.music.constants.LyricsGlowEffectKey
 import com.metrolist.music.constants.LyricsLineSpacingKey
+import com.metrolist.music.constants.LyricsRomanizeAsMainKey
 import com.metrolist.music.constants.LyricsRomanizeBelarusianKey
 import com.metrolist.music.constants.LyricsRomanizeBulgarianKey
 import com.metrolist.music.constants.LyricsRomanizeChineseKey
 import com.metrolist.music.constants.LyricsRomanizeCyrillicByLineKey
+import com.metrolist.music.constants.LyricsRomanizeHindiKey
+import com.metrolist.music.constants.LyricsRomanizePunjabiKey
 import com.metrolist.music.constants.LyricsRomanizeJapaneseKey
 import com.metrolist.music.constants.LyricsRomanizeKoreanKey
 import com.metrolist.music.constants.LyricsRomanizeKyrgyzKey
@@ -155,6 +158,8 @@ import com.metrolist.music.lyrics.LyricsUtils.findCurrentLineIndex
 import com.metrolist.music.lyrics.LyricsUtils.isBelarusian
 import com.metrolist.music.lyrics.LyricsUtils.isBulgarian
 import com.metrolist.music.lyrics.LyricsUtils.isChinese
+import com.metrolist.music.lyrics.LyricsUtils.isHindi
+import com.metrolist.music.lyrics.LyricsUtils.isPunjabi
 import com.metrolist.music.lyrics.LyricsUtils.isJapanese
 import com.metrolist.music.lyrics.LyricsUtils.isKorean
 import com.metrolist.music.lyrics.LyricsUtils.isKyrgyz
@@ -164,6 +169,8 @@ import com.metrolist.music.lyrics.LyricsUtils.isSerbian
 import com.metrolist.music.lyrics.LyricsUtils.isUkrainian
 import com.metrolist.music.lyrics.LyricsUtils.parseLyrics
 import com.metrolist.music.lyrics.LyricsUtils.romanizeChinese
+import com.metrolist.music.lyrics.LyricsUtils.romanizeHindi
+import com.metrolist.music.lyrics.LyricsUtils.romanizePunjabi
 import com.metrolist.music.lyrics.LyricsUtils.romanizeCyrillic
 import com.metrolist.music.lyrics.LyricsUtils.romanizeJapanese
 import com.metrolist.music.lyrics.LyricsUtils.romanizeKorean
@@ -214,7 +221,10 @@ fun Lyrics(
     val romanizeKyrgyzLyrics by rememberPreference(LyricsRomanizeKyrgyzKey, true)
     val romanizeMacedonianLyrics by rememberPreference(LyricsRomanizeMacedonianKey, true)
     val romanizeCyrillicByLine by rememberPreference(LyricsRomanizeCyrillicByLineKey, false)
+    val romanizeAsMain by rememberPreference(LyricsRomanizeAsMainKey, false)
     val romanizeChineseLyrics by rememberPreference(LyricsRomanizeChineseKey, true)
+    val romanizeHindiLyrics by rememberPreference(LyricsRomanizeHindiKey, true)
+    val romanizePunjabiLyrics by rememberPreference(LyricsRomanizePunjabiKey, true)
     val lyricsGlowEffect by rememberPreference(LyricsGlowEffectKey, false)
     val lyricsAnimationStyle by rememberEnumPreference(LyricsAnimationStyleKey, LyricsAnimationStyle.APPLE)
     val lyricsTextSize by rememberPreference(LyricsTextSizeKey, 24f)
@@ -324,6 +334,18 @@ fun Lyrics(
                     }
                 }
 
+                else if (romanizeHindiLyrics && isHindi(entry.text)) {
+                    scope.launch {
+                        newEntry.romanizedTextFlow.value = romanizeHindi(entry.text)
+                    }
+                }
+
+                else if (romanizePunjabiLyrics && isPunjabi(entry.text)) {
+                    scope.launch {
+                        newEntry.romanizedTextFlow.value = romanizePunjabi(entry.text)
+                    }
+                }
+
                 newEntry
             }.let {
                 listOf(LyricsEntry.HEAD_LYRICS_ENTRY) + it
@@ -397,6 +419,18 @@ fun Lyrics(
                 else if (romanizeChineseLyrics && isChinese(line)) {
                     scope.launch {
                         newEntry.romanizedTextFlow.value = romanizeChinese(line)
+                    }
+                }
+
+                else if (romanizeHindiLyrics && isHindi(line)) {
+                    scope.launch {
+                        newEntry.romanizedTextFlow.value = romanizeHindi(line)
+                    }
+                }
+
+                else if (romanizePunjabiLyrics && isPunjabi(line)) {
+                    scope.launch {
+                        newEntry.romanizedTextFlow.value = romanizePunjabi(line)
                     }
                 }
 
@@ -1012,12 +1046,19 @@ fun Lyrics(
                         }
                         val alignment = agentTextAlign
                         
-                        val hasWordTimings = item.words?.isNotEmpty() == true
+                        val romanizedTextState by item.romanizedTextFlow.collectAsState()
+                        val romanizedText = romanizedTextState
+                        val isRomanizedAvailable = romanizedText != null
+                        
+                        val mainText = if (romanizeAsMain && isRomanizedAvailable) romanizedText!! else item.text
+                        val subText = if (romanizeAsMain && isRomanizedAvailable) item.text else romanizedText
+                        
+                        val hasWordTimings = if (romanizeAsMain && isRomanizedAvailable) false else item.words?.isNotEmpty() == true
                         
                         // Word-by-word animation styles
                         if (hasWordTimings && lyricsAnimationStyle == LyricsAnimationStyle.NONE) {
                             val styledText = buildAnnotatedString {
-                                item.words.forEachIndexed { wordIndex, word ->
+                                item.words?.forEachIndexed { wordIndex, word ->
                                     val wordStartMs = (word.startTime * 1000).toLong()
                                     val wordEndMs = (word.endTime * 1000).toLong()
                                     val wordDuration = wordEndMs - wordStartMs
@@ -1054,7 +1095,7 @@ fun Lyrics(
                                     withStyle(style = SpanStyle(color = wordColor, fontWeight = wordWeight)) {
                                         append(word.text)
                                     }
-                                    if (wordIndex < item.words.size - 1) append(" ")
+                                    if (wordIndex < (item.words.size ?: 0) - 1) append(" ")
                                 }
                             }
                             Text(
@@ -1065,7 +1106,7 @@ fun Lyrics(
                             )
                         } else if (hasWordTimings && lyricsAnimationStyle == LyricsAnimationStyle.FADE) {
                             val styledText = buildAnnotatedString {
-                                item.words.forEachIndexed { wordIndex, word ->
+                                item.words?.forEachIndexed { wordIndex, word ->
                                     val wordStartMs = (word.startTime * 1000).toLong()
                                     val wordEndMs = (word.endTime * 1000).toLong()
                                     val wordDuration = wordEndMs - wordStartMs
@@ -1111,7 +1152,7 @@ fun Lyrics(
                                     withStyle(style = SpanStyle(color = wordColor, fontWeight = wordWeight, shadow = wordShadow)) {
                                         append(word.text)
                                     }
-                                    if (wordIndex < item.words.size - 1) append(" ")
+                                    if (wordIndex < (item.words.size ?: 0) - 1) append(" ")
                                 }
                             }
                             Text(
@@ -1122,7 +1163,7 @@ fun Lyrics(
                             )
                         } else if (hasWordTimings && lyricsAnimationStyle == LyricsAnimationStyle.GLOW) {
                             val styledText = buildAnnotatedString {
-                                item.words.forEachIndexed { wordIndex, word ->
+                                item.words?.forEachIndexed { wordIndex, word ->
                                     val wordStartMs = (word.startTime * 1000).toLong()
                                     val wordEndMs = (word.endTime * 1000).toLong()
                                     val wordDuration = wordEndMs - wordStartMs
@@ -1158,7 +1199,7 @@ fun Lyrics(
                                     withStyle(style = SpanStyle(color = wordColor, fontWeight = wordWeight, shadow = wordShadow)) {
                                         append(word.text)
                                     }
-                                    if (wordIndex < item.words.size - 1) append(" ")
+                                    if (wordIndex < (item.words.size ?: 0) - 1) append(" ")
                                 }
                             }
                             Text(
@@ -1169,7 +1210,7 @@ fun Lyrics(
                             )
                         } else if (hasWordTimings && lyricsAnimationStyle == LyricsAnimationStyle.SLIDE) {
                             val styledText = buildAnnotatedString {
-                                item.words.forEachIndexed { wordIndex, word ->
+                                item.words?.forEachIndexed { wordIndex, word ->
                                     val wordStartMs = (word.startTime * 1000).toLong()
                                     val wordEndMs = (word.endTime * 1000).toLong()
                                     val wordDuration = wordEndMs - wordStartMs
@@ -1214,13 +1255,13 @@ fun Lyrics(
                                             append(word.text)
                                         }
                                     }
-                                    if (wordIndex < item.words.size - 1) append(" ")
+                                    if (wordIndex < (item.words.size ?: 0) - 1) append(" ")
                                 }
                             }
                             Text(text = styledText, fontSize = lyricsTextSize.sp, textAlign = alignment, lineHeight = (lyricsTextSize * lyricsLineSpacing).sp)
                         } else if (hasWordTimings && lyricsAnimationStyle == LyricsAnimationStyle.KARAOKE) {
                             val styledText = buildAnnotatedString {
-                                item.words.forEachIndexed { wordIndex, word ->
+                                item.words?.forEachIndexed { wordIndex, word ->
                                     val wordStartMs = (word.startTime * 1000).toLong()
                                     val wordEndMs = (word.endTime * 1000).toLong()
                                     val wordDuration = wordEndMs - wordStartMs
@@ -1281,13 +1322,13 @@ fun Lyrics(
                                             append(word.text)
                                         }
                                     }
-                                    if (wordIndex < item.words.size - 1) append(" ")
+                                    if (wordIndex < (item.words.size ?: 0) - 1) append(" ")
                                 }
                             }
                             Text(text = styledText, fontSize = lyricsTextSize.sp, textAlign = alignment, lineHeight = (lyricsTextSize * lyricsLineSpacing).sp)
                         } else if (hasWordTimings && lyricsAnimationStyle == LyricsAnimationStyle.APPLE) {
                             val styledText = buildAnnotatedString {
-                                item.words.forEachIndexed { wordIndex, word ->
+                                item.words?.forEachIndexed { wordIndex, word ->
                                     val wordStartMs = (word.startTime * 1000).toLong()
                                     val wordEndMs = (word.endTime * 1000).toLong()
                                     val wordDuration = wordEndMs - wordStartMs
@@ -1335,7 +1376,7 @@ fun Lyrics(
                                     withStyle(style = SpanStyle(color = wordColor, fontWeight = wordWeight, shadow = wordShadow)) {
                                         append(word.text)
                                     }
-                                    if (wordIndex < item.words.size - 1) append(" ")
+                                    if (wordIndex < (item.words.size ?: 0) - 1) append(" ")
                                 }
                             }
                             Text(text = styledText, fontSize = lyricsTextSize.sp, textAlign = alignment, lineHeight = (lyricsTextSize * lyricsLineSpacing).sp)
@@ -1397,7 +1438,7 @@ fun Lyrics(
                                         brush = glowBrush
                                     )
                                 ) {
-                                    append(item.text)
+                                    append(mainText)
                                 }
                             }
                             
@@ -1425,7 +1466,7 @@ fun Lyrics(
                         } else if (isActiveLine && !lyricsGlowEffect) {
                             // Active line without glow effect - just bold text
                             Text(
-                                text = item.text,
+                                text = mainText,
                                 fontSize = lyricsTextSize.sp,
                                 color = expressiveAccent,
                                 textAlign = alignment,
@@ -1435,7 +1476,7 @@ fun Lyrics(
                         } else {
                             // Inactive line
                             Text(
-                                text = item.text,
+                                text = mainText,
                                 fontSize = lyricsTextSize.sp,
                                 color = lineColor,
                                 textAlign = alignment,
@@ -1453,12 +1494,13 @@ fun Lyrics(
                                     romanizeBelarusianLyrics ||
                                     romanizeKyrgyzLyrics ||
                                     romanizeMacedonianLyrics ||
-                                    romanizeChineseLyrics)) {
-                            // Show romanized text if available
-                            val romanizedText by item.romanizedTextFlow.collectAsState()
-                            romanizedText?.let { romanized ->
+                                    romanizeChineseLyrics ||
+                                    romanizeHindiLyrics ||
+                                    romanizePunjabiLyrics)) {
+                            // Show secondary text (romanized or original) if available
+                            subText?.let { text ->
                                 Text(
-                                    text = romanized,
+                                    text = text,
                                     fontSize = 18.sp,
                                     color = expressiveAccent.copy(alpha = 0.6f),
                                     textAlign = when (lyricsTextPosition) {
