@@ -629,4 +629,9 @@
     <string name="discord_activity_name_description">Aktivite için özel ad (boş bırakılırsa varsayılan kullanılır)</string>
     <string name="discord_advanced_mode">Gelişmiş seçenekler</string>
     <string name="discord_advanced_mode_description">Zengin özelleştirme içeriklerini ayarlarda göster</string>
+    <string name="player_background_solid">Katı</string>
+    <string name="resume_on_bluetooth_connect">Bluetooth aygıtı bağlanınca devam et</string>
+    <string name="lyrics_romanize_hindi">Hintçe sözleri romanlaştır</string>
+    <string name="lyrics_romanize_punjabi">Punjabice sözleri romanlaştır</string>
+    <string name="lyrics_romanize_as_main">Romanlaştırılmış sözleri öntanımlı olarak göster</string>
 </resources>
