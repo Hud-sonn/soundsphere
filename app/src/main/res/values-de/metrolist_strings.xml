@@ -584,4 +584,6 @@
     <string name="hide_youtube_shorts">YouTube Shorts ausblenden</string>
     <string name="listen_together_in_top_bar">Gemeinsam hören in der oberen Leiste anzeigen</string>
     <string name="listen_together_in_top_bar_desc">Gemeinsam hören in der oberen App-Leiste anstelle der Navigationsleiste anzeigen</string>
+    <string name="player_background_solid">Einfärbig</string>
+    <string name="prevent_duplicate_tracks_in_queue">Doppelte Songs in der Warteschlange vermeiden</string>
 </resources>
