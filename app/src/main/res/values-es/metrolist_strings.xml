@@ -536,9 +536,9 @@
     <string name="ai_model">Modelo</string>
     <string name="ai_translation_mode">Modo de traducción</string>
     <string name="ai_target_language">Idioma de destino</string>
-    <string name="ai_setup_guide">Guía de configuración</string>
-    <string name="ai_translation_literal">Original + Traducción</string>
-    <string name="ai_translation_transcribed">Original + Transcrito</string>
+    <string name="ai_setup_guide">Credenciales de API</string>
+    <string name="ai_translation_literal">Traducción</string>
+    <string name="ai_translation_transcribed">Transcrito</string>
     <string name="ai_api_key_required">Clave API requerida</string>
     <string name="ai_error_api_key_required">Clave API obligatoria</string>
     <string name="ai_error_no_lyrics">No hay letras para traducir</string>
@@ -589,4 +589,12 @@
     <string name="hide_youtube_shorts">Ocultar YouTube Shorts</string>
     <string name="listen_together_in_top_bar">Escuchar juntos en la barra superior</string>
     <string name="listen_together_in_top_bar_desc">Mostrar Escuchar juntos en la barra superior en lugar de en la barra de navegación</string>
+    <string name="prevent_duplicate_tracks_in_queue">Evitar pistas duplicadas en la cola</string>
+    <string name="prevent_duplicate_tracks_in_queue_desc">Al agregar una pista a la cola, elimínela de su posición anterior si ya está presente</string>
+    <string name="ai_translation_transcribed_desc">Convertir pronunciación al script de destino</string>
+    <string name="ai_provider_help">Obtener Llaves API</string>
+    <string name="discord_status">Status</string>
+    <string name="discord_status_online">Online</string>
+    <string name="discord_activity_competing">Viendo</string>
+    <string name="discord_presence">Presencia</string>
 </resources>
