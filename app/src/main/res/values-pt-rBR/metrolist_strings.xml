@@ -634,4 +634,9 @@
     <string name="discord_activity_name_description">Nome personalizado para a atividade (deixe vazio para padrão)</string>
     <string name="discord_advanced_mode">Modo avançado</string>
     <string name="discord_advanced_mode_description">Mostrar opções de personalização adicionais para a Rich Presence</string>
+    <string name="player_background_solid">Sólido</string>
+    <string name="resume_on_bluetooth_connect">Retomar ao conectar com bluetooth</string>
+    <string name="lyrics_romanize_hindi">Romanizar letras em Hindi</string>
+    <string name="lyrics_romanize_punjabi">Romanizar letras em Punjabi</string>
+    <string name="lyrics_romanize_as_main">Mostrar letras romanizadas como principal</string>
 </resources>
