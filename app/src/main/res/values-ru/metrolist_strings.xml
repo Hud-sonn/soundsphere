@@ -106,8 +106,8 @@
     <string name="secondary_color_style">Вторичный</string>
     <string name="lyrics_click_change">Изменение текста песни по клику</string>
     <string name="lyrics_auto_scroll">Автопрокрутка текстов песен</string>
-    <string name="lyrics_romanize_japanese">Романизировать японский текст</string>
-    <string name="lyrics_romanize_korean">Романизировать корейский текст</string>
+    <string name="lyrics_romanize_japanese">Романизировать тексты на японском</string>
+    <string name="lyrics_romanize_korean">Романизировать тексты на корейском</string>
     <string name="auto_playlists">Автоплейлисты</string>
     <string name="show_liked_playlist">Показать плейлист \"Понравившиеся\"</string>
     <string name="show_downloaded_playlist">Показать плейлист \"Скачанные\"</string>
@@ -186,12 +186,12 @@
     <string name="lyrics_romanize_title">Романизация</string>
     <string name="lyrics_romanization">Романизация текста</string>
     <string name="romanization">Романизация</string>
-    <string name="lyrics_romanize_russian">Романизировать русский текст</string>
-    <string name="lyrics_romanize_ukrainian">Романизировать украинский текст</string>
-    <string name="lyrics_romanize_belarusian">Романизировать белорусский текст</string>
-    <string name="lyrics_romanize_kyrgyz">Романизировать киргизский текст</string>
-    <string name="lyrics_romanize_serbian">Романизировать сербский текст</string>
-    <string name="lyrics_romanize_bulgarian">Романизировать болгарский текст</string>
+    <string name="lyrics_romanize_russian">Романизировать тексты на русском</string>
+    <string name="lyrics_romanize_ukrainian">Романизировать тексты на украинском</string>
+    <string name="lyrics_romanize_belarusian">Романизировать тексты на белорусском</string>
+    <string name="lyrics_romanize_kyrgyz">Романизировать тексты на киргизском</string>
+    <string name="lyrics_romanize_serbian">Романизировать тексты на сербском</string>
+    <string name="lyrics_romanize_bulgarian">Романизировать тексты на болгарском</string>
     <string name="line_by_line_option_title">ЭКСПЕРИМЕНТАЛЬНО: Определять язык построчно</string>
     <string name="line_by_line_option_desc">Текст на кириллице будет определяться построчно, а не для всей песни.</string>
     <string name="line_by_line_dialog_title">Вы уверены?</string>
@@ -208,7 +208,7 @@
     <string name="uploaded_playlist">Загруженные</string>
     <string name="filter_uploaded">Загруженные</string>
     <string name="show_uploaded_playlist">Показать плейлист \"Загруженные\"</string>
-    <string name="lyrics_romanize_macedonian">Романизировать македонский текст</string>
+    <string name="lyrics_romanize_macedonian">Романизировать тексты на македонском</string>
     <string name="updater">Обновления</string>
     <string name="check_for_updates">Автоматически проверять наличие обновлений</string>
     <string name="update_notifications">Включить уведомления об обновлениях</string>
@@ -230,7 +230,7 @@
     <string name="swipe_song_to_remove">Свайп по песне, чтобы удалить её из плейлиста</string>
     <string name="last_fm_send_likes">Отправлять лайки/дизлайки</string>
     <string name="last_fm_send_likes_description">Добавлять/убирать отметку «любимая» на Last.fm, когда ставится/снимается отметка «Нравится» в Metrolist</string>
-    <string name="lyrics_romanize_chinese">Романизировать китайский текст</string>
+    <string name="lyrics_romanize_chinese">Романизировать тексты на китайском</string>
     <string name="google_cast">Google Cast</string>
     <string name="google_cast_description">Включить трансляцию звука на Chromecast и другие устройства с поддержкой Cast</string>
     <string name="hide_video_songs">Скрыть видео</string>
@@ -639,4 +639,9 @@
     <string name="discord_activity_name">Название активности</string>
     <string name="discord_activity_name_description">Пользовательское название активности (оставьте пустым для значения по умолчанию)</string>
     <string name="discord_advanced_mode">Расширенный режим</string>
+    <string name="player_background_solid">Сплошной</string>
+    <string name="resume_on_bluetooth_connect">Возобновлять при подключении Bluetooth</string>
+    <string name="lyrics_romanize_hindi">Романизировать тексты на хинди</string>
+    <string name="lyrics_romanize_punjabi">Романизировать тексты на панджаби</string>
+    <string name="lyrics_romanize_as_main">Показывать романизированные тексты как основные</string>
 </resources>
