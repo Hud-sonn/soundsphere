@@ -548,4 +548,22 @@
     <string name="play_all">Reproduir tot</string>
     <string name="ai_api_key_required">Cal una Clau de API</string>
     <string name="ai_error_api_key_required">Cal una clau de API</string>
+    <string name="enable">Habilita</string>
+    <string name="prevent_duplicate_tracks_in_queue">Evita cançons repetides a la cua</string>
+    <string name="prevent_duplicate_tracks_in_queue_desc">Quan s\'afig una cançó a la cua, elimina-la de la seua posició anterior si ja hi estava</string>
+    <string name="crossfade">Transició suau</string>
+    <string name="crossfade_desc">Transició suau entre cançons</string>
+    <string name="crossfade_duration">Durada de la Transició suau</string>
+    <string name="crossfade_gapless">Deshabilita els àlbums sense pauses</string>
+    <string name="crossfade_gapless_desc">No aplicar el transaccionat suau si hi ha pauses a l\'album</string>
+    <string name="crossfade_beta_title">Funcionalitat Beta</string>
+    <string name="crossfade_beta_message">El transicionat suau es una nova funcionalitat que pot presentar errors. Si trobes cap problema, per favor, informa\'ns.\n\nAquesta funcionalitat deshabilita la descarrega d\'àudio a causa de limitacions tècniques.</string>
+    <string name="audio_offload_disabled_by_crossfade">Deshabilitat per que el transicionat suau està actiu</string>
+    <string name="hide_youtube_shorts">Amaga Youtube Shorts</string>
+    <string name="listen_together_in_top_bar">Escoltar Junts a la barra superior</string>
+    <string name="listen_together_in_top_bar_desc">Mostra l\'opció d\'Escoltar Junts a la barra superior de l\'aplicació en lloc de a la barra de navegació</string>
+    <string name="ai_translation_literal_desc">Tradueix el significat a l\'idioma objectiu</string>
+    <string name="ai_translation_transcribed_desc">Canvia la pronuncia a la llengua objectiu</string>
+    <string name="ai_provider_help">Obtín Claus d\'API</string>
+    <string name="ai_provider_openrouter_help">Visita openrouter.ai per obtenir models gratuïts i de pagament</string>
 </resources>
