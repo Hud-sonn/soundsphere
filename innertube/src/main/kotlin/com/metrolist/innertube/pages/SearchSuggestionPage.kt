@@ -7,6 +7,7 @@ import com.metrolist.innertube.models.ArtistItem
 import com.metrolist.innertube.models.MusicResponsiveListItemRenderer
 import com.metrolist.innertube.models.SongItem
 import com.metrolist.innertube.models.YTItem
+import com.metrolist.innertube.models.clean
 import com.metrolist.innertube.models.oddElements
 import com.metrolist.innertube.models.splitBySeparator
 
@@ -14,6 +15,14 @@ object SearchSuggestionPage {
     fun fromMusicResponsiveListItemRenderer(renderer: MusicResponsiveListItemRenderer): YTItem? {
         return when {
             renderer.isSong -> {
+                val secondaryLine =
+                    renderer.flexColumns
+                        .getOrNull(1)
+                        ?.musicResponsiveListItemFlexColumnRenderer
+                        ?.text
+                        ?.runs
+                        ?.splitBySeparator()
+                        ?.clean()
                 SongItem(
                     id = renderer.playlistItemData?.videoId ?: return null,
                     title =
@@ -25,13 +34,8 @@ object SearchSuggestionPage {
                             ?.firstOrNull()
                             ?.text ?: return null,
                     artists =
-                        renderer.flexColumns
-                            .getOrNull(1)
-                            ?.musicResponsiveListItemFlexColumnRenderer
-                            ?.text
-                            ?.runs
-                            ?.splitBySeparator()
-                            ?.getOrNull(1)
+                        secondaryLine
+                            ?.firstOrNull()
                             ?.oddElements()
                             ?.map {
                                 Artist(
