@@ -440,6 +440,8 @@
     <string name="error_eq_apply_failed">Failed to apply EQ profile: %1$s</string>
 
     <!-- Hardcoded strings -->
+    <string name="found_in_settings_content">Found in Settings &gt; Content</string>
+    <string name="plays">plays</string>
     <string name="casting_to">Casting to %s</string>
     <string name="progress_percent">Progress %s%%</string>
     <string name="listening_to_metrolist">Listening to Metrolist</string>
