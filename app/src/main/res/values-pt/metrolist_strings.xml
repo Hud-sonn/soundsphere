@@ -384,4 +384,12 @@
     <string name="like">Gosto</string>
     <string name="widget_description">Widget de reprodutor de música com controlos de reprodução</string>
     <string name="turntable_widget_description">Acesso rápido para a tua faixa mais reproduzida recentemente</string>
+    <string name="skip_silence_instant_desc">Saltar as partes silenciosas das músicas em vez de aumentar a velocidade</string>
+    <string name="skip_silence_desc">Avançar durante as partes silenciosas das músicas</string>
+    <string name="enable">Habilitar</string>
+    <string name="prevent_duplicate_tracks_in_queue">Impedir faixas duplicadas em fila</string>
+    <string name="prevent_duplicate_tracks_in_queue_desc">Ao adicionar uma faixa à fila, remova-a da sua posição anterior se já estiver presente</string>
+    <string name="crossfade">Transição suave</string>
+    <string name="crossfade_desc">Transição suave entre músicas</string>
+    <string name="crossfade_duration">Duração da transição suave</string>
 </resources>
