@@ -17,6 +17,7 @@ import com.metrolist.innertube.models.YTItem
 import com.metrolist.innertube.models.filterExplicit
 import com.metrolist.innertube.models.getItems
 import com.metrolist.innertube.models.oddElements
+import com.metrolist.innertube.models.splitBySeparator
 
 data class ArtistSection(
     val title: String,
@@ -66,15 +67,21 @@ data class ArtistPage(
         }
 
         private fun fromMusicResponsiveListItemRenderer(renderer: MusicResponsiveListItemRenderer): SongItem? {
-            // Extract artists from flexColumns (like SimpMusic)
-            val artists = renderer.flexColumns.getOrNull(1)
-                ?.musicResponsiveListItemFlexColumnRenderer?.text?.runs
-                ?.oddElements()?.map {
-                    Artist(
-                        name = it.text,
-                        id = it.navigationEndpoint?.browseEndpoint?.browseId
-                    )
-                }
+            // Split the secondary line by bullet separator to separate artists from other metadata (like views)
+            val secondaryLineRuns = renderer.flexColumns
+                .getOrNull(1)
+                ?.musicResponsiveListItemFlexColumnRenderer
+                ?.text
+                ?.runs
+                ?.splitBySeparator()
+
+            // Extract artists from the first segment after splitting
+            val artists = secondaryLineRuns?.firstOrNull()?.oddElements()?.map {
+                Artist(
+                    name = it.text,
+                    id = it.navigationEndpoint?.browseEndpoint?.browseId
+                )
+            }
 
             // Extract album from last flexColumn (like SimpMusic)
             val album = renderer.flexColumns.lastOrNull()
