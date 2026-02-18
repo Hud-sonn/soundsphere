@@ -624,4 +624,9 @@
     <string name="discord_activity_name_description">自定义活动名称（留空则使用默认值）</string>
     <string name="discord_advanced_mode">高级模式</string>
     <string name="discord_advanced_mode_description">显示 Rich Presence 的更多自定义选项</string>
+    <string name="resume_on_bluetooth_connect">蓝牙连接后恢复播放</string>
+    <string name="lyrics_romanize_hindi">使用印地语（罗马音）</string>
+    <string name="lyrics_romanize_punjabi">使用旁遮普语（罗马音）</string>
+    <string name="lyrics_romanize_as_main">将罗马化歌词设为主要显示</string>
+    <string name="player_background_solid">纯色</string>
 </resources>
