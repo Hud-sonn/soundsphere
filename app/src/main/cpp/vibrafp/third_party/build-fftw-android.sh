@@ -86,6 +86,7 @@ if [[ ! -d "$PREBUILD" ]]; then
 fi
 
 mkdir -p "$OUT_BASE"
+OUT_BASE="$(realpath "${OUT_BASE}")"
 WORKDIR="$(pwd)/.build-fftw"
 rm -rf "$WORKDIR"
 mkdir -p "$WORKDIR"
