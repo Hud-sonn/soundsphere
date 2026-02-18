@@ -474,7 +474,6 @@ class MusicService :
         player.addListener(this@MusicService)
         sleepTimer = SleepTimer(scope, player)
         player.addListener(sleepTimer)
-        player.addAnalyticsListener(PlaybackStatsListener(false, this@MusicService))
 
         // Mark player as initialized after successful creation
         playerInitialized.value = true
@@ -960,6 +959,7 @@ class MusicService :
                     setOffloadEnabled(if (crossfade) false else offload)
                     skipSilenceEnabled = dataStore.get(SkipSilenceKey, false)
                 }
+                addAnalyticsListener(PlaybackStatsListener(false, this@MusicService))
 
                 // Cleanup handled manually in onDestroy/release
             }
@@ -3183,8 +3183,6 @@ class MusicService :
         nextPlayer.removeListener(secondaryPlayerListener)
         nextPlayer.addListener(this)
         nextPlayer.addListener(sleepTimer)
-        // Add PlaybackStatsListener to the new player for history tracking
-        nextPlayer.addAnalyticsListener(PlaybackStatsListener(false, this@MusicService))
 
         sleepTimer.player = player
 
