@@ -1,6 +1,21 @@
 plugins {
+    id("com.android.library")
     alias(libs.plugins.kotlin.serialization)
-    kotlin("jvm")
+}
+
+android {
+    namespace = "com.metrolist.innertube"
+    compileSdk = 36
+
+    defaultConfig {
+        minSdk = 26
+    }
+
+    compileOptions {
+        isCoreLibraryDesugaringEnabled = true
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
+    }
 }
 
 kotlin {
@@ -16,4 +31,6 @@ dependencies {
     implementation(libs.brotli)
     implementation(libs.newpipeextractor)
     testImplementation(libs.junit)
+
+    coreLibraryDesugaring(libs.desugaring)
 }
