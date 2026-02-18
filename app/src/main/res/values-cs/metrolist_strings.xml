@@ -625,7 +625,7 @@
     <string name="discord_button_2">Tlačítko 2</string>
     <string name="button_text">Text tlačítka</string>
     <string name="button_visible">Viditelné</string>
-    <string name="login_successful">Přihlášení nebylo úspěšné!</string>
+    <string name="login_successful">Přihlášení bylo úspěšné!</string>
     <string name="discord_information_warning">Tato funkce využívá knihovnu KizzyRPC k připojení k bráně Discordu a nastavení vašeho stavu na něm. Ačkoli nejsou známy žádné případy zrušení účtu v důsledku podobného použití, není tato metoda oficiálně podporována společností Discord a může být považována za porušení podmínek služby. Váš token je extrahován lokálně a nikdy není odesílán na servery třetích stran. Postupujte podle vlastního uvážení.</string>
     <string name="discord_activity_type">Typ aktivity</string>
     <string name="discord_activity_playing">Hraje</string>
