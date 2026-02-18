@@ -6,6 +6,7 @@
 package com.metrolist.music.ui.screens
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.webkit.CookieManager
 import android.webkit.JavascriptInterface
 import android.webkit.WebView
@@ -19,9 +20,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.viewinterop.AndroidView
@@ -40,7 +44,9 @@ import com.metrolist.music.ui.utils.backToMain
 import com.metrolist.music.utils.rememberPreference
 import com.metrolist.music.utils.reportException
 import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 @SuppressLint("SetJavaScriptEnabled")
 @OptIn(ExperimentalMaterial3Api::class, DelicateCoroutinesApi::class)
@@ -48,6 +54,7 @@ import kotlinx.coroutines.launch
 fun LoginScreen(
     navController: NavController,
 ) {
+    val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     var visitorData by rememberPreference(VisitorDataKey, "")
     var dataSyncId by rememberPreference(DataSyncIdKey, "")
@@ -55,6 +62,7 @@ fun LoginScreen(
     var accountName by rememberPreference(AccountNameKey, "")
     var accountEmail by rememberPreference(AccountEmailKey, "")
     var accountChannelHandle by rememberPreference(AccountChannelHandleKey, "")
+    var hasCompletedLogin by remember { mutableStateOf(false) }
 
     var webView: WebView? = null
 
@@ -62,21 +70,51 @@ fun LoginScreen(
         modifier = Modifier
             .windowInsetsPadding(LocalPlayerAwareWindowInsets.current)
             .fillMaxSize(),
-        factory = { context ->
-            WebView(context).apply {
+        factory = { webViewContext ->
+            WebView(webViewContext).apply {
                 webViewClient = object : WebViewClient() {
                     override fun onPageFinished(view: WebView, url: String?) {
                         loadUrl("javascript:Android.onRetrieveVisitorData(window.yt.config_.VISITOR_DATA)")
                         loadUrl("javascript:Android.onRetrieveDataSyncId(window.yt.config_.DATASYNC_ID)")
 
-                        if (url?.startsWith("https://music.youtube.com") == true) {
+                        if (url?.startsWith("https://music.youtube.com") == true && !hasCompletedLogin) {
                             innerTubeCookie = CookieManager.getInstance().getCookie(url)
+                            hasCompletedLogin = true
+
                             coroutineScope.launch {
+                                // Small delay to ensure preferences are saved
+                                delay(500)
+
+                                // Initialize YouTube object with new authentication data
+                                YouTube.cookie = innerTubeCookie
+                                YouTube.dataSyncId = dataSyncId
+                                YouTube.visitorData = visitorData
+
+                                Timber.d("Login: YouTube object initialized, validating...")
+
                                 YouTube.accountInfo().onSuccess {
                                     accountName = it.name
                                     accountEmail = it.email.orEmpty()
                                     accountChannelHandle = it.channelHandle.orEmpty()
+
+                                    Timber.d("Login: Successfully logged in as ${it.name}, restarting app...")
+
+                                    // Clean up WebView
+                                    webView?.apply {
+                                        stopLoading()
+                                        clearHistory()
+                                        clearCache(true)
+                                        clearFormData()
+                                    }
+
+                                    // Restart app to apply login state throughout
+                                    val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)
+                                    intent?.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                                    context.startActivity(intent)
+                                    Runtime.getRuntime().exit(0)
                                 }.onFailure {
+                                    Timber.e(it, "Login: Authentication validation failed")
+                                    hasCompletedLogin = false // Allow retry
                                     reportException(it)
                                 }
                             }

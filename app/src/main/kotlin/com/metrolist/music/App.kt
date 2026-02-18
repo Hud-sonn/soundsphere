@@ -249,6 +249,10 @@ class App : Application(), SingletonImageLoader.Factory {
 
     companion object {
         suspend fun forgetAccount(context: Context) {
+            Timber.d("forgetAccount: Starting logout process")
+
+            // Clear DataStore preferences
+            Timber.d("forgetAccount: Clearing DataStore preferences")
             context.dataStore.edit { settings ->
                 settings.remove(InnerTubeCookieKey)
                 settings.remove(VisitorDataKey)
@@ -257,6 +261,27 @@ class App : Application(), SingletonImageLoader.Factory {
                 settings.remove(AccountEmailKey)
                 settings.remove(AccountChannelHandleKey)
             }
+            Timber.d("forgetAccount: DataStore preferences cleared")
+
+            // Immediately clear YouTube object's auth state
+            Timber.d("forgetAccount: Clearing YouTube object auth state")
+            Timber.d("forgetAccount: Before - cookie=${YouTube.cookie?.take(50)}, visitorData=${YouTube.visitorData?.take(20)}, dataSyncId=${YouTube.dataSyncId?.take(20)}")
+            YouTube.cookie = null
+            YouTube.visitorData = null
+            YouTube.dataSyncId = null
+            Timber.d("forgetAccount: After - cookie=${YouTube.cookie}, visitorData=${YouTube.visitorData}, dataSyncId=${YouTube.dataSyncId}")
+
+            // Clear WebView cookies to prevent auto-relogin
+            Timber.d("forgetAccount: Clearing WebView CookieManager")
+            withContext(Dispatchers.Main) {
+                android.webkit.CookieManager.getInstance().apply {
+                    removeAllCookies { removed ->
+                        Timber.d("forgetAccount: CookieManager.removeAllCookies callback: removed=$removed")
+                    }
+                    flush()
+                }
+            }
+            Timber.d("forgetAccount: Logout process complete")
         }
     }
 }
