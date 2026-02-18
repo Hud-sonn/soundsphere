@@ -25,7 +25,7 @@ class YouTubeQueue(
         return withContext(IO) {
             var lastException: Throwable? = null
             
-            // Try with original endpoint first
+            // Try with original endpoint first (allows YouTube to personalize recommendations)
             for (attempt in 0..maxRetries) {
                 try {
                     val nextResult = YouTube.next(endpoint, continuation).getOrThrow()
@@ -39,12 +39,11 @@ class YouTubeQueue(
                     )
                 } catch (e: Exception) {
                     lastException = e
-                    // If first attempt fails and we have a videoId, try with radio params
+                    // If first attempt fails and we have a videoId, try with fallback radio params
                     if (attempt == 0 && endpoint.videoId != null && endpoint.playlistId == null) {
                         endpoint = WatchEndpoint(
                             videoId = endpoint.videoId,
-                            playlistId = "RDAMVM${endpoint.videoId}",
-                            params = "wAEB"
+                            playlistId = "RDAMVM${endpoint.videoId}"
                         )
                     }
                 }
@@ -79,14 +78,13 @@ class YouTubeQueue(
     }
 
     companion object {
+        /**
+         * Creates a radio queue based on a song.
+         * Uses only videoId to let YouTube personalize recommendations based on user's listening history.
+         */
         fun radio(song: MediaMetadata): YouTubeQueue {
-            // Use radio playlist format for better compatibility
             return YouTubeQueue(
-                WatchEndpoint(
-                    videoId = song.id,
-                    playlistId = "RDAMVM${song.id}",
-                    params = "wAEB"
-                ),
+                WatchEndpoint(videoId = song.id),
                 song
             )
         }

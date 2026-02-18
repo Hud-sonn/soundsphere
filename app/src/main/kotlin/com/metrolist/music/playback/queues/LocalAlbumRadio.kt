@@ -23,8 +23,7 @@ class LocalAlbumRadio(
     private lateinit var playlistId: String
     private val endpoint: WatchEndpoint
         get() = WatchEndpoint(
-            playlistId = playlistId,
-            params = "wAEB"
+            playlistId = playlistId
         )
 
     private var continuation: String? = null

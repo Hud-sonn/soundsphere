@@ -1345,12 +1345,10 @@ class MusicService :
         val currentMediaId = currentMediaMetadata.id
 
         scope.launch(SilentHandler) {
-            // Use radio playlist format for better compatibility
+            // Use simple videoId to let YouTube personalize recommendations
             val radioQueue = YouTubeQueue(
                 endpoint = WatchEndpoint(
-                    videoId = currentMediaId,
-                    playlistId = "RDAMVM$currentMediaId",
-                    params = "wAEB"
+                    videoId = currentMediaId
                 )
             )
 
@@ -1459,10 +1457,9 @@ class MusicService :
                             // Fallback: try with radio format
                             val currentSong = player.currentMetadata
                             if (currentSong != null) {
+                                // Use simple videoId for better personalized recommendations
                                 YouTube.next(WatchEndpoint(
-                                    videoId = currentSong.id,
-                                    playlistId = "RDAMVM${currentSong.id}",
-                                    params = "wAEB"
+                                    videoId = currentSong.id
                                 )).onSuccess { radioResult ->
                                     val filteredItems = radioResult.items
                                         .filter { it.id != currentSong.id }
