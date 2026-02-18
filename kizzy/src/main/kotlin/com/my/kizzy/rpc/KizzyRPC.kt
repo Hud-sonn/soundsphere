@@ -18,7 +18,6 @@ import com.my.kizzy.gateway.entities.presence.Assets
 import com.my.kizzy.gateway.entities.presence.Metadata
 import com.my.kizzy.gateway.entities.presence.Presence
 import com.my.kizzy.gateway.entities.presence.Timestamps
-import com.my.kizzy.repository.KizzyRepository
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.request.header
@@ -29,15 +28,15 @@ import org.json.JSONObject
  * Modified by Zion Huang
  */
 open class KizzyRPC(
-    token: String,
+    private val token: String,
     os: String = "Android",
     browser: String = "Discord Android",
     device: String = "Generic Android Device",
-    userAgent: String = "Discord-Android/314013;RNA",
-    superPropertiesBase64: String? = null
+    private val userAgent: String = "Discord-Android/314013;RNA",
+    private val superPropertiesBase64: String? = null
 ) {
-    private val kizzyRepository = KizzyRepository(userAgent, superPropertiesBase64)
     private val discordWebSocket = DiscordWebSocket(token, os, browser, device)
+    private val discordApiClient = HttpClient()
 
     fun closeRPC() {
         discordWebSocket.close()
@@ -80,11 +79,18 @@ open class KizzyRPC(
         if (!isRpcRunning()) {
             discordWebSocket.connect()
         }
-        
-        val images = listOfNotNull(largeImage, smallImage)
-        val externalImages = images.filterIsInstance<RpcImage.ExternalImage>()
-        val imageUrls = externalImages.map { it.image }
-        val resolvedImages = kizzyRepository.getImages(imageUrls)?.results?.associate { it.originalUrl to it.id } ?: emptyMap()
+
+        val resolveExternal: suspend (String) -> String? = { image ->
+            if (applicationId.isNullOrBlank()) null
+            else fetchExternalAsset(
+                client = discordApiClient,
+                applicationId = applicationId,
+                token = token,
+                imageUrl = image,
+                userAgent = userAgent,
+                superPropertiesBase64 = superPropertiesBase64,
+            )
+        }
 
         val presence = Presence(
             activities = listOf(
@@ -98,18 +104,8 @@ open class KizzyRPC(
                     statusDisplayType = statusDisplayType.value,
                     timestamps = Timestamps(startTime, endTime),
                     assets = Assets(
-                        largeImage = largeImage?.let { 
-                            when (it) {
-                                is RpcImage.DiscordImage -> "mp:${it.image}"
-                                is RpcImage.ExternalImage -> resolvedImages[it.image]
-                            }
-                        },
-                        smallImage = smallImage?.let { 
-                            when (it) {
-                                is RpcImage.DiscordImage -> "mp:${it.image}"
-                                is RpcImage.ExternalImage -> resolvedImages[it.image]
-                            }
-                        },
+                        largeImage = largeImage?.resolveImage(resolveExternal),
+                        smallImage = smallImage?.resolveImage(resolveExternal),
                         largeText = largeText,
                         smallText = smallText
                     ),
