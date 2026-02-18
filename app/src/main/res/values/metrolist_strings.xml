@@ -121,6 +121,10 @@
     <string name="primary_color_style">Primary color</string>
     <string name="tertiary_color_style">Tertiary color</string>
     <string name="secondary_color_style">Secondary</string>
+    <string name="display_density">Display density</string>
+    <string name="restart">Restart</string>
+    <string name="restart_required">Restart required</string>
+    <string name="density_restart_message">The display density change will take effect after restarting the app. Do you want to restart now?</string>
     <string name="enable_wavy_slider">Enable wavy slider</string>
     <string name="wavy">Wavy</string>
     <string name="enable_swipe_thumbnail">Enable swipe to change song</string>

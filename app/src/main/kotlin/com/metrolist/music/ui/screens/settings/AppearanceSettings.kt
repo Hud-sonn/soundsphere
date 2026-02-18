@@ -6,9 +6,11 @@
 package com.metrolist.music.ui.screens.settings
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.os.Build
 import androidx.compose.foundation.border
+import androidx.core.content.edit
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
@@ -58,6 +60,8 @@ import com.metrolist.music.R
 import com.metrolist.music.constants.ChipSortTypeKey
 import com.metrolist.music.constants.CropAlbumArtKey
 import com.metrolist.music.constants.DefaultOpenTabKey
+import com.metrolist.music.constants.DensityScale
+import com.metrolist.music.constants.DensityScaleKey
 import com.metrolist.music.constants.DynamicThemeKey
 import com.metrolist.music.constants.EnableDynamicIconKey
 import com.metrolist.music.constants.EnableHighRefreshRateKey
@@ -232,6 +236,25 @@ fun AppearanceSettings(
         SlimNavBarKey,
         defaultValue = false
     )
+
+    // Density scale preferences
+    val context = activity as Context
+    val sharedPreferences = remember { context.getSharedPreferences("metrolist_settings", Context.MODE_PRIVATE) }
+    val prefDensityScale = remember(sharedPreferences) {
+        sharedPreferences.getFloat("density_scale_factor", 1.0f)
+    }
+    val (densityScale, setDensityScale) = rememberPreference(DensityScaleKey, defaultValue = prefDensityScale)
+    var showRestartDialog by rememberSaveable { mutableStateOf(false) }
+    var showDensityScaleDialog by rememberSaveable { mutableStateOf(false) }
+
+    val onDensityScaleChange: (Float) -> Unit = { newScale ->
+        setDensityScale(newScale)
+        // Write to SharedPreferences for DensityScaler to read on next startup
+        sharedPreferences.edit {
+            putFloat("density_scale_factor", newScale)
+        }
+        showRestartDialog = true
+    }
 
     val (listenTogetherInTopBar, onListenTogetherInTopBarChange) = rememberPreference(
         ListenTogetherInTopBarKey,
@@ -593,6 +616,82 @@ fun AppearanceSettings(
                 }
             }
         )
+    }
+
+    if (showRestartDialog) {
+        DefaultDialog(
+            onDismiss = { showRestartDialog = false },
+            buttons = {
+                TextButton(
+                    onClick = { showRestartDialog = false }
+                ) {
+                    Text(text = stringResource(android.R.string.cancel))
+                }
+                TextButton(
+                    onClick = {
+                        showRestartDialog = false
+                        val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)?.apply {
+                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                        }
+                        context.startActivity(intent)
+                        Runtime.getRuntime().exit(0)
+                    }
+                ) {
+                    Text(text = stringResource(R.string.restart))
+                }
+            }
+        ) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.restart_required),
+                    style = MaterialTheme.typography.titleLarge
+                )
+                Text(
+                    text = stringResource(R.string.density_restart_message),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+        }
+    }
+
+    if (showDensityScaleDialog) {
+        DefaultDialog(
+            onDismiss = { showDensityScaleDialog = false },
+            buttons = {
+                TextButton(
+                    onClick = { showDensityScaleDialog = false }
+                ) {
+                    Text(text = stringResource(android.R.string.cancel))
+                }
+            }
+        ) {
+            Column {
+                DensityScale.entries.forEach { scale ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                onDensityScaleChange(scale.value)
+                                showDensityScaleDialog = false
+                            }
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = scale.label,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = if (densityScale == scale.value) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.onSurface
+                            }
+                        )
+                    }
+                }
+            }
+        }
     }
 
     if (showSliderOptionDialog) {
@@ -1383,6 +1482,14 @@ fun AppearanceSettings(
                         )
                     },
                     onClick = { showGridSizeDialog = true }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.grid_view),
+                    title = { Text(stringResource(R.string.display_density)) },
+                    description = {
+                        Text(DensityScale.fromValue(densityScale).label)
+                    },
+                    onClick = { showDensityScaleDialog = true }
                 )
             )
         )

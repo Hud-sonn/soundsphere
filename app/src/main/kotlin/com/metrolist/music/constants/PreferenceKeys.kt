@@ -21,6 +21,21 @@ val DarkModeKey = stringPreferencesKey("darkMode")
 val PureBlackKey = booleanPreferencesKey("pureBlack")
 val PureBlackMiniPlayerKey = booleanPreferencesKey("pureBlackMiniPlayer")
 val MiniPlayerOutlineKey = booleanPreferencesKey("miniPlayerOutline")
+val DensityScaleKey = floatPreferencesKey("density_scale_factor")
+val CustomDensityScaleKey = floatPreferencesKey("custom_density_scale_value")
+
+enum class DensityScale(val value: Float, val label: String) {
+    NATIVE(1.0f, "Native (100%)"),
+    SLIGHTLY_COMPACT(0.85f, "Slightly Compact (85%)"),
+    COMPACT(0.75f, "Compact (75%)"),
+    VERY_COMPACT(0.65f, "Very Compact (65%)"),
+    ULTRA_COMPACT(0.55f, "Ultra Compact (55%)");
+
+    companion object {
+        fun fromValue(value: Float): DensityScale = entries.find { it.value == value } ?: NATIVE
+    }
+}
+
 val DefaultOpenTabKey = stringPreferencesKey("defaultOpenTab")
 val SlimNavBarKey = booleanPreferencesKey("slimNavBar")
 val GridItemsSizeKey = stringPreferencesKey("gridItemSize")
