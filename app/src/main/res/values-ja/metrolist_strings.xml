@@ -263,7 +263,7 @@
     <string name="remember_shuffle_and_repeat">シャッフル/リピート再生を保持</string>
     <string name="remember_shuffle_and_repeat_desc">アプリを再起動したあともシャッフル/リピート再生を維持します</string>
     <string name="pause_music_when_media_is_muted">ミュート時に曲を停止</string>
-    <string name="keep_screen_on_when_player_is_expanded">プレーヤー展開中は画面をオンに保つ</string>
+    <string name="keep_screen_on_when_player_is_expanded">プレーヤーを展開中は画面をオンに保つ</string>
     <string name="lyrics_offset">歌詞のタイミングを調整</string>
     <string name="google_cast_description">Chromecastなどのキャスト対応のデバイスに音声をキャストできます</string>
     <string name="last_fm_send_likes">高評価/低評価を反映する</string>
@@ -472,7 +472,7 @@
     <string name="no_song_playing">再生中の曲はありません</string>
     <string name="tap_to_open">タップしてMetrolistを開く</string>
     <string name="previous">前へ</string>
-    <string name="tap_to_play">Metrolistを開く</string>
+    <string name="tap_to_play">タップしてMetrolistを開く</string>
     <string name="queue_widget_description">再生キューを確認できる音楽プレーヤー</string>
     <string name="listen_together_you_are_host">あなたはホストです</string>
     <string name="listen_together_you_are_guest">あなたはゲストです</string>
@@ -504,7 +504,7 @@
     <string name="enable_high_refresh_rate_desc">ディスプレイを対応している中で最も高いリフレッシュレートで強制的に動作させます</string>
     <string name="suggest_to_host">ホストに提案</string>
     <string name="pending_suggestions">保留中の提案</string>
-    <string name="listen_together_settings_desc">サーバー・ユーザー名などを設定します</string>
+    <string name="listen_together_settings_desc">サーバーやユーザー名などを設定します</string>
     <string name="pending_requests">保留中のリクエスト</string>
     <string name="not_set">未設定</string>
     <string name="hosting_room">ルームをホスト中</string>
@@ -624,4 +624,9 @@
     <string name="discord_activity_name_description">アクティビティのカスタム名（空欄の場合はデフォルトを使用）</string>
     <string name="discord_advanced_mode">詳細設定</string>
     <string name="discord_advanced_mode_description">リッチプレゼンスの追加のカスタマイズオプションを表示します</string>
+    <string name="player_background_solid">単色</string>
+    <string name="resume_on_bluetooth_connect">Bluetooth接続時に再生を再開</string>
+    <string name="lyrics_romanize_hindi">ヒンディー語の歌詞にローマ字を追加</string>
+    <string name="lyrics_romanize_punjabi">パンジャブ語の歌詞にローマ字を追加</string>
+    <string name="lyrics_romanize_as_main">ローマ字の歌詞をメインに表示</string>
 </resources>
