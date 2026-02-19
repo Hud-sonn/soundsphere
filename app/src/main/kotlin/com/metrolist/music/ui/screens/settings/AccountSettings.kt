@@ -44,7 +44,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import android.content.Intent
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
@@ -197,27 +196,48 @@ fun AccountSettings(
             TextFieldDialog(
                 initialTextFieldValue = TextFieldValue(text),
                 onDone = { data ->
+                    var cookie = ""
+                    var visitorDataValue = ""
+                    var dataSyncIdValue = ""
+                    var accountNameValue = ""
+                    var accountEmailValue = ""
+                    var accountChannelHandleValue = ""
+
                     data.split("\n").forEach {
                         when {
-                            it.startsWith("***INNERTUBE COOKIE*** =") -> onInnerTubeCookieChange(it.substringAfter("="))
-                            it.startsWith("***VISITOR DATA*** =") -> onVisitorDataChange(it.substringAfter("="))
-                            it.startsWith("***DATASYNC ID*** =") -> onDataSyncIdChange(it.substringAfter("="))
-                            it.startsWith("***ACCOUNT NAME*** =") -> onAccountNameChange(it.substringAfter("="))
-                            it.startsWith("***ACCOUNT EMAIL*** =") -> onAccountEmailChange(it.substringAfter("="))
-                            it.startsWith("***ACCOUNT CHANNEL HANDLE*** =") -> onAccountChannelHandleChange(it.substringAfter("="))
+                            it.startsWith("***INNERTUBE COOKIE*** =") -> cookie = it.substringAfter("=")
+                            it.startsWith("***VISITOR DATA*** =") -> visitorDataValue = it.substringAfter("=")
+                            it.startsWith("***DATASYNC ID*** =") -> dataSyncIdValue = it.substringAfter("=")
+                            it.startsWith("***ACCOUNT NAME*** =") -> accountNameValue = it.substringAfter("=")
+                            it.startsWith("***ACCOUNT EMAIL*** =") -> accountEmailValue = it.substringAfter("=")
+                            it.startsWith("***ACCOUNT CHANNEL HANDLE*** =") -> accountChannelHandleValue = it.substringAfter("=")
                         }
                     }
-                    // Restart app to apply new credentials throughout
-                    val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)
-                    intent?.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-                    context.startActivity(intent)
-                    Runtime.getRuntime().exit(0)
+                    // Write all credentials atomically to DataStore and wait for completion
+                    // before restarting, preventing the race condition where the process
+                    // would be killed before async DataStore coroutines finished writing.
+                    accountSettingsViewModel.saveTokenAndRestart(
+                        context = context,
+                        cookie = cookie,
+                        visitorData = visitorDataValue,
+                        dataSyncId = dataSyncIdValue,
+                        accountName = accountNameValue,
+                        accountEmail = accountEmailValue,
+                        accountChannelHandle = accountChannelHandleValue,
+                    )
                 },
                 onDismiss = { showTokenEditor = false },
                 singleLine = false,
                 maxLines = 20,
-                isInputValid = {
-                    it.isNotEmpty() && "SAPISID" in parseCookieString(it)
+                isInputValid = { fullText ->
+                    // Extract the cookie value from the formatted template line,
+                    // then validate it separately — avoids the bug where parseCookieString
+                    // received the entire multi-line template and failed to find "SAPISID"
+                    // as a key because the "***INNERTUBE COOKIE*** =" prefix shadowed it.
+                    val cookieLine = fullText.lines()
+                        .find { it.startsWith("***INNERTUBE COOKIE*** =") }
+                    val cookieValue = cookieLine?.substringAfter("***INNERTUBE COOKIE*** =")?.trim() ?: ""
+                    cookieValue.isNotEmpty() && "SAPISID" in parseCookieString(cookieValue)
                 },
                 extraContent = {
                     InfoLabel(text = stringResource(R.string.token_adv_login_description))
