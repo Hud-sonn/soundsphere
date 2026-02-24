@@ -768,13 +768,7 @@ fun HomeScreen(
 
                             is AlbumItem -> navController.navigate("album/${item.id}")
                             is ArtistItem -> navController.navigate("artist/${item.id}")
-                            is PlaylistItem -> {
-                                if (item.id.startsWith("VL") || item.id.startsWith("PL") || item.id.startsWith("LL") || item.id.startsWith("RDC")) {
-                                    navController.navigate("online_playlist/${item.id.removePrefix("VL")}")
-                                } else {
-                                    navController.navigate("local_playlist/${item.id}")
-                                }
-                            }
+                            is PlaylistItem -> navController.navigate("online_playlist/${item.id}")
                         }
                     },
                     onLongClick = {
@@ -1147,13 +1141,7 @@ fun HomeScreen(
                                                                                         )
                                                                                         is AlbumItem -> navController.navigate("album/${item.id}")
                                                                                         is ArtistItem -> navController.navigate("artist/${item.id}")
-                                                                                        is PlaylistItem -> {
-                                                                                            if (item.id.startsWith("VL") || item.id.startsWith("PL") || item.id.startsWith("LL") || item.id.startsWith("RDC")) {
-                                                                                                navController.navigate("online_playlist/${item.id.removePrefix("VL")}")
-                                                                                            } else {
-                                                                                                navController.navigate("local_playlist/${item.id}")
-                                                                                            }
-                                                                                        }
+                                                                                        is PlaylistItem -> navController.navigate("online_playlist/${item.id}")
                                                                                     }
                                                                                 },
                                                                                 onLongClick = {
