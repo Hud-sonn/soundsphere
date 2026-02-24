@@ -175,6 +175,10 @@ import kotlinx.coroutines.withContext
 import kotlin.math.max
 import kotlin.math.roundToInt
 import com.metrolist.music.ui.component.Icon as MIcon
+import com.metrolist.music.constants.SleepTimerDefaultKey
+import com.metrolist.music.utils.dataStore
+import androidx.datastore.preferences.core.edit
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -489,13 +493,16 @@ fun BottomSheetPlayer(
         }
     }
 
+    val scope = rememberCoroutineScope()
     var showSleepTimerDialog by remember {
         mutableStateOf(false)
     }
 
+    val sleepTimerDefault by rememberPreference(SleepTimerDefaultKey, 30f)
     var sleepTimerValue by remember {
-        mutableFloatStateOf(30f)
+        mutableFloatStateOf(sleepTimerDefault)
     }
+
     if (showSleepTimerDialog) {
         AlertDialog(
             properties = DialogProperties(usePlatformDefaultWidth = false),
@@ -549,6 +556,22 @@ fun BottomSheetPlayer(
                         },
                     ) {
                         Text(stringResource(R.string.end_of_song))
+                    }
+                    TextButton(
+                        onClick = {
+                            scope.launch {
+                                context.dataStore.edit { settings ->
+                                    settings[SleepTimerDefaultKey] = sleepTimerValue
+                                }
+                            }
+                            Toast.makeText(
+                                context,
+                                context.getString(R.string.sleep_timer_default_set, sleepTimerValue.roundToInt()),
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        },
+                    ) {
+                        Text(stringResource(R.string.set_as_default))
                     }
                 }
             },
