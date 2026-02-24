@@ -210,3 +210,5 @@ This project and its contents are not affiliated with, funded, authorized, endor
 Any trademark, service mark, trade name, or other intellectual property rights used in this project are owned by the respective owners.
 
 **Made with ❤️ by [Mo Agamy](https://github.com/mostafaalagamy)**
+
+**This project stands with Palestine 🇵🇸**
