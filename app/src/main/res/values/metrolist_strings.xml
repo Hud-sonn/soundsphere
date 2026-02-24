@@ -759,6 +759,11 @@
     <string name="from_the_community">From the community</string>
     <string name="songs_count">%s songs</string>
 
+    <!-- Logout dialog -->
+    <string name="logout_dialog_title">Keep library data?</string>
+    <string name="logout_dialog_message">Do you want to keep your playlists and library data? Downloaded songs will be kept regardless.</string>
+    <string name="logout_keep">Keep</string>
+    <string name="logout_clear">Clear</string>
     <!-- Credits / About Screen -->
     <string name="credits_lead_developer">Lead Developer</string>
     <string name="credits_collaborator">Collaborator</string>

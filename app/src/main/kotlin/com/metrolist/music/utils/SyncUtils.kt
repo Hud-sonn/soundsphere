@@ -335,6 +335,100 @@ class SyncUtils @Inject constructor(
     suspend fun cleanupDuplicatePlaylistsSuspend() = executeCleanupDuplicatePlaylists()
     suspend fun clearAllSyncedContentSuspend() = executeClearAllSyncedContent()
 
+    suspend fun clearAllLibraryData() = withContext(Dispatchers.IO) {
+        Timber.d("[LOGOUT_CLEAR] Starting complete library data cleanup")
+        try {
+            // Clear history first
+            Timber.d("[LOGOUT_CLEAR] Clearing listen history and search history")
+            database.clearListenHistory()
+            database.clearSearchHistory()
+
+            // Get all user tables from the database (auto-detect)
+            val allTables = getAllUserTables()
+            Timber.d("[LOGOUT_CLEAR] Found ${allTables.size} tables: $allTables")
+
+            // Tables to skip (system tables and tables we handle specially)
+            val skipTables = setOf(
+                "android_metadata",
+                "room_master_table",
+                "sqlite_sequence",
+                "search_history",  // Already cleared above
+                "listen_history"   // Already cleared above
+            )
+
+            // Tables with foreign key references - delete these first (mapping tables)
+            val mappingTables = listOf(
+                "playlist_song_map",
+                "song_album_map",
+                "song_artist_map",
+                "album_artist_map",
+                "related_song_map"
+            )
+
+            // Delete mapping tables first
+            Timber.d("[LOGOUT_CLEAR] Deleting mapping tables")
+            for (table in mappingTables) {
+                if (table in allTables) {
+                    safeDeleteTable(table)
+                }
+            }
+
+            // Delete all other tables except song (handled specially to keep downloads)
+            Timber.d("[LOGOUT_CLEAR] Deleting remaining tables")
+            for (table in allTables) {
+                if (table in skipTables || table in mappingTables || table == "song") {
+                    continue
+                }
+                safeDeleteTable(table)
+            }
+
+            // Finally, delete songs but keep downloaded ones
+            if ("song" in allTables) {
+                Timber.d("[LOGOUT_CLEAR] Deleting songs (keeping downloaded)")
+                safeRawQuery("DELETE FROM song WHERE dateDownload IS NULL")
+            }
+
+            Timber.d("[LOGOUT_CLEAR] All library data cleared successfully")
+        } catch (e: Exception) {
+            Timber.e(e, "[LOGOUT_CLEAR] Error clearing library data")
+            throw e
+        }
+    }
+
+    private fun getAllUserTables(): List<String> {
+        val tables = mutableListOf<String>()
+        try {
+            database.openHelper.writableDatabase.query(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'"
+            ).use { cursor ->
+                while (cursor.moveToNext()) {
+                    tables.add(cursor.getString(0))
+                }
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "[LOGOUT_CLEAR] Error getting table list")
+        }
+        return tables
+    }
+
+    private fun safeDeleteTable(tableName: String) {
+        try {
+            database.raw(androidx.sqlite.db.SimpleSQLiteQuery("DELETE FROM $tableName"))
+            Timber.d("[LOGOUT_CLEAR] Cleared table: $tableName")
+        } catch (e: Exception) {
+            Timber.w("[LOGOUT_CLEAR] Table $tableName error: ${e.message}")
+        }
+    }
+
+    private fun safeRawQuery(query: String) {
+        try {
+            database.raw(androidx.sqlite.db.SimpleSQLiteQuery(query))
+            Timber.d("[LOGOUT_CLEAR] Executed: $query")
+        } catch (e: Exception) {
+            Timber.w("[LOGOUT_CLEAR] Query failed: $query - ${e.message}")
+        }
+    }
+
     suspend fun syncAllAlbumsSuspend() {
         executeSyncLikedAlbums()
         executeSyncUploadedAlbums()
