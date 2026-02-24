@@ -969,7 +969,7 @@ fun HomeScreen(
 
                 if (isLoading && homePage?.chips.isNullOrEmpty()) {
                     item(key = "chips_shimmer") {
-                        ShimmerHost {
+                        ShimmerHost(showGradient = false) {
                             LazyRow(
                                 contentPadding = WindowInsets.systemBars
                                     .only(WindowInsetsSides.Horizontal)
