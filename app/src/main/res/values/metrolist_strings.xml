@@ -818,4 +818,12 @@
         <item quantity="one">%d episode</item>
         <item quantity="other">%d episodes</item>
     </plurals>
+
+    <!-- Restore confirmation dialog -->
+    <string name="restore_confirm_title">Restore backup?</string>
+    <string name="restore_confirm_message">This will restore your app data from the backup.</string>
+    <string name="restore_account_warning">You will need to log in again after restore. The following account will be signed out:</string>
+    <string name="restore">Restore</string>
+    <string name="checking_previous_account">Checking for previous account…</string>
+    <string name="no_account_found">No account found</string>
 </resources>
