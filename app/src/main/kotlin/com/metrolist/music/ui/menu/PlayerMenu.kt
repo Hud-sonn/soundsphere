@@ -339,9 +339,13 @@ fun PlayerMenu(
         }
 
         item {
+            // Check if this is a podcast episode (album ID doesn't start with MPREb_)
+            val isPodcast = mediaMetadata.album?.let { !it.id.startsWith("MPREb_") } ?: false
+
             Material3MenuGroup(
                 items = buildList {
-                    if (artists.isNotEmpty()) {
+                    // Don't show "View Artist" for podcasts - only show "View Podcast"
+                    if (artists.isNotEmpty() && !isPodcast) {
                         add(
                             Material3MenuItemData(
                                 title = { Text(text = stringResource(R.string.view_artist)) },
@@ -374,7 +378,7 @@ fun PlayerMenu(
                     if (mediaMetadata.album != null) {
                         add(
                             Material3MenuItemData(
-                                title = { Text(text = stringResource(R.string.view_album)) },
+                                title = { Text(text = stringResource(if (isPodcast) R.string.view_podcast else R.string.view_album)) },
                                 description = {
                                     Text(
                                         text = mediaMetadata.album.title,
@@ -384,13 +388,17 @@ fun PlayerMenu(
                                 },
                                 icon = {
                                     Icon(
-                                        painter = painterResource(R.drawable.album),
+                                        painter = painterResource(if (isPodcast) R.drawable.mic else R.drawable.album),
                                         contentDescription = null,
                                         modifier = Modifier.size(24.dp)
                                     )
                                 },
                                 onClick = {
-                                    navController.navigate("album/${mediaMetadata.album.id}")
+                                    if (isPodcast) {
+                                        navController.navigate("online_podcast/${mediaMetadata.album.id}")
+                                    } else {
+                                        navController.navigate("album/${mediaMetadata.album.id}")
+                                    }
                                     playerBottomSheetState.collapseSoft()
                                     onDismiss()
                                 }

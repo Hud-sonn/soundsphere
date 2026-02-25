@@ -487,6 +487,10 @@
     <string name="error_copied">Error info copied to clipboard</string>
     <string name="copy_error">Copy error</string>
     <string name="error_copy_hint">Copy error info to help developers debug the issue</string>
+    <string name="error_episode_save">Failed to save episode</string>
+    <string name="error_episode_remove">Failed to remove episode</string>
+    <string name="error_podcast_subscribe">Failed to subscribe to podcast</string>
+    <string name="error_podcast_unsubscribe">Failed to unsubscribe from podcast</string>
 
     <!-- Widget strings -->
     <string name="album_art">Album art</string>
@@ -794,4 +798,24 @@
     <string name="wanna_play_favorite_song">Wanna play their favorite song?</string>
     <string name="yeah">Yeah</string>
     <string name="stands_with_palestine">This project stands with Palestine 🇵🇸</string>
+    <!-- Podcasts -->
+    <string name="filter_podcasts">Podcasts</string>
+    <string name="view_podcast">View podcast</string>
+    <string name="podcast_channels">Podcast Channels</string>
+    <string name="latest_episodes">Latest Episodes</string>
+    <string name="your_shows">Your Shows</string>
+    <string name="subscribed_channels">Subscribed Channels</string>
+    <string name="new_episodes">New Episodes</string>
+    <string name="episodes_for_later">Episodes for Later</string>
+    <string name="save_episode_for_later">Save for later</string>
+    <string name="save_episode_for_later_desc">Add to your Episodes for Later playlist</string>
+    <string name="saved_episode">Saved to Episodes for Later</string>
+    <string name="remove_episode_from_saved">Remove from saved</string>
+    <string name="subscribe_to_podcast">Save podcast to library</string>
+    <string name="save_to_library">Save to Library</string>
+    <string name="saved_to_library">Saved</string>
+    <plurals name="n_episode">
+        <item quantity="one">%d episode</item>
+        <item quantity="other">%d episodes</item>
+    </plurals>
 </resources>

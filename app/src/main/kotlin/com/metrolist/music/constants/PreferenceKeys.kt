@@ -237,7 +237,7 @@ enum class SongFilter {
     LIBRARY,
     LIKED,
     DOWNLOADED,
-    UPLOADED
+    UPLOADED,
 }
 
 enum class ArtistFilter {

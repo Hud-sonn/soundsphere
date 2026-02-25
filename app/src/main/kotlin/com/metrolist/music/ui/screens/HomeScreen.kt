@@ -104,7 +104,9 @@ import coil3.request.SuccessResult
 import coil3.toBitmap
 import com.metrolist.innertube.models.AlbumItem
 import com.metrolist.innertube.models.ArtistItem
+import com.metrolist.innertube.models.EpisodeItem
 import com.metrolist.innertube.models.PlaylistItem
+import com.metrolist.innertube.models.PodcastItem
 import com.metrolist.innertube.models.SongItem
 import com.metrolist.innertube.models.WatchEndpoint
 import com.metrolist.innertube.models.YTItem
@@ -583,6 +585,10 @@ fun HomeScreen(
     val speedDialItems by viewModel.speedDialItems.collectAsState()
     val selectedChip by viewModel.selectedChip.collectAsState()
 
+    // Official podcast API data
+    val savedPodcastShows by viewModel.savedPodcastShows.collectAsState()
+    val episodesForLater by viewModel.episodesForLater.collectAsState()
+
     val isLoading: Boolean by viewModel.isLoading.collectAsState()
     val isMoodAndGenresLoading = isLoading && explorePage?.moodAndGenres == null
     val isRefreshing by viewModel.isRefreshing.collectAsState()
@@ -605,6 +611,44 @@ fun HomeScreen(
         "SAPISID" in parseCookieString(innerTubeCookie)
     }
     val url = if (isLoggedIn) accountImageUrl else null
+
+    // Extract unique podcasts from episodes for "Podcast Channels" row
+    // Cache the podcasts to prevent them from disappearing during refresh
+    var cachedPodcasts by remember { mutableStateOf<List<PodcastItem>>(emptyList()) }
+
+    val featuredPodcasts = remember(homePage, selectedChip) {
+        if (selectedChip == null) {
+            cachedPodcasts = emptyList()
+            emptyList()
+        } else {
+            val newPodcasts = homePage?.sections
+                ?.flatMap { it.items }
+                ?.filterIsInstance<EpisodeItem>()
+                ?.mapNotNull { episode ->
+                    episode.podcast?.let { podcast ->
+                        PodcastItem(
+                            id = podcast.id,
+                            title = podcast.name,
+                            author = episode.author,
+                            episodeCountText = null,
+                            thumbnail = episode.thumbnail,
+                            playEndpoint = null,
+                            shuffleEndpoint = null,
+                        )
+                    }
+                }
+                ?.distinctBy { it.id }
+                ?.shuffled()
+                ?.take(10)
+                ?: emptyList()
+
+            // Only update cache if we got valid data; keep old data during refresh
+            if (newPodcasts.isNotEmpty()) {
+                cachedPodcasts = newPodcasts
+            }
+            cachedPodcasts
+        }
+    }
 
     val scope = rememberCoroutineScope()
     // Track randomization job
@@ -769,6 +813,13 @@ fun HomeScreen(
                             is AlbumItem -> navController.navigate("album/${item.id}")
                             is ArtistItem -> navController.navigate("artist/${item.id}")
                             is PlaylistItem -> navController.navigate("online_playlist/${item.id}")
+                            is PodcastItem -> navController.navigate("online_podcast/${item.id}")
+                            is EpisodeItem -> playerConnection.playQueue(
+                                ListQueue(
+                                    title = item.title,
+                                    items = listOf(item.toMediaMetadata().toMediaItem())
+                                )
+                            )
                         }
                     },
                     onLongClick = {
@@ -795,6 +846,18 @@ fun HomeScreen(
                                 is PlaylistItem -> YouTubePlaylistMenu(
                                     playlist = item,
                                     coroutineScope = scope,
+                                    onDismiss = menuState::dismiss
+                                )
+
+                                is PodcastItem -> YouTubePlaylistMenu(
+                                    playlist = item.asPlaylistItem(),
+                                    coroutineScope = scope,
+                                    onDismiss = menuState::dismiss
+                                )
+
+                                is EpisodeItem -> YouTubeSongMenu(
+                                    song = item.asSongItem(),
+                                    navController = navController,
                                     onDismiss = menuState::dismiss
                                 )
                             }
@@ -987,6 +1050,148 @@ fun HomeScreen(
                     }
                 }
 
+                // Show podcast sections FIRST when podcast chip is selected (fixed at top)
+                if (selectedChip?.title?.contains("Podcast", ignoreCase = true) == true) {
+                    // Show "Your Shows" section from official API
+                    if (savedPodcastShows.isNotEmpty()) {
+                        item(key = "00_your_shows_title") {
+                            NavigationTitle(
+                                title = stringResource(R.string.your_shows),
+                                onClick = {
+                                    navController.navigate("youtube_browse/FEmusic_library_non_music_audio_list")
+                                }
+                            )
+                        }
+
+                        item(key = "00_your_shows_list") {
+                            LazyRow(
+                                contentPadding = WindowInsets.systemBars
+                                    .only(WindowInsetsSides.Horizontal)
+                                    .asPaddingValues(),
+                            ) {
+                                items(savedPodcastShows) { podcast ->
+                                    ytGridItem(podcast)
+                                }
+                            }
+                        }
+                    }
+
+                    // Show "Episodes for Later" section from official API
+                    if (episodesForLater.isNotEmpty()) {
+                        item(key = "00_episodes_for_later_title") {
+                            NavigationTitle(
+                                title = stringResource(R.string.episodes_for_later),
+                                onClick = {
+                                    navController.navigate("online_playlist/SE")
+                                }
+                            )
+                        }
+
+                        item(key = "00_episodes_for_later_list") {
+                            LazyRow(
+                                contentPadding = WindowInsets.systemBars
+                                    .only(WindowInsetsSides.Horizontal)
+                                    .asPaddingValues(),
+                            ) {
+                                items(episodesForLater) { episode ->
+                                    ytGridItem(episode)
+                                }
+                            }
+                        }
+                    }
+
+                    // Show Podcast Channels row if we have any (extracted from episodes)
+                    // Only show if "Your Shows" from official API is empty (to avoid duplicates)
+                    if (featuredPodcasts.isNotEmpty() && savedPodcastShows.isEmpty()) {
+                        item(key = "0_podcast_channels_title") {
+                            NavigationTitle(
+                                title = stringResource(R.string.podcast_channels),
+                            )
+                        }
+
+                        item(key = "0_podcast_channels_list") {
+                            LazyRow(
+                                contentPadding = WindowInsets.systemBars
+                                    .only(WindowInsetsSides.Horizontal)
+                                    .asPaddingValues(),
+                            ) {
+                                items(featuredPodcasts) { podcast ->
+                                    ytGridItem(podcast)
+                                }
+                            }
+                        }
+                    }
+
+                    // Add "Latest Episodes" header before episode sections (if we have any sections)
+                    if (homeSections.filterIsInstance<HomeSection.HomePageSection>().isNotEmpty()) {
+                        item(key = "0_latest_episodes_title") {
+                            NavigationTitle(
+                                title = stringResource(R.string.latest_episodes),
+                            )
+                        }
+                    }
+
+                    // Render the regular sections from the chip (episodes grouped by category)
+                    // Use key prefix "1_" to ensure episodes sort after channels "0_"
+                    // Skip sections that duplicate official API sections (Your Shows, Episodes for Later)
+                    homeSections.filterIsInstance<HomeSection.HomePageSection>().forEach { section ->
+                        val sectionData = homePage?.sections?.getOrNull(section.index)
+                        // Skip if this section duplicates an official API section
+                        val skipTitles = listOf("your shows", "episodes for later", "podcast channels", "new episodes")
+                        if (sectionData?.title?.lowercase()?.let { title -> skipTitles.any { title.contains(it) } } == true) {
+                            return@forEach
+                        }
+                        sectionData?.let {
+                            item(key = "1_chip_section_title_${section.index}") {
+                                NavigationTitle(
+                                    title = sectionData.title,
+                                    label = sectionData.label,
+                                    thumbnail = sectionData.thumbnail?.let { thumbnailUrl ->
+                                        {
+                                            val shape =
+                                                if (sectionData.endpoint?.isArtistEndpoint == true) CircleShape else RoundedCornerShape(
+                                                    ThumbnailCornerRadius
+                                                )
+                                            AsyncImage(
+                                                model = thumbnailUrl,
+                                                contentDescription = null,
+                                                modifier = Modifier
+                                                    .size(ListThumbnailSize)
+                                                    .clip(shape)
+                                            )
+                                        }
+                                    },
+                                    onClick = sectionData.endpoint?.let { endpoint ->
+                                        {
+                                            when {
+                                                endpoint.browseId == "FEmusic_moods_and_genres" ->
+                                                    navController.navigate("mood_and_genres")
+                                                endpoint.params != null ->
+                                                    navController.navigate("youtube_browse/${endpoint.browseId}?params=${endpoint.params}")
+                                                else ->
+                                                    navController.navigate("browse/${endpoint.browseId}")
+                                            }
+                                        }
+                                    },
+                                    modifier = Modifier.animateItem()
+                                )
+                            }
+
+                            item(key = "1_chip_section_list_${section.index}") {
+                                LazyRow(
+                                    contentPadding = WindowInsets.systemBars
+                                        .only(WindowInsetsSides.Horizontal)
+                                        .asPaddingValues(),
+                                ) {
+                                    items(sectionData.items) { item ->
+                                        ytGridItem(item)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
                 if (selectedChip == null) {
                     item(key = "wrapped_card") {
                         AnimatedVisibility(visible = shouldShowWrappedCard) {
@@ -1110,6 +1315,13 @@ fun HomeScreen(
                                                                                             is AlbumItem -> navController.navigate("album/${randomItem.id}")
                                                                                             is ArtistItem -> navController.navigate("artist/${randomItem.id}")
                                                                                             is PlaylistItem -> navController.navigate("online_playlist/${randomItem.id}")
+                                                                                            is PodcastItem -> navController.navigate("online_podcast/${randomItem.id}")
+                                                                                            is EpisodeItem -> playerConnection.playQueue(
+                                                                                                ListQueue(
+                                                                                                    title = randomItem.title,
+                                                                                                    items = listOf(randomItem.toMediaMetadata().toMediaItem())
+                                                                                                )
+                                                                                            )
                                                                                         }
                                                                                     }
                                                                                 }
@@ -1146,6 +1358,13 @@ fun HomeScreen(
                                                                                         is AlbumItem -> navController.navigate("album/${item.id}")
                                                                                         is ArtistItem -> navController.navigate("artist/${item.id}")
                                                                                         is PlaylistItem -> navController.navigate("online_playlist/${item.id}")
+                                                                                        is PodcastItem -> navController.navigate("online_podcast/${item.id}")
+                                                                                        is EpisodeItem -> playerConnection.playQueue(
+                                                                                            ListQueue(
+                                                                                                title = item.title,
+                                                                                                items = listOf(item.toMediaMetadata().toMediaItem())
+                                                                                            )
+                                                                                        )
                                                                                     }
                                                                                 },
                                                                                 onLongClick = {
@@ -1169,6 +1388,16 @@ fun HomeScreen(
                                                                                             is PlaylistItem -> YouTubePlaylistMenu(
                                                                                                 playlist = item,
                                                                                                 coroutineScope = scope,
+                                                                                                onDismiss = menuState::dismiss
+                                                                                            )
+                                                                                            is PodcastItem -> YouTubePlaylistMenu(
+                                                                                                playlist = item.asPlaylistItem(),
+                                                                                                coroutineScope = scope,
+                                                                                                onDismiss = menuState::dismiss
+                                                                                            )
+                                                                                            is EpisodeItem -> YouTubeSongMenu(
+                                                                                                song = item.asSongItem(),
+                                                                                                navController = navController,
                                                                                                 onDismiss = menuState::dismiss
                                                                                             )
                                                                                         }
@@ -1615,6 +1844,11 @@ fun HomeScreen(
                             }
                         }
                         is HomeSection.HomePageSection -> {
+                            // Skip HomePageSection rendering when podcast chip is selected
+                            // Podcast sections are handled separately with special UI
+                            if (selectedChip?.title?.contains("Podcast", ignoreCase = true) == true) {
+                                return@forEach
+                            }
                             val sectionData = homePage?.sections?.getOrNull(section.index)
                             sectionData?.let {
                                 // Check if section contains songs for Play All functionality
@@ -1646,11 +1880,15 @@ fun HomeScreen(
                                         onClick = sectionData.endpoint?.let { endpoint ->
                                             {
                                                 when {
-                                                    endpoint.browseId == "FEmusic_moods_and_genres" -> 
+                                                    endpoint.browseId == "FEmusic_moods_and_genres" ->
                                                         navController.navigate("mood_and_genres")
-                                                    endpoint.params != null -> 
+                                                    // Handle podcast-related browse endpoints
+                                                    endpoint.browseId.startsWith("FEmusic_library_non_music_audio") ||
+                                                    endpoint.browseId.startsWith("FEmusic_non_music_audio") ->
+                                                        navController.navigate("youtube_browse/${endpoint.browseId}")
+                                                    endpoint.params != null ->
                                                         navController.navigate("youtube_browse/${endpoint.browseId}?params=${endpoint.params}")
-                                                    else -> 
+                                                    else ->
                                                         navController.navigate("browse/${endpoint.browseId}")
                                                 }
                                             }
@@ -1755,6 +1993,10 @@ fun HomeScreen(
                             }
                         }
                         HomeSection.MoodAndGenres -> {
+                            // Skip MoodAndGenres when podcast chip is selected
+                            if (selectedChip?.title?.contains("Podcast", ignoreCase = true) == true) {
+                                return@forEach
+                            }
                             explorePage?.moodAndGenres?.let { moodAndGenres ->
                                 item(key = "mood_and_genres_title") {
                                     NavigationTitle(
@@ -1792,7 +2034,8 @@ fun HomeScreen(
                     }
                 }
 
-            if (isLoading || homePage?.continuation != null && homePage?.sections?.isNotEmpty() == true) {
+            // Only show shimmer during initial loading, not for pagination
+            if (isLoading && homePage?.sections.isNullOrEmpty()) {
                 item(key = "loading_shimmer") {
                     ShimmerHost(
                         modifier = Modifier.animateItem()
@@ -1836,7 +2079,7 @@ fun HomeScreen(
                         }
                     }
                 }
-                }
+            }
             }
 
             HideOnScrollFAB(
@@ -1874,6 +2117,15 @@ fun HomeScreen(
                                 is PlaylistItem -> luckyItem.playEndpoint?.let {
                                     playerConnection.playQueue(YouTubeQueue(it))
                                 }
+                                is PodcastItem -> luckyItem.playEndpoint?.let {
+                                    playerConnection.playQueue(YouTubeQueue(it))
+                                }
+                                is EpisodeItem -> playerConnection.playQueue(
+                                    ListQueue(
+                                        title = luckyItem.title,
+                                        items = listOf(luckyItem.toMediaMetadata().toMediaItem())
+                                    )
+                                )
                             }
                         }
                     }

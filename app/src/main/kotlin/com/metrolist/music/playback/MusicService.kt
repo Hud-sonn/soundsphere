@@ -1686,8 +1686,16 @@ class MusicService :
     fun toggleLike() {
         scope.launch {
             val songToToggle = currentSong.first()
-            songToToggle?.let {
-                val song = it.song.toggleLike()
+            songToToggle?.let { librarySong ->
+                val songEntity = librarySong.song
+
+                // For podcast episodes, toggle save for later instead of like
+                if (songEntity.isEpisode) {
+                    toggleEpisodeSaveForLater(songEntity)
+                    return@let
+                }
+
+                val song = songEntity.toggleLike()
                 database.query {
                     update(song)
                     syncUtils.likeSong(song)
@@ -1711,6 +1719,33 @@ class MusicService :
                 }
                 currentMediaMetadata.value = player.currentMetadata
             }
+        }
+    }
+
+    private suspend fun toggleEpisodeSaveForLater(songEntity: com.metrolist.music.db.entities.SongEntity) {
+        val isCurrentlySaved = songEntity.inLibrary != null
+        // Update database first, then sync with YouTube
+        database.query {
+            update(songEntity.copy(inLibrary = if (isCurrentlySaved) null else java.time.LocalDateTime.now()))
+        }
+        currentMediaMetadata.value = player.currentMetadata
+
+        // Sync with YouTube in background
+        if (isCurrentlySaved) {
+            val setVideoId = database.getSetVideoId(songEntity.id)?.setVideoId
+            if (setVideoId != null) {
+                YouTube.removeEpisodeFromSavedEpisodes(songEntity.id, setVideoId)
+                    .onFailure { e ->
+                        Timber.e(e, "[EPISODE_SAVE] Failed to remove: ${songEntity.id}")
+                        android.widget.Toast.makeText(this, R.string.error_episode_remove, android.widget.Toast.LENGTH_SHORT).show()
+                    }
+            }
+        } else {
+            YouTube.addEpisodeToSavedEpisodes(songEntity.id)
+                .onFailure { e ->
+                    Timber.e(e, "[EPISODE_SAVE] Failed to save: ${songEntity.id}")
+                    android.widget.Toast.makeText(this, R.string.error_episode_save, android.widget.Toast.LENGTH_SHORT).show()
+                }
         }
     }
 

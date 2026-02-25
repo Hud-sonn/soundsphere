@@ -1017,6 +1017,9 @@ fun BottomSheetPlayer(
                                     )
                                 }
                             } else {
+                                // For episodes, show saved state (inLibrary); for songs, show liked state
+                                val isEpisode = currentSong?.song?.isEpisode == true
+                                val isFavorite = if (isEpisode) currentSong?.song?.inLibrary != null else currentSong?.song?.liked == true
                                 FilledIconButton(
                                     onClick = playerConnection::toggleLike,
                                     shape = favShape,
@@ -1028,7 +1031,7 @@ fun BottomSheetPlayer(
                                 ) {
                                     Icon(
                                         painter = painterResource(
-                                            if (currentSong?.song?.liked == true)
+                                            if (isFavorite)
                                                 R.drawable.favorite
                                             else R.drawable.favorite_border
                                         ),
@@ -1551,9 +1554,12 @@ fun BottomSheetPlayer(
                             }
 
                             Box(modifier = Modifier.weight(1f)) {
+                                // For episodes, show saved state (inLibrary); for songs, show liked state
+                                val isEpisode = currentSong?.song?.isEpisode == true
+                                val isFavorite = if (isEpisode) currentSong?.song?.inLibrary != null else currentSong?.song?.liked == true
                                 ResizableIconButton(
-                                    icon = if (currentSong?.song?.liked == true) R.drawable.favorite else R.drawable.favorite_border,
-                                    color = if (currentSong?.song?.liked == true) MaterialTheme.colorScheme.error else TextBackgroundColor,
+                                    icon = if (isFavorite) R.drawable.favorite else R.drawable.favorite_border,
+                                    color = if (isFavorite) MaterialTheme.colorScheme.error else TextBackgroundColor,
                                     modifier =
                                     Modifier
                                         .size(32.dp)
