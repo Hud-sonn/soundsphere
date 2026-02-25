@@ -109,7 +109,6 @@ private val leadDeveloper = Contributor(
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 private val collaborators = listOf(
     Contributor(name = "Adriel O'Connel", roleRes = R.string.credits_collaborator, githubHandle = "adrielGGmotion", polygon = MaterialShapes.Cookie4Sided, favoriteSongVideoId = "m2zUrruKjDQ"),
-    Contributor(name = "Avrumi Sternheim", roleRes = R.string.credits_collaborator, githubHandle = "alltechdev", polygon = MaterialShapes.Square, favoriteSongVideoId = "bezmD6ZYXJY"), // Best for Android penguin
     Contributor(name = "Nyx", roleRes = R.string.credits_collaborator, githubHandle = "nyxiereal", polygon = MaterialShapes.Cookie12Sided, favoriteSongVideoId = "zselaN6zPXw"), // More mass for face
 )
 
@@ -199,6 +198,7 @@ private fun ContributorAvatar(
 private fun RowScope.SegmentedActionButton(
     label: String,
     iconRes: Int,
+    iconSize: androidx.compose.ui.unit.Dp = 24.dp,
     onClick: () -> Unit
 ) {
     Surface(
@@ -209,15 +209,15 @@ private fun RowScope.SegmentedActionButton(
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
-            modifier = Modifier.height(80.dp)
+            modifier = Modifier.height(72.dp)
         ) {
             Icon(
                 painter = painterResource(iconRes),
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.size(24.dp)
+                modifier = Modifier.size(iconSize)
             )
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(4.dp))
             Text(
                 text = label,
                 style = MaterialTheme.typography.labelMedium,
@@ -427,7 +427,7 @@ fun AboutScreen(
     
             Spacer(Modifier.height(32.dp))
     
-            // Segmented buttons (Website, GitHub, Discord)
+            // Segmented buttons (Website, GitHub, Instagram)
             Surface(
                 shape = RoundedCornerShape(24.dp),
                 color = MaterialTheme.colorScheme.surfaceContainerHigh,
@@ -439,23 +439,26 @@ fun AboutScreen(
                     SegmentedActionButton(
                         label = stringResource(R.string.credits_website),
                         iconRes = R.drawable.language,
+                        iconSize = 24.dp,
                         onClick = { uriHandler.openUri("https://metrolist.meowery.eu") }
                     )
                     
-                    Box(modifier = Modifier.width(1.dp).height(80.dp).background(MaterialTheme.colorScheme.outlineVariant.copy(alpha=0.5f)))
+                    Box(modifier = Modifier.width(1.dp).height(72.dp).background(MaterialTheme.colorScheme.outlineVariant.copy(alpha=0.5f)))
                     
                     SegmentedActionButton(
                         label = stringResource(R.string.credits_github),
                         iconRes = R.drawable.github,
+                        iconSize = 24.dp,
                         onClick = { uriHandler.openUri("https://github.com/mostafaalagamy") }
                     )
                     
-                    Box(modifier = Modifier.width(1.dp).height(80.dp).background(MaterialTheme.colorScheme.outlineVariant.copy(alpha=0.5f)))
+                    Box(modifier = Modifier.width(1.dp).height(72.dp).background(MaterialTheme.colorScheme.outlineVariant.copy(alpha=0.5f)))
                     
                     SegmentedActionButton(
-                        label = stringResource(R.string.credits_discord),
-                        iconRes = R.drawable.discord,
-                        onClick = { uriHandler.openUri("https://discord.gg/rJwDxXsf8c") }
+                        label = stringResource(R.string.credits_instagram),
+                        iconRes = R.drawable.instagram,
+                        iconSize = 20.dp,
+                        onClick = { uriHandler.openUri("https://www.instagram.com/mostafaalagamy") }
                     )
                 }
             }

@@ -723,6 +723,7 @@
     <string name="youtube_url_column">YouTube URL Column (Optional)</string>
     <string name="continue_action">Continue</string>
     <string name="importing_csv">Importing CSV</string>
+    <string name="importing_song">Importing %s</string>
     <string name="recently_converted">Recently Converted</string>
     <string name="column_label">Col %d</string>
     <string name="csv_import_failed">Failed to import CSV file</string>
@@ -788,6 +789,7 @@
     <string name="credits_discord">Discord Server</string>
     <string name="credits_telegram">Telegram Channel</string>
     <string name="credits_website">Website</string>
+    <string name="credits_instagram">Instagram</string>
     <string name="credits_github">GitHub</string>
     <string name="credits_view_repo">View Repository</string>
     <string name="app_version_info">%1$s • %2$s</string>
