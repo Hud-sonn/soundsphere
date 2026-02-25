@@ -7,7 +7,6 @@ package com.metrolist.music.listentogether
 
 import com.google.protobuf.MessageLite
 import com.metrolist.music.listentogether.proto.Listentogether
-import kotlinx.serialization.json.Json
 import timber.log.Timber
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
@@ -15,102 +14,28 @@ import java.util.zip.GZIPInputStream
 import java.util.zip.GZIPOutputStream
 
 /**
- * Message format for encoding/decoding
- */
-enum class MessageFormat {
-    JSON,      // DEPRECATED - will be removed in future versions
-    PROTOBUF
-}
-
-/**
- * Codec for encoding and decoding messages in different formats
+ * Codec for encoding and decoding messages using Protocol Buffers
  */
 class MessageCodec(
-    var format: MessageFormat = MessageFormat.JSON,
     var compressionEnabled: Boolean = false
 ) {
     companion object {
         private const val TAG = "MessageCodec"
         private const val COMPRESSION_THRESHOLD = 100 // Only compress if > 100 bytes
-        
-        /**
-         * Detect message format by inspecting first byte
-         */
-        fun detectMessageFormat(data: ByteArray): MessageFormat {
-            if (data.isEmpty()) return MessageFormat.JSON
-            // JSON messages start with '{'
-            if (data[0] == '{'.code.toByte()) return MessageFormat.JSON
-            // Protobuf messages have field tags
-            return MessageFormat.PROTOBUF
-        }
-    }
-    
-    private val json = Json {
-        ignoreUnknownKeys = true
-        isLenient = true
     }
     
     /**
-     * Encode a message with the codec's format and compression settings
+     * Encode a message using Protocol Buffers
      */
     fun encode(msgType: String, payload: Any?): ByteArray {
-        return if (format == MessageFormat.PROTOBUF) {
-            encodeProtobuf(msgType, payload)
-        } else {
-            encodeJson(msgType, payload)
-        }
+        return encodeProtobuf(msgType, payload)
     }
     
     /**
-     * Decode a message, automatically detecting format
+     * Decode a protobuf message
      */
     fun decode(data: ByteArray): Pair<String, ByteArray> {
-        val detectedFormat = detectMessageFormat(data)
-        
-        return if (detectedFormat == MessageFormat.PROTOBUF) {
-            decodeProtobuf(data)
-        } else {
-            decodeJson(data)
-        }
-    }
-    
-    /**
-     * Encode message as JSON (DEPRECATED - will be removed in future versions)
-     */
-    private fun encodeJson(msgType: String, payload: Any?): ByteArray {
-        val msg = Message(
-            type = msgType,
-            payload = if (payload != null) json.encodeToJsonElement(serializer(payload), payload) else null
-        )
-        
-        var data = json.encodeToString(msg).toByteArray()
-        
-        if (compressionEnabled && data.size > COMPRESSION_THRESHOLD) {
-            val compressed = compressData(data)
-            if (compressed.size < data.size) {
-                data = compressed
-            }
-        }
-        
-        return data
-    }
-    
-    /**
-     * Decode JSON message (DEPRECATED - will be removed in future versions)
-     */
-    private fun decodeJson(data: ByteArray): Pair<String, ByteArray> {
-        // Try to decompress if it looks compressed (gzip magic bytes)
-        val actualData = if (compressionEnabled && data.size > 2 && 
-                             data[0] == 0x1f.toByte() && data[1] == 0x8b.toByte()) {
-            decompressData(data) ?: data
-        } else {
-            data
-        }
-        
-        val msg = json.decodeFromString<Message>(actualData.decodeToString())
-        val payloadBytes = msg.payload?.toString()?.toByteArray() ?: byteArrayOf()
-        
-        return Pair(msg.type, payloadBytes)
+        return decodeProtobuf(data)
     }
     
     /**
@@ -252,44 +177,10 @@ class MessageCodec(
     /**
      * Decode protobuf payload to Kotlin objects
      */
-    fun decodePayload(msgType: String, payloadBytes: ByteArray, format: MessageFormat): Any? {
+    fun decodePayload(msgType: String, payloadBytes: ByteArray): Any? {
         if (payloadBytes.isEmpty()) return null
         
-        return if (format == MessageFormat.PROTOBUF) {
-            decodeProtobufPayload(msgType, payloadBytes)
-        } else {
-            decodeJsonPayload(msgType, payloadBytes)
-        }
-    }
-    
-    /**
-     * Decode JSON payload (DEPRECATED - will be removed in future versions)
-     */
-    private fun decodeJsonPayload(msgType: String, payloadBytes: ByteArray): Any? {
-        val payloadString = payloadBytes.decodeToString()
-        
-        return when (msgType) {
-            MessageTypes.ROOM_CREATED -> json.decodeFromString<RoomCreatedPayload>(payloadString)
-            MessageTypes.JOIN_REQUEST -> json.decodeFromString<JoinRequestPayload>(payloadString)
-            MessageTypes.JOIN_APPROVED -> json.decodeFromString<JoinApprovedPayload>(payloadString)
-            MessageTypes.JOIN_REJECTED -> json.decodeFromString<JoinRejectedPayload>(payloadString)
-            MessageTypes.USER_JOINED -> json.decodeFromString<UserJoinedPayload>(payloadString)
-            MessageTypes.USER_LEFT -> json.decodeFromString<UserLeftPayload>(payloadString)
-            MessageTypes.SYNC_PLAYBACK -> json.decodeFromString<PlaybackActionPayload>(payloadString)
-            MessageTypes.BUFFER_WAIT -> json.decodeFromString<BufferWaitPayload>(payloadString)
-            MessageTypes.BUFFER_COMPLETE -> json.decodeFromString<BufferCompletePayload>(payloadString)
-            MessageTypes.ERROR -> json.decodeFromString<ErrorPayload>(payloadString)
-            MessageTypes.HOST_CHANGED -> json.decodeFromString<HostChangedPayload>(payloadString)
-            MessageTypes.KICKED -> json.decodeFromString<KickedPayload>(payloadString)
-            MessageTypes.SYNC_STATE -> json.decodeFromString<SyncStatePayload>(payloadString)
-            MessageTypes.RECONNECTED -> json.decodeFromString<ReconnectedPayload>(payloadString)
-            MessageTypes.USER_RECONNECTED -> json.decodeFromString<UserReconnectedPayload>(payloadString)
-            MessageTypes.USER_DISCONNECTED -> json.decodeFromString<UserDisconnectedPayload>(payloadString)
-            MessageTypes.SUGGESTION_RECEIVED -> json.decodeFromString<SuggestionReceivedPayload>(payloadString)
-            MessageTypes.SUGGESTION_APPROVED -> json.decodeFromString<SuggestionApprovedPayload>(payloadString)
-            MessageTypes.SUGGESTION_REJECTED -> json.decodeFromString<SuggestionRejectedPayload>(payloadString)
-            else -> null
-        }
+        return decodeProtobufPayload(msgType, payloadBytes)
     }
     
     /**
@@ -459,24 +350,5 @@ class MessageCodec(
             volume = proto.volume,
             queue = proto.queueList.map { protoToTrackInfo(it) }
         )
-    }
-    
-    @Suppress("UNCHECKED_CAST")
-    private fun <T> serializer(value: T): kotlinx.serialization.KSerializer<T> {
-        return when (value) {
-            is CreateRoomPayload -> CreateRoomPayload.serializer()
-            is JoinRoomPayload -> JoinRoomPayload.serializer()
-            is ApproveJoinPayload -> ApproveJoinPayload.serializer()
-            is RejectJoinPayload -> RejectJoinPayload.serializer()
-            is PlaybackActionPayload -> PlaybackActionPayload.serializer()
-            is BufferReadyPayload -> BufferReadyPayload.serializer()
-            is KickUserPayload -> KickUserPayload.serializer()
-            is SuggestTrackPayload -> SuggestTrackPayload.serializer()
-            is ApproveSuggestionPayload -> ApproveSuggestionPayload.serializer()
-            is RejectSuggestionPayload -> RejectSuggestionPayload.serializer()
-            is ReconnectPayload -> ReconnectPayload.serializer()
-            is TransferHostPayload -> TransferHostPayload.serializer()
-            else -> throw IllegalArgumentException("Unknown type: ${value!!::class.simpleName}")
-        } as kotlinx.serialization.KSerializer<T>
     }
 }
