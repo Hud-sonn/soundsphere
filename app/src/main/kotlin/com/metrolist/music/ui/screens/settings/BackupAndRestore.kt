@@ -32,7 +32,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
@@ -69,7 +68,6 @@ import com.metrolist.music.viewmodels.BackupRestoreViewModel
 import com.metrolist.music.viewmodels.ConvertedSongLog
 import com.metrolist.music.viewmodels.CsvImportState
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -87,6 +85,7 @@ fun BackupAndRestore(
         mutableStateOf(false)
     }
 
+    var currentImportSong by rememberSaveable { mutableStateOf("") }
     var isProgressStarted by rememberSaveable {
         mutableStateOf(false)
     }
@@ -237,22 +236,14 @@ fun BackupAndRestore(
         songs = importedSongs,
         onDismiss = { showChoosePlaylistDialogOnline = false },
         onProgressStart = { newVal -> isProgressStarted = newVal },
-        onPercentageChange = { newPercentage -> progressPercentage = newPercentage }
+        onPercentageChange = { newPercentage -> progressPercentage = newPercentage },
+        onSongChange = { currentImportSong = it }
     )
-
-    LaunchedEffect(progressPercentage, isProgressStarted) {
-        if (isProgressStarted && progressPercentage == 99) {
-            delay(10000)
-            if (progressPercentage == 99) {
-                isProgressStarted = false
-                progressPercentage = 0
-            }
-        }
-    }
 
     LoadingScreen(
         isVisible = isProgressStarted,
         value = progressPercentage,
+        songTitle = currentImportSong,
     )
 
     // CSV column mapping dialog
@@ -415,19 +406,16 @@ fun BackupAndRestore(
                 if (!isLoadingAccountInfo && preview.hasAuthData && preview.accountName != null) {
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Divider
                     HorizontalDivider(
                         color = MaterialTheme.colorScheme.outlineVariant
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Account row with real info
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        // Avatar - use actual image if available
                         if (preview.accountImageUrl != null) {
                             AsyncImage(
                                 model = preview.accountImageUrl,
@@ -456,7 +444,6 @@ fun BackupAndRestore(
 
                         Spacer(modifier = Modifier.size(16.dp))
 
-                        // Account name/email
                         Text(
                             text = preview.accountEmail ?: preview.accountName,
                             style = MaterialTheme.typography.bodyLarge,
@@ -466,7 +453,6 @@ fun BackupAndRestore(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Bottom divider
                     HorizontalDivider(
                         color = MaterialTheme.colorScheme.outlineVariant
                     )
@@ -475,4 +461,3 @@ fun BackupAndRestore(
         }
     }
 }
-

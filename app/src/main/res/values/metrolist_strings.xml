@@ -723,6 +723,8 @@
     <string name="youtube_url_column">YouTube URL Column (Optional)</string>
     <string name="continue_action">Continue</string>
     <string name="importing_csv">Importing CSV</string>
+    <string name="importing_playlist">Importing Playlist</string>
+
     <string name="importing_song">Importing %s</string>
     <string name="recently_converted">Recently Converted</string>
     <string name="column_label">Col %d</string>
@@ -828,4 +830,6 @@
     <string name="restore">Restore</string>
     <string name="checking_previous_account">Checking for previous account…</string>
     <string name="no_account_found">No account found</string>
+    <string name="restore_success">Restore completed successfully</string>
+    <string name="no_songs_found">No songs found. Invalid file, or perhaps no song matches were found.</string>
 </resources>

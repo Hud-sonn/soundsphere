@@ -207,15 +207,15 @@ class BackupRestoreViewModel @Inject constructor(
     }
 
     private fun extractCookieFromPrefs(content: String): String? {
-        // Find innerTubeCookie key and extract the cookie value
-        // The proto format has the key followed by type markers and then the string value
+        // Find innerTubeCookie key and extract the cookie value.
+        // The proto format has the key followed by type markers and then the string value.
         val keyMarker = "innerTubeCookie"
         val keyIndex = content.indexOf(keyMarker)
         if (keyIndex == -1) return null
 
         val afterKey = content.substring(keyIndex + keyMarker.length)
 
-        // Cookie starts after some proto markers and contains semicolon-separated values
+        // Cookie starts after some proto markers and contains semicolon-separated values.
         // Look for the first cookie key pattern like "__Secure-" or "HSID=" etc.
         val cookiePatterns = listOf("__Secure-", "HSID=", "SSID=", "SID=", "SAPISID=")
         var cookieStart = -1
@@ -227,7 +227,7 @@ class BackupRestoreViewModel @Inject constructor(
         }
         if (cookieStart == -1) return null
 
-        // Find the end of the cookie (next control character or next key)
+        // Find the end of the cookie (next control character or next key).
         val cookieContent = afterKey.substring(cookieStart)
         val cookieEnd = cookieContent.indexOfFirst {
             it.code < 32 && it != '\t' && it != '\n' && it != '\r'
@@ -238,7 +238,7 @@ class BackupRestoreViewModel @Inject constructor(
         } else {
             cookieContent.take(5000) // Reasonable max length
         }
-        // Remove any control characters (newlines, etc.) that are invalid in HTTP headers
+        // Remove any control characters (newlines, etc.) that are invalid in HTTP headers.
         return rawCookie.replace(Regex("[\\x00-\\x1F\\x7F]"), "").trim()
     }
 
@@ -344,13 +344,13 @@ class BackupRestoreViewModel @Inject constructor(
         return CsvImportState()
     }
 
-    fun importPlaylistFromCsv(
+    suspend fun importPlaylistFromCsv(
         context: Context,
         uri: Uri,
         columnMapping: CsvImportState,
         onProgress: (Int) -> Unit = {},
         onLogUpdate: (List<ConvertedSongLog>) -> Unit = {},
-    ): ArrayList<Song> {
+    ): ArrayList<Song> = kotlinx.coroutines.withContext(Dispatchers.IO) {
         val songs = arrayListOf<Song>()
         val recentLogs = mutableListOf<ConvertedSongLog>()
 
@@ -367,11 +367,6 @@ class BackupRestoreViewModel @Inject constructor(
                         if (columnMapping.artistColumnIndex < parts.size && columnMapping.titleColumnIndex < parts.size) {
                             val title = parts[columnMapping.titleColumnIndex].trim()
                             val artistStr = parts[columnMapping.artistColumnIndex].trim()
-                            val url = if (columnMapping.urlColumnIndex >= 0 && columnMapping.urlColumnIndex < parts.size) {
-                                parts[columnMapping.urlColumnIndex].trim()
-                            } else {
-                                ""
-                            }
 
                             if (title.isNotEmpty() && artistStr.isNotEmpty()) {
                                 val artists = artistStr.split(";", ",").map { it.trim() }
@@ -387,7 +382,6 @@ class BackupRestoreViewModel @Inject constructor(
                                 )
                                 songs.add(mockSong)
 
-                                // Update log with last 3 songs
                                 val logEntry = ConvertedSongLog(
                                     title = title,
                                     artists = artists.joinToString(", ") { it.name },
@@ -401,33 +395,18 @@ class BackupRestoreViewModel @Inject constructor(
                         }
                     }
 
-                    // Update progress
                     val progress = ((index + 1) * 100) / totalLines
-                    onProgress(progress.coerceIn(0, 99))
+                    onProgress(progress)
                 }
             }
         }.onFailure {
             reportException(it)
-            Timber.tag("CSV_IMPORT").e(it, "CSV import failed")
-            Toast.makeText(
-                context,
-                "Failed to import CSV file",
-                Toast.LENGTH_SHORT
-            ).show()
         }
 
-        if (songs.isEmpty()) {
-            Toast.makeText(
-                context,
-                "No songs found. Invalid file, or perhaps no song matches were found.",
-                Toast.LENGTH_SHORT
-            ).show()
-        }
-        return songs
+        songs
     }
 
-    fun importPlaylistFromCsv(context: Context, uri: Uri): ArrayList<Song> {
-        // Legacy method for compatibility
+    suspend fun importPlaylistFromCsv(context: Context, uri: Uri): ArrayList<Song> {
         return importPlaylistFromCsv(context, uri, CsvImportState())
     }
 
@@ -459,10 +438,9 @@ class BackupRestoreViewModel @Inject constructor(
         runCatching {
             context.applicationContext.contentResolver.openInputStream(uri)?.use { stream ->
                 val lines = stream.bufferedReader().readLines()
-                if (lines.first().startsWith("#EXTM3U")) {
+                if (lines.isNotEmpty() && lines.first().startsWith("#EXTM3U")) {
                     lines.forEachIndexed { _, rawLine ->
                         if (rawLine.startsWith("#EXTINF:")) {
-                            // maybe later write this to be more efficient
                             val artists =
                                 rawLine.substringAfter("#EXTINF:").substringAfter(',').substringBefore(" - ").split(';')
                             val title = rawLine.substringAfter("#EXTINF:").substringAfter(',').substringAfter(" - ")
@@ -475,7 +453,6 @@ class BackupRestoreViewModel @Inject constructor(
                                 artists = artists.map { ArtistEntity("", it) },
                             )
                             songs.add(mockSong)
-
                         }
                     }
                 }
