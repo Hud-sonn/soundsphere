@@ -30,7 +30,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialShapes
@@ -293,6 +292,8 @@ fun AboutScreen(
     val localSnackbarHostState = remember { SnackbarHostState() }
     val wannaPlayStr = stringResource(R.string.wanna_play_favorite_song)
     val yeahStr = stringResource(R.string.yeah)
+    val softBurstShape = MaterialShapes.SoftBurst.toShape()
+    val leadDeveloperShape = leadDeveloper.polygon?.toShape() ?: CircleShape
     
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -329,7 +330,7 @@ fun AboutScreen(
                     Box(
                         modifier = Modifier
                             .size(80.dp)
-                            .clip(MaterialShapes.SoftBurst.toShape())
+                            .clip(softBurstShape)
                             .background(MaterialTheme.colorScheme.primaryContainer),
                         contentAlignment = Alignment.Center
                     ) {
@@ -379,14 +380,11 @@ fun AboutScreen(
     
             Spacer(Modifier.height(32.dp))
     
-            LinearWavyProgressIndicator(
-                progress = { 1f },
+            HorizontalDivider(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 48.dp),
-                color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.5f),
-                trackColor = Color.Transparent,
-                amplitude = { 1f }
+                color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.5f)
             )
     
             Spacer(Modifier.height(32.dp))
@@ -399,7 +397,7 @@ fun AboutScreen(
             ContributorAvatar(
                 avatarUrl = leadDeveloper.avatarUrl,
                 sizeDp = 180,
-                shape = leadDeveloper.polygon?.toShape() ?: CircleShape,
+                shape = leadDeveloperShape,
                 contentDescription = leadDeveloper.name,
                 onClick = {
                     handleEasterEggClick(
@@ -485,6 +483,7 @@ fun AboutScreen(
                 Column(modifier = Modifier.padding(vertical = 8.dp)) {
                     collaborators.forEachIndexed { index, contributor ->
                         var clickCount by remember(contributor.name) { mutableIntStateOf(0) }
+                        val contributorShape = contributor.polygon?.toShape() ?: CircleShape
                         ListItem(
                             headlineContent = {
                                 Text(
@@ -497,7 +496,7 @@ fun AboutScreen(
                                     ContributorAvatar(
                                         avatarUrl = contributor.avatarUrl,
                                         sizeDp = 56,
-                                        shape = contributor.polygon?.toShape() ?: CircleShape,
+                                        shape = contributorShape,
                                         contentDescription = contributor.name,
                                         onClick = {
                                         handleEasterEggClick(
