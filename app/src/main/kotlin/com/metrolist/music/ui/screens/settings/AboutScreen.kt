@@ -178,8 +178,7 @@ private fun ContributorAvatar(
         modifier = modifier.size(sizeDp.dp),
         shape = shape,
         color = MaterialTheme.colorScheme.surfaceContainerHighest,
-        tonalElevation = 2.dp,
-        shadowElevation = 4.dp,
+        tonalElevation = 4.dp,
     ) {
         AsyncImage(
             model = avatarUrl,
