@@ -12,14 +12,11 @@
 -keepclassmembers class com.metrolist.music.utils.cipher.CipherWebView {
     @android.webkit.JavascriptInterface public *;
 }
--keepclassmembers class com.metrolist.music.utils.potoken.PoTokenWebView {
-    @android.webkit.JavascriptInterface public *;
-}
 
 # Keep streaming utility classes
 -keep class com.metrolist.music.utils.cipher.** { *; }
 -keep class com.metrolist.music.utils.sabr.** { *; }
--keep class com.metrolist.music.utils.potoken.** { *; }
+-keep class com.metrolist.innertube.utils.PoTokenGenerator { *; }
 
 # Keep coroutine continuation for WebView callbacks
 -keepclassmembers class * {
