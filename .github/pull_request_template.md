@@ -11,4 +11,7 @@
 ## Testing
 <!-- Describe how the changes were tested -->
 
-Closes #
+## Related Issues
+<!-- List any related issues or PRs -->
+- Closes #
+- Related to #
