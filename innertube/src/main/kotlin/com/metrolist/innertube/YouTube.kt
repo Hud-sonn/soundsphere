@@ -190,7 +190,6 @@ object YouTube {
                                     item.isVideoSong -> "Videos"
                                     else -> "Songs"
                                 }
-                                else -> YouTubeConstants.DEFAULT_OTHER_RESULTS
                             }
                         }
 
@@ -236,15 +235,16 @@ object YouTube {
 
     suspend fun search(query: String, filter: SearchFilter): Result<SearchResult> = runCatching {
         val response = innerTube.search(WEB_REMIX, query, filter.value).body<SearchResponse>()
+        val shelves = response.contents?.tabbedSearchResultsRenderer?.tabs?.firstOrNull()
+            ?.tabRenderer?.content?.sectionListRenderer?.contents
+            ?.mapNotNull { it.musicShelfRenderer }
+            .orEmpty()
         SearchResult(
-            items = response.contents?.tabbedSearchResultsRenderer?.tabs?.firstOrNull()
-                ?.tabRenderer?.content?.sectionListRenderer?.contents?.lastOrNull()
-                ?.musicShelfRenderer?.contents?.getItems()?.mapNotNull {
-                    SearchPage.toYTItem(it)
-                }.orEmpty(),
-            continuation = response.contents?.tabbedSearchResultsRenderer?.tabs?.firstOrNull()
-                ?.tabRenderer?.content?.sectionListRenderer?.contents?.lastOrNull()
-                ?.musicShelfRenderer?.continuations?.getContinuation()
+            items = shelves.flatMap { shelf ->
+                shelf.contents?.getItems()?.mapNotNull { SearchPage.toYTItem(it) } ?: emptyList()
+            }.distinctBy { it.id },
+            continuation = shelves.firstOrNull { it.continuations != null }
+                ?.continuations?.getContinuation()
         )
     }
 
@@ -636,7 +636,7 @@ object YouTube {
                 Timber.d("[PODCAST] Button[$i].menuItems[$j]: toggle=${item.toggleMenuServiceItemRenderer?.defaultIcon?.iconType}, nav=${item.menuNavigationItemRenderer?.icon?.iconType}")
                 // Check for SUBSCRIBE button (like artists have)
                 if (item.toggleMenuServiceItemRenderer?.defaultIcon?.iconType == "SUBSCRIBE") {
-                    val channelIds = item.toggleMenuServiceItemRenderer?.defaultServiceEndpoint?.subscribeEndpoint?.channelIds
+                    val channelIds = item.toggleMenuServiceItemRenderer.defaultServiceEndpoint.subscribeEndpoint?.channelIds
                     Timber.d("[PODCAST] Found SUBSCRIBE button! channelIds=$channelIds")
                 }
             }
@@ -675,7 +675,7 @@ object YouTube {
                             // BOOKMARK: default=remove, toggled=add
                             PageHelper.LibraryFeedbackTokens(toggledToken, defaultToken)
                         }
-                        Timber.d("[PODCAST] Found toggle button with library tokens - add: ${libraryTokens?.addToken != null}, remove: ${libraryTokens?.removeToken != null}")
+                        Timber.d("[PODCAST] Found toggle button with library tokens - add: ${libraryTokens.addToken != null}, remove: ${libraryTokens.removeToken != null}")
                     }
                 }
             }
@@ -1339,22 +1339,29 @@ object YouTube {
                 setLogin = true
             ).body<BrowseResponse>()
 
-            val contents = response.contents?.singleColumnBrowseResultsRenderer?.tabs?.firstOrNull()
-                ?.tabRenderer?.content?.sectionListRenderer?.contents?.firstOrNull()
+            val contentList = response.contents?.singleColumnBrowseResultsRenderer?.tabs?.firstOrNull()
+                ?.tabRenderer?.content?.sectionListRenderer?.contents ?: emptyList()
 
-            val items = when {
-                contents?.gridRenderer != null -> {
-                    contents.gridRenderer.items
-                        .mapNotNull(GridRenderer.Item::musicTwoRowItemRenderer)
-                        .mapNotNull { LibraryPage.fromMusicTwoRowItemRenderer(it) }
+            val items = contentList.flatMap { content ->
+                when {
+                    content.gridRenderer != null -> {
+                        content.gridRenderer.items
+                            .mapNotNull(GridRenderer.Item::musicTwoRowItemRenderer)
+                            .mapNotNull { LibraryPage.fromMusicTwoRowItemRenderer(it) }
+                    }
+                    content.musicShelfRenderer != null -> {
+                        content.musicShelfRenderer.contents
+                            ?.mapNotNull(MusicShelfRenderer.Content::musicResponsiveListItemRenderer)
+                            ?.mapNotNull { LibraryPage.fromMusicResponsiveListItemRenderer(it) }
+                            ?: emptyList()
+                    }
+                    content.musicCarouselShelfRenderer != null -> {
+                        content.musicCarouselShelfRenderer.contents
+                            .mapNotNull(MusicCarouselShelfRenderer.Content::musicTwoRowItemRenderer)
+                            .mapNotNull { LibraryPage.fromMusicTwoRowItemRenderer(it) }
+                    }
+                    else -> emptyList()
                 }
-                contents?.musicShelfRenderer != null -> {
-                    contents.musicShelfRenderer.contents
-                        ?.mapNotNull(MusicShelfRenderer.Content::musicResponsiveListItemRenderer)
-                        ?.mapNotNull { LibraryPage.fromMusicResponsiveListItemRenderer(it) }
-                        ?: emptyList()
-                }
-                else -> emptyList()
             }
 
             LibraryPage(
@@ -1451,6 +1458,50 @@ object YouTube {
     }
 
     /**
+     * Fetch the RDPN "New Episodes" playlist info (title + thumbnail).
+     * Uses the same VLRDPN browse call as [newEpisodes] but parses the header instead.
+     * Falls back to the first episode thumbnail if no header thumbnail is found.
+     */
+    suspend fun newEpisodesPlaylistInfo(): Result<PlaylistItem> = runCatching {
+        val response = innerTube.browse(
+            client = WEB_REMIX,
+            browseId = "VLRDPN",
+            setLogin = true
+        ).body<BrowseResponse>()
+
+        // Try all known header renderers in priority order
+        val thumbnail: String? =
+            response.header?.musicImmersiveHeaderRenderer?.thumbnail
+                ?.musicThumbnailRenderer?.getThumbnailUrl()
+                ?: response.header?.musicVisualHeaderRenderer?.thumbnail
+                    ?.musicThumbnailRenderer?.getThumbnailUrl()
+                ?: response.header?.musicDetailHeaderRenderer?.thumbnail
+                    ?.croppedSquareThumbnailRenderer?.thumbnail?.thumbnails?.lastOrNull()?.url
+                // Fall back: thumbnail of the first episode in the list
+                ?: response.contents?.twoColumnBrowseResultsRenderer?.secondaryContents
+                    ?.sectionListRenderer?.contents?.firstOrNull()
+                    ?.musicShelfRenderer?.contents?.firstOrNull()
+                    ?.musicMultiRowListItemRenderer?.thumbnail?.musicThumbnailRenderer?.getThumbnailUrl()
+
+        val title = response.header?.musicImmersiveHeaderRenderer?.title?.runs
+            ?.joinToString("") { it.text }
+            ?: response.header?.musicVisualHeaderRenderer?.title?.runs
+                ?.joinToString("") { it.text }
+            ?: "New Episodes"
+
+        PlaylistItem(
+            id = "RDPN",
+            title = title,
+            author = null,
+            songCountText = null,
+            thumbnail = thumbnail,
+            playEndpoint = null,
+            shuffleEndpoint = null,
+            radioEndpoint = null,
+        )
+    }
+
+    /**
      * Fetch "Episodes for Later" playlist (VLSE).
      * Returns manually saved episodes.
      */
@@ -1473,7 +1524,7 @@ object YouTube {
         shelfContents?.mapNotNull { it.musicResponsiveListItemRenderer }
             ?.mapNotNull { renderer ->
                 val videoId = renderer.playlistItemData?.videoId ?: return@mapNotNull null
-                val setVideoId = renderer.playlistItemData?.playlistSetVideoId
+                val setVideoId = renderer.playlistItemData.playlistSetVideoId
                 val title = renderer.flexColumns.firstOrNull()
                     ?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.firstOrNull()?.text
                     ?: return@mapNotNull null

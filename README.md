@@ -64,7 +64,7 @@ If you're in a region where YouTube Music is not supported, you won't be able to
 
 - [Features](#features)
 - [FAQ](#faq)
-- [Development Setup](#development-setup)
+- [Development Setup](./development_guide.md)
 - [Translations](#translations)
 - [Support Me](#support-me)
 - [Join our community](#join-our-community)
@@ -121,24 +121,6 @@ Thank you very much for helping to make Metrolist accessible to many people worl
    developer settings
 2. In the three dots menu at the top-right of the screen, click "Developer settings"
 3. Enable "Unknown sources"
-
-<div align="center">
-<h1>Development Setup</h1>
-</div>
-
-### GitHub Secrets Configuration
-
-This project uses GitHub Secrets to securely store API keys for building releases. To set up the secrets:
-
-1. Go to your GitHub repository settings
-2. Navigate to **Settings** → **Secrets and variables** → **Actions**
-3. Add the following repository secrets:
-   - `LASTFM_API_KEY`: Your LastFM API key
-   - `LASTFM_SECRET`: Your LastFM secret key
-
-4. Get your LastFM API credentials from: https://www.last.fm/api/account/create
-
-**Note:** These secrets are automatically injected into the build process via GitHub Actions and are not visible in the source code.
 
 <div align="center">
 <h1>Support Me</h1>

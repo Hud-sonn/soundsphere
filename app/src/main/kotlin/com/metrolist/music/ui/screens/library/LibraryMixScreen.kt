@@ -438,7 +438,10 @@ fun LibraryMixScreen(
                                         .fillMaxWidth()
                                         .combinedClickable(
                                             onClick = {
-                                                navController.navigate("local_playlist/${item.id}")
+                                                if (!item.playlist.isEditable && item.songCount == 0 && item.playlist.browseId != null)
+                                                    navController.navigate("online_playlist/${item.playlist.browseId}")
+                                                else
+                                                    navController.navigate("local_playlist/${item.id}")
                                             },
                                             onLongClick = {
                                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -696,7 +699,10 @@ fun LibraryMixScreen(
                                         .fillMaxWidth()
                                         .combinedClickable(
                                             onClick = {
-                                                navController.navigate("local_playlist/${item.id}")
+                                                if (!item.playlist.isEditable && item.songCount == 0 && item.playlist.browseId != null)
+                                                    navController.navigate("online_playlist/${item.playlist.browseId}")
+                                                else
+                                                    navController.navigate("local_playlist/${item.id}")
                                             },
                                             onLongClick = {
                                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
