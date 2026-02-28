@@ -133,11 +133,6 @@ object YTPlayerUtils {
             }
         }
 
-        // If we still don't have a valid response, throw
-        if (mainPlayerResponse == null) {
-            throw Exception("Failed to get player response")
-        }
-
         val audioConfig = mainPlayerResponse.playerConfig?.audioConfig
         val videoDetails = mainPlayerResponse.videoDetails
         val playbackTracking = mainPlayerResponse.playbackTracking
@@ -267,7 +262,7 @@ object YTPlayerUtils {
                 if (needsNTransform) {
                     try {
                         Timber.tag(logTag).d("Applying n-transform to stream URL for ${currentClient.clientName}")
-                        streamUrl = NTransformSolver.transformNParamInUrl(streamUrl!!)
+                        streamUrl = NTransformSolver.transformNParamInUrl(streamUrl)
 
                         // Append pot= parameter (base64 - do NOT Uri.encode).
                         // pot= is required for web-PoToken clients (WEB_REMIX, TVHTML5)
@@ -283,7 +278,7 @@ object YTPlayerUtils {
                         if (needsPot && sessionId != null) {
                             Timber.tag(logTag).d("Appending pot= parameter to stream URL")
                             val streamingPoToken = PoTokenGenerator.generateContentToken(sessionId, videoId)
-                            val separator = if ("?" in streamUrl!!) "&" else "?"
+                            val separator = if ("?" in streamUrl) "&" else "?"
                             streamUrl = "${streamUrl}${separator}pot=${streamingPoToken}"
                         }
                     } catch (e: Exception) {
@@ -319,7 +314,7 @@ object YTPlayerUtils {
                     break
                 }
 
-                if (validateStatus(streamUrl!!)) {
+                if (validateStatus(streamUrl)) {
                     // working stream found
                     Timber.tag(logTag).d("Stream validated successfully with client: ${currentClient.clientName}")
                     // Log for release builds
@@ -371,7 +366,7 @@ object YTPlayerUtils {
 
         Timber.tag(logTag).d("Successfully obtained playback data with format: ${format.mimeType}, bitrate: ${format.bitrate}")
         if (isUploadedTrack) {
-            println("[PLAYBACK_DEBUG] SUCCESS: Got playback data for uploaded track - format=${format.mimeType}, streamUrl=${streamUrl?.take(100)}...")
+            println("[PLAYBACK_DEBUG] SUCCESS: Got playback data for uploaded track - format=${format.mimeType}, streamUrl=${streamUrl.take(100)}...")
         }
         PlaybackData(
             audioConfig,
