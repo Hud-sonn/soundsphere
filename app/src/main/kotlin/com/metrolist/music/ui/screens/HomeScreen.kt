@@ -583,6 +583,7 @@ fun HomeScreen(
     val allLocalItems by viewModel.allLocalItems.collectAsState()
     val allYtItems by viewModel.allYtItems.collectAsState()
     val speedDialItems by viewModel.speedDialItems.collectAsState()
+    val pinnedSpeedDialItems by viewModel.pinnedSpeedDialItems.collectAsState()
     val selectedChip by viewModel.selectedChip.collectAsState()
 
     // Official podcast API data
@@ -1357,7 +1358,14 @@ fun HomeScreen(
                                                                                         )
                                                                                         is AlbumItem -> navController.navigate("album/${item.id}")
                                                                                         is ArtistItem -> navController.navigate("artist/${item.id}")
-                                                                                        is PlaylistItem -> navController.navigate("online_playlist/${item.id}")
+                                                                                        is PlaylistItem -> {
+                                                                                            val rawType = pinnedSpeedDialItems.find { it.id == item.id }?.type
+                                                                                            if (rawType == "LOCAL_PLAYLIST") {
+                                                                                                navController.navigate("local_playlist/${item.id}")
+                                                                                            } else {
+                                                                                                navController.navigate("online_playlist/${item.id}")
+                                                                                            }
+                                                                                        }
                                                                                         is PodcastItem -> navController.navigate("online_podcast/${item.id}")
                                                                                         is EpisodeItem -> playerConnection.playQueue(
                                                                                             ListQueue(
