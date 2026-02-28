@@ -273,7 +273,7 @@
     <string name="delete_playlist_desc">قم بإزالة قائمة التشغيل هذه نهائياً</string>
     <string name="sync_playlist_desc">مزامنة قائمة التشغيل مع YT Music</string>
     <string name="enable_better_lyrics">تفعيل كلمات الأغاني الأفضل</string>
-    <string name="enable_better_lyrics_desc">استخدم مزود Better Lyrics للحصول على كلمات متزامنة كلمة بكلمة</string>
+    <string name="enable_better_lyrics_desc">كلمات متزامنة مقطعيًا لأي أغنية للكاريوكي</string>
     <string name="lyrics_animation_style">أسلوب الرسوم المتحركة للكلمات كلمة بكلمة</string>
     <string name="none">لا تأثير</string>
     <string name="fade">تلاشي</string>
@@ -368,7 +368,7 @@
     <string name="import_error_title">خطأ في الاستيراد</string>
     <string name="pause_music_when_media_is_muted">أوقف تشغيل الموسيقى مؤقتًا عند كتم صوت الوسائط</string>
     <string name="enable_simpmusic">تفعيل كلمات أغاني SimpMusic</string>
-    <string name="enable_simpmusic_desc">استخدم موفر كلمات SimpMusic لمزامنة الكلمات</string>
+    <string name="enable_simpmusic_desc">كلمات الأغاني المتزامنة تلقائيًا\nمن Musixmatch ونص YouTube</string>
     <string name="about_artist">حول</string>
     <string name="show_more">عرض المزيد</string>
     <string name="show_less">عرض القليل</string>
@@ -614,13 +614,13 @@
     <string name="ai_translation_literal_desc">ترجمة المعنى إلى اللغة المستهدفة</string>
     <string name="ai_translation_transcribed_desc">تحويل النطق إلى النص المستهدف</string>
     <string name="ai_provider_help">الحصول على مفاتيح API</string>
-    <string name="ai_provider_openrouter_help">تفضل بزيارة openrouter.ai للاطلاع على النماذج المجانية والمدفوعة</string>
-    <string name="ai_provider_openai_help">تفضل بزيارة platform.openai.com/api مفاتيح</string>
-    <string name="ai_provider_claude_help">قم بزيارة console.anthropic.com/settings/keys</string>
-    <string name="ai_provider_gemini_help">زيارة aistudio.google.com/apikey</string>
-    <string name="ai_provider_perplexity_help">تفضل بزيارة perplexity.ai/settings/api</string>
-    <string name="ai_provider_xai_help">تفضل بزيارة console.x.ai</string>
-    <string name="ai_provider_deepl_help">تفضل بزيارة deepl.com/pro-api للحصول على مفاتيح مجانية ومدفوعة</string>
+    <string name="ai_provider_openrouter_help">تفضل بزيارة https://openrouter.ai للحصول على نماذج مجانية ومدفوعة</string>
+    <string name="ai_provider_openai_help">زيارة\nhttps://platform.openai.com/api-keys</string>
+    <string name="ai_provider_claude_help">زيارة\nhttps://console.anthropic.com/setti ngs/keys</string>
+    <string name="ai_provider_gemini_help">زيارة\nhttps://aistudio.google.com/apikey</string>
+    <string name="ai_provider_perplexity_help">زيارة\nhttps://perplexity.ai/settings/api</string>
+    <string name="ai_provider_xai_help">تفضل بزيارة https://console.x.ai</string>
+    <string name="ai_provider_deepl_help">تفضل بزيارة https://deepl.com/pro-api للحصول على مفاتيح مجانية ومدفوعة</string>
     <string name="ai_deepl_formality">رسمية</string>
     <string name="ai_deepl_formality_default">افتراضي</string>
     <string name="ai_deepl_formality_more">أكثر رسمية</string>
@@ -654,4 +654,131 @@
     <string name="discord_activity_name_description">اسم مخصص للنشاط (اتركه فارغًا للافتراضي)</string>
     <string name="discord_advanced_mode">الوضع المتقدم</string>
     <string name="discord_advanced_mode_description">عرض خيارات تخصيص إضافية لـ Rich Presence</string>
+    <string name="display_density">كثافة الشاشة</string>
+    <string name="restart">إعادة التشغيل</string>
+    <string name="restart_required">إعادة التشغيل مطلوبة</string>
+    <string name="density_restart_message">سيسري تغيير كثافة الشاشة بعد إعادة تشغيل التطبيق.\nهل تريد إعادة التشغيل الآن؟</string>
+    <string name="found_in_settings_content">موجود في الإعدادات &gt; المحتوى</string>
+    <string name="plays">مرات التشغيل</string>
+    <string name="speed_dial">الاتصال السريع</string>
+    <string name="pin_to_speed_dial">رقم التعريف الشخصي للاتصال السريع</string>
+    <string name="unpin_from_speed_dial">إلغاء التثبيت من الاتصال السريع</string>
+    <string name="randomize_home_order">ترتيب الشاشة الرئيسية عشوائيًا</string>
+    <string name="randomize_home_order_desc">إعادة ترتيب أقسام الشاشة الرئيسية عشوائيًا حسب الأهمية</string>
+    <string name="daily_discover_sounds_like">صوته مثل %1$s</string>
+    <string name="your_daily_discover">اكتشافك اليومي</string>
+    <string name="daily_discover_because_you_listen_to">لأنك تستمع إلى %1$s</string>
+    <string name="daily_discover_similar_to">مشابه لـ %1$s</string>
+    <string name="daily_discover_based_on">بناءً على %1$s</string>
+    <string name="daily_discover_for_fans_of">لمحبي %1$s</string>
+    <string name="from_the_community">‌من قِبل المجتمع</string>
+    <string name="songs_count">%s أغاني</string>
+    <string name="enable_lrclib_desc">قاعدة بيانات لكلمات الأغاني المتزامنة تعتمد على مساهمات المجتمع</string>
+    <string name="enable_kugou_desc">يأخذ كلمات الأغاني من KuGou، وهي منصة موسيقى صينية شهيرة</string>
+    <string name="youtube_music_lyrics_note">ملاحظة: ستظهر كلمات الأغاني من يوتيوب ميوزك تلقائيًا عندما لا تتوفر كلمات أخرى.\nعادةً لا تتم مزامنة كلمات الأغاني من يوتيوب ميوزك.</string>
+    <string name="enable_lyricsplus">تفعيل LyricsPlus</string>
+    <string name="enable_lyricsplus_desc">كلمات متزامنة من مصادر متعددة</string>
+    <string name="lyrics_provider_selection">اختيار الموفر</string>
+    <string name="lyrics_provider_selection_desc">اختر مزودي كلمات الأغاني المفعلين</string>
+    <string name="lyrics_provider_priority">أولوية مزوّد كلمات الأغاني</string>
+    <string name="lyrics_provider_priority_desc">اسحب لإعادة ترتيب المزوّدين حسب التفضيل. كلما كان المزوّد في موضع أعلى كانت له أولوية أعلى.</string>
+    <string name="changelog">سجل التغييرات</string>
+    <string name="changelog_empty">لا توجد سجلات تغييرات متاحة</string>
+    <string name="github_releases_url">https://github.com/MetrolistGroup/Metrolist/releases</string>
+    <string name="list_bullet">‌•</string>
+    <string name="view_on_github">عرض على GitHub</string>
+    <string name="current_version">الإصدار الحالي</string>
+    <string name="version_format">الإصدار: %s</string>
+    <string name="update_settings">تحديث الإعدادات</string>
+    <string name="check_for_updates_title">تحقق من وجود تحديثات</string>
+    <string name="checking_for_updates">جارٍ التحقق من وجود تحديثات…</string>
+    <string name="latest_version_format">الأحدث: %s</string>
+    <string name="check_for_updates_button">التحقق من وجود تحديثات</string>
+    <string name="hide_changelog">إخفاء سجل التغييرات</string>
+    <string name="view_changelog">عرض سجل التغييرات</string>
+    <string name="failed_to_check_updates">فشل التحقق من وجود تحديثات: %s</string>
+    <string name="set_as_default">تعيين كافتراضي</string>
+    <string name="sleep_timer_default_set">تم ضبط مؤقت النوم افتراضيًا على %d دقيقة</string>
+    <string name="error_episode_save">فشل حفظ الحلقة</string>
+    <string name="error_episode_remove">فشل حذف الحلقة</string>
+    <string name="error_podcast_subscribe">فشل الاشتراك في البودكاست</string>
+    <string name="error_podcast_unsubscribe">فشل إلغاء الاشتراك في البودكاست</string>
+    <string name="listen_together_auto_approval_joins">الموافقة التلقائية على طلبات الانضمام</string>
+    <string name="listen_together_auto_approval_joins_desc">الموافقة التلقائية على طلبات الانضمام بدلاً من مراجعتها يدويًا</string>
+    <string name="listen_together_auto_approval_suggestions">الموافقة التلقائية على اقتراحات الأغاني</string>
+    <string name="listen_together_auto_approval_suggestions_desc">الموافقة التلقائية على اقتراحات الأغاني من الضيوف ووضعها في قائمة الانتظار</string>
+    <string name="importing_song">استيراد %s</string>
+    <string name="logout_dialog_title">الاحتفاظ ببيانات المكتبة؟</string>
+    <string name="logout_dialog_message">هل تريد الاحتفاظ بقوائم التشغيل وبيانات المكتبة؟\nسيتم الاحتفاظ بالأغاني التي تم تنزيلها بغض النظر.</string>
+    <string name="logout_keep">احتفظ</string>
+    <string name="logout_clear">مسح</string>
+    <string name="credits_lead_developer">مطور رئيسي</string>
+    <string name="importing_playlist">استيراد قائمة التشغيل</string>
+    <string name="credits_collaborator">متعاون</string>
+    <string name="credits_collaborators_section">المتعاونون</string>
+    <string name="credits_license_name">رخصة جنو العمومية الإصدار 3.0</string>
+    <string name="credits_license_desc">برنامج مجاني ومفتوح المصدر يمكنك استخدامه ودراسته ومشاركته وتحسينه.</string>
+    <string name="credits_discord">خادم ديسكورد</string>
+    <string name="credits_telegram">قناة تيليجرام</string>
+    <string name="credits_website">موقع ويب</string>
+    <string name="credits_instagram">انستغرام</string>
+    <string name="credits_github">جيت هاب</string>
+    <string name="credits_view_repo">عرض المستودع</string>
+    <string name="app_version_info">%1$s • %2$s</string>
+    <string name="like_what_i_do">هل يعجبك ما أفعله؟</string>
+    <string name="buy_mo_a_coffee">اشترِ لي قهوة</string>
+    <string name="community_and_info">المجتمع والمعلومات</string>
+    <string name="metrolist">METROLIST</string>
+    <string name="wanna_play_favorite_song">هل تريد تشغيل أغنيتهم المفضلة؟</string>
+    <string name="yeah">نعم</string>
+    <string name="stands_with_palestine">هذا المشروع يقف مع فلسطين 🇵🇸</string>
+    <string name="filter_podcasts">بودكاست</string>
+    <string name="view_podcast">عرض البودكاست</string>
+    <string name="podcast_channels">قنوات البودكاست</string>
+    <string name="latest_episodes">أحدث الحلقات</string>
+    <string name="your_shows">عروضك</string>
+    <string name="subscribed_channels">القنوات المشترك بها</string>
+    <string name="new_episodes">حلقات جديدة</string>
+    <string name="episodes_for_later">الحلقات لاحقًا</string>
+    <string name="save_episode_for_later">حفظ لوقت لاحق</string>
+    <string name="save_episode_for_later_desc">أضف إلى حلقاتك للمشاهدة لاحقًا قائمة التشغيل</string>
+    <string name="saved_episode">تم الحفظ في الحلقات للمشاهدة لاحقًا</string>
+    <string name="remove_episode_from_saved">إزالة من المحفوظات</string>
+    <string name="subscribe_to_podcast">حفظ البودكاست في المكتبة</string>
+    <string name="save_to_library">حفظ في المكتبة</string>
+    <string name="saved_to_library">محفوظ</string>
+    <plurals name="n_episode">
+        <item quantity="zero">%d حلقة</item>
+        <item quantity="one">%d حلقة</item>
+        <item quantity="two">%d حلقتان</item>
+        <item quantity="few">%d حلقات</item>
+        <item quantity="many">%d حلقة</item>
+        <item quantity="other">%d حلقة</item>
+    </plurals>
+    <string name="restore_confirm_title">استعادة النسخة الاحتياطية؟</string>
+    <string name="restore_confirm_message">سيؤدي هذا إلى استعادة بيانات تطبيقك من النسخة الاحتياطية.</string>
+    <string name="restore_account_warning">ستحتاج إلى تسجيل الدخول مرة أخرى بعد الاستعادة. سيتم تسجيل خروج الحساب التالي:</string>
+    <string name="restore">استعادة</string>
+    <string name="checking_previous_account">جارٍ التحقق من الحساب السابق…</string>
+    <string name="no_account_found">لم يتم العثور على حساب</string>
+    <string name="restore_success">اكتملت عملية الاستعادة بنجاح</string>
+    <string name="no_songs_found">لم يتم العثور على أي أغاني. ملف غير صالح، أو ربما لم يتم العثور على أي تطابقات للأغاني.</string>
+    <string name="cache_after_seconds">‌التخزين المؤقت بعد ثوانٍ</string>
+    <string name="cache_at_percent">التخزين المؤقت بنسبة مئوية</string>
+    <string name="n_seconds">%d ثانية</string>
+    <string name="n_percent">%d%%</string>
+    <string name="widget_recognizer_name">التعرف على الموسيقى</string>
+    <string name="widget_recognizer_description">حدد الأغاني التي يتم تشغيلها من حولك مباشرة من شاشتك الرئيسية</string>
+    <string name="widget_recognizer_tap_to_search">انقر لتحديد الأغنية</string>
+    <string name="widget_recognizer_listening">جارٍ الاستماع…</string>
+    <string name="widget_recognizer_processing">جارٍ تحديد…</string>
+    <string name="widget_recognizer_no_match">لم يتم العثور على تطابق. حاول مرة أخرى</string>
+    <string name="widget_recognizer_error">فشل التعرّف</string>
+    <string name="widget_recognizer_error_generic">مرة أخرى حدث خطأ، يرجى المحاولة</string>
+    <string name="widget_recognizer_unknown_song">أغنية غير معروفة</string>
+    <string name="widget_recognizer_unknown_artist">فنان مجهول</string>
+    <string name="widget_recognizer_mic_desc">تحديد الأغنية</string>
+    <string name="widget_recognizer_channel_name">التعرف على الموسيقى</string>
+    <string name="widget_recognizer_channel_desc">يعرض إشعارًا أثناء تحديد أغنية من الأداة</string>
+    <string name="widget_recognizer_notification_text">تسجيل الصوت لتحديد الأغنية…</string>
 </resources>
