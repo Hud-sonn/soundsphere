@@ -65,6 +65,7 @@ import androidx.navigation.NavController
 import com.metrolist.innertube.YouTube.SearchFilter.Companion.FILTER_ALBUM
 import com.metrolist.innertube.YouTube.SearchFilter.Companion.FILTER_ARTIST
 import com.metrolist.innertube.YouTube.SearchFilter.Companion.FILTER_COMMUNITY_PLAYLIST
+import com.metrolist.innertube.YouTube.SearchFilter.Companion.FILTER_EPISODE
 import com.metrolist.innertube.YouTube.SearchFilter.Companion.FILTER_FEATURED_PLAYLIST
 import com.metrolist.innertube.YouTube.SearchFilter.Companion.FILTER_PODCAST
 import com.metrolist.innertube.YouTube.SearchFilter.Companion.FILTER_SONG
@@ -186,9 +187,6 @@ fun OnlineSearchResult(
         }
     }
     
-    // Suggestion states
-
-
     LaunchedEffect(lazyListState) {
         snapshotFlow {
             lazyListState.layoutInfo.visibleItemsInfo.any { it.key == "loading" }
@@ -401,6 +399,7 @@ fun OnlineSearchResult(
                     FILTER_COMMUNITY_PLAYLIST to stringResource(R.string.filter_community_playlists),
                     FILTER_FEATURED_PLAYLIST to stringResource(R.string.filter_featured_playlists),
                     FILTER_PODCAST to stringResource(R.string.filter_podcasts),
+                    FILTER_EPISODE to stringResource(R.string.filter_episodes),
                 ),
                 currentValue = searchFilter,
                 onValueUpdate = {
