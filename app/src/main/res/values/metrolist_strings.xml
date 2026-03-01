@@ -859,4 +859,10 @@
     <string name="no_account_found">No account found</string>
     <string name="restore_success">Restore completed successfully</string>
     <string name="no_songs_found">No songs found. Invalid file, or perhaps no song matches were found.</string>
+
+    <!-- Cache settings -->
+    <string name="cache_after_seconds">Cache after seconds</string>
+    <string name="cache_at_percent">Cache at percent</string>
+    <string name="n_seconds">%d seconds</string>
+    <string name="n_percent">%d%%</string>
 </resources>
