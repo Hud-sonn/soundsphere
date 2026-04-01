@@ -384,7 +384,7 @@
     <string name="listen_together_background_disconnect_note">OBSERVAÇÃO: Você pode ser desconectado se criar uma sala e trocar para outro aplicativo enquanto nunhuma música estiver tocando</string>
     <string name="listen_together_not_configured">Ouvir Juntos não está configurado. Por favor configure o URL do servidor em: Ouvir Juntos &gt; Configurações &gt; URL do servidor</string>
     <string name="listen_together_room_created">Sala criada: %s</string>
-    <string name="hide_youtube_shorts">Ocultar vídeos curtos do YouTube</string>
+    <string name="hide_youtube_shorts">Ocultar Shorts do YouTube</string>
     <string name="listen_together_view_logs_desc">Depurar eventos de conexão e mensagens</string>
     <string name="listen_together_no_logs">Sem registros ainda</string>
     <string name="listen_together_suggestion_received">%1$s sugerido %2$s</string>
@@ -792,4 +792,24 @@
     <string name="transparent">Transparente</string>
     <string name="mini_player_background_not_available">Indisponível quando o novo design do mini reprodutor está desativado</string>
     <string name="your_daily_discover">Sua descuberta diária</string>
+    <string name="lyrics_from_provider">Letras de %s</string>
+    <string name="hide_status_bar_fullscreen">Ocultar barra de status em tela cheia</string>
+    <string name="hide_status_bar_fullscreen_desc">Oculta a barra de status quando o modo letras em tela cheia está ativado</string>
+    <string name="show_interval_indicator">Mostras indicador de intervalo</string>
+    <string name="show_interval_indicator_desc">Mostra uma barra de progresso durante vãos longos de instrumentais</string>
+    <string name="respect_agent_positioning">Respeitar posicionamento do agente</string>
+    <string name="respect_agent_positioning_desc">Alinhar letras baseado na função do agente (ex.: Vocais de fundo)</string>
+    <string name="lyrics_animation_none">Nenhum</string>
+    <string name="lyrics_animation_fade">Desvanecer</string>
+    <string name="lyrics_animation_glow">Brilhar</string>
+    <string name="lyrics_animation_slide">Deslizar</string>
+    <string name="lyrics_animation_karaoke">Karaokê</string>
+    <string name="lyrics_animation_apple">Estilo do Apple Music</string>
+    <string name="enable_paxsenix">Habilitar Paxsenix</string>
+    <string name="enable_paxsenix_desc">Letras sincronizadas de auta qualidade do Paxsenix API</string>
+    <string name="experimental_lyrics">Letras experimentais</string>
+    <string name="experimental_lyrics_desc">Ativar o novo componente de letras experimentais com performance e animações aprimoradas</string>
+    <string name="experimental_lyrics_beta_title">Recurso experimental</string>
+    <string name="experimental_lyrics_beta_message">O novo componente de letras está atualmente em desenvolvimento e podem haver falhas. Tem certeza que deseja ativá-lo?</string>
+    <string name="lyrics_animation_style_title">Estilo de animação letra por letra</string>
 </resources>
