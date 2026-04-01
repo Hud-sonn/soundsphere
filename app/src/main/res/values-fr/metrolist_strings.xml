@@ -216,7 +216,7 @@
     <string name="sync_playlist_desc">Synchroniser cette playlist avec YouTube Music</string>
     <string name="enable_better_lyrics">Activer Better Lyrics</string>
     <string name="enable_better_lyrics_desc">Des paroles synchronisées syllabe par syllabe pour n\'importe quel titre, idéales pour le karaoké</string>
-    <string name="lyrics_animation_style">Style d\'animation mot à mot</string>
+    <string name="lyrics_animation_style">Style d\'animation des paroles</string>
     <string name="none">Aucun</string>
     <string name="fade">Disparition</string>
     <string name="glow">Brillance</string>
@@ -792,4 +792,24 @@
     <string name="transparent">Transparent</string>
     <string name="mini_player_background_not_available">Indisponible lorsque le nouveau design du mini-lecteur est désactivé</string>
     <string name="your_daily_discover">Votre découverte du jour</string>
+    <string name="lyrics_from_provider">Paroles de %s</string>
+    <string name="hide_status_bar_fullscreen">Masquer la barre d\'état en mode plein écran</string>
+    <string name="hide_status_bar_fullscreen_desc">Masquez la barre d\'état lorsque le mode plein écran des paroles est activé</string>
+    <string name="show_interval_indicator">Afficher l\'indicateur d\'intervalle</string>
+    <string name="show_interval_indicator_desc">Affiche une barre de progression pendant les longues pauses instrumentales</string>
+    <string name="respect_agent_positioning">Respecter le positionnement des agents</string>
+    <string name="respect_agent_positioning_desc">Alignez les paroles en fonction du rôle de l\'interprète (par exemple, les chœurs)</string>
+    <string name="lyrics_animation_none">Aucun</string>
+    <string name="lyrics_animation_fade">Fondu</string>
+    <string name="lyrics_animation_glow">Lueur</string>
+    <string name="lyrics_animation_slide">Diapositive</string>
+    <string name="lyrics_animation_karaoke">Karaoké</string>
+    <string name="lyrics_animation_apple">Style Apple Music</string>
+    <string name="enable_paxsenix">Activer Paxsenix</string>
+    <string name="enable_paxsenix_desc">Paroles synchronisées de haute qualité provenant de l\'API Paxsenix</string>
+    <string name="experimental_lyrics">Paroles expérimentales</string>
+    <string name="experimental_lyrics_desc">Activez le nouveau composant expérimental dédié aux paroles, doté d\'animations améliorées et d\'une meilleure performance</string>
+    <string name="experimental_lyrics_beta_title">Fonctionnalité expérimentale</string>
+    <string name="experimental_lyrics_beta_message">Le nouveau module de paroles est actuellement en cours de développement et peut contenir des bugs. Voulez-vous vraiment l\'activer ?</string>
+    <string name="lyrics_animation_style_title">Style d\'animation mot à mot</string>
 </resources>
