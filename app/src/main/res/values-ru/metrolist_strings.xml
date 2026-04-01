@@ -218,7 +218,7 @@
     <string name="sync_playlist_desc">Синхронизировать этот плейлист с YouTube Music</string>
     <string name="enable_better_lyrics">Включить Better Lyrics</string>
     <string name="enable_better_lyrics_desc">Синхронизация текста по слогам для любой песни, идеально для караоке</string>
-    <string name="lyrics_animation_style">Построчный стиль анимации</string>
+    <string name="lyrics_animation_style">Стиль анимации текста</string>
     <string name="none">Нет</string>
     <string name="fade">Затухание</string>
     <string name="glow">Свечение</string>
@@ -799,4 +799,24 @@
     <string name="transparent">Прозрачный</string>
     <string name="mini_player_background_not_available">Недоступно, если отключен новый дизайн мини‑плеера</string>
     <string name="your_daily_discover">Ваши открытия дня</string>
+    <string name="lyrics_from_provider">Текст песни из %s</string>
+    <string name="hide_status_bar_fullscreen">Скрывать строку состояния в полноэкранном режиме</string>
+    <string name="hide_status_bar_fullscreen_desc">Скрывать строку состояния, когда включён полноэкранный режим текста</string>
+    <string name="show_interval_indicator">Показывать индикатор пауз</string>
+    <string name="show_interval_indicator_desc">Показывает полосу прогресса во время длинных инструментальных пауз</string>
+    <string name="respect_agent_positioning">Учитывать позиционирование исполнителя</string>
+    <string name="respect_agent_positioning_desc">Выравнивать текст в зависимости от роли исполнителя (напр., бэк-вокал)</string>
+    <string name="lyrics_animation_none">Нет</string>
+    <string name="lyrics_animation_fade">Затухание</string>
+    <string name="lyrics_animation_glow">Свечение</string>
+    <string name="lyrics_animation_slide">Скольжение</string>
+    <string name="lyrics_animation_karaoke">Караоке</string>
+    <string name="lyrics_animation_apple">В стиле Apple Music</string>
+    <string name="enable_paxsenix">Включить Paxsenix</string>
+    <string name="enable_paxsenix_desc">Высококачественные синхронизированные тексты из API Paxsenix</string>
+    <string name="experimental_lyrics">Экспериментальный текст</string>
+    <string name="experimental_lyrics_desc">Включить новый экспериментальный компонент текста с улучшенной анимацией и производительностью</string>
+    <string name="experimental_lyrics_beta_title">Экспериментальная функция</string>
+    <string name="experimental_lyrics_beta_message">Новый компонент текста сейчас находится в разработке и может содержать ошибки. Вы уверены, что хотите включить его?</string>
+    <string name="lyrics_animation_style_title">Стиль анимации по словам</string>
 </resources>
