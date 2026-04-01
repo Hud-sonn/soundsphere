@@ -157,7 +157,7 @@
     <string name="remove_custom_image">移除自定義圖片</string>
     <string name="discord_use_details">使用詳細內容而非狀態</string>
     <string name="discord_use_details_description">強化顯示曲名而非作曲家</string>
-    <string name="updater">更新器</string>
+    <string name="updater">更新</string>
     <string name="check_for_updates">自動檢查更新</string>
     <string name="update_notifications">開啟更新通知</string>
     <string name="update_channel_name">應用程式更新</string>
@@ -310,7 +310,7 @@
     <string name="monthly_most_playlist_name">本月最常播放</string>
     <string name="enable_lyricsplus">啟用 LyricsPlus 提供歌詞</string>
     <string name="enable_lyricsplus_desc">來自多個來源的同步歌詞</string>
-    <string name="lyrics_provider_selection">選擇提供者</string>
+    <string name="lyrics_provider_selection">選擇歌詞提供者</string>
     <string name="lyrics_provider_selection_desc">選擇要啟用的歌詞提供者</string>
     <string name="enable_song_cache">啟用歌曲快取</string>
     <string name="enable_song_cache_desc">自動快取歌曲以便日後播放</string>
@@ -488,7 +488,7 @@
     <string name="ai_model">模式</string>
     <string name="ai_api_key">API金鑰</string>
     <string name="ai_base_url">基本 URL</string>
-    <string name="ai_provider">提供者</string>
+    <string name="ai_provider">Ai模型</string>
     <string name="ai_lyrics_translated">歌詞翻譯</string>
     <string name="ai_translating_lyrics">翻譯歌詞…</string>
     <string name="ai_lyrics_translation">AI歌詞翻譯</string>
@@ -715,7 +715,7 @@
     <string name="mini_player_background_not_available">停用新迷你播放器後，此功能無法使用</string>
     <string name="your_daily_discover">你每天新發現</string>
     <string name="together">一起聆聽</string>
-    <string name="listen_together_sync_volume">同步房主音量</string>
+    <string name="listen_together_sync_volume">同步主持人音量</string>
     <string name="copy_all_lyrics">複製所有歌詞</string>
     <string name="change">更改</string>
     <string name="ai_system_prompt">系統提示</string>
