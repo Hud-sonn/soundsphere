@@ -72,7 +72,6 @@
     <string name="wrapped_album_listening_time">이 앨범을 %d분 들었습니다!</string>
     <string name="sleep_timer_fade_out_description">마지막 1분 동안 볼륨이 서서히 줄어듭니다</string>
     <string name="auto_download_on_like_desc">좋아요 표시한 곡을 자동으로 다운로드합니다</string>
-    <string name="sleep_timer_default_set"></string>
     <string name="add_to_playlist_desc">재생목록에 추가</string>
     <string name="wrapped_top_5_songs_title">올해 최애 곡</string>
     <string name="pause_music_when_media_is_muted">미디어 음소거 시 음악 일시 중지</string>
@@ -288,7 +287,6 @@
     <string name="wrapped_thank_you">함께해주셔서 감사합니다!</string>
     <string name="wrapped_close">연말 결산 닫기</string>
     <string name="wrapped_playlist_title">%s년 나의 연말 결산</string>
-    <string name="wrapped_total_albums_title"></string>
     <string name="album_art_for">%s의 앨범 아트</string>
     <string name="eq_disabled">비활성화</string>
     <string name="error_file_read">파일을 읽을 수 없습니다</string>
