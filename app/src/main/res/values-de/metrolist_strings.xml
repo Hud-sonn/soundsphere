@@ -805,4 +805,14 @@
     <string name="lyrics_animation_style_title">Animationsstil „Wort für Wort“</string>
     <string name="your_daily_discover">Deine Empfehlungen des Tages</string>
     <string name="android_auto_target_playlist">Ziel schnell hinzufügen</string>
+    <string name="parsed_from_link">Aus dem Link extrahiert</string>
+    <string name="speed">Wiedergabegeschwindigkeit</string>
+    <string name="varispeed_description">Die Tonhöhe mit der Wiedergabegeschwindigkeit verknüpfen, wodurch Effekte wie bei Tonband-Schnell- und Zeitlupenwiedergabe entstehen</string>
+    <string name="back">Zurück</string>
+    <string name="clear_search">Suche löschen</string>
+    <string name="close_chip">Schließen</string>
+    <string name="switch_to_list_view">Zur Listenansicht wechseln</string>
+    <string name="switch_to_grid_view">Zur Rasteransicht wechseln</string>
+    <string name="more_options">Weitere Optionen</string>
+    <string name="varispeed">Variable Geschwindigkeit aktivieren</string>
 </resources>
