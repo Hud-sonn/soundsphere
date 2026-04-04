@@ -36,7 +36,7 @@
     <string name="share_as_image">画像として共有</string>
     <string name="max_selection_limit">選択数が上限に達しました</string>
     <string name="share_selected">選択した項目を共有</string>
-    <string name="already_in_playlist">この曲はすでにプレイリストに追加されています</string>
+    <string name="already_in_playlist">すでにプレイリストに追加されています：</string>
     <string name="lyrics_click_change">歌詞をタップして該当の箇所から再生</string>
     <string name="slim">スリム</string>
     <string name="similar_content">似た曲</string>
@@ -127,8 +127,8 @@
     <string name="swipe_song_to_remove">曲をスワイプしてプレイリストから削除</string>
     <string name="show_uploaded_playlist">アップロードした曲のプレイリストを表示</string>
     <string name="edit_playlist_cover">カバー画像を変更</string>
-    <string name="edit_playlist_cover_note">プレイリストのカバー画像を変更するには、アカウントが電話番号に紐付けられ、YouTube Musicで確認済みである必要があります。</string>
-    <string name="edit_playlist_cover_note_wait">新しいカバー画像が反映するまでに時間がかかる場合があります。</string>
+    <string name="edit_playlist_cover_note">プレイリストのカバー画像を変更するには、アカウントが電話番号に紐付けられ、YouTube Musicで確認済みである必要があります</string>
+    <string name="edit_playlist_cover_note_wait">新しいカバー画像が反映するまでに時間がかかる場合があります</string>
     <string name="choose_from_library">写真から選択</string>
     <string name="remove_custom_image">変更した画像を削除</string>
     <string name="config_proxy">プロキシ設定</string>
@@ -149,7 +149,7 @@
     <string name="line_by_line_option_title">行ごとに言語を判別</string>
     <string name="line_by_line_option_desc">キリル文字の言語は、曲全体ではなく行ごとに判別されます</string>
     <string name="line_by_line_dialog_title">確認</string>
-    <string name="line_by_line_dialog_desc">この機能は実験的で、動作が不安定になる場合があります。\n通常、言語は曲全体から判別されますが、この設定をオンにすると行ごとに判別されます。複数の言語が混在する曲に対応できますが、判別結果が常に正しいとは限りません。たとえば、ウクライナ語特有の文字が含まれていない行は、ロシア語として判別される場合があります。\n問題がない場合は、この設定はオフにすることをおすすめします。</string>
+    <string name="line_by_line_dialog_desc">この機能は実験的で、動作が不安定になる場合があります。\n通常、言語は曲全体から判別されますが、この設定をオンにすると行ごとに判別されます。複数の言語が混在する曲に対応できますが、判別結果が常に正しいとは限りません。たとえば、ウクライナ語特有の文字が含まれていない行は、ロシア語として判別される場合があります。\n問題がない場合は、この設定はオフにすることをおすすめします</string>
     <string name="romanize_current_track">歌詞にローマ字を追加</string>
     <string name="settings_section_ui">インターフェース</string>
     <string name="settings_section_privacy">プライバシーとセキュリティ</string>
@@ -384,7 +384,7 @@
     <plurals name="band_count">
         <item quantity="other">%dバンド</item>
     </plurals>
-    <string name="delete_profile_confirmation">%1$sを削除しますか？この操作は元に戻せません。</string>
+    <string name="delete_profile_confirmation">%1$sを削除しますか？この操作は元に戻せません</string>
     <string name="error_file_read">ファイルを読み取れませんでした</string>
     <string name="error_file_open">ファイルを開けません：%1$s</string>
     <string name="error_eq_apply_failed">イコライザープロファイルを適用できません：%1$s</string>
@@ -444,7 +444,7 @@
     <string name="crossfade">クロスフェード</string>
     <string name="crossfade_desc">曲の切り替わりをなめらかにします</string>
     <string name="crossfade_beta_title">ベータ機能</string>
-    <string name="crossfade_beta_message">曲のクロスフェードは新機能のため、不具合が発生する場合があります。問題があればご報告してください。\n\n技術的な制限により、クロスフェードを使用中はオフロード再生が無効になります。</string>
+    <string name="crossfade_beta_message">曲のクロスフェードは新機能のため、不具合が発生する場合があります。問題があればご報告してください。\n\n技術的な制限により、クロスフェードを使用中はオフロード再生はできません</string>
     <string name="enable">オン</string>
     <string name="crossfade_duration">クロスフェードの長さ</string>
     <string name="crossfade_gapless">曲間のない曲では無効にする</string>
@@ -560,13 +560,13 @@
     <string name="from_the_community">コミュニティのおすすめ</string>
     <string name="enable_lrclib_desc">コミュニティ主導の歌詞データベースです</string>
     <string name="enable_kugou_desc">中国で人気の音楽プラットフォームであるKuGouから歌詞を取得します</string>
-    <string name="youtube_music_lyrics_note">使用できる歌詞ソースがない場合は、YouTube Musicの歌詞が自動的に表示されます。YouTube Musicの歌詞は通常、再生に合わせて表示されません。</string>
+    <string name="youtube_music_lyrics_note">使用できる歌詞ソースがない場合は、YouTube Musicの歌詞が自動的に表示されます。YouTube Musicの歌詞は通常、再生に合わせて表示されません</string>
     <string name="enable_lyricsplus">歌詞の提供元にLyricsPlusを使用</string>
     <string name="enable_lyricsplus_desc">複数のソースの歌詞を提供する提供元です</string>
     <string name="lyrics_provider_selection">歌詞の提供元</string>
     <string name="lyrics_provider_selection_desc">使用する歌詞の提供元を選択します</string>
     <string name="lyrics_provider_priority">歌詞の提供元の優先順位</string>
-    <string name="lyrics_provider_priority_desc">ドラッグして提供元を並び替えます。上にあるほど優先順位が高くなります。</string>
+    <string name="lyrics_provider_priority_desc">ドラッグして提供元を並び替えます。上にあるほど優先順位が高くなります</string>
     <string name="changelog">変更履歴</string>
     <string name="changelog_empty">変更履歴はありません</string>
     <string name="github_releases_url">https://github.com/MetrolistGroup/Metrolist/releases</string>
@@ -805,4 +805,7 @@
     <string name="switch_to_list_view">リスト表示に切り替え</string>
     <string name="switch_to_grid_view">グリッド表示に切り替え</string>
     <string name="more_options">その他の設定</string>
+    <string name="speed">再生速度</string>
+    <string name="varispeed">音程を再生速度と連動</string>
+    <string name="varispeed_description">音程を再生速度と連動させることで、アナログテープのような早送りとスロー再生を実現します</string>
 </resources>
