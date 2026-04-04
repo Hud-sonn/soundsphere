@@ -819,4 +819,5 @@
     <string name="experimental_lyrics_beta_title">Экспериментальная функция</string>
     <string name="experimental_lyrics_beta_message">Новый компонент текста сейчас находится в разработке и может содержать ошибки. Вы уверены, что хотите включить его?</string>
     <string name="lyrics_animation_style_title">Стиль анимации по словам</string>
+    <string name="parsed_from_link">Получено по ссылке</string>
 </resources>
