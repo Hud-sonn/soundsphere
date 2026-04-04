@@ -351,22 +351,22 @@
     <string name="cache_size_warning_message">選択した上限（%1$s）は、現在アプリが使用している容量よりも小さくなっています。このまま続行すると、一部のキャッシュされた%2$sが削除される場合があります。続行しますか？</string>
     <string name="album_art_for">%sのアルバムアート</string>
     <string name="wrapped_total_albums_title">これまでに再生した</string>
-    <string name="wrapped_total_albums_subtitle">ユニークなアルバム数</string>
+    <string name="wrapped_total_albums_subtitle">ユニークなアルバムたち！</string>
     <string name="wrapped_top_album_title">あなたのトップアルバムは</string>
-    <string name="wrapped_playlist_ready">あなた専用のプレイリストが完成しました</string>
+    <string name="wrapped_playlist_ready">あなた専用のプレイリストが完成しました！</string>
     <string name="wrapped_top_5_albums_title">あなたのトップ5アルバム</string>
-    <string name="wrapped_album_listening_time">このアルバムを合計%d分再生しました</string>
+    <string name="wrapped_album_listening_time">このアルバムを合計%d分再生しました！</string>
     <string name="wrapped_album_listening_time_minutes">%d分</string>
     <string name="wrapped_top_5_artists_title">今年のトップアーティスト</string>
     <string name="wrapped_artist_listening_time">%d分</string>
     <string name="wrapped_top_5_songs_title">今年のトップソング</string>
     <string name="wrapped_top_artist_title">今年のトップアーティストは</string>
     <string name="wrapped_top_artist_image_content_description">トップアーティスト画像</string>
-    <string name="wrapped_top_artist_listening_time">合計%d分再生しました</string>
+    <string name="wrapped_top_artist_listening_time">合計%d分再生しました！</string>
     <string name="wrapped_top_song_title">最も再生した曲は</string>
-    <string name="wrapped_top_song_listening_time">合計%d分再生しました</string>
+    <string name="wrapped_top_song_listening_time">合計%d分再生しました！</string>
     <string name="wrapped_total_artists_title">再生した</string>
-    <string name="wrapped_total_artists_subtitle">ユニークなアーティスト数</string>
+    <string name="wrapped_total_artists_subtitle">ユニークなアーティストたち！</string>
     <string name="wrapped_total_songs_title">再生した</string>
     <string name="wrapped_total_songs_subtitle">ユニークな曲数</string>
     <string name="wrapped_intro_subtitle">これまでに聴いてきた音楽を振り返りましょう</string>
@@ -797,4 +797,5 @@
     <string name="mini_player_background_style">ミニプレーヤーの背景</string>
     <string name="transparent">透明</string>
     <string name="mini_player_background_not_available">新しいミニプレーヤーのデザインを使用していない場合は変更できません</string>
+    <string name="lyrics_animation_style_title">単語ごとのアニメーションスタイル</string>
 </resources>
