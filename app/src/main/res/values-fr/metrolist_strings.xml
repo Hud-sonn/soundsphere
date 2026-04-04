@@ -812,4 +812,14 @@
     <string name="experimental_lyrics_beta_title">Fonctionnalité expérimentale</string>
     <string name="experimental_lyrics_beta_message">Le nouveau module de paroles est actuellement en cours de développement et peut contenir des bugs. Voulez-vous vraiment l\'activer ?</string>
     <string name="lyrics_animation_style_title">Style d\'animation mot à mot</string>
+    <string name="parsed_from_link">Extrait du lien</string>
+    <string name="speed">Vitesse de Lecture</string>
+    <string name="varispeed">Activer la vitesse variable</string>
+    <string name="varispeed_description">Lier la hauteur tonale à la vitesse de lecture, produisant des effets d\'accélération et de ralentissement de type bande magnétique</string>
+    <string name="back">Retour</string>
+    <string name="clear_search">Effacer la recherche</string>
+    <string name="close_chip">Fermer</string>
+    <string name="switch_to_list_view">Passer à l\'affichage sous forme de liste</string>
+    <string name="switch_to_grid_view">Passer à l\'affichage en grille</string>
+    <string name="more_options">Plus d\'options</string>
 </resources>
