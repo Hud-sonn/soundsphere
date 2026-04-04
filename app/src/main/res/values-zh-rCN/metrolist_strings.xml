@@ -798,4 +798,5 @@
     <string name="experimental_lyrics_beta_title">实验性功能</string>
     <string name="experimental_lyrics_beta_message">全新歌词组件目前正在开发中，可能存在错误。确定要启用吗？</string>
     <string name="lyrics_animation_style_title">逐字动画样式</string>
+    <string name="parsed_from_link">从链接解析</string>
 </resources>
