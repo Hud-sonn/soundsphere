@@ -367,8 +367,8 @@
     <string name="wrapped_top_song_listening_time">合計%d分再生しました！</string>
     <string name="wrapped_total_artists_title">再生した</string>
     <string name="wrapped_total_artists_subtitle">ユニークなアーティストたち！</string>
-    <string name="wrapped_total_songs_title">再生した</string>
-    <string name="wrapped_total_songs_subtitle">ユニークな曲数</string>
+    <string name="wrapped_total_songs_title">再生しました</string>
+    <string name="wrapped_total_songs_subtitle">ユニークな曲たち！</string>
     <string name="wrapped_intro_subtitle">これまでに聴いてきた音楽を振り返りましょう</string>
     <string name="wrapped_intro_button">さあ、始めよう！</string>
     <string name="wrapped_logo_content_description">Metrolistロゴ</string>
