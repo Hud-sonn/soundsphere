@@ -18,13 +18,13 @@
     <string name="sync_playlist">Pleylisti sinxronizasiya et</string>
     <string name="sync_disabled">Sinxronizasiya qeyri-aktivdir</string>
     <string name="allows_for_sync_witch_youtube">Qeyd: Bu, YouTube Music ilə sinxronizasiya etməyə imkan verir. Bu sonradan dəyişdirilə bilməz.</string>
-    <string name="generating_image">Şəkil yaradılır</string>
+    <string name="generating_image">Şəkil yaradılır…</string>
     <string name="please_wait">Zəhmət olmasa gözləyin</string>
     <string name="cancel">Ləğv et</string>
     <string name="share_lyrics">Mahnı sözlərini paylaş</string>
     <string name="share_as_text">Mətn kimi paylaş</string>
     <string name="share_as_image">Şəkil kimi paylaş</string>
-    <string name="max_selection_limit">Maksimum seçim limiti</string>
+    <string name="max_selection_limit">Maksimum seçim limitinə çatıldı</string>
     <string name="share_selected">Seçilmişləri paylaş</string>
     <string name="customize_colors">Rəngləri fərdiləşdirin</string>
     <string name="text_color">Mətnin rəngi</string>
@@ -110,4 +110,10 @@
     <string name="more_content">Daha çox məzmun</string>
     <string name="edit_playlist_cover">Pleylist şəklini dəyişdir</string>
     <string name="edit_playlist_cover_note">Qeyd: Sizin hesabının telefon nömrəsinə bağlı, ve YouTube Music-də təsdiqlənməlidirki, siz pleylist şəklini dəyişə biləsiz.</string>
+    <string name="parsed_from_link">Keçiddən ayrışdırılıb</string>
+    <string name="weekly_most_playlist_name">Həftəlik ən məşhurlar</string>
+    <string name="monthly_most_playlist_name">Aylıq ən məşhurlar</string>
+    <string name="uploaded_playlist">Yükləndi</string>
+    <string name="filter_uploaded">Yükləndi</string>
+    <string name="artist_page_settings">Sənətçinin səhifəsi</string>
 </resources>
