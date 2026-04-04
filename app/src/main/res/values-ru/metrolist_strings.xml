@@ -820,4 +820,13 @@
     <string name="experimental_lyrics_beta_message">Новый компонент текста сейчас находится в разработке и может содержать ошибки. Вы уверены, что хотите включить его?</string>
     <string name="lyrics_animation_style_title">Стиль анимации по словам</string>
     <string name="parsed_from_link">Получено по ссылке</string>
+    <string name="speed">Скорость воспроизведения</string>
+    <string name="varispeed">Включить Varispeed</string>
+    <string name="varispeed_description">Связать высоту тона со скоростью воспроизведения, создавая эффект ускорения и замедления как у магнитной ленты</string>
+    <string name="back">Назад</string>
+    <string name="clear_search">Очистить поиск</string>
+    <string name="close_chip">Закрыть</string>
+    <string name="switch_to_list_view">Показывать списком</string>
+    <string name="switch_to_grid_view">Показывать сеткой</string>
+    <string name="more_options">Другие параметры</string>
 </resources>
