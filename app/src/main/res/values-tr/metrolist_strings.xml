@@ -223,8 +223,8 @@
     <string name="apple_music_style">Apple Müzik</string>
     <string name="lyrics_text_size">Şarkı sözü metin boyutu</string>
     <string name="lyrics_line_spacing">Şarkı sözü satır aralığı</string>
-    <string name="shuffle_playlist_first">Oynatma listesini/albümü önce karıştır</string>
-    <string name="shuffle_playlist_first_desc">Şarkıları karıştırırken, önce orijinal oynatma listesindeki/albümdeki tüm şarkıları, ardından benzer içerikteki şarkıları çalın</string>
+    <string name="shuffle_playlist_first">Önce oynatma listesini ya da albümünü karıştır</string>
+    <string name="shuffle_playlist_first_desc">Şarkıları karıştırırken, önce şimdiki oynatma listesindeki veya albümdeki tüm şarkıları, daha sonra da benzer içerikteki şarkıları çalın</string>
     <string name="show_wrapped_card">Özet kartını göster</string>
     <string name="album_art_for">%s için albüm kapağı</string>
     <string name="wrapped_total_albums_title">Şunları dinledin</string>
@@ -502,7 +502,7 @@
     <string name="listen_together_in_top_bar">Üst çubuktan Başkaları İle Dinle</string>
     <string name="listen_together_in_top_bar_desc">Başkaları ile dinlemeyi navigasyon yerine üst çubukta göster</string>
     <string name="prevent_duplicate_tracks_in_queue">Sırada birden fazla şarkı olmasını önle</string>
-    <string name="prevent_duplicate_tracks_in_queue_desc">Eğer listeye yeni bir şarkı eklenmişse ve daha önceden de listede varsa o şarkıyı kaldır</string>
+    <string name="prevent_duplicate_tracks_in_queue_desc">Eğer eklenen şarkı hâli hazırda listede varsa eklenecek şarkıyı bir sonra çalınacak şekilde eklenir</string>
     <string name="ai_translation_literal_desc">Hedef dile uygun bir şekilde çevir</string>
     <string name="ai_translation_transcribed_desc">Belirlenmiş alfabeye göre tellaffuz edilecek şekilde çevir</string>
     <string name="ai_provider_help">API anahtarı al</string>
