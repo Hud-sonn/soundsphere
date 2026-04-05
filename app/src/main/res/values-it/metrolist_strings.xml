@@ -805,4 +805,7 @@
     <string name="lyrics_animation_glow">Chiarore</string>
     <string name="lyrics_animation_slide">Scorrere</string>
     <string name="lyrics_animation_karaoke">Karaoke</string>
+    <string name="lyrics_animation_apple">Stile Apple Music</string>
+    <string name="enable_paxsenix">Abilita Paxsenix</string>
+    <string name="enable_paxsenix_desc">Testi sincronizzati di alta qualità API Paxsenix</string>
 </resources>
