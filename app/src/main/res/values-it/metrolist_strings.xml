@@ -793,4 +793,16 @@
     <string name="your_daily_discover">La tua scoperta quotidiana</string>
     <string name="time_transfer_warning">ATTENZIONE: non è possibile annullare questa azione una volta completata. Crea un file di backup prima di procedere. Puoi scegliere come destinazione solo brani con almeno una riproduzione</string>
     <string name="lyrics_from_provider">Testi da %s</string>
+    <string name="parsed_from_link">Analizzato dal collegamento</string>
+    <string name="hide_status_bar_fullscreen">Nascondi la barra di stato a schermo intero</string>
+    <string name="hide_status_bar_fullscreen_desc">Nascondi la barra di stato quando la modalità a schermo intero dei testi è attiva</string>
+    <string name="show_interval_indicator">Mostra l\'indicatore intervallo</string>
+    <string name="show_interval_indicator_desc">Mostra una barra di avanzamento durante i lunghi intervalli strumentali</string>
+    <string name="respect_agent_positioning">Rispettare il posizionamento agente</string>
+    <string name="respect_agent_positioning_desc">Allinea i testi in base al ruolo dell\'agente (ad esempio, voci di sottofondo)</string>
+    <string name="lyrics_animation_none">Nessuno</string>
+    <string name="lyrics_animation_fade">Dissolvenza</string>
+    <string name="lyrics_animation_glow">Chiarore</string>
+    <string name="lyrics_animation_slide">Scorrere</string>
+    <string name="lyrics_animation_karaoke">Karaoke</string>
 </resources>
