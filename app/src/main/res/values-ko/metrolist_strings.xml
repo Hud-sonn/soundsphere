@@ -188,7 +188,6 @@
     <string name="enable_similar_content">추천 곡 활성화</string>
     <string name="similar_content_desc">대기열의 마지막 곡이 끝나면 추천 곡을 자동으로 추가합니다</string>
     <string name="disable_load_more_when_repeat_all">전체 반복 시 자동 로드 비활성화</string>
-    <string name="disconnect"></string>
     <string name="disable_load_more_when_repeat_all_desc">전체 반복 모드가 켜져 있을 때는 추천 곡을 자동으로 불러오지 않습니다</string>
     <string name="crossfade">크로스페이드</string>
     <string name="crossfade_desc">곡의 끝과 다음 곡의 시작을 겹쳐서 자연스럽게 재생</string>
