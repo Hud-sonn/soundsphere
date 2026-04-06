@@ -150,8 +150,8 @@
     <string name="romanize_current_track">Romanizza attuale brano</string>
     <string name="line_by_line_dialog_desc">Questa è una funzionalità sperimentale incostante.\n\nPer impostazione predefinita, la lingua viene rilevata dall\'intero brano. Con questa opzione attivata, verrà invece rilevato riga per riga. Ciò consente il funzionamento di brani multilingue, MA la lingua rilevata potrebbe non essere sempre corretta. Ad esempio, una riga Ucraina senza caratteri specifici dell\'ucraino potrebbe essere romanizzata come Russa.\n\nSe non ne avete necessità, si consiglia di mantenere questa opzione disattivata</string>
     <string name="edit_playlist_cover">Modifica la copertina della playlist</string>
-    <string name="edit_playlist_cover_note">Nota: Il tuo account deve essere collegato a un numero di telefono e verificato su YouTube Music per modificare la copertina della playlist.</string>
-    <string name="edit_playlist_cover_note_wait">Dopo aver selezionato un\'immagine, si deve attendere un momento affinché compaia la nuova immagine della tua playlist.</string>
+    <string name="edit_playlist_cover_note">NOTA: Il tuo account deve essere collegato a un numero di telefono e verificato su YouTube Music per modificare la copertina della playlist</string>
+    <string name="edit_playlist_cover_note_wait">Dopo aver selezionato un\'immagine, si deve attendere un momento affinché compaia la nuova immagine della tua playlist</string>
     <string name="choose_from_library">Scegli dalla galleria</string>
     <string name="remove_custom_image">Rimuovi immagine personalizzata</string>
     <string name="audio_offload">Abilita lo scaricamento audio</string>
@@ -204,7 +204,7 @@
     <string name="mini_player">Mini lettore</string>
     <string name="pure_black_mini_player">Mini lettore nero puro</string>
     <string name="cache_size_warning_title">Aspetta!</string>
-    <string name="cache_size_warning_message">Il limite che hai scelto (%1$s) è inferiore a quello utilizzato attualmente dall\'app. Se si continua, è possibile che alcuni %2$ memorizzati nella cache vengano rimossi. Procedere comunque?</string>
+    <string name="cache_size_warning_message">Il limite che hai scelto (%1$s) è inferiore a quello utilizzato attualmente dall\'app. Se si continua, è possibile che alcuni %2$s memorizzati nella cache vengano rimossi. Procedere comunque?</string>
     <string name="cache_size_warning_confirm">Continua</string>
     <string name="tertiary_color_style">Colore terziario</string>
     <string name="logging_in">Connessione in corso…</string>
@@ -499,8 +499,8 @@
     <string name="crossfade_duration">Durata della dissolvenza incrociata</string>
     <string name="crossfade_gapless">Disabilita per album senza interruzioni</string>
     <string name="crossfade_gapless_desc">Non eseguire la dissolvenza incrociata se l\'album è senza pause</string>
-    <string name="crossfade_beta_title">Funzionalità Beta</string>
-    <string name="crossfade_beta_message">La dissolvenza incrociata è una nuova funzionalità e potrebbe contenere bug. Se riscontri problemi, segnalali.\n\nQuesta funzionalità disabilita lo scaricamento dell\'audio a causa di limitazioni tecniche.</string>
+    <string name="crossfade_beta_title">Funzionalità Beta!</string>
+    <string name="crossfade_beta_message">La dissolvenza incrociata è una nuova funzionalità e potrebbe contenere bug. Se riscontri problemi, segnalali.\n\nNOTA: Questa funzionalità disabilita lo scaricamento dell\'audio a causa di limitazioni tecniche</string>
     <string name="audio_offload_disabled_by_crossfade">Disabilitato perché la dissolvenza incrociata è attiva</string>
     <string name="hide_youtube_shorts">Nascondi gli Shorts di YouTube</string>
     <string name="listen_together_in_top_bar">Ascolta Insieme nella barra in alto</string>
@@ -615,7 +615,7 @@
     <string name="credits_view_repo">Visualizza archivio</string>
     <string name="app_version_info">%1$s • %2$s</string>
     <string name="like_what_i_do">Ti piace quello che faccio?</string>
-    <string name="buy_mo_a_coffee">Offrimi un caffè</string>
+    <string name="buy_mo_a_coffee">Offrimi un caffè!</string>
     <string name="community_and_info">Comunità e Informazioni</string>
     <string name="metrolist">METROLIST</string>
     <string name="wanna_play_favorite_song">Vuoi riprodurre il loro brano preferito?</string>
