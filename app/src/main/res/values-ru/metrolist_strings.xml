@@ -157,7 +157,7 @@
     <string name="remove_custom_image">Удалить собственное изображение</string>
     <string name="choose_from_library">Выбрать из библиотеки</string>
     <string name="audio_offload">Включить аппаратное ускорение аудио</string>
-    <string name="audio_offload_description">Использует аппаратный вывод аудио. Отключение может увеличить расход батареи, но поможет при проблемах с воспроизведением или обработкой звука</string>
+    <string name="audio_offload_description">Использует аппаратный путь вывода аудио для воспроизведения. Отключение может увеличить расход батареи, но может помочь при проблемах с воспроизведением или постобработкой звука</string>
     <string name="uploaded_playlist">Загруженные</string>
     <string name="filter_uploaded">Загруженные</string>
     <string name="show_uploaded_playlist">Показывать плейлист «Загруженные»</string>
@@ -200,9 +200,9 @@
     <string name="refetch_desc">Обновить метаданные из YouTube Music</string>
     <string name="share_desc">Поделиться ссылкой на этот элемент</string>
     <string name="delete_desc">Безвозвратно удалить этот элемент</string>
-    <string name="advanced_desc">Настроить темп и тональность трека</string>
+    <string name="advanced_desc">Настроить темп и высоту тона трека</string>
     <string name="equalizer_desc">Открыть эквалайзер</string>
-    <string name="enable_dynamic_icon">Включить динамический значок</string>
+    <string name="enable_dynamic_icon">Включить динамическую иконку</string>
     <string name="mini_player">Мини-плеер</string>
     <string name="pure_black_mini_player">Чисто чёрный мини-плеер</string>
     <string name="cache_size_warning_title">Внимание!</string>
@@ -634,7 +634,7 @@
     <string name="your_shows">Ваши шоу</string>
     <string name="new_episodes">Новые выпуски</string>
     <string name="episodes_for_later">Сохраненные выпуски</string>
-    <string name="save_episode_for_later">Сохранить на потом</string>
+    <string name="save_episode_for_later">Сохранить выпуск</string>
     <string name="save_episode_for_later_desc">Добавить в плейлист «Сохраненные выпуски»</string>
     <string name="remove_episode_from_saved">Удалить из сохранённых</string>
     <string name="subscribe_to_podcast">Сохранить подкаст в библиотеку</string>
