@@ -189,9 +189,9 @@ fun YouTubePlaylistMenu(
                         }
                         coroutineScope.launch(Dispatchers.IO) {
                             if (!isCurrentlySaved) {
-                                val playlistEntity = database.playlistByBrowseId(playlist.id).first()?.playlist
-                                if (playlistEntity != null) {
-                                    songs
+                                val playlistFull = database.playlistByBrowseId(playlist.id).first()
+                                if (playlistFull != null) {
+                                    val songIds = songs
                                         .ifEmpty {
                                             YouTube
                                                 .playlist(playlist.id)
@@ -201,14 +201,8 @@ fun YouTubePlaylistMenu(
                                                 .orEmpty()
                                         }.map { it.toMediaMetadata() }
                                         .onEach { database.transaction { insert(it) } }
-                                        .mapIndexed { index, song ->
-                                            PlaylistSongMap(
-                                                songId = song.id,
-                                                playlistId = playlistEntity.id,
-                                                position = index,
-                                                setVideoId = song.setVideoId,
-                                            )
-                                        }.forEach { database.transaction { insert(it) } }
+                                        .map { it.id to it.setVideoId }
+                                    database.addSongsToPlaylist(playlistFull, songIds)
                                 }
                             }
                             if (playlist.isPodcast) {

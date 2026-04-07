@@ -1833,14 +1833,9 @@ class MusicService :
                 return@launch
             }
 
-            database.query {
-                insert(
-                    com.metrolist.music.db.entities.PlaylistSongMap(
-                        playlistId = targetPlaylistId,
-                        songId = currentSong.id,
-                        position = Int.MAX_VALUE,
-                    ),
-                )
+            val targetPlaylist = database.playlist(targetPlaylistId).first()
+            if (targetPlaylist != null) {
+                database.addSongsToPlaylist(targetPlaylist, listOf(currentSong.id to null))
             }
         }
     }

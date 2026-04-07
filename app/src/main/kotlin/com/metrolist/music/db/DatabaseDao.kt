@@ -1092,7 +1092,7 @@ interface DatabaseDao {
         playlistId: String,
         now: LocalDateTime = LocalDateTime.now(),
     )
-    @Transaction
+     @Transaction
     fun addSongToPlaylist(playlist: Playlist, songIds: List<String>) {
         var position = playlist.songCount
         songIds.forEach { id ->
@@ -1103,6 +1103,36 @@ interface DatabaseDao {
                         songId = id,
                         playlistId = playlist.id,
                         position = position++
+                    )
+                )
+            }
+        }
+        updatePlaylistLastUpdated(playlist.id)
+    }
+    
+    // This prevents songs from being removed during automatic playlist synchronization
+    @Transaction
+    fun addSongsToPlaylist(
+        playlist: Playlist,
+        songs: List<Pair<String, String?>>  // Pair of (songId, setVideoId)
+    ) {
+        val now = LocalDateTime.now()
+        var position = playlist.songCount
+
+        songs.forEach { (id, setVideoId) ->
+            val existingSong = getSongByIdBlocking(id)
+            if (existingSong != null) {
+                // If song already exists, update it to mark as inLibrary if not already marked
+                if (existingSong.song.inLibrary == null) {
+                    inLibrary(id, now)
+                }
+                // Add to playlist mapping, preserving setVideoId for reordering operations
+                insert(
+                    PlaylistSongMap(
+                        songId = id,
+                        playlistId = playlist.id,
+                        position = position++,
+                        setVideoId = setVideoId
                     )
                 )
             }
@@ -1132,6 +1162,16 @@ interface DatabaseDao {
         SongSortType.PLAY_TIME -> downloadedSongsByPlayTimeAsc()
     }.map { it.reversed(descending) }
 
+    @Transaction
+    @Query("SELECT * FROM playlist_song_map WHERE playlistId = :playlistId ORDER BY position")
+    fun playlistSongsBlocking(playlistId: String): List<PlaylistSong>
+
+    @Transaction
+    @Query(
+        "SELECT *, (SELECT COUNT(*) FROM playlist_song_map WHERE playlistId = playlist.id) " +
+                "AS songCount FROM playlist WHERE id = :playlistId"
+    )
+    fun playlistBlocking(playlistId: String): Playlist?
     @Transaction
     @Query("SELECT * FROM song WHERE isDownloaded = 1 AND (isEpisode = 0 OR isEpisode IS NULL) ORDER BY dateDownload")
     fun downloadedSongsByCreateDateAsc(): Flow<List<Song>>

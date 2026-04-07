@@ -1360,21 +1360,15 @@ fun LocalPlaylistHeader(
                                             .getOrNull() ?: return@launch
                                     database.transaction {
                                         clearPlaylist(playlist.id)
-                                        playlistPage.songs
+                                        val songIds = playlistPage.songs
                                             .map(SongItem::toMediaMetadata)
                                             .onEach(::insert)
-                                            .mapIndexed { position, song ->
-                                                PlaylistSongMap(
-                                                    songId = song.id,
-                                                    playlistId = playlist.id,
-                                                    position = position,
-                                                    setVideoId = song.setVideoId,
-                                                )
-                                            }.forEach(::insert)
+                                            .map { it.id to it.setVideoId }
+                                        addSongsToPlaylist(playlist, songIds)
                                     }
-                                }
-                                scope.launch(Dispatchers.Main) {
-                                    snackbarHostState.showSnackbar(playlistSyncedStr)
+                                    withContext(Dispatchers.Main) {
+                                        snackbarHostState.showSnackbar(playlistSyncedStr)
+                                    }
                                 }
                             },
                             onDelete = onshowDeletePlaylistDialog,

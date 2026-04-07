@@ -324,7 +324,7 @@ fun AddToPlaylistDialogOnline(
                                                                     } catch (e: Exception) {
                                                                         Timber.tag("Exception").e(e.toString())
                                                                     }
-                                                                    database.addSongToPlaylist(playlist, ids)
+                                                                    database.addSongsToPlaylist(playlist, ids.map { it to null })
                                                                 }
                                                             }
                                                         }
@@ -453,12 +453,12 @@ fun AddToPlaylistDialogOnline(
                     onClick = {
                         showDuplicateDialog = false
                         onDismiss()
-                        database.transaction {
-                            addSongToPlaylist(
+                         database.transaction {
+                            addSongsToPlaylist(
                                 selectedPlaylist!!,
                                 songIds!!.filter {
                                     !duplicates.contains(it)
-                                }
+                                }.map { it to null }
                             )
                         }
                     }
@@ -470,8 +470,8 @@ fun AddToPlaylistDialogOnline(
                     onClick = {
                         showDuplicateDialog = false
                         onDismiss()
-                        database.transaction {
-                            addSongToPlaylist(selectedPlaylist!!, songIds!!)
+                         database.transaction {
+                            addSongsToPlaylist(selectedPlaylist!!, songIds!!.map { it to null })
                         }
                     }
                 ) {
