@@ -709,7 +709,7 @@
     <string name="discord_activity_watching">Ansehen</string>
     <string name="discord_activity_competing">Wettbewerb</string>
     <string name="weekly_most_playlist_name">Wöchentliche Top-Playliste</string>
-    <string name="monthly_most_playlist_name">Monatliche Top-Playliste</string>
+    <string name="monthly_most_playlist_name">Monatliche Top-Playlists</string>
     <string name="enable_song_cache">Aktiviere Song cache</string>
     <string name="enable_song_cache_desc">Cache Songs automatisch für schnellere Wiedergabe in der Zukunft</string>
     <string name="sleep_timer_stop_after_current_song_title">Am Ende des derzeitigen Songs stoppen</string>
