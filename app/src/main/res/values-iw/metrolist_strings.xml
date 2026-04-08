@@ -19,7 +19,7 @@
     <string name="sync_playlist">סנכרן את רשימת ההשמעה</string>
     <string name="sync_disabled">סינכרון מבוטל</string>
     <string name="allows_for_sync_witch_youtube">הערה: זה מאפשר סנכרון עם יוטיוב מיוזיק. לא ניתן לשנות זאת מאוחר יותר.</string>
-    <string name="generating_image">יצירת תמונה</string>
+    <string name="generating_image">יצירת תמונה…</string>
     <string name="please_wait">אנא המתן</string>
     <string name="cancel">ביטול</string>
     <string name="share_lyrics">שתף את מילות שיר</string>
@@ -663,4 +663,6 @@
     <string name="discord_button_text_variables">משתנים: {song_name}, {artist_name}, {album_name}</string>
     <string name="discord_rpc_preview">תצוגה מקדימה של נוכחות עשירה</string>
     <string name="discord_presence">נוכחות</string>
+    <string name="parsed_from_link">מנותח מהקישור</string>
+    <string name="more_options">אפשרויות נוספות</string>
 </resources>
