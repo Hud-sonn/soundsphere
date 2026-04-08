@@ -737,7 +737,7 @@ fun Queue(
             }
         }
 
-        LaunchedEffect(mutableQueueWindows) {
+        LaunchedEffect(mutableQueueWindows, currentWindowIndex) {
             if (currentWindowIndex != -1) {
                 lazyListState.scrollToItem(currentWindowIndex)
             }
