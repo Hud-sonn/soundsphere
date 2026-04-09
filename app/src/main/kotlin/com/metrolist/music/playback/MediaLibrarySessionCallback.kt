@@ -542,8 +542,13 @@ constructor(
     ): ListenableFuture<MediaItemsWithStartPosition> =
         scope.future {
             val defaultResult = MediaItemsWithStartPosition(emptyList(), startIndex, startPositionMs)
-            val path = mediaItems.firstOrNull()?.mediaId?.split("/")
-                ?: return@future defaultResult
+            val voiceQuery = mediaItems.firstOrNull()?.requestMetadata?.searchQuery
+
+            val path = if (!voiceQuery.isNullOrBlank()) {
+                listOf(MusicService.SEARCH, voiceQuery, "")
+            } else {
+                mediaItems.firstOrNull()?.mediaId?.split("/")
+            } ?: return@future defaultResult
 
             when (path.firstOrNull()) {
                 MusicService.SONG -> {
