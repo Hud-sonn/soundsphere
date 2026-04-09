@@ -808,4 +808,7 @@
     <string name="speed">播放速度</string>
     <string name="varispeed">启用变速</string>
     <string name="varispeed_description">将音高与播放速度关联，产生磁带式的加速和减速效果</string>
+    <string name="audio_quality_very_high">非常高</string>
+    <string name="autoplay">自动播放</string>
+    <string name="autoplay_desc">当前歌曲播放结束后，自动播放下一首歌曲</string>
 </resources>
