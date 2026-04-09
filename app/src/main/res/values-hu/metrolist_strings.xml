@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="local_history">Helyi</string>
-    <string name="remote_history">Távol</string>
+    <string name="remote_history">Távoli</string>
     <string name="charts">Slágerlisták</string>
     <string name="back_button_desc">Vissza</string>
     <string name="album_cover_desc">Album borító</string>
