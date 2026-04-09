@@ -822,4 +822,7 @@
     <string name="switch_to_list_view">Passa alla visualizzazione elenco</string>
     <string name="switch_to_grid_view">Passa alla visualizzazione griglia</string>
     <string name="more_options">Più opzioni</string>
+    <string name="audio_quality_very_high">Molto alta</string>
+    <string name="autoplay">Riproduzione automatica</string>
+    <string name="autoplay_desc">Riproduci automaticamente il prossimo brano quando l\'attuale finisce</string>
 </resources>
