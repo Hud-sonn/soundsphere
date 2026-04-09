@@ -11,10 +11,10 @@
     <string name="years">年</string>
     <string name="continuous">全期間</string>
     <string name="liked">高評価した曲</string>
-    <string name="offline">ダウンロード済み</string>
+    <string name="offline">ダウンロードした曲</string>
     <string name="top_music_videos">人気のミュージックビデオ</string>
     <string name="my_top">マイトップ</string>
-    <string name="cached_playlist">キャッシュ済み</string>
+    <string name="cached_playlist">キャッシュした曲</string>
     <string name="sync_playlist">プレイリストを同期</string>
     <string name="sync_disabled">同期は無効です</string>
     <string name="generating_image">画像を生成中…</string>
@@ -93,7 +93,7 @@
     <string name="similar_content_desc">キューの最後まで再生したあと、自動で似た曲を追加します</string>
     <string name="import_online">M3U形式のプレイリストをインポート</string>
     <string name="import_csv">CSV形式のプレイリストをインポート</string>
-    <string name="playlist_add_local_to_synced_note">ローカルの楽曲を同期済みまたはリモートのプレイリストに追加することはできません</string>
+    <string name="playlist_add_local_to_synced_note">ローカルの楽曲を同期した曲またはリモートのプレイリストに追加することはできません</string>
     <string name="auto_download_on_like_desc">ハートをつけた曲を自動でダウンロードします</string>
     <string name="swipe_sensitivity">ミニプレーヤーのスワイプ感度</string>
     <string name="clear_song_cache_dialog">キャッシュした曲をすべて削除しますか？</string>
@@ -121,8 +121,8 @@
     <string name="seek_seconds_addup_description">連続してシーク操作を行うごとに5秒ずつ加算します</string>
     <string name="disable_load_more_when_repeat_all">全曲リピート再生しているときは追加の曲を自動で読み込まない</string>
     <string name="disable_load_more_when_repeat_all_desc">全曲リピート再生しているときは似た曲の追加を行いません</string>
-    <string name="uploaded_playlist">アップロード済み</string>
-    <string name="filter_uploaded">アップロード済み</string>
+    <string name="uploaded_playlist">アップロードした曲</string>
+    <string name="filter_uploaded">アップロードした曲</string>
     <string name="starting_radio">ラジオを開始中…</string>
     <string name="swipe_song_to_remove">曲をスワイプしてプレイリストから削除</string>
     <string name="show_uploaded_playlist">アップロードした曲のプレイリストを表示</string>
@@ -594,7 +594,7 @@
     <string name="listen_together_auto_approval_suggestions_desc">ゲストからの楽曲リクエストを自動で承認し、キューに追加します</string>
     <string name="importing_playlist">プレイリストをインポート中…</string>
     <string name="logout_dialog_title">ライブラリデータを保持しますか？</string>
-    <string name="logout_dialog_message">プレイリストとライブラリのデータを保持しますか？ダウンロード済みの曲は常に保持されます</string>
+    <string name="logout_dialog_message">プレイリストとライブラリのデータを保持しますか？ダウンロードした曲は常に保持されます</string>
     <string name="logout_keep">保持</string>
     <string name="logout_clear">削除</string>
     <string name="credits_lead_developer">主任開発者</string>
@@ -808,4 +808,7 @@
     <string name="speed">再生速度</string>
     <string name="varispeed">音程を再生速度と連動</string>
     <string name="varispeed_description">音程を再生速度と連動させることで、アナログテープのような早送りとスロー再生を実現します</string>
+    <string name="audio_quality_very_high">最高音質</string>
+    <string name="autoplay">自動再生</string>
+    <string name="autoplay_desc">曲の再生が終了すると、次の曲を自動で再生します</string>
 </resources>
