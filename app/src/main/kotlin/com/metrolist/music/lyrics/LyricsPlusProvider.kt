@@ -6,6 +6,7 @@
 package com.metrolist.music.lyrics
 
 import android.content.Context
+import com.metrolist.music.betterlyrics.TTMLParser
 import com.metrolist.music.constants.EnableLyricsPlus
 import com.metrolist.music.utils.dataStore
 import com.metrolist.music.utils.get
@@ -17,6 +18,7 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -93,8 +95,37 @@ private data class LyricsPlusResponse(
     val cached: String? = null,
 )
 
+@Serializable
+private data class BinimumLyricsApiResponse(
+    val total: Int? = null,
+    val source: String? = null,
+    val results: List<BinimumLyricsResult> = emptyList(),
+    val error: String? = null,
+)
+
+@Serializable
+private data class BinimumLyricsResult(
+    val id: String? = null,
+    val track_name: String? = null,
+    val artist_name: String? = null,
+    val album_name: String? = null,
+    val duration: Int? = null,
+    val isrc: String? = null,
+    val timing_type: String? = null,
+    val lyricsUrl: String? = null,
+)
+
+private data class BinimumLyricsFetchResult(
+    val lrc: String,
+    val isWordSync: Boolean,
+)
+
 object LyricsPlusProvider : LyricsProvider {
     override val name = "LyricsPlus"
+    // ISRC format: 2-letter country code + 3-char alphanumeric registrant + 2-digit year + 5-digit designation.
+    private const val ISRC_PATTERN = "^[A-Z]{2}[A-Z0-9]{3}\\d{2}\\d{5}$"
+    private val ISRC_REGEX by lazy { Regex(ISRC_PATTERN) }
+    private const val BINIMUM_API_BASE_URL = "https://lyrics-api.binimum.org/"
 
     private val baseUrls = listOf(
         "https://lyricsplus.binimum.org", //binimum's alternate server
@@ -164,6 +195,79 @@ object LyricsPlusProvider : LyricsProvider {
             }
         }
         return null
+    }
+
+    private suspend fun fetchBinimumLyricsApi(
+        id: String,
+        title: String,
+        artist: String,
+        duration: Int,
+        album: String?,
+    ): BinimumLyricsFetchResult? {
+        val normalizedId = id.trim()
+        val normalizedIsrc = normalizedId.uppercase()
+        val canUseIsrc = normalizedIsrc.matches(ISRC_REGEX)
+        val hasMetadata = title.isNotBlank() && artist.isNotBlank()
+        // Search is valid when we have an ISRC, or when metadata (title + artist) is present.
+        if (!canUseIsrc && !hasMetadata) return null
+
+        suspend fun requestByTrackMetadata() = runCatching {
+            client.get(BINIMUM_API_BASE_URL) {
+                parameter("track", title)
+                parameter("artist", artist)
+                if (!album.isNullOrBlank()) parameter("album", album)
+                if (duration > 0) parameter("duration", duration)
+            }
+        }.getOrNull()
+
+        suspend fun requestByIsrc() = runCatching {
+            client.get(BINIMUM_API_BASE_URL) {
+                parameter("isrc", normalizedIsrc)
+            }
+        }.getOrNull()
+
+        val response = if (canUseIsrc) {
+            requestByIsrc() ?: requestByTrackMetadata()
+        } else {
+            requestByTrackMetadata()
+        } ?: run {
+            Timber.tag("LyricsPlus").w("Binimum API request failed (canUseIsrc=$canUseIsrc, hasMetadata=$hasMetadata)")
+            return null
+        }
+
+        if (!response.status.isSuccess()) return null
+
+        val payload = runCatching { response.body<BinimumLyricsApiResponse>() }.getOrNull()
+            ?: return null
+        if (payload.results.isEmpty()) return null
+
+        val selectedResult = payload.results
+            .firstOrNull { !it.lyricsUrl.isNullOrBlank() }
+            ?: return null
+        val lyricsUrl = selectedResult.lyricsUrl.orEmpty()
+        val ttml = runCatching {
+            client.get(lyricsUrl)
+        }.getOrNull()?.let { ttmlResponse ->
+            if (ttmlResponse.status.isSuccess()) {
+                runCatching { ttmlResponse.body<String>() }.getOrNull()
+            } else {
+                null
+            }
+        } ?: return null
+
+        val parsedLines = runCatching { TTMLParser.parseTTML(ttml) }
+            .onFailure { Timber.tag("LyricsPlus").w(it, "Failed parsing binimum TTML") }
+            .getOrNull()
+            ?.takeIf { it.isNotEmpty() } ?: return null
+        val lrc = runCatching { TTMLParser.toLRC(parsedLines).trim() }
+            .getOrNull()
+            ?.takeIf { it.isNotBlank() }
+            ?: return null
+
+        return BinimumLyricsFetchResult(
+            lrc = lrc,
+            isWordSync = selectedResult.timing_type.equals("word", ignoreCase = true),
+        )
     }
 
     /**
@@ -294,8 +398,31 @@ object LyricsPlusProvider : LyricsProvider {
         duration: Int,
         album: String?,
     ): Result<String> = runCatching {
+        val binimumResult = fetchBinimumLyricsApi(id, title, artist, duration, album)
+        if (binimumResult?.isWordSync == true) {
+            return@runCatching binimumResult.lrc
+        }
+
         val response = fetchLyrics(title, artist, duration, album)
-        convertToLrc(response) ?: throw IllegalStateException("Lyrics unavailable")
+        val lyricsPlusLrc = convertToLrc(response)
+        resolveLyricsWithFallback(binimumResult, response, lyricsPlusLrc)
+            ?: throw IllegalStateException("Lyrics unavailable")
+    }
+
+    private fun resolveLyricsWithFallback(
+        binimumResult: BinimumLyricsFetchResult?,
+        lyricsPlusResponse: LyricsPlusResponse?,
+        lyricsPlusLrc: String?,
+    ): String? {
+        if (binimumResult?.isWordSync == false) {
+            val hasWordSyncFromLyricsPlus = lyricsPlusResponse?.type.equals("Word", ignoreCase = true)
+            return if (hasWordSyncFromLyricsPlus && !lyricsPlusLrc.isNullOrBlank()) {
+                lyricsPlusLrc
+            } else {
+                binimumResult.lrc
+            }
+        }
+        return lyricsPlusLrc
     }
 
     override suspend fun getAllLyrics(
