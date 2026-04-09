@@ -48,6 +48,7 @@ import com.metrolist.music.constants.CrossfadeEnabledKey
 import com.metrolist.music.constants.CrossfadeGaplessKey
 import com.metrolist.music.constants.AutoLoadMoreKey
 import com.metrolist.music.constants.AutoSkipNextOnErrorKey
+import com.metrolist.music.constants.AutoplayKey
 import com.metrolist.music.constants.DisableLoadMoreWhenRepeatAllKey
 import com.metrolist.music.constants.EnableGoogleCastKey
 import com.metrolist.music.constants.HistoryDuration
@@ -164,6 +165,10 @@ fun PlayerSettings(
         AutoSkipNextOnErrorKey,
         defaultValue = false
     )
+    val (autoplay, onAutoplayChange) = rememberPreference(
+        AutoplayKey,
+        defaultValue = true
+    )
     val (persistentShuffleAcrossQueues, onPersistentShuffleAcrossQueuesChange) = rememberPreference(
         PersistentShuffleAcrossQueuesKey,
         defaultValue = false
@@ -220,6 +225,7 @@ fun PlayerSettings(
                     AudioQuality.AUTO -> stringResource(R.string.audio_quality_auto)
                     AudioQuality.HIGH -> stringResource(R.string.audio_quality_high)
                     AudioQuality.LOW -> stringResource(R.string.audio_quality_low)
+                    AudioQuality.VERY_HIGH -> stringResource(R.string.audio_quality_very_high)
                 }
             }
         )
@@ -277,6 +283,7 @@ fun PlayerSettings(
                                 AudioQuality.AUTO -> stringResource(R.string.audio_quality_auto)
                                 AudioQuality.HIGH -> stringResource(R.string.audio_quality_high)
                                 AudioQuality.LOW -> stringResource(R.string.audio_quality_low)
+                                AudioQuality.VERY_HIGH -> stringResource(R.string.audio_quality_very_high)
                             }
                         )
                     },
@@ -749,6 +756,27 @@ fun PlayerSettings(
                         )
                     },
                     onClick = { onAutoLoadMoreChange(!autoLoadMore) }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.skip_next),
+                    title = { Text(stringResource(R.string.autoplay)) },
+                    description = { Text(stringResource(R.string.autoplay_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = autoplay,
+                            onCheckedChange = onAutoplayChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (autoplay) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onAutoplayChange(!autoplay) }
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.repeat),

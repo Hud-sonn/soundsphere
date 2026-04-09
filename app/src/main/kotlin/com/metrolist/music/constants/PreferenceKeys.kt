@@ -112,6 +112,7 @@ enum class AudioQuality {
     AUTO,
     HIGH,
     LOW,
+    VERY_HIGH,
 }
 
 val AudioOffload = booleanPreferencesKey("enableOffload")
@@ -130,6 +131,7 @@ val DisableLoadMoreWhenRepeatAllKey = booleanPreferencesKey("disableLoadMoreWhen
 val AutoDownloadOnLikeKey = booleanPreferencesKey("autoDownloadOnLike")
 val SimilarContent = booleanPreferencesKey("similarContent")
 val AutoSkipNextOnErrorKey = booleanPreferencesKey("autoSkipNextOnError")
+val AutoplayKey = booleanPreferencesKey("autoplay")
 val StopMusicOnTaskClearKey = booleanPreferencesKey("stopMusicOnTaskClear")
 val ShufflePlaylistFirstKey = booleanPreferencesKey("shufflePlaylistFirst")
 val PreventDuplicateTracksInQueueKey = booleanPreferencesKey("preventDuplicateTracksInQueue")
