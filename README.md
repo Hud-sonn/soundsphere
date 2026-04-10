@@ -195,7 +195,7 @@
 
 <h1><a id="faq"></a>FAQ</h1>
 
-<h3>Got questions? Check out our <a href="https://metrolist.meowery.eu/faq">FAQ page</a> for answers to the most common ones!</h3>
+<h3>Got questions? Check out our <a href="https://metrolist.cc/#faq">FAQ page</a> for answers to the most common ones!</h3>
 
 </div>
 
