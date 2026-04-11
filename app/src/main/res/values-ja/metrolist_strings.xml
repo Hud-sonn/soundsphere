@@ -343,7 +343,7 @@
     <string name="turntable_widget_description">再生と高評価の操作ができる円形のウィジェット</string>
     <string name="listen_together_create_room_desc">ルームを作成し、コードを友達と共有します</string>
     <string name="listen_together_description">友達とリアルタイムで音楽を一緒に聴くことができます。ルームを作成してホストするか、コードを使って既存のルームに参加できます</string>
-    <string name="listen_together_background_disconnect_note">音楽を再生していない状態でルームを作成し、その後ほかのアプリに切り替えると、切断される場合があります</string>
+    <string name="listen_together_background_disconnect_note">接続中でもルームに参加していない場合は、バッテリー節約のため、バックグラウンドで30分後にListen Togetherが切断されます</string>
     <string name="join_request_denied">参加リクエストが拒否されました</string>
     <string name="join_existing_room">既存のルームに参加</string>
     <string name="creating_room">ルームを作成中…</string>
