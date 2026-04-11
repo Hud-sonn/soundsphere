@@ -346,7 +346,7 @@
     <string name="listen_together_logs">Journaux de connexion</string>
     <string name="listen_together_no_logs">Pas encore de commentaires</string>
     <string name="listen_together_description">Écoutez de la musique avec vos amis en temps réel. Créez une salle pour accueillir d\'autres utilisateurs, ou rejoignez une salle existante à l\'aide d\'un code.</string>
-    <string name="listen_together_background_disconnect_note">REMARQUE : vous risquez d\'être déconnecté si vous créez une salle alors qu\'aucune musique n\'est en cours de lecture, puis que vous passez à une autre application.</string>
+    <string name="listen_together_background_disconnect_note">REMARQUE : vous risquez d\'être déconnecté si vous créez une salle alors qu\'aucune musique n\'est en cours de lecture, puis que vous passez à une autre application.</string>
     <string name="listen_together_not_configured">« Écouter ensemble » n\'est pas configurée. Veuillez configurer l\'URL du serveur dans Paramètres → Intégrations → Écouter ensemble.</string>
     <string name="listen_together_suggestion_received">%1$s a suggéré %2$s</string>
     <string name="listen_together_suggestion_sent">Suggestion envoyée à l\'hôte !</string>
