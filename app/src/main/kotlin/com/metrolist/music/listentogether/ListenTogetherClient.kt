@@ -291,6 +291,21 @@ class ListenTogetherClient
         private val _events = MutableSharedFlow<ListenTogetherEvent>()
         val events: SharedFlow<ListenTogetherEvent> = _events.asSharedFlow()
 
+        // Used from [loadPersistedSession] launched in init — must be declared before init (Kotlin
+        // initialization order + IO thread can run the coroutine before later properties run).
+        private val json =
+            Json {
+                ignoreUnknownKeys = true
+                encodeDefaults = true
+            }
+
+        /**
+         * Incremented when the user explicitly starts create/join so a late-finishing
+         * [loadPersistedSession] cannot restore disk state over that intent (would make
+         * [onOpen] choose RECONNECT instead of [executePendingAction]).
+         */
+        private val sessionApplyGeneration = AtomicInteger(0)
+
         init {
             setInstance(this)
             ensureNotificationChannel()
@@ -532,12 +547,6 @@ class ListenTogetherClient
             }
         }
 
-        private val json =
-            Json {
-                ignoreUnknownKeys = true
-                encodeDefaults = true
-            }
-
         // Message codec - uses Protobuf with compression enabled
         private val codec = MessageCodec(true)
 
@@ -555,13 +564,6 @@ class ListenTogetherClient
 
         // Pending actions to execute when connected
         private var pendingAction: PendingAction? = null
-
-        /**
-         * Incremented when the user explicitly starts create/join so a late-finishing
-         * [loadPersistedSession] cannot restore disk state over that intent (would make
-         * [onOpen] choose RECONNECT instead of [executePendingAction]).
-         */
-        private val sessionApplyGeneration = AtomicInteger(0)
 
         // Wake lock to keep connection alive when in a room
         private var wakeLock: PowerManager.WakeLock? = null

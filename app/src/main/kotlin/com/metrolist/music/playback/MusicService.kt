@@ -32,6 +32,7 @@ import android.os.Handler
 import android.os.Looper
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
+import androidx.core.app.ServiceCompat
 import androidx.core.content.getSystemService
 import androidx.core.net.toUri
 import androidx.datastore.preferences.core.edit
@@ -467,49 +468,8 @@ class MusicService :
         // 3. Connect the processor to the service
         // handled in createExoPlayer
 
-        try {
-            val nm = getSystemService(NotificationManager::class.java)
-            nm?.createNotificationChannel(
-                NotificationChannel(
-                    CHANNEL_ID,
-                    getString(R.string.music_player),
-                    NotificationManager.IMPORTANCE_LOW,
-                ),
-            )
-            val pending =
-                PendingIntent.getActivity(
-                    this,
-                    0,
-                    Intent(this, MainActivity::class.java),
-                    PendingIntent.FLAG_IMMUTABLE,
-                )
-            val notification: Notification =
-                NotificationCompat
-                    .Builder(this, CHANNEL_ID)
-                    .setContentTitle(getString(R.string.music_player))
-                    .setContentText("")
-                    .setSmallIcon(R.drawable.small_icon)
-                    .setContentIntent(pending)
-                    .setOngoing(true)
-                    .build()
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                startForeground(
-                    NOTIFICATION_ID,
-                    notification,
-                    ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK,
-                )
-            } else {
-                startForeground(NOTIFICATION_ID, notification)
-            }
-        } catch (e: Exception) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
-                e is ForegroundServiceStartNotAllowedException
-            ) {
-                Timber.tag(TAG).w("Foreground service start not allowed (likely app in background)")
-            } else {
-                Timber.tag(TAG).e(e, "Failed to create foreground notification")
-                reportException(e)
-            }
+        if (!ensureStartedAsForegroundOrStop()) {
+            return
         }
 
         setMediaNotificationProvider(
@@ -3239,8 +3199,68 @@ class MusicService :
         }
     }
 
+    /**
+     * [Context.startForegroundService] requires [startForeground] to succeed quickly. If we cannot
+     * enter the foreground state, stop immediately so the system does not ANR the app process.
+     */
+    private fun ensureStartedAsForegroundOrStop(): Boolean =
+        try {
+            val nm = getSystemService(NotificationManager::class.java)
+            nm?.createNotificationChannel(
+                NotificationChannel(
+                    CHANNEL_ID,
+                    getString(R.string.music_player),
+                    NotificationManager.IMPORTANCE_LOW,
+                ),
+            )
+            val pending =
+                PendingIntent.getActivity(
+                    this,
+                    0,
+                    Intent(this, MainActivity::class.java),
+                    PendingIntent.FLAG_IMMUTABLE,
+                )
+            val notification: Notification =
+                NotificationCompat
+                    .Builder(this, CHANNEL_ID)
+                    .setContentTitle(getString(R.string.music_player))
+                    .setContentText("")
+                    .setSmallIcon(R.drawable.small_icon)
+                    .setContentIntent(pending)
+                    .setOngoing(true)
+                    .build()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                startForeground(
+                    NOTIFICATION_ID,
+                    notification,
+                    ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK,
+                )
+            } else {
+                startForeground(NOTIFICATION_ID, notification)
+            }
+            true
+        } catch (e: ForegroundServiceStartNotAllowedException) {
+            Timber.tag(TAG).w(e, "Foreground service start not allowed; stopping service to avoid ANR")
+            stopSelf()
+            false
+        } catch (e: Exception) {
+            Timber.tag(TAG).e(e, "Failed to enter foreground; stopping service to avoid ANR")
+            reportException(e)
+            stopSelf()
+            false
+        }
+
     override fun onDestroy() {
         isRunning = false
+
+        if (!::player.isInitialized) {
+            try {
+                scope.cancel()
+            } catch (_: Exception) {
+            }
+            super.onDestroy()
+            return
+        }
 
         // Save episode position before destroying
         val currentMetadata = player.currentMediaItem?.metadata
@@ -3288,6 +3308,12 @@ class MusicService :
         if (dataStore.get(StopMusicOnTaskClearKey, false)) {
             player.stop()
             stopSelf()
+            return
+        }
+        // User removed the task while paused: drop foreground promotion so the process can idle.
+        // Queue/state remain persisted; opening the app restores playback as usual.
+        if (!player.isPlaying) {
+            ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_DETACH)
         }
     }
 

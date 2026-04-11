@@ -45,6 +45,8 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import okhttp3.Credentials
 import timber.log.Timber
+import java.io.File
+import java.io.IOException
 import java.net.Authenticator
 import java.net.PasswordAuthentication
 import java.net.Proxy
@@ -64,6 +66,16 @@ class App :
 
         // Install crash handler first
         CrashHandler.install(this)
+
+        // preferencesDataStore uses filesDir/datastore; proactive mkdir reduces failures on odd ROM states
+        try {
+            val datastoreDir = File(filesDir, "datastore")
+            if (!datastoreDir.isDirectory && !datastoreDir.mkdirs()) {
+                Timber.w("Could not create DataStore directory at ${datastoreDir.path}")
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to ensure DataStore directory")
+        }
 
         // Initialize cipher deobfuscator for WEB_REMIX streaming
         CipherDeobfuscator.initialize(this)
@@ -156,8 +168,13 @@ class App :
                 .collect { visitorData ->
                     YouTube.visitorData = visitorData?.takeIf { it != "null" }
                         ?: YouTube.visitorData().getOrNull()?.also { newVisitorData ->
-                            dataStore.edit { settings ->
-                                settings[VisitorDataKey] = newVisitorData
+                            try {
+                                dataStore.edit { settings ->
+                                    settings[VisitorDataKey] = newVisitorData
+                                }
+                            } catch (e: IOException) {
+                                Timber.e(e, "DataStore write failed for visitor data")
+                                reportException(e)
                             }
                         }
                 }
