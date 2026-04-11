@@ -116,6 +116,9 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.datastore.preferences.core.edit
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.media3.common.C
 import androidx.media3.common.Player
 import androidx.media3.common.Player.STATE_ENDED
@@ -151,6 +154,7 @@ import com.metrolist.music.constants.SquigglySliderKey
 import com.metrolist.music.constants.ThumbnailCornerRadius
 import com.metrolist.music.constants.UseNewPlayerDesignKey
 import com.metrolist.music.db.entities.LyricsEntity
+import com.metrolist.music.extensions.metadata
 import com.metrolist.music.extensions.togglePlayPause
 import com.metrolist.music.extensions.toggleRepeatMode
 import com.metrolist.music.listentogether.RoomRole
@@ -178,6 +182,7 @@ import com.metrolist.music.utils.rememberPreference
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -1941,10 +1946,36 @@ fun InlineLyricsView(
 ) {
     val playerConnection = LocalPlayerConnection.current ?: return
     val currentLyrics by playerConnection.currentLyrics.collectAsStateWithLifecycle(initialValue = null)
+    val queueWindows by playerConnection.queueWindows.collectAsStateWithLifecycle(initialValue = emptyList())
+    val currentWindowIndex by playerConnection.currentWindowIndex.collectAsStateWithLifecycle(initialValue = -1)
     val lyrics = remember(currentLyrics) { currentLyrics?.lyrics?.trim() }
     val context = LocalContext.current
     val database = LocalDatabase.current
     val coroutineScope = rememberCoroutineScope()
+
+    var appInForeground by remember {
+        mutableStateOf(
+            ProcessLifecycleOwner.get().lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED),
+        )
+    }
+    DisposableEffect(Unit) {
+        val lifecycle = ProcessLifecycleOwner.get().lifecycle
+        val observer =
+            LifecycleEventObserver { _, _ ->
+                appInForeground = lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)
+            }
+        lifecycle.addObserver(observer)
+        onDispose { lifecycle.removeObserver(observer) }
+    }
+
+    val nextMetadata =
+        remember(queueWindows, currentWindowIndex) {
+            if (currentWindowIndex >= 0 && currentWindowIndex + 1 < queueWindows.size) {
+                queueWindows[currentWindowIndex + 1].mediaItem.metadata
+            } else {
+                null
+            }
+        }
 
     LaunchedEffect(mediaMetadata?.id, currentLyrics) {
         if (mediaMetadata != null && currentLyrics == null) {
@@ -1964,6 +1995,44 @@ fun InlineLyricsView(
                 } catch (e: Exception) {
                     // Handle error
                 }
+            }
+        }
+    }
+
+    // Prefetch lyrics for the next queue item only while the lyrics pane is visible, the app is in the
+    // foreground, and the current track's lyrics row has finished loading (avoids competing with the
+    // active fetch).
+    LaunchedEffect(
+        nextMetadata?.id,
+        showLyrics,
+        appInForeground,
+        mediaMetadata?.id,
+        currentLyrics,
+    ) {
+        if (!showLyrics || !appInForeground || nextMetadata == null) return@LaunchedEffect
+        val loadedForCurrent =
+            currentLyrics?.let { lyrics ->
+                mediaMetadata == null || lyrics.id == mediaMetadata.id
+            } == true
+        if (mediaMetadata != null && !loadedForCurrent) return@LaunchedEffect
+        val nextId = nextMetadata.id
+        delay(400)
+        if (!showLyrics || !appInForeground || !isActive) return@LaunchedEffect
+        withContext(Dispatchers.IO) {
+            try {
+                val existing = database.lyrics(nextId).first()
+                if (existing != null) return@withContext
+                val entryPoint =
+                    EntryPointAccessors.fromApplication(
+                        context.applicationContext,
+                        com.metrolist.music.di.LyricsHelperEntryPoint::class.java,
+                    )
+                val lyricsHelper = entryPoint.lyricsHelper()
+                val fetched = lyricsHelper.getLyrics(nextMetadata)
+                database.query {
+                    upsert(LyricsEntity(nextId, fetched.lyrics, fetched.provider))
+                }
+            } catch (_: Exception) {
             }
         }
     }
