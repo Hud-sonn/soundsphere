@@ -52,7 +52,7 @@ import androidx.compose.material3.pulltorefresh.pullToRefresh
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
@@ -141,8 +141,8 @@ fun AutoPlaylistScreen(
     val uploadCompleteStr = stringResource(R.string.upload_complete)
     val focusManager = LocalFocusManager.current
     val playerConnection = LocalPlayerConnection.current ?: return
-    val isPlaying by playerConnection.isEffectivelyPlaying.collectAsState()
-    val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
+    val isPlaying by playerConnection.isEffectivelyPlaying.collectAsStateWithLifecycle()
+    val mediaMetadata by playerConnection.mediaMetadata.collectAsStateWithLifecycle()
     val playlist =
         when (viewModel.playlist) {
             "liked" -> stringResource(R.string.liked)
@@ -150,7 +150,7 @@ fun AutoPlaylistScreen(
             else -> stringResource(R.string.offline)
         }
 
-    val songs by viewModel.likedSongs.collectAsState(null)
+    val songs by viewModel.likedSongs.collectAsStateWithLifecycle(null)
     val mutableSongs =
         remember {
             mutableStateListOf<Song>()
@@ -492,7 +492,7 @@ fun AutoPlaylistScreen(
 
     val state = rememberLazyListState()
 
-    val isRefreshing by viewModel.isRefreshing.collectAsState()
+    val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     val pullRefreshState = rememberPullToRefreshState()
     val canRefresh = playlistType == PlaylistType.LIKE || playlistType == PlaylistType.UPLOADED
 

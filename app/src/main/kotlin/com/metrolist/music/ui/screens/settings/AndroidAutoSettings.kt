@@ -29,7 +29,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -101,7 +101,7 @@ fun AndroidAutoSettings(
 
     val userPlaylists by remember {
         database.playlistsByCreateDateAsc().map { list -> list.map { it.playlist } }
-    }.collectAsState(initial = emptyList())
+    }.collectAsStateWithLifecycle(initialValue = emptyList())
 
     val (youtubePlaylistsEnabled, onYoutubePlaylistsChange) = rememberPreference(
         key = AndroidAutoYouTubePlaylistsKey,

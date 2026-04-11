@@ -54,7 +54,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -108,12 +108,12 @@ fun ListenTogetherSettings(
     val cannotEditUsernameInRoomStr = stringResource(R.string.listen_together_cannot_edit_username_in_room)
     val coroutineScope = rememberCoroutineScope()
 
-    val connectionState by viewModel.connectionState.collectAsState()
-    val roomState by viewModel.roomState.collectAsState()
-    val role by viewModel.role.collectAsState()
-    val pendingJoinRequests by viewModel.pendingJoinRequests.collectAsState()
-    val logs by viewModel.logs.collectAsState()
-    val blockedUsernames by viewModel.blockedUsernames.collectAsState()
+    val connectionState by viewModel.connectionState.collectAsStateWithLifecycle()
+    val roomState by viewModel.roomState.collectAsStateWithLifecycle()
+    val role by viewModel.role.collectAsStateWithLifecycle()
+    val pendingJoinRequests by viewModel.pendingJoinRequests.collectAsStateWithLifecycle()
+    val logs by viewModel.logs.collectAsStateWithLifecycle()
+    val blockedUsernames by viewModel.blockedUsernames.collectAsStateWithLifecycle()
 
     val servers = remember { ListenTogetherServers.servers }
     var serverUrl by rememberPreference(ListenTogetherServerUrlKey, ListenTogetherServers.defaultServerUrl)

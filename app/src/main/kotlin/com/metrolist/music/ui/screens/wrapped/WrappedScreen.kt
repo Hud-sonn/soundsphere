@@ -21,7 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -172,8 +172,8 @@ fun WrappedScreenContent(navController: NavController) {
             )
         }
     val pagerState = rememberPagerState(pageCount = { screens.size })
-    val state by manager.state.collectAsState()
-    val isMuted by audioService.isMuted.collectAsState()
+    val state by manager.state.collectAsStateWithLifecycle()
+    val isMuted by audioService.isMuted.collectAsStateWithLifecycle()
     val messagePair =
         rememberSaveable(state.totalMinutes, saver = messagePairSaver) {
             WrappedRepository.getMessage(state.totalMinutes)

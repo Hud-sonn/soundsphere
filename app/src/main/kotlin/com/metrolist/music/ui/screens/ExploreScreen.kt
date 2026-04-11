@@ -43,7 +43,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -89,12 +89,12 @@ fun ExploreScreen(
     val menuState = LocalMenuState.current
     val haptic = LocalHapticFeedback.current
     val playerConnection = LocalPlayerConnection.current ?: return
-    val isPlaying by playerConnection.isEffectivelyPlaying.collectAsState()
-    val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
+    val isPlaying by playerConnection.isEffectivelyPlaying.collectAsStateWithLifecycle()
+    val mediaMetadata by playerConnection.mediaMetadata.collectAsStateWithLifecycle()
 
-    val explorePage by exploreViewModel.explorePage.collectAsState()
-    val chartsPage by chartsViewModel.chartsPage.collectAsState()
-    val isChartsLoading by chartsViewModel.isLoading.collectAsState()
+    val explorePage by exploreViewModel.explorePage.collectAsStateWithLifecycle()
+    val chartsPage by chartsViewModel.chartsPage.collectAsStateWithLifecycle()
+    val isChartsLoading by chartsViewModel.isLoading.collectAsStateWithLifecycle()
 
     val coroutineScope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
@@ -103,7 +103,7 @@ fun ExploreScreen(
     val scrollToTop by backStackEntry
         ?.savedStateHandle
         ?.getStateFlow("scrollToTop", false)
-        ?.collectAsState() ?: return
+        ?.collectAsStateWithLifecycle() ?: return
 
     LaunchedEffect(Unit) {
         if (chartsPage == null) {

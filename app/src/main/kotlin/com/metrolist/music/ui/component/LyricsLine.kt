@@ -27,7 +27,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.remember
@@ -190,7 +190,7 @@ internal fun LyricsLine(
                 val animatedAlpha by animateFloatAsState(targetAlpha, tween(250), label = "lyricsLineAlpha")
                 val lineColor = expressiveAccent.copy(alpha = if (item.isBackground) focusedAlpha else animatedAlpha)
                 
-                val romanizedTextState by item.romanizedTextFlow.collectAsState()
+                val romanizedTextState by item.romanizedTextFlow.collectAsStateWithLifecycle()
                 val isRomanizedAvailable = romanizedTextState != null
                 val mainTextRaw = if (romanizeAsMain && isRomanizedAvailable) romanizedTextState else item.text
                 val subTextRaw = if (romanizeAsMain && isRomanizedAvailable) item.text else romanizedTextState
@@ -266,7 +266,7 @@ internal fun LyricsLine(
                     }
                 }
                 
-                val transText by item.translatedTextFlow.collectAsState()
+                val transText by item.translatedTextFlow.collectAsStateWithLifecycle()
                 transText?.let { 
                     Text(
                         text = it,

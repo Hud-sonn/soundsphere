@@ -66,7 +66,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
@@ -226,9 +226,9 @@ fun OriginalLyrics(
 
     val scope = rememberCoroutineScope()
 
-    val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
-    val lyricsEntity by playerConnection.currentLyrics.collectAsState(initial = null)
-    val currentSong by playerConnection.currentSong.collectAsState(initial = null)
+    val mediaMetadata by playerConnection.mediaMetadata.collectAsStateWithLifecycle()
+    val lyricsEntity by playerConnection.currentLyrics.collectAsStateWithLifecycle(initialValue = null)
+    val currentSong by playerConnection.currentSong.collectAsStateWithLifecycle(initialValue = null)
     val lyrics = remember(lyricsEntity) { lyricsEntity?.lyrics?.trim() }
 
     val playerBackground by rememberEnumPreference(
@@ -360,7 +360,7 @@ fun OriginalLyrics(
         }
 
     // State for translation status
-    val translationStatus by LyricsTranslationHelper.status.collectAsState()
+    val translationStatus by LyricsTranslationHelper.status.collectAsStateWithLifecycle()
 
     // Track composition lifecycle
     DisposableEffect(Unit) {
@@ -1046,7 +1046,7 @@ fun OriginalLyrics(
                                 }
                             val alignment = agentTextAlign
 
-                            val romanizedTextState by item.romanizedTextFlow.collectAsState()
+                            val romanizedTextState by item.romanizedTextFlow.collectAsStateWithLifecycle()
                             val romanizedText = romanizedTextState
                             val isRomanizedAvailable = romanizedText != null
 
@@ -1661,7 +1661,7 @@ fun OriginalLyrics(
                             }
 
                             // Show translated text if available
-                            val translatedText by item.translatedTextFlow.collectAsState()
+                            val translatedText by item.translatedTextFlow.collectAsStateWithLifecycle()
                             translatedText?.let { translated ->
                                 Text(
                                     text = translated,

@@ -56,7 +56,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -122,7 +122,7 @@ fun RecognitionScreen(
 
     // Observe recognition status from service for real-time updates (Listening -> Processing -> Result)
     val recognitionStatus by com.metrolist.music.recognition.MusicRecognitionService.recognitionStatus
-        .collectAsState()
+        .collectAsStateWithLifecycle()
 
     var hasPermission by remember {
         mutableStateOf(
