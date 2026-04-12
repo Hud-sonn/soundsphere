@@ -334,7 +334,7 @@
     <string name="listen_together_logs">Log koneksi</string>
     <string name="listen_together_no_logs">Belum ada log</string>
     <string name="listen_together_description">Dengarkan musik bersama teman Anda secara real time. Buat ruangan untuk menjadi host, atau bergabung ke ruangan yang ada dengan kode</string>
-    <string name="listen_together_background_disconnect_note">CATATAN: Anda mungkin terputus jika membuat ruangan saat tidak ada musik yang diputar lalu beralih ke aplikasi lain</string>
+    <string name="listen_together_background_disconnect_note">CATATAN: Saat Anda terhubung tetapi tidak berada di ruangan, Listen Together memutus koneksi setelah 30 menit di latar belakang untuk menghemat baterai</string>
     <string name="listen_together_not_configured">Listen Together belum dikonfigurasi. Harap atur URL server di: Listen Together &gt; Pengaturan &gt; URL Server</string>
     <string name="listen_together_suggestion_sent">Saran terkirim ke host!</string>
     <string name="listen_together_join_request_notification">%1$s ingin bergabung ke sesi</string>
@@ -798,4 +798,17 @@
     <string name="android_auto_target_playlist_auto">Belum diatur</string>
     <string name="added_to_playlist">Ditambahkan ke playlist</string>
     <string name="android_auto_target_playlist_not_set">Tidak ada playlist yang dipilih. Pilih salah satu di pengaturan Android Auto</string>
+    <string name="parsed_from_link">Diurai dari tautan</string>
+    <string name="speed">Kecepatan Pemutaran</string>
+    <string name="varispeed">Aktifkan varispeed</string>
+    <string name="varispeed_description">Kaitkan nada dengan kecepatan pemutaran, menghasilkan efek percepatan dan perlambatan ala kaset</string>
+    <string name="audio_quality_very_high">Setinggi mungkin</string>
+    <string name="autoplay">Putar Otomatis</string>
+    <string name="autoplay_desc">Secara otomatis memutar lagu berikutnya ketika lagu saat ini selesai</string>
+    <string name="back">Kembali</string>
+    <string name="clear_search">Hapus pencarian</string>
+    <string name="close_chip">Tutup</string>
+    <string name="switch_to_list_view">Beralih ke tampilan daftar</string>
+    <string name="switch_to_grid_view">Beralih ke tampilan kisi</string>
+    <string name="more_options">Opsi lainnya</string>
 </resources>
