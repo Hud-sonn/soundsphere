@@ -576,7 +576,7 @@
     <string name="view_changelog">Değişiklik günlüğünü görüntüle</string>
     <string name="failed_to_check_updates">Güncellemeleri kontrol etme başarısız oldu: %s</string>
     <string name="set_as_default">Varsayılan olarak ayarla</string>
-    <string name="sleep_timer_default_set">Uyku zamanlayıcısı varsayılan olarak %d dk olarak ayarlanmıştır</string>
+    <string name="sleep_timer_default_set">Uyku zamanlayıcısı varsayılan olarak %d dakika olarak ayarlanmıştır</string>
     <string name="found_in_settings_content">Ayarlar &gt; İçerik bölümünde bulunur</string>
     <string name="plays">oynatılanlar</string>
     <string name="error_episode_save">Bölüm kaydedilemedi</string>
@@ -668,7 +668,7 @@
     <string name="view_channel">Kanalı görüntüle</string>
     <string name="filter_profiles">Profiller</string>
     <string name="enable_automatic_sleeptimer">Uyku zamanlayıcısını otomatikman etkinleştir</string>
-    <string name="sleeptimer_description">Uyku zamanlayıcısını varsayılan değerle otomatik olarak etkinleştirir ve özel bir süre belirler</string>
+    <string name="sleeptimer_description">Varsayılan olarak belirlenen vakit geldiğinde uyku zamanlayıcısını otomatikman başlatır</string>
     <string name="sleep_timer_repeat_description">Uyku zamanlayıcısının otomatik olarak devreye gireceği özel bir gün ve saat belirleyin</string>
     <string name="sleep_timer_repeat">Tekrar</string>
     <string name="sleep_timer_daily">Günlük</string>
@@ -815,4 +815,7 @@
     <string name="hide_status_bar_fullscreen">Tam ekran modunda durum çubuğunu gizle</string>
     <string name="lyrics_from_provider">%s\'dan şarkı sözleri</string>
     <string name="parsed_from_link">Bağlantıdan alındı</string>
+    <string name="audio_quality_very_high">Olabilğince yüksek</string>
+    <string name="autoplay">Oto oynatma</string>
+    <string name="autoplay_desc">Şu ankilerden biri biterse bir sonraki şarkıyı otomatikman oynat</string>
 </resources>
