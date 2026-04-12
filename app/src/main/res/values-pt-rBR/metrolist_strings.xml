@@ -381,7 +381,7 @@
     <string name="listen_together_in_top_bar">Ouvir juntos na barra superior</string>
     <string name="listen_together_in_top_bar_desc">Mostrar o Ouvir Juntos na barra superior do aplicativo em vez de na barra de navegação</string>
     <string name="listen_together_description">Ouça a músicas em tempo real com seus amigos. Crie uma sala para hospedar, ou junte-se a uma sala existente com um código</string>
-    <string name="listen_together_background_disconnect_note">OBSERVAÇÃO: Você pode ser desconectado se criar uma sala e trocar para outro aplicativo enquanto nunhuma música estiver tocando</string>
+    <string name="listen_together_background_disconnect_note">OBSERVAÇÃO: Quando você estiver conectado, mas não estiver em uma sala, o \"Ouvir juntos\" se desconecta após 30 minutos em segundo plano para economizar bateria</string>
     <string name="listen_together_not_configured">Ouvir Juntos não está configurado. Por favor configure o URL do servidor em: Ouvir Juntos &gt; Configurações &gt; URL do servidor</string>
     <string name="listen_together_room_created">Sala criada: %s</string>
     <string name="hide_youtube_shorts">Ocultar Shorts do YouTube</string>
@@ -822,7 +822,7 @@
     <string name="switch_to_list_view">Mudar para visualização em lista</string>
     <string name="switch_to_grid_view">Mudar para visualização em grade</string>
     <string name="more_options">Mais opções</string>
-    <string name="audio_quality_very_high">Muito Alta</string>
+    <string name="audio_quality_very_high">O mais alto possível</string>
     <string name="autoplay">Reprodução Automática</string>
     <string name="autoplay_desc">Reproduzir automaticamente a próxima música quando a atual terminar</string>
 </resources>
