@@ -1796,7 +1796,7 @@ class MusicService :
 
             val targetPlaylist = database.playlist(targetPlaylistId).first()
             if (targetPlaylist != null) {
-                database.addSongsToPlaylist(targetPlaylist, listOf(currentSong.id to null))
+                database.addSongsToPlaylist(targetPlaylist, listOf(currentSong.id to null), prepend = true)
             }
         }
     }
@@ -3304,15 +3304,32 @@ class MusicService :
     override fun onBind(intent: Intent?) = super.onBind(intent) ?: binder
 
     override fun onTaskRemoved(rootIntent: Intent?) {
-        super.onTaskRemoved(rootIntent)
         if (dataStore.get(StopMusicOnTaskClearKey, false)) {
-            player.stop()
-            stopSelf()
+            if (!::player.isInitialized) {
+                stopSelf()
+                return
+            }
+            // Remote playback (Cast) is independent of the local ExoPlayer; ending the session
+            // is required or audio keeps playing on the Cast device.
+            runCatching {
+                if (castConnectionHandler?.isCasting?.value == true) {
+                    castConnectionHandler?.disconnect()
+                }
+                player.stop()
+                ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
+                // Media3: coordinates notification/foreground teardown and stopSelf; required when
+                // playback was ongoing (default super.onTaskRemoved keeps the service alive).
+                pauseAllPlayersAndStopSelf()
+            }.onFailure { e ->
+                Timber.tag(TAG).e(e, "Failed to stop playback on task clear")
+                runCatching { pauseAllPlayersAndStopSelf() }.onFailure { stopSelf() }
+            }
             return
         }
+        super.onTaskRemoved(rootIntent)
         // User removed the task while paused: drop foreground promotion so the process can idle.
         // Queue/state remain persisted; opening the app restores playback as usual.
-        if (!player.isPlaying) {
+        if (::player.isInitialized && !player.isPlaying) {
             ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_DETACH)
         }
     }

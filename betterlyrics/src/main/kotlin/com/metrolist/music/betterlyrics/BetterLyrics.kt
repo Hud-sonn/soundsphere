@@ -60,7 +60,7 @@ object BetterLyrics {
             }
         }
         if (response.status == HttpStatusCode.OK) {
-            response.body<TTMLResponse>().ttml
+            response.body<TTMLResponse>().ttml?.trim()?.takeIf { it.isNotEmpty() }
         } else {
             null
         }
@@ -74,9 +74,10 @@ object BetterLyrics {
     ) = runCatching {
         // Use exact title and artist - no normalization to ensure correct sync
         // Normalizing can return wrong lyrics (e.g., radio edit vs original)
-        val ttml = fetchTTML(artist, title, duration, album)
-            ?: throw IllegalStateException("Lyrics unavailable")
-        
+        val ttml =
+            fetchTTML(artist, title, duration, album)
+                ?: throw IllegalStateException("Lyrics unavailable")
+
         val parsedLines = TTMLParser.parseTTML(ttml)
         if (parsedLines.isEmpty()) {
             throw IllegalStateException("Failed to parse lyrics")

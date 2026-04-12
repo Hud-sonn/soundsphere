@@ -123,7 +123,7 @@ fun AddToPlaylistDialog(
     }
 
     suspend fun addSongsAndSync(targetPlaylist: Playlist, ids: List<String>) {
-        database.addSongsToPlaylist(targetPlaylist, ids.map { it to null })
+        database.addSongsToPlaylist(targetPlaylist, ids.map { it to null }, prepend = true)
         targetPlaylist.playlist.browseId?.let { plist ->
             ids.forEach { songId ->
                 syncUtils.registerPendingAdd(plist, songId)

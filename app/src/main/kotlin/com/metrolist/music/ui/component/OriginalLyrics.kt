@@ -74,6 +74,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -142,7 +143,9 @@ import com.metrolist.music.constants.TranslateLanguageKey
 import com.metrolist.music.constants.TranslateModeKey
 import com.metrolist.music.db.entities.LyricsEntity.Companion.LYRICS_NOT_FOUND
 import com.metrolist.music.lyrics.LyricsEntry
+import com.metrolist.music.lyrics.LyricsResyncHelper
 import com.metrolist.music.lyrics.LyricsTranslationHelper
+import com.metrolist.music.lyrics.lyricsTextLooksSynced
 import com.metrolist.music.lyrics.LyricsUtils.findCurrentLineIndex
 import com.metrolist.music.lyrics.LyricsUtils.isBelarusian
 import com.metrolist.music.lyrics.LyricsUtils.isBulgarian
@@ -172,6 +175,7 @@ import com.metrolist.music.utils.rememberEnumPreference
 import com.metrolist.music.utils.rememberPreference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -354,10 +358,7 @@ fun OriginalLyrics(
                 }
             }
         }
-    val isSynced =
-        remember(lyrics) {
-            !lyrics.isNullOrEmpty() && lyrics.startsWith("[")
-        }
+    val isSynced = remember(lyrics) { lyricsTextLooksSynced(lyrics) }
 
     // State for translation status
     val translationStatus by LyricsTranslationHelper.status.collectAsStateWithLifecycle()
@@ -612,6 +613,25 @@ fun OriginalLyrics(
             isAnimating = false
         }
     }
+
+    val latestShowLyrics by rememberUpdatedState(showLyrics)
+    val latestResyncLyrics by rememberUpdatedState(
+        newValue = {
+            scope.launch {
+                performSmoothPageScroll(currentLineIndex, 1500)
+            }
+            isAutoScrollEnabled = true
+        },
+    )
+
+    LaunchedEffect(Unit) {
+        LyricsResyncHelper.resyncTrigger.collect {
+            if (latestShowLyrics) {
+                latestResyncLyrics()
+            }
+        }
+    }
+
     LaunchedEffect(currentLineIndex, lastPreviewTime, initialScrollDone, isAutoScrollEnabled) {
         if (!isSynced) return@LaunchedEffect
         if (isAutoScrollEnabled) {
@@ -1695,12 +1715,7 @@ fun OriginalLyrics(
                 enter = slideInVertically { it } + fadeIn(),
                 exit = slideOutVertically { it } + fadeOut(),
             ) {
-                FilledTonalButton(onClick = {
-                    scope.launch {
-                        performSmoothPageScroll(currentLineIndex, 1500)
-                    }
-                    isAutoScrollEnabled = true
-                }) {
+                FilledTonalButton(onClick = latestResyncLyrics) {
                     Icon(
                         painter = painterResource(id = R.drawable.sync),
                         contentDescription = stringResource(R.string.auto_scroll),

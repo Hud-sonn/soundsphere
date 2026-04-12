@@ -458,7 +458,8 @@ fun AddToPlaylistDialogOnline(
                                 selectedPlaylist!!,
                                 songIds!!.filter {
                                     !duplicates.contains(it)
-                                }.map { it to null }
+                                }.map { it to null },
+                                prepend = true,
                             )
                         }
                     }
@@ -471,7 +472,7 @@ fun AddToPlaylistDialogOnline(
                         showDuplicateDialog = false
                         onDismiss()
                          database.transaction {
-                            addSongsToPlaylist(selectedPlaylist!!, songIds!!.map { it to null })
+                            addSongsToPlaylist(selectedPlaylist!!, songIds!!.map { it to null }, prepend = true)
                         }
                     }
                 ) {

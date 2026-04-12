@@ -338,19 +338,23 @@ class MainActivity : ComponentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        if (dataStore.get(StopMusicOnTaskClearKey, false) &&
-            playerConnection?.isPlaying?.value == true &&
-            isFinishing
-        ) {
-            stopService(Intent(this, MusicService::class.java))
-        }
-        
+        // Use effective playing state so Cast (local player paused, remote playing) is included.
+        val stopServiceOnClear =
+            dataStore.get(StopMusicOnTaskClearKey, false) &&
+                playerConnection?.isEffectivelyPlaying?.value == true &&
+                isFinishing
+
         // Full cleanup - only on actual destroy
         playerConnection?.dispose()
         playerConnection = null
         playerConnectionSnapshot = null
-        
+
+        // Unbind before stopService: a started+bound service does not stop until all clients unbind.
         safeUnbindService("onDestroy()")
+
+        if (stopServiceOnClear) {
+            stopService(Intent(this, MusicService::class.java))
+        }
     }
 
     override fun onNewIntent(intent: Intent) {

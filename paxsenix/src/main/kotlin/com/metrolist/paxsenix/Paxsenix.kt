@@ -159,37 +159,28 @@ object Paxsenix {
             Timber.w("No tracks found for any query")
             throw IllegalStateException("No tracks found on Paxsenix")
         }
-        
-        // First, try to find exact title match with word timings
-        // Only prioritize word timings if title also matches well
-        for (item in allResults.take(3)) {
-            val result = item.first
-            val score = item.second
-            
+
+        // Match getAllLyrics: prefer word-level sync, but still return line-synced or plain Paxsenix
+        // lyrics so LyricsHelper does not skip Paxsenix and fall through to lower-priority providers.
+        var plainOrLineSyncFallback: String? = null
+        for ((result, score) in allResults.take(10)) {
             Timber.d("Trying: ${result.displayName} (ID: ${result.id}, dur: ${result.duration}, score: $score)")
-            
             val (lrc, hasWordTimings) = fetchLyricsForTrackWithType(result.id)
-            
-            if (lrc.isNotEmpty()) {
-                Timber.d("Got lyrics, hasWordTimings=$hasWordTimings")
-                
-                if (!hasWordTimings) {
-                    continue
-                }
-                
+            if (lrc.isEmpty()) continue
+            Timber.d("Got lyrics, hasWordTimings=$hasWordTimings")
+            if (hasWordTimings) {
                 return Result.success(lrc)
             }
+            if (plainOrLineSyncFallback == null) {
+                plainOrLineSyncFallback = lrc
+            }
         }
-        
-        // Return first valid result if no good title match found
-        val firstResult = allResults.first().first
-        Timber.d("Returning: ${firstResult.displayName}")
-        val (lrc, hasWordTimings) = fetchLyricsForTrackWithType(firstResult.id)
-        if (lrc.isNotEmpty() && hasWordTimings) {
-            return Result.success(lrc)
+        plainOrLineSyncFallback?.let {
+            Timber.d("Using Paxsenix lyrics without word-level sync (respects provider order)")
+            return Result.success(it)
         }
-        Timber.w("No word-by-word lyrics found from Paxsenix, letting other providers handle it")
-        return Result.failure(IllegalStateException("No word-by-word lyrics available from Paxsenix"))
+        Timber.w("No lyrics content from Paxsenix for matched tracks")
+        return Result.failure(IllegalStateException("No lyrics available from Paxsenix"))
     }
     
     private fun scoreAndFilterResults(

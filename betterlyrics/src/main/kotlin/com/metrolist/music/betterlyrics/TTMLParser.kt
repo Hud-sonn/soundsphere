@@ -6,7 +6,10 @@ import timber.log.Timber
 import javax.xml.parsers.DocumentBuilderFactory
 
 object TTMLParser {
-    
+
+    /** TTML timing attributes may appear unprefixed or as `ttp:*` (parameter namespace). */
+    private const val TTML_PARAMETER_NS = "http://www.w3.org/ns/ttml#parameter"
+
     data class ParsedLine(
         val text: String,
         val startTime: Double,
@@ -36,6 +39,38 @@ object TTMLParser {
         val direct = el.getAttribute(localName)
         if (direct.isNotEmpty()) return direct
         return el.getAttributeNS("http://www.w3.org/ns/ttml#metadata", localName)
+    }
+
+    private fun timingAttr(el: Element, localName: String): String {
+        val direct = el.getAttribute(localName)
+        if (direct.isNotEmpty()) return direct
+        val param = el.getAttributeNS(TTML_PARAMETER_NS, localName)
+        if (param.isNotEmpty()) return param
+        return ""
+    }
+
+    /** When `<p>` has no `begin`, use the earliest `begin` on a direct child `<span>` (some exports omit line-level timing). */
+    private fun findFirstSpanBegin(p: Element): String? {
+        var child = p.firstChild
+        var best: String? = null
+        var bestSeconds = Double.POSITIVE_INFINITY
+        while (child != null) {
+            if (child is Element) {
+                val name = child.localName ?: child.nodeName.substringAfterLast(':')
+                if (name == "span") {
+                    val b = timingAttr(child, "begin")
+                    if (b.isNotEmpty()) {
+                        val s = parseTime(b)
+                        if (s < bestSeconds) {
+                            bestSeconds = s
+                            best = b
+                        }
+                    }
+                }
+            }
+            child = child.nextSibling
+        }
+        return best
     }
     
     fun parseTTML(ttml: String): List<ParsedLine> {
@@ -110,9 +145,14 @@ object TTMLParser {
     }
 
     private fun parseP(p: Element, lines: MutableList<ParsedLine>, offset: Double, divAgent: String?) {
-        val begin = p.getAttribute("begin")
-        if (begin.isEmpty()) return
-        
+        var begin = p.getAttribute("begin")
+        if (begin.isEmpty()) {
+            begin = p.getAttributeNS(TTML_PARAMETER_NS, "begin")
+        }
+        if (begin.isEmpty()) {
+            begin = findFirstSpanBegin(p) ?: return
+        }
+
         val startTime = parseTime(begin) + offset
         val spanInfos = mutableListOf<SpanInfo>()
         val backgroundLines = mutableListOf<ParsedLine>()
@@ -163,8 +203,8 @@ object TTMLParser {
     }
 
     private fun parseWordSpan(span: Element, offset: Double, spanInfos: MutableList<SpanInfo>, node: Node) {
-        val begin = span.getAttribute("begin")
-        val end = span.getAttribute("end")
+        val begin = timingAttr(span, "begin")
+        val end = timingAttr(span, "end")
         val text = span.textContent ?: ""
         if (begin.isNotEmpty() && end.isNotEmpty()) {
             val next = node.nextSibling
@@ -175,7 +215,7 @@ object TTMLParser {
     }
 
     private fun parseBackgroundSpan(span: Element, parentStart: Double, offset: Double): ParsedLine? {
-        val begin = span.getAttribute("begin")
+        val begin = timingAttr(span, "begin")
         val start = if (begin.isNotEmpty()) parseTime(begin) + offset else parentStart
         val spanInfos = mutableListOf<SpanInfo>()
         
@@ -276,7 +316,16 @@ object TTMLParser {
             }
         }
 
-        val multi = agentMap.size > 1 || (agentMap.size == 1 && !agentMap.containsKey("v1"))
+        // v1000 (group) shares display slot with v2 when a primary v1 vocalist exists
+        if (agentMap.containsKey("v1000") && agentMap.containsKey("v1")) {
+            agentMap["v1000"] = "v2"
+        }
+
+        val hasBackgroundLine = lines.any { it.isBackground }
+        val multi =
+            agentMap.size > 1 ||
+                (agentMap.size == 1 && !agentMap.containsKey("v1")) ||
+                (hasBackgroundLine && agentMap.size == 1 && agentMap.containsKey("v1"))
         
         val sb = StringBuilder(lines.size * 128)
         var lastBg = false

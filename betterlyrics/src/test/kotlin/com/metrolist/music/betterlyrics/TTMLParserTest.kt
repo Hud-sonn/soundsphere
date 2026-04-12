@@ -330,4 +330,47 @@ class TTMLParserTest {
         assertFalse("Line after nested background should NOT have {bg}", lines[4].contains("{bg}"))
         assertTrue("Line after background should have {agent:v2}", lines[5].contains("{agent:v2}Line 5"))
     }
+
+    @Test
+    fun testTtpTimingOnParagraph() {
+        val ttml = """
+            <tt xmlns="http://www.w3.org/ns/ttml" xmlns:ttp="http://www.w3.org/ns/ttml#parameter">
+              <body>
+                <div>
+                  <p ttp:begin="2.5" ttp:end="4.0">
+                    <span>Only timing on ttp</span>
+                  </p>
+                </div>
+              </body>
+            </tt>
+        """.trimIndent()
+
+        val parsedLines = TTMLParser.parseTTML(ttml)
+        assertFalse("Should parse lines with ttp:begin on p", parsedLines.isEmpty())
+        val lrc = TTMLParser.toLRC(parsedLines)
+        assertTrue(lrc.contains("[00:02.50]"))
+        assertTrue(lrc.contains("Only timing on ttp"))
+    }
+
+    @Test
+    fun testParagraphInheritsBeginFromFirstSpan() {
+        val ttml = """
+            <tt xmlns="http://www.w3.org/ns/ttml">
+              <body>
+                <div>
+                  <p>
+                    <span begin="00:05.000" end="00:05.500">No</span>
+                    <span begin="00:05.500" end="00:06.000">begin</span>
+                    <span begin="00:06.000" end="00:06.500">on p</span>
+                  </p>
+                </div>
+              </body>
+            </tt>
+        """.trimIndent()
+
+        val parsedLines = TTMLParser.parseTTML(ttml)
+        assertFalse("Should infer line time from first span", parsedLines.isEmpty())
+        val lrc = TTMLParser.toLRC(parsedLines)
+        assertTrue("Line should start at first span time", lrc.trim().lines().first().startsWith("[00:05.00]"))
+    }
 }

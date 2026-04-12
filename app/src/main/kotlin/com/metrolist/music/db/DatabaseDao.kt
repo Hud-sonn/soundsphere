@@ -1092,7 +1092,11 @@ interface DatabaseDao {
         playlistId: String,
         now: LocalDateTime = LocalDateTime.now(),
     )
-     @Transaction
+
+    @Query("UPDATE playlist_song_map SET position = position + :delta WHERE playlistId = :playlistId")
+    fun shiftPlaylistSongPositions(playlistId: String, delta: Int)
+
+    @Transaction
     fun addSongToPlaylist(playlist: Playlist, songIds: List<String>) {
         var position = playlist.songCount
         songIds.forEach { id ->
@@ -1109,31 +1113,52 @@ interface DatabaseDao {
         }
         updatePlaylistLastUpdated(playlist.id)
     }
-    
+
     // This prevents songs from being removed during automatic playlist synchronization
     @Transaction
     fun addSongsToPlaylist(
         playlist: Playlist,
-        songs: List<Pair<String, String?>>  // Pair of (songId, setVideoId)
+        songs: List<Pair<String, String?>>, // Pair of (songId, setVideoId)
+        prepend: Boolean = false,
     ) {
         val now = LocalDateTime.now()
-        var position = playlist.songCount
+        val songsToInsert =
+            songs.mapNotNull { (id, setVideoId) ->
+                getSongByIdBlocking(id)?.let { id to setVideoId }
+            }
+        if (songsToInsert.isEmpty()) return
 
-        songs.forEach { (id, setVideoId) ->
-            val existingSong = getSongByIdBlocking(id)
-            if (existingSong != null) {
-                // If song already exists, update it to mark as inLibrary if not already marked
+        if (prepend) {
+            shiftPlaylistSongPositions(playlist.id, songsToInsert.size)
+            var position = 0
+            songsToInsert.forEach { (id, setVideoId) ->
+                val existingSong = getSongByIdBlocking(id)!!
                 if (existingSong.song.inLibrary == null) {
                     inLibrary(id, now)
                 }
-                // Add to playlist mapping, preserving setVideoId for reordering operations
                 insert(
                     PlaylistSongMap(
                         songId = id,
                         playlistId = playlist.id,
                         position = position++,
-                        setVideoId = setVideoId
-                    )
+                        setVideoId = setVideoId,
+                    ),
+                )
+            }
+        } else {
+            var position = playlist.songCount
+            songsToInsert.forEach { (id, setVideoId) ->
+                val existingSong = getSongByIdBlocking(id)!!
+                if (existingSong.song.inLibrary == null) {
+                    inLibrary(id, now)
+                }
+                insert(
+                    PlaylistSongMap(
+                        songId = id,
+                        playlistId = playlist.id,
+                        position = position++,
+                        setVideoId = setVideoId,
+                    ),
                 )
             }
         }
