@@ -338,7 +338,7 @@
     <string name="listen_together_logs">连接日志</string>
     <string name="listen_together_no_logs">还没有日志</string>
     <string name="listen_together_description">与好友实时一起听音乐。创建房间成为房主，或使用邀请码加入现有房间</string>
-    <string name="listen_together_background_disconnect_note">注意：如果您在创建房间时未播放音乐，然后切换到其他应用，可能会断开连接</string>
+    <string name="listen_together_background_disconnect_note">注意：当您已连接但不在房间内时，“一起听”会在后台运行 30 分钟后断开连接以节省电量</string>
     <string name="listen_together_not_configured">一起听未设置。请在“一起听”&gt;“设置”&gt;“服务器网址”中配置服务器网址</string>
     <string name="listen_together_suggestion_received">%1$s 推荐了 %2$s</string>
     <string name="listen_together_suggestion_sent">推荐已发送给房主！</string>
@@ -808,7 +808,7 @@
     <string name="speed">播放速度</string>
     <string name="varispeed">启用变速</string>
     <string name="varispeed_description">将音高与播放速度关联，产生磁带式的加速和减速效果</string>
-    <string name="audio_quality_very_high">非常高</string>
+    <string name="audio_quality_very_high">尽可能高</string>
     <string name="autoplay">自动播放</string>
     <string name="autoplay_desc">当前歌曲播放结束后，自动播放下一首歌曲</string>
 </resources>
