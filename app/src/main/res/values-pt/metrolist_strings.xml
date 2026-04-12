@@ -346,4 +346,6 @@
     <string name="lyrics_provider_selection_desc">Selecione quais os fornecedores de letras que estão ativados</string>
     <string name="enable_song_cache">Ativar cache de música</string>
     <string name="enable_song_cache_desc">Armazene automaticamente as músicas em cache para uma reprodução futura mais rápida</string>
+    <string name="parsed_from_link">analisado a partir do link</string>
+    <string name="lyrics_from_provider">Letras de %s</string>
 </resources>

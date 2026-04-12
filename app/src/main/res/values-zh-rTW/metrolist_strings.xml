@@ -63,9 +63,9 @@
     <string name="show_liked_playlist">顯示「喜歡的歌曲」播放清單</string>
     <string name="show_downloaded_playlist">顯示「已下載」播放清單</string>
     <string name="show_cached_playlist">顯示「快取」播放清單</string>
-    <string name="import_csv">匯入「csv」播放清單</string>
-    <string name="import_online">匯入「m3u」播放清單</string>
-    <string name="playlist_add_local_to_synced_note">Note: 不支援新增本地歌曲到同步/雲端播放清單。任何其他組合才有效</string>
+    <string name="import_csv">匯入「CSV」播放清單</string>
+    <string name="import_online">匯入「 M3U」播放清單</string>
+    <string name="playlist_add_local_to_synced_note">Note: 不支援新增本地歌曲到同步雲端播放清單。任何其他組合才有效</string>
     <string name="show_top_playlist">顯示「Top」播放清單</string>
     <string name="charts">排行榜</string>
     <string name="back_button_desc">返回</string>
@@ -74,7 +74,7 @@
     <string name="trending">發燒</string>
     <string name="cached_playlist">快取</string>
     <string name="sync_disabled">關閉同步</string>
-    <string name="generating_image">生成圖片</string>
+    <string name="generating_image">生成圖片…</string>
     <string name="please_wait">請稍候</string>
     <string name="cancel">取消</string>
     <string name="share_lyrics">分享歌詞</string>
@@ -110,7 +110,7 @@
     <string name="disable">禁用</string>
     <string name="subscribe">訂閱</string>
     <string name="subscribed">已訂閱</string>
-    <string name="starting_radio">電台開始中</string>
+    <string name="starting_radio">電台開始中…</string>
     <string name="now_playing">現在播放</string>
     <string name="close">關閉</string>
     <string name="hide_player_thumbnail">隱藏播放器封面</string>
@@ -157,7 +157,7 @@
     <string name="remove_custom_image">移除自定義圖片</string>
     <string name="discord_use_details">使用詳細內容而非狀態</string>
     <string name="discord_use_details_description">強化顯示曲名而非作曲家</string>
-    <string name="updater">更新器</string>
+    <string name="updater">更新</string>
     <string name="check_for_updates">自動檢查更新</string>
     <string name="update_notifications">開啟更新通知</string>
     <string name="update_channel_name">應用程式更新</string>
@@ -255,7 +255,7 @@
     <string name="player_background_solid">純色</string>
     <string name="display_density">顯示密度</string>
     <string name="restart">重新啟動</string>
-    <string name="restart_required">需要重啟</string>
+    <string name="restart_required">需要重啟!</string>
     <string name="density_restart_message">顯示密度變更將在重新啟動應用後生效。您現在要重啟嗎？</string>
     <string name="enable_lrclib_desc">社群驅動的同步歌詞資料庫</string>
     <string name="enable_kugou_desc">歌詞來自中國最大的線上音樂平台</string>
@@ -310,7 +310,7 @@
     <string name="monthly_most_playlist_name">本月最常播放</string>
     <string name="enable_lyricsplus">啟用 LyricsPlus 提供歌詞</string>
     <string name="enable_lyricsplus_desc">來自多個來源的同步歌詞</string>
-    <string name="lyrics_provider_selection">選擇提供者</string>
+    <string name="lyrics_provider_selection">選擇歌詞提供者</string>
     <string name="lyrics_provider_selection_desc">選擇要啟用的歌詞提供者</string>
     <string name="enable_song_cache">啟用歌曲快取</string>
     <string name="enable_song_cache_desc">自動快取歌曲以便日後播放</string>
@@ -488,7 +488,7 @@
     <string name="ai_model">模式</string>
     <string name="ai_api_key">API金鑰</string>
     <string name="ai_base_url">基本 URL</string>
-    <string name="ai_provider">提供者</string>
+    <string name="ai_provider">Ai模型</string>
     <string name="ai_lyrics_translated">歌詞翻譯</string>
     <string name="ai_translating_lyrics">翻譯歌詞…</string>
     <string name="ai_lyrics_translation">AI歌詞翻譯</string>
@@ -715,7 +715,7 @@
     <string name="mini_player_background_not_available">停用新迷你播放器後，此功能無法使用</string>
     <string name="your_daily_discover">你每天新發現</string>
     <string name="together">一起聆聽</string>
-    <string name="listen_together_sync_volume">同步房主音量</string>
+    <string name="listen_together_sync_volume">同步主持人音量</string>
     <string name="copy_all_lyrics">複製所有歌詞</string>
     <string name="change">更改</string>
     <string name="ai_system_prompt">系統提示</string>
@@ -743,4 +743,25 @@
     <string name="time_transfer_target_song">目標歌曲</string>
     <string name="time_transfer_listen_time_label">收聽時間：</string>
     <string name="time_transfer_convert">轉換</string>
+    <string name="parsed_from_link">從連結解析</string>
+    <string name="lyrics_from_provider">來自 %s 的歌詞</string>
+    <string name="hide_status_bar_fullscreen">全螢幕模式下隱藏狀態列</string>
+    <string name="hide_status_bar_fullscreen_desc">歌詞全螢幕模式開啟時隱藏狀態列</string>
+    <string name="show_interval_indicator">顯示間隔指示器</string>
+    <string name="show_interval_indicator_desc">長時間的伴奏顯示進度條</string>
+    <string name="respect_agent_positioning_desc">是根據伴唱、歌手等....來對齊歌詞</string>
+    <string name="lyrics_animation_none">沒有</string>
+    <string name="lyrics_animation_slide">滑動</string>
+    <string name="lyrics_animation_karaoke">卡拉OK</string>
+    <string name="enable_paxsenix">啟用 Paxsenix</string>
+    <string name="enable_paxsenix_desc">來自 Paxsenix API 的高品質同步歌詞</string>
+    <string name="experimental_lyrics">實驗性歌詞</string>
+    <string name="experimental_lyrics_desc">啟用具有增強動畫效果和效能的全新實驗性歌詞功能</string>
+    <string name="experimental_lyrics_beta_title">實驗性功能</string>
+    <string name="experimental_lyrics_beta_message">新的歌詞組件目前仍在開發中，可能存在一些錯誤。您確定要啟用它嗎？</string>
+    <string name="alarm_disabled">已停用</string>
+    <string name="speed">播放速度</string>
+    <string name="varispeed">啟用變速功能</string>
+    <string name="varispeed_description">將音調與播放速度關聯起來，從而產生類似磁帶的加速和減速效果</string>
+    <string name="lyrics_animation_style_title">逐字動畫風格</string>
 </resources>

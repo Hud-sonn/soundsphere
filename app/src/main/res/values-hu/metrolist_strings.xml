@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="local_history">Helyi</string>
-    <string name="remote_history">Távol</string>
+    <string name="remote_history">Távoli</string>
     <string name="charts">Slágerlisták</string>
     <string name="back_button_desc">Vissza</string>
     <string name="album_cover_desc">Album borító</string>
@@ -24,7 +24,7 @@
     <string name="share_lyrics">Dalszöveg megosztása</string>
     <string name="share_as_text">Megosztás szövegként</string>
     <string name="share_as_image">Megosztás képként</string>
-    <string name="max_selection_limit">Max kiválasztási határ</string>
+    <string name="max_selection_limit">Elérte a maximális kiválasztható mennyiséget</string>
     <string name="share_selected">Kiválasztottak megosztása</string>
     <string name="customize_colors">Színek testreszabása</string>
     <string name="text_color">Szöveg szín</string>
@@ -118,7 +118,7 @@
     <string name="hide_player_thumbnail_desc">Az albumborító lecserélése az applikáció logójára</string>
     <string name="seek_forward_dynamic">+%1$d másodperccel előre</string>
     <string name="seek_seconds_addup">Progresszív keresés</string>
-    <string name="seek_seconds_addup_description">Amennyiben elfogadja, minden egyes átugrás után 5 másodperc összeadódik</string>
+    <string name="seek_seconds_addup_description">Ha engedélyezve van, minden egyes kereséssel 5 másodperccel több időt ad hozzá az időhöz.</string>
     <string name="new_mini_player_design">Új mini lejátszó dizájn</string>
     <string name="disable_load_more_when_repeat_all">További betöltés letiltása az összes ismétlésekor</string>
     <string name="disable_load_more_when_repeat_all_desc">Ne töltsön be automatikusan több dalt és hasonló tartalmat, amikor a minden újrajátszása mód be van kapcsolva</string>
@@ -136,7 +136,7 @@
     <string name="edit_playlist_cover">Lejátszási lista borítóképének szerkesztése</string>
     <string name="download_playlist_desc">Összes szám letöltése offline lejátszáshoz</string>
     <string name="remove_download_playlist_desc">Az összes letöltött szám törlése ebből a listából</string>
-    <string name="download_in_progress_desc">Letöltés folyamatban</string>
+    <string name="download_in_progress_desc">A Letöltés folyamatban</string>
     <string name="share_playlist_desc">Lejátszási lista megosztása</string>
     <string name="delete_playlist_desc">Lejátszási lista végleges törlése</string>
     <string name="sync_playlist_desc">Lejátszási lista szinkronizálása a YouTube Music-kal</string>
@@ -231,7 +231,7 @@
     <string name="monthly_most_playlist_name">Havi Top</string>
     <string name="enable">Engedélyez</string>
     <string name="crop_album_art">Albumborító levágása</string>
-    <string name="crop_album_art_desc">Videó előnézeti képek négyzet alakúra vágása</string>
+    <string name="crop_album_art_desc">Készítsen egy négyzet aspektus arányt a video hüvelykujjjaival</string>
     <string name="player_background_solid">Egyszínű</string>
     <string name="display_density">Megjelenítési sűrűség</string>
     <string name="restart">Újraindítás</string>
@@ -785,4 +785,5 @@
     <string name="added_to_playlist">Hozzáadva a lejátszási listához</string>
     <string name="android_auto_target_playlist_not_set">Nincs kiválasztva lejátszási lista. Válasszon egyet az Android Auto beállításaiban.</string>
     <string name="time_transfer_title">Időátadás</string>
+    <string name="parsed_from_link">Linkből elemezve</string>
 </resources>
