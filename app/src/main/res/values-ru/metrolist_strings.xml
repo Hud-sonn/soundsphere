@@ -269,7 +269,7 @@
     <string name="wrapped_playlist_saved">Плейлист сохранён</string>
     <string name="casting_to">Трансляция на %s</string>
     <string name="progress_percent">Прогресс %s%%</string>
-    <string name="listening_to_metrolist">Вы слушаете Metrolist</string>
+    <string name="listening_to_metrolist">Слушает Metrolist</string>
     <string name="open">Открыть</string>
     <string name="failed_to_create_image">Не удалось создать изображение: %s</string>
     <string name="copied_title">Название скопировано</string>
