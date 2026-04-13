@@ -625,4 +625,8 @@
     <string name="view_changelog">Ver registro de cambios</string>
     <string name="failed_to_check_updates">No se pudieron comprobar las actualizaciones: %s</string>
     <string name="set_as_default">Temporizador de sueño</string>
+    <string name="sleep_timer_default_set">Temporizador de sueño establecido por defecto en %dminutos</string>
+    <string name="enable_automatic_sleeptimer">Habilitar temporizador de sueño automatico</string>
+    <string name="sleep_timer_repeat">Repetir</string>
+    <string name="sleep_timer_weekdays">Lunes a Viernes</string>
 </resources>
