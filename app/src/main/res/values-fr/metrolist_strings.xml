@@ -36,7 +36,7 @@
         <item quantity="other">%d secondes</item>
     </plurals>
     <string name="open_app_settings_error">Impossible d\'ouvrir les paramètres de l\'application</string>
-    <string name="local_history">Locale</string>
+    <string name="local_history">Local</string>
     <string name="charts">Classements</string>
     <string name="back_button_desc">Retour</string>
     <string name="album_cover_desc">Pochette d\'album</string>
@@ -147,7 +147,7 @@
     <string name="line_by_line_option_title">Détecter la langue ligne par ligne</string>
     <string name="line_by_line_option_desc">L\'alphabet cyrillique sera détecté ligne par ligne plutôt que sur l\'ensemble du titre</string>
     <string name="line_by_line_dialog_title">Êtes-vous sûr ?</string>
-    <string name="line_by_line_dialog_desc">Il s\'agit d\'une fonctionnalité expérimentale dont le fonctionnement est aléatoire.\n\nPar défaut, la langue est détectée pour l\'ensemble du morceau. En activant cette option, la détection se fera ligne par ligne. Cela permet la lecture de morceaux multilingues, MAIS la langue détectée peut parfois être incorrecte. Par exemple, un vers en ukrainien sans caractères spécifiques à l\'ukrainien pourrait être romanisé en russe.\n\nSi vous ne rencontrez aucun problème, il est recommandé de désactiver cette option.</string>
+    <string name="line_by_line_dialog_desc">Il s\'agit d\'une fonctionnalité expérimentale dont le résultat est aléatoire.\n\nPar défaut, la langue est détectée à partir de l\'ensemble de la chanson. Lorsque cette option est activée, la détection s\'effectue ligne par ligne. Cela permet de prendre en charge les chansons multilingues, MAIS la langue détectée n\'est pas toujours correcte. Par exemple, une ligne en ukrainien ne contenant aucun caractère spécifique à cette langue pourrait être romanisée en russe.\n\nSi vous ne rencontrez aucun problème, il est recommandé de laisser cette option désactivée</string>
     <string name="romanize_current_track">Romaniser la piste actuelle</string>
     <string name="edit_playlist_cover">Modifier la couverture de la playlist</string>
     <string name="edit_playlist_cover_note">REMARQUE : pour modifier la pochette d\'une playlist, votre compte doit être associé à un numéro de téléphone et avoir été vérifié sur YouTube Music</string>
@@ -155,7 +155,7 @@
     <string name="choose_from_library">Choisissez dans la bibliothèque</string>
     <string name="remove_custom_image">Supprimer l\'image personnalisée</string>
     <string name="audio_offload">Activer le déchargement audio</string>
-    <string name="audio_offload_description">Utilise le chemin de déchargement audio matériel pour la lecture. La désactivation de cette option peut augmenter la consommation de la batterie, mais peut s\'avérer utile en cas de problèmes de lecture ou de post-traitement audio.</string>
+    <string name="audio_offload_description">Utilise le chemin de déchargement audio matériel pour la lecture. La désactivation de cette option peut augmenter la consommation de la batterie, mais peut s\'avérer utile en cas de problèmes de lecture ou de post-traitement audio</string>
     <string name="show_uploaded_playlist">Afficher la playlist « Téléchargés »</string>
     <string name="uploaded_playlist">Téléchargés</string>
     <string name="filter_uploaded">Téléchargés</string>
@@ -345,9 +345,9 @@
     <string name="listen_together_view_logs_desc">Déboguer les événements et les messages de connexion</string>
     <string name="listen_together_logs">Journaux de connexion</string>
     <string name="listen_together_no_logs">Pas encore de commentaires</string>
-    <string name="listen_together_description">Écoutez de la musique avec vos amis en temps réel. Créez une salle pour accueillir d\'autres utilisateurs, ou rejoignez une salle existante à l\'aide d\'un code.</string>
-    <string name="listen_together_background_disconnect_note">REMARQUE : lorsque vous êtes connecté mais que vous ne vous trouvez pas dans une salle, Écouter Ensemble se déconnectera après 30 minutes d\'inactivité afin d\'économiser la batterie.</string>
-    <string name="listen_together_not_configured">« Écouter ensemble » n\'est pas configurée. Veuillez configurer l\'URL du serveur dans Paramètres → Intégrations → Écouter ensemble.</string>
+    <string name="listen_together_description">Écoutez de la musique avec vos amis en temps réel. Créez une salle pour accueillir d\'autres utilisateurs, ou rejoignez une salle existante à l\'aide d\'un code</string>
+    <string name="listen_together_background_disconnect_note">REMARQUE : lorsque vous êtes connecté mais que vous ne vous trouvez pas dans une salle, Écouter Ensemble se déconnectera après 30 minutes d\'inactivité afin d\'économiser la batterie</string>
+    <string name="listen_together_not_configured">« Écouter ensemble » n\'est pas configurée. Veuillez configurer l\'URL du serveur dans Paramètres → Intégrations → Écouter ensemble</string>
     <string name="listen_together_suggestion_received">%1$s a suggéré %2$s</string>
     <string name="listen_together_suggestion_sent">Suggestion envoyée à l\'hôte !</string>
     <string name="listen_together_join_request_notification">%1$s souhaite rejoindre la salle</string>
@@ -381,7 +381,7 @@
     <string name="you_label">Vous</string>
     <string name="connected_users">Utilisateurs connectés</string>
     <string name="enter_username">Entrez un nom d\'utilisateur</string>
-    <string name="error_username_empty">Un nom d\'utilisateur est requis.</string>
+    <string name="error_username_empty">Un nom d\'utilisateur est requis</string>
     <string name="resync">Resynchroniser</string>
     <string name="connect">Connecter</string>
     <string name="clear">Effacer</string>
@@ -390,7 +390,7 @@
     <string name="mute">Muet</string>
     <string name="unmute">Réactiver le son</string>
     <string name="crash_title">L\'application a planté</string>
-    <string name="crash_description">Une erreur inattendue s\'est produite. Veuillez partager le rapport d\'erreur afin de nous aider à résoudre le problème.</string>
+    <string name="crash_description">Une erreur inattendue s\'est produite. Veuillez partager le rapport d\'erreur afin de nous aider à résoudre le problème</string>
     <string name="crash_share_logs">Partager les journaux</string>
     <string name="crash_share_title">Partager le rapport d\'incident</string>
     <string name="crash_report_subject">Rapport d\'incident Metrolist</string>
@@ -552,7 +552,7 @@
     <string name="lyrics_romanize_punjabi">Romaniser les paroles en pendjabi</string>
     <string name="lyrics_romanize_as_main">Afficher les paroles romanisées comme paroles principales</string>
     <string name="credits_license_name">Licence publique générale GNU v3.0</string>
-    <string name="credits_license_desc">Logiciel libre et open source. Vous pouvez l\'utiliser, l\'étudier, le partager et l\'améliorer.</string>
+    <string name="credits_license_desc">Logiciel libre et open source. Vous pouvez l\'utiliser, l\'étudier, le partager et l\'améliorer</string>
     <string name="credits_discord">Serveur Discord</string>
     <string name="credits_telegram">Chaîne Telegram</string>
     <string name="credits_website">Site internet</string>
@@ -565,7 +565,7 @@
     <string name="checking_previous_account">Vérification du compte précédent…</string>
     <string name="restore">Restaurer</string>
     <string name="restore_account_warning">Vous devrez vous reconnecter après la restauration. La session du compte suivant sera déconnectée :</string>
-    <string name="restore_confirm_message">Cela permettra de restaurer les données de votre application à partir de la sauvegarde sélectionnée.</string>
+    <string name="restore_confirm_message">Cela permettra de restaurer les données de votre application à partir de la sauvegarde sélectionnée</string>
     <string name="restore_confirm_title">Restaurer la sauvegarde ?</string>
     <plurals name="n_episode">
         <item quantity="one">%d épisode</item>
@@ -578,7 +578,7 @@
     <string name="density_restart_message">La modification de la densité d\'affichage sera effective après le redémarrage de l\'application. Redémarrer maintenant ?</string>
     <string name="enable_lrclib_desc">Base de données communautaire de paroles synchronisées</string>
     <string name="enable_kugou_desc">Récupère les paroles depuis KuGou, une plateforme musicale chinoise très populaire</string>
-    <string name="youtube_music_lyrics_note">REMARQUE : les paroles de YouTube Music s\'affichent automatiquement lorsqu\'aucune autre source n\'est disponible. Elles ne sont généralement pas synchronisées.</string>
+    <string name="youtube_music_lyrics_note">REMARQUE : les paroles de YouTube Music s\'affichent automatiquement lorsqu\'aucune autre source n\'est disponible. Elles ne sont généralement pas synchronisées</string>
     <string name="enable_lyricsplus">Activer LyricsPlus</string>
     <string name="enable_lyricsplus_desc">Paroles synchronisées provenant de plusieurs sources</string>
     <string name="lyrics_provider_selection">Sélection du fournisseur</string>
@@ -622,7 +622,7 @@
     <string name="daily_discover_for_fans_of">Pour les fans de %1$s</string>
     <string name="from_the_community">De la communauté</string>
     <string name="logout_dialog_title">Conserver les données de la bibliothèque ?</string>
-    <string name="logout_dialog_message">Souhaitez-vous conserver vos playlists et les données de votre bibliothèque ? Les titres téléchargés seront toujours conservés.</string>
+    <string name="logout_dialog_message">Souhaitez-vous conserver vos playlists et les données de votre bibliothèque ? Les titres téléchargés seront toujours conservés</string>
     <string name="logout_keep">Conserver</string>
     <string name="logout_clear">Effacer</string>
     <string name="credits_lead_developer">Développeur Principal</string>
@@ -651,9 +651,9 @@
     <string name="widget_recognizer_tap_to_search">Appuyez pour identifier un titre</string>
     <string name="widget_recognizer_listening">En cours d\'écoute…</string>
     <string name="widget_recognizer_processing">Identification…</string>
-    <string name="widget_recognizer_no_match">Aucun résultat trouvé. Veuillez réessayer.</string>
+    <string name="widget_recognizer_no_match">Aucun résultat trouvé. Veuillez réessayer</string>
     <string name="widget_recognizer_error">Échec de la reconnaissance</string>
-    <string name="widget_recognizer_error_generic">Une erreur s\'est produite. Veuillez réessayer.</string>
+    <string name="widget_recognizer_error_generic">Une erreur s\'est produite. Veuillez réessayer</string>
     <string name="widget_recognizer_unknown_song">Titre inconnu</string>
     <string name="widget_recognizer_unknown_artist">Artiste inconnu</string>
     <string name="widget_recognizer_mic_desc">Identifier un titre</string>
@@ -699,11 +699,11 @@
     <string name="upload_file_too_large">Fichier trop volumineux (maximum 300 Mo)</string>
     <string name="upload_unsupported_format">Format non pris en charge. Formats pris en charge : MP3, M4A, WMA, FLAC, OGG</string>
     <string name="delete_uploaded_song">Supprimer le titre téléchargé</string>
-    <string name="delete_uploaded_song_confirm">Êtes-vous sûr de vouloir supprimer ce titre que vous avez mis en ligne ? Cette action ne peut pas être annulée.</string>
+    <string name="delete_uploaded_song_confirm">Êtes-vous sûr de vouloir supprimer ce titre que vous avez mis en ligne ? Cette action ne peut pas être annulée</string>
     <string name="delete_uploaded_song_success">Titre téléchargé supprimé</string>
     <string name="delete_uploaded_song_failed">Échec de la suppression du titre téléchargé</string>
     <string name="delete_uploaded_songs">Supprimer les titres téléchargés</string>
-    <string name="delete_uploaded_songs_confirm">Êtes-vous sûr de vouloir supprimer %1$d titres téléchargés ? Cette action ne peut pas être annulée.</string>
+    <string name="delete_uploaded_songs_confirm">Êtes-vous sûr de vouloir supprimer %1$d titres téléchargés ? Cette action ne peut pas être annulée</string>
     <string name="deleted_n_songs">Suppression de %1$d titres</string>
     <string name="deleting">Suppression en cours…</string>
     <string name="export_playlist">Exporter la playlist</string>
@@ -725,7 +725,7 @@
     <string name="sleep_timer_fade_out_description">Le volume diminue progressivement au cours de la dernière minute</string>
     <string name="sort_ascending">Trier par ordre croissant</string>
     <string name="sort_descending">Trier par ordre décroissant</string>
-    <string name="time_transfer_warning">AVERTISSEMENT : cette opération est irréversible. Effectuez une sauvegarde avant de continuer. Seuls les morceaux ayant été écoutés au moins une fois sont concernés.</string>
+    <string name="time_transfer_warning">AVERTISSEMENT : cette opération est irréversible. Effectuez une sauvegarde avant de continuer. Seuls les morceaux ayant été écoutés au moins une fois sont concernés</string>
     <string name="time_transfer_target_song">Titre cible</string>
     <string name="time_transfer_source_song">Titre source</string>
     <string name="time_transfer_listen_time_label">Durée d\'écoute :</string>
@@ -780,14 +780,14 @@
     <string name="listen_on_metrolist">Écoutez sur Metrolist</string>
     <string name="android_auto">Android Auto</string>
     <string name="android_auto_visible_sections">Sections visibles</string>
-    <string name="android_auto_reorder_hint">Appuyez sur une section pour l\'activer ou la désactiver.\nAppuyez longuement sur la poignée de déplacement pour modifier l\'ordre. La première section s\'affichera par défaut.</string>
+    <string name="android_auto_reorder_hint">Appuyez sur une section pour l\'activer ou la désactiver.\nAppuyez longuement sur la poignée de déplacement pour modifier l\'ordre. La première section s\'affichera par défaut</string>
     <string name="android_auto_youtube_playlists">Afficher les playlists suggérées par YouTube</string>
     <string name="android_auto_youtube_playlists_desc">Afficher les playlists recommandées par YouTube Music dans la section « Playlists » lors de la navigation avec Android Auto</string>
     <string name="android_auto_target_playlist">Ajout rapide d\'une destination</string>
     <string name="android_auto_target_playlist_desc">Choisissez la playlist dans laquelle les titres sont enregistrés lorsque vous utilisez le bouton d\'ajout rapide dans Android Auto</string>
     <string name="android_auto_target_playlist_auto">Non défini</string>
     <string name="added_to_playlist">Ajouté à la playlist</string>
-    <string name="android_auto_target_playlist_not_set">Aucune playlist n\'est sélectionnée. Choisissez-en une dans les paramètres d\'Android Auto.</string>
+    <string name="android_auto_target_playlist_not_set">Aucune playlist n\'est sélectionnée. Choisissez-en une dans les paramètres d\'Android Auto</string>
     <string name="mini_player_background_style">Style d\'arrière-plan du mini-lecteur</string>
     <string name="transparent">Transparent</string>
     <string name="mini_player_background_not_available">Indisponible lorsque le nouveau design du mini-lecteur est désactivé</string>
