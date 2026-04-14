@@ -61,7 +61,6 @@ import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -87,6 +86,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import coil3.compose.AsyncImage
@@ -423,7 +423,7 @@ fun CommunityPlaylistCard(
                     )
                 }
 
-                 IconButton(
+                IconButton(
                     onClick = {
                         scope.launch(Dispatchers.IO) {
                             if (dbPlaylist?.playlist == null) {
@@ -441,21 +441,22 @@ fun CommunityPlaylistCard(
                                         shuffleEndpointParams = item.playlist.shuffleEndpoint?.params,
                                         radioEndpointParams = item.playlist.radioEndpoint?.params,
                                     ).toggleLike()
-                                val songMetadata = item.songs
-                                    .ifEmpty {
-                                        YouTube
-                                            .playlist(item.playlist.id)
-                                            .completed()
-                                            .getOrNull()
-                                            ?.songs
-                                            .orEmpty()
-                                    }.map { it.toMediaMetadata() }
+                                val songMetadata =
+                                    item.songs
+                                        .ifEmpty {
+                                            YouTube
+                                                .playlist(item.playlist.id)
+                                                .completed()
+                                                .getOrNull()
+                                                ?.songs
+                                                .orEmpty()
+                                        }.map { it.toMediaMetadata() }
                                 if (songMetadata.isNotEmpty()) {
                                     database.withTransaction {
                                         insert(playlistEntity)
                                         songMetadata.onEach { insert(it) }
                                         val songIds = songMetadata.map { it.id to it.setVideoId }
-                                        val createdPlaylist = database.playlist(playlistEntity.id).first()
+                                        val createdPlaylist = database.playlistBlocking(playlistEntity.id)
                                         if (createdPlaylist != null) {
                                             addSongsToPlaylist(createdPlaylist, songIds)
                                         }
