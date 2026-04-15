@@ -86,6 +86,7 @@ import androidx.compose.ui.util.fastForEachReversed
 import androidx.compose.ui.util.fastSumBy
 import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import timber.log.Timber
 import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
@@ -237,6 +238,14 @@ fun AutoPlaylistScreen(
             contract = ActivityResultContracts.OpenMultipleDocuments(),
         ) { uris: List<Uri> ->
             if (uris.isNotEmpty()) {
+                uris.forEach { uri ->
+                    try {
+                        val takeFlags = android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
+                        context.contentResolver.takePersistableUriPermission(uri, takeFlags)
+                    } catch (e: SecurityException) {
+                        android.util.Log.w("AutoPlaylistScreen", "Could not take persistable permission: ${e.message}")
+                    }
+                }
                 uploadJob =
                     scope.launch {
                         isUploading = true

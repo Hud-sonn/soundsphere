@@ -146,6 +146,14 @@ fun LibrarySongsScreen(
             contract = ActivityResultContracts.OpenMultipleDocuments(),
         ) { uris: List<Uri> ->
             if (uris.isNotEmpty()) {
+                uris.forEach { uri ->
+                    try {
+                        val takeFlags = android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
+                        context.contentResolver.takePersistableUriPermission(uri, takeFlags)
+                    } catch (e: SecurityException) {
+                        android.util.Log.w("LibrarySongsScreen", "Could not take persistable permission: ${e.message}")
+                    }
+                }
                 uploadJob =
                     scope.launch {
                         isUploading = true
