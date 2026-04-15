@@ -354,7 +354,7 @@
     <string name="listen_together_sync_volume">Lautstärke des Hosts synchronisieren</string>
     <string name="listen_together_sync_volume_desc">Die Gäste passen ihre Lautstärke der des Gastgebers an.</string>
     <string name="listen_together_description">Hör gemeinsam mit deinen Freunden in Echtzeit Musik. Erstelle einen Raum, um Gastgeber zu sein, oder tritt einem bestehenden Raum mit einem Code bei</string>
-    <string name="listen_together_background_disconnect_note">Hinweis: Die Verbindung kann unterbrochen werden, wenn du einen Raum erstellst, während keine Musik abgespielt wird, und dann zu einer anderen App wechselst.</string>
+    <string name="listen_together_background_disconnect_note">Hinweis: Wenn Sie verbunden sind, aber nicht in einem Raum, wird Listen Together nach 30 Minuten im Hintergrund getrennt, um den Akku zu schonen.</string>
     <string name="listen_together_not_configured">„Gemeinsam hören“ ist nicht eingerichtet. Bitte konfigurieren Sie die Server-URL unter: Gemeinsam hören &gt; Einstellungen &gt; Server-URL</string>
     <string name="listen_together_suggestion_received">%1$s hat %2$s vorgeschlagen</string>
     <string name="listen_together_suggestion_sent">Vorschlag an den Host gesendet!</string>
@@ -815,4 +815,6 @@
     <string name="switch_to_grid_view">Zur Rasteransicht wechseln</string>
     <string name="more_options">Weitere Optionen</string>
     <string name="varispeed">Variable Geschwindigkeit aktivieren</string>
+    <string name="audio_quality_very_high">Höchstmöglich</string>
+    <string name="autoplay_desc">Spiele den nächsten Song automatisch ab, wenn der aktuelle endet</string>
 </resources>
