@@ -491,7 +491,13 @@
     <string name="no_profiles">No equalizer profiles</string>
     <string name="import_profile">Import profile</string>
     <string name="system_equalizer">System equalizer</string>
+    <string name="system_equalizer_desc">Open Android\'s built-in equalizer</string>
     <string name="eq_disabled">Disabled</string>
+    <string name="eq_wizard">AutoEQ Wizard</string>
+    <string name="eq_download_db">Download AutoEQ database (17 MB)</string>
+    <string name="eq_downloading">Downloading…</string>
+    <string name="import_from_file">Import from file</string>
+    <string name="add_profile">Add profile</string>
     <plurals name="band_count">
         <item quantity="one">%d band</item>
         <item quantity="other">%d bands</item>
@@ -503,6 +509,17 @@
     <string name="import_error_title">Import error</string>
     <string name="error_title">Error</string>
     <string name="error_eq_apply_failed">Failed to apply equalizer profile: %1$s</string>
+
+    <!-- EQ Wizard -->
+    <string name="wizard_select_model">Select Model</string>
+    <string name="wizard_select_profiles">Select Profiles</string>
+    <string name="wizard_search_model_hint">Search for your headphone or earphone model</string>
+    <string name="wizard_model_name">Model Name</string>
+    <string name="wizard_model_placeholder">e.g., Sony WH-1000XM4, Bose QuietComfort 45</string>
+    <string name="wizard_no_models">No models found</string>
+    <string name="wizard_multiple_variants">Multiple variants available</string>
+    <string name="wizard_select_eq_profiles">Select EQ profiles for %s</string>
+    <string name="wizard_save_profiles">Save Profiles</string>
 
     <!-- Hardcoded strings -->
     <string name="found_in_settings_content">Found in Settings &gt; Content</string>

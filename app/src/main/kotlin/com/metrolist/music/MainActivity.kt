@@ -801,6 +801,13 @@ class MainActivity : ComponentActivity() {
 
                     topAppBarScrollBehavior.state.resetHeightOffset()
 
+                    // Collapse player when navigating to equalizer
+                    if (navBackStackEntry?.destination?.route == "equalizer" &&
+                        playerBottomSheetState.isExpanded
+                    ) {
+                        playerBottomSheetState.collapseSoft()
+                    }
+
                     // Track previous tab for animations
                     navController.currentBackStackEntry?.destination?.route?.let {
                         setPreviousTab(it)
