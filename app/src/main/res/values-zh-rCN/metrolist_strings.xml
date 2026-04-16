@@ -811,4 +811,19 @@
     <string name="audio_quality_very_high">尽可能高</string>
     <string name="autoplay">自动播放</string>
     <string name="autoplay_desc">当前歌曲播放结束后，自动播放下一首歌曲</string>
+    <string name="system_equalizer_desc">打开 Android 内置的均衡器</string>
+    <string name="eq_wizard">AutoEQ 向导</string>
+    <string name="eq_download_db">下载 AutoEQ 数据库（17 MB）</string>
+    <string name="eq_downloading">正在下载…</string>
+    <string name="import_from_file">从文件导入</string>
+    <string name="add_profile">添加配置文件</string>
+    <string name="wizard_select_model">选择型号</string>
+    <string name="wizard_select_profiles">选择配置文件</string>
+    <string name="wizard_search_model_hint">搜索您的耳机或耳塞型号</string>
+    <string name="wizard_model_name">型号名称</string>
+    <string name="wizard_model_placeholder">例如，Sony WH-1000XM4、Bose QuietComfort 45</string>
+    <string name="wizard_no_models">未找到型号</string>
+    <string name="wizard_multiple_variants">有多个变体版本可供选择</string>
+    <string name="wizard_select_eq_profiles">为 %s 选择均衡器配置文件</string>
+    <string name="wizard_save_profiles">保存配置文件</string>
 </resources>
