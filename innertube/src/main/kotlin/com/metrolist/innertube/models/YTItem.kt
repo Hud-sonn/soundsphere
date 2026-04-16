@@ -1,6 +1,7 @@
 package com.metrolist.innertube.models
 
 import com.metrolist.innertube.models.WatchEndpoint.WatchEndpointMusicSupportedConfigs.WatchEndpointMusicConfig.Companion.MUSIC_VIDEO_TYPE_ATV
+import com.metrolist.innertube.models.WatchEndpoint.WatchEndpointMusicSupportedConfigs.WatchEndpointMusicConfig.Companion.MUSIC_VIDEO_TYPE_PRIVATELY_OWNED_TRACK
 
 sealed class YTItem {
     abstract val id: String
@@ -41,6 +42,7 @@ data class SongItem(
 ) : YTItem() {
     val isVideoSong: Boolean
         get() = musicVideoType != null && musicVideoType != MUSIC_VIDEO_TYPE_ATV
+                && musicVideoType != MUSIC_VIDEO_TYPE_PRIVATELY_OWNED_TRACK
 
     override val shareLink: String
         get() = "https://music.youtube.com/watch?v=$id"
@@ -111,6 +113,7 @@ data class PodcastItem(
     override val shareLink: String
         get() = "https://music.youtube.com/playlist?list=$id"
 
+    /** Converts this podcast to a [PlaylistItem] for display in playlist-oriented UI. */
     fun asPlaylistItem() = PlaylistItem(
         id = id,
         title = title,
@@ -143,6 +146,7 @@ data class EpisodeItem(
     override val shareLink: String
         get() = "https://music.youtube.com/watch?v=$id"
 
+    /** Converts this episode to a [SongItem] so it can be queued and played like a song. */
     fun asSongItem() = SongItem(
         id = id,
         title = title,
@@ -158,6 +162,7 @@ data class EpisodeItem(
     )
 }
 
+/** Removes explicit items from the list when [enabled] is `true`. */
 fun <T : YTItem> List<T>.filterExplicit(enabled: Boolean = true) =
     if (enabled) {
         filter { !it.explicit }
@@ -165,6 +170,7 @@ fun <T : YTItem> List<T>.filterExplicit(enabled: Boolean = true) =
         this
     }
 
+/** Removes video-type songs (OMV/UGC) from the list when [disableVideos] is `true`. */
 fun <T : YTItem> List<T>.filterVideoSongs(disableVideos: Boolean = false) =
     if (disableVideos) {
         filterNot { it is SongItem && it.isVideoSong }
@@ -172,6 +178,7 @@ fun <T : YTItem> List<T>.filterVideoSongs(disableVideos: Boolean = false) =
         this
     }
 
+/** Removes YouTube Shorts playlists (IDs starting with "SS") when [enabled] is `true`. */
 fun <T : YTItem> List<T>.filterYoutubeShorts(enabled: Boolean = false) =
     if (enabled) {
         filterNot { it is PlaylistItem && it.id.startsWith("SS") }

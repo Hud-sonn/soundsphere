@@ -2832,7 +2832,23 @@ class MusicService :
                                                 .header("Proxy-Authorization", auth)
                                                 .build()
                                         } ?: response.request
-                                    }.build(),
+                                    }
+                                    .addInterceptor { chain ->
+                                        var request = chain.request()
+                                        if (request.url.queryParameter(PRIVATE_STREAM_MARKER) != null) {
+                                            val cleanUrl = request.url.newBuilder()
+                                                .removeAllQueryParameters(PRIVATE_STREAM_MARKER)
+                                                .build()
+                                            val builder = request.newBuilder().url(cleanUrl)
+                                            val host = cleanUrl.host
+                                            if (host == "youtube.com" || host.endsWith(".youtube.com") || host.endsWith(".googlevideo.com")) {
+                                                YouTube.cookie?.let { builder.header("Cookie", it) }
+                                            }
+                                            request = builder.build()
+                                        }
+                                        chain.proceed(request)
+                                    }
+                                    .build(),
                             ),
                         ),
                     ),
@@ -2961,10 +2977,12 @@ class MusicService :
             }
 
             Timber.tag("MusicService").i("FETCHING STREAM: $mediaId | quality=$audioQuality")
+            val isUploaded = database.getSongByIdBlocking(mediaId)?.song?.isUploaded == true
             val playbackData =
                 runBlocking(Dispatchers.IO) {
                     YTPlayerUtils.playerResponseForPlayback(
                         mediaId,
+                        isUploadedHint = isUploaded,
                         audioQuality = audioQuality,
                         connectivityManager = connectivityManager,
                     )
@@ -3041,9 +3059,18 @@ class MusicService :
 
                 val streamUrl = nonNullPlayback.streamUrl
 
+                // For privately-owned tracks, mark the URL so the interceptor attaches auth cookies
+                val finalUrl = if (nonNullPlayback.isPrivatelyOwned) {
+                    val sep = if ("?" in streamUrl) "&" else "?"
+                    "${streamUrl}${sep}${PRIVATE_STREAM_MARKER}=1"
+                } else {
+                    streamUrl
+                }
+
                 songUrlCache[mediaId] =
-                    streamUrl to System.currentTimeMillis() + (nonNullPlayback.streamExpiresInSeconds * 1000L)
-                return@Factory dataSpec.withUri(streamUrl.toUri()).subrange(dataSpec.uriPositionOffset, CHUNK_LENGTH)
+                    finalUrl to System.currentTimeMillis() + (nonNullPlayback.streamExpiresInSeconds * 1000L)
+
+                return@Factory dataSpec.withUri(finalUrl.toUri()).subrange(dataSpec.uriPositionOffset, CHUNK_LENGTH)
             }
         }
     }
@@ -3781,6 +3808,7 @@ class MusicService :
         private const val MIN_GAIN_MB = -1500 // Minimum gain in millibels (-15 dB)
 
         private const val TAG = "MusicService"
+        private const val PRIVATE_STREAM_MARKER = "_metrolist_private"
 
         @Volatile
         var isRunning = false
