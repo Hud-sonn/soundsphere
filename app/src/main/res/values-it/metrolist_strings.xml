@@ -825,4 +825,10 @@
     <string name="audio_quality_very_high">Il più alto possibile</string>
     <string name="autoplay">Riproduzione automatica</string>
     <string name="autoplay_desc">Riproduci automaticamente il brano successivo al termine di quello corrente</string>
+    <string name="system_equalizer_desc">Apri l\'equalizzatore integrato di Android</string>
+    <string name="import_from_file">Importa da un file</string>
+    <string name="add_profile">Aggiungi un profilo</string>
+    <string name="wizard_select_profiles">Seleziona un profilo</string>
+    <string name="wizard_search_model_hint">Cerca il modello delle tue cuffie o auricolari</string>
+    <string name="wizard_no_models">Nessun modello trovato</string>
 </resources>
