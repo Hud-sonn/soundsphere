@@ -52,13 +52,13 @@
     <string name="clear_downloads_dialog">Czy na pewno chcesz wyczyścić wszystkie pobrane pliki?</string>
     <string name="top_music_videos">Najlepsze teledyski</string>
     <string name="sync_disabled">Synchronizacja wyłączona</string>
-    <string name="allows_for_sync_witch_youtube">Uwaga: Umożliwia to synchronizację z YouTube Music. Nie można tego zmienić później.</string>
-    <string name="generating_image">Generowanie obrazu</string>
+    <string name="allows_for_sync_witch_youtube">UWAGA: Włącza to synchronizację z YouTube Music i NIE można tego zmienić później.</string>
+    <string name="generating_image">Generowanie obrazu…</string>
     <string name="please_wait">Proszę czekać</string>
     <string name="share_lyrics">Udostępnij tekst</string>
     <string name="share_as_text">Udostępnij jako tekst</string>
     <string name="share_as_image">Udostępnij jako obraz</string>
-    <string name="max_selection_limit">Maksymalny limit wyboru</string>
+    <string name="max_selection_limit">Osiągnięto maksymalny limit wyboru</string>
     <string name="share_selected">Udostępnij wybrane</string>
     <string name="remove_from_cache">Usuń z pamięci podręcznej</string>
     <string name="copy_link">Skopiuj link</string>
@@ -73,13 +73,13 @@
     </plurals>
     <string name="player_buttons_style">Kolory przycisków odtwarzacza</string>
     <string name="enable_swipe_thumbnail">Włącz przesunięcie, aby zmienić utwór</string>
-    <string name="swipe_song_to_add">Przesuń utwór w prawo, aby odtworzyć następny lub w lewo, aby dodać go do kolejki</string>
+    <string name="swipe_song_to_add">Przesuń w prawo, aby odtworzyć następny utwór lub w lewo, aby dodać go do kolejki</string>
     <string name="lyrics_click_change">Zmiana tekstu po kliknięciu</string>
     <string name="slim">Wąski / Smukły</string>
     <string name="slim_navbar">Smukły pasek nawigacji</string>
     <string name="auto_playlists">Automatyczna lista odtwarzania</string>
     <string name="show_liked_playlist">Pokaż playlistę \"polubione\"</string>
-    <string name="show_top_playlist">Pokaż playlistę \"top\"</string>
+    <string name="show_top_playlist">Pokaż playlistę \"Top\"</string>
     <string name="advanced_login">Logowanie za pomocą tokena</string>
     <string name="token_hidden">Stuknij, aby wyświetlić token</string>
     <string name="token_shown">Naciśnij ponownie, aby skopiować lub edytować</string>
@@ -88,7 +88,7 @@
     <string name="auto_download_on_like">Automatyczne pobieranie polubionych utwórów</string>
     <string name="auto_download_on_like_desc">Automatycznie pobieraj utwory, gdy je polubisz</string>
     <string name="clear_song_cache_dialog">Czy na pewno chcesz wyczyścić wszystkie utwory z pamięci podręcznej?</string>
-    <string name="show_cached_playlist">Pokaż listę odtwarzania z pamięci podręcznej</string>
+    <string name="show_cached_playlist">Pokaż playlistę \"Zapisane w pamięci\"</string>
     <string name="not_logged_in_youtube">Niezalogowany do YouTube</string>
     <string name="default_links">Otwórz obsługiwane linki</string>
     <string name="open_app_settings_error">Nie można otworzyć ustawień aplikacji</string>
@@ -120,7 +120,7 @@
     <string name="now_playing">Teraz odtwarzane</string>
     <string name="close">Zamknij</string>
     <string name="hide_player_thumbnail">Ukryj miniaturę odtwarzacza</string>
-    <string name="hide_player_thumbnail_desc">Zastąpienie okładki albumu logo aplikacji w odtwarzaczu</string>
+    <string name="hide_player_thumbnail_desc">Zastąp okładkę albumu logiem aplikacji w odtwarzaczu</string>
     <string name="seek_forward_dynamic">+%1$d sekund do przodu</string>
     <string name="seek_backward_dynamic">-%1$d sekund wstecz</string>
     <string name="seek_seconds_addup">Progresywne wyszukiwanie</string>
@@ -132,7 +132,7 @@
     <string name="settings_section_player_content">Odtwarzacz i zawartość</string>
     <string name="settings_section_storage">Pamięć i dane</string>
     <string name="settings_section_system">System i informacje</string>
-    <string name="starting_radio">Uruchamianie radia</string>
+    <string name="starting_radio">Uruchamianie radia…</string>
     <string name="edit_playlist_cover">Edytuj okładkę playlisty</string>
     <string name="edit_playlist_cover_note">Uwaga: Twoje konto musi być powiązane z numerem telefonu i zweryfikowane w YouTube Music, aby zmienić okładkę playlisty.</string>
     <string name="edit_playlist_cover_note_wait">Po wybraniu obrazu, zaczekaj chwilę, aż nowa okładka pojawi się na twojej playliście.</string>
@@ -178,7 +178,7 @@
     <string name="scrobbling_configuration">Konfiguracja scrobblowania</string>
     <string name="primary_color_style">Kolor podstawowy</string>
     <string name="tertiary_color_style">Kolor trzeciorzędny</string>
-    <string name="swipe_song_to_remove">Przesuń utwór, aby usunąć go z listy odtwarzania</string>
+    <string name="swipe_song_to_remove">Przesuń, aby usunąć utwór z listy odtwarzania</string>
     <string name="auto_scroll">Ponowna synchronizacja</string>
     <string name="lyrics_romanize_chinese">Romanizuj chińskie teksty</string>
     <string name="update_channel_name">Aktualizacje aplikacji</string>
@@ -211,14 +211,14 @@
     <string name="download_in_progress_desc">Pobieranie w trakcie</string>
     <string name="share_playlist_desc">Podziel się playlistą z innymi</string>
     <string name="delete_playlist_desc">Trwale usuń playlistę</string>
-    <string name="sync_playlist_desc">Synchronizuj playlistę z YouTube Music</string>
+    <string name="sync_playlist_desc">Synchronizuj tę playlistę z YouTube Music</string>
     <string name="wavy">Fala</string>
     <string name="lyrics_glow_effect">Włącz efekt podświetlenia tekstu</string>
     <string name="lyrics_glow_effect_desc">Dodaj efekty podświetlenia i odbicia do aktywnego tekstu</string>
     <string name="enable_better_lyrics">Włącz \"Better Lyrics\"</string>
     <string name="enable_better_lyrics_desc">Tekst piosenki zsynchronizowany na poziomie sylab, idealny do karaoke</string>
-    <string name="shuffle_playlist_first">Najpierw odtwórz losowo playlistę/album</string>
-    <string name="shuffle_playlist_first_desc">Podczas odtwarzania losowego najpierw odtwarzaj wszystkie utwory z oryginalnej playlisty/albumu, a potem podobne utwory</string>
+    <string name="shuffle_playlist_first">Najpierw odtwórz losowo playlistę lub album</string>
+    <string name="shuffle_playlist_first_desc">Podczas odtwarzania losowego najpierw odtwarzaj wszystkie utwory z bieżącej playlisty lub albumu, przed przejściem do podobnych utworów</string>
     <string name="show_wrapped_card">Wyświetl kartę Wrapped</string>
     <string name="scrobble_min_track_duration">Scrobbluj utwory dłuższe niż</string>
     <string name="scrobble_delay_percent">Procent opóźnienia scrobblowania</string>
@@ -235,7 +235,7 @@
     <string name="lyrics_line_spacing">Odstępy między wierszami</string>
     <string name="album_art_for">Okładka albumu %s</string>
     <string name="wrapped_total_albums_title">Słuchałeś/aś</string>
-    <string name="wrapped_total_albums_subtitle">Unikalne albumy</string>
+    <string name="wrapped_total_albums_subtitle">Unikalne albumy!</string>
     <string name="wrapped_top_album_title">Twój ulubiony album to</string>
     <string name="wrapped_playlist_ready">Twoja osobista lista odtwarzania jest gotowa</string>
     <string name="wrapped_top_5_albums_title">Twoje 5 ulubionych albumów</string>
@@ -349,7 +349,7 @@
     <string name="player_background_solid">Jednolity</string>
     <string name="display_density">Gęstość wyświetlania</string>
     <string name="restart">Uruchom ponownie</string>
-    <string name="restart_required">Wymagane ponowne uruchomienie</string>
+    <string name="restart_required">Wymagane ponowne uruchomienie!</string>
     <string name="density_restart_message">Zmiana gęstości wyświetlania zacznie obowiązywać po ponownym uruchomieniu aplikacji. Uruchomić ją ponownie teraz?</string>
     <string name="enable_lyricsplus">Włącz LyricsPlus</string>
     <string name="enable_lyricsplus_desc">Synchronizuje teksty piosenek z różnych zródeł</string>
@@ -360,7 +360,7 @@
     <string name="lyrics_provider_priority_desc">Przeciągnij, aby zmienić kolejność dostawców tekstów utworów. Wyższa pozycja -&gt; wyższy priorytet.</string>
     <string name="enable_lrclib_desc">Synchronizowana baza danych tekstów utworów tworzona przez społeczność</string>
     <string name="enable_kugou_desc">Pobiera teksty utworów z KuGou, popularnej chińskiej platformy muzycznej</string>
-    <string name="youtube_music_lyrics_note">UWAGA: Teksty z YouTube Music będą wyświetlane automatycznie, gdy inne teksty nie są dostępne. Teksty z YTM zwykle nie są synchronizowane.</string>
+    <string name="youtube_music_lyrics_note">UWAGA: Teksty z YouTube Music będą wyświetlane automatycznie, gdy inne teksty nie są dostępne. Zwykle nie są one synchronizowane.</string>
     <string name="lyrics_provider_priority">Kolejność dostawców tekstów utworów</string>
     <string name="listen_together_server_url">Serwer URL</string>
     <string name="listen_together_username">Nazwa użytkownika</string>
@@ -423,7 +423,7 @@
     <string name="crossfade_duration">Czas płynnego przejścia między utworami</string>
     <string name="crossfade_gapless">Wyłącz dla albumów bez przerw</string>
     <string name="crossfade_gapless_desc">Nie stosuj płynnego przejścia jeśli album jest bez przerw</string>
-    <string name="crossfade_beta_title">Funkcja Beta</string>
+    <string name="crossfade_beta_title">Funkcja beta!</string>
     <string name="crossfade_beta_message">Crossfade to nowa funkcja i może zawierać błędy. Jeśli napotkasz jakiekolwiek problemy, prosimy o ich zgłoszenie\n\nTa funkcja wyłącza odciążane audio z powodu ograniczeń technicznych.</string>
     <string name="lyrics_romanize_hindi">Romanizuj tekst Hindi</string>
     <string name="lyrics_romanize_punjabi">Romanizuj teksty w pendżabskim</string>
@@ -722,7 +722,7 @@
     <string name="delete_uploaded_songs_confirm">Czy na pewno chcesz usunąć %1$d przesłanych utworów? Tej czynności nie można cofnąć.</string>
     <string name="ai_provider_mistral_help">Odwiedź https://console.mistral.ai/api-keys</string>
     <string name="enable_song_cache">Włącz buforowanie utworów</string>
-    <string name="enable_song_cache_desc">Automatycznie dodaj piosenki do pamięci podręcznej dla późniejszego odsłuchu</string>
+    <string name="enable_song_cache_desc">Automatycznie dodaj piosenki do pamięci podręcznej dla szybszego późniejszego odsłuchu</string>
     <string name="sleep_timer_stop_after_current_song_title">Zatrzymaj gdy piosenka się skończy</string>
     <string name="weekly_most_playlist_name">Najpopularniejsze w tym tygodniu</string>
     <string name="monthly_most_playlist_name">Najpopularniejsze w tym miesiącu</string>
@@ -797,4 +797,20 @@
     <string name="time_transfer_listen_time_label">Czas słuchania:</string>
     <string name="time_transfer_convert">Konwertuj</string>
     <string name="song_dropdown_more_results">Wpisz więcej aby zawęzić wyniki(%d więcej)</string>
+    <string name="parsed_from_link">Wyodrębniono z linku</string>
+    <string name="lyrics_from_provider">Tekst z %s</string>
+    <string name="hide_status_bar_fullscreen">Ukryj pasek stanu w trybie pełnoekranowym</string>
+    <string name="hide_status_bar_fullscreen_desc">Ukryj pasek stanu gdy napisy są w trybie pełnoekranowym</string>
+    <string name="show_interval_indicator">Pokaż oznaczenie interwału</string>
+    <string name="show_interval_indicator_desc">Pokaż postęp podczas długich przerw instrumentalnych</string>
+    <string name="respect_agent_positioning">Uwzględnij pozycjonowanie agenta</string>
+    <string name="respect_agent_positioning_desc">Teksty oparte na roli agenta (np. wokalu tła)</string>
+    <string name="lyrics_animation_none">Brak</string>
+    <string name="lyrics_animation_fade">Zanik</string>
+    <string name="lyrics_animation_glow">Poświata</string>
+    <string name="lyrics_animation_slide">Przesunięcie</string>
+    <string name="lyrics_animation_karaoke">Karaoke</string>
+    <string name="lyrics_animation_apple">Styl Apple Music</string>
+    <string name="enable_paxsenix">Włącz Paxsenix</string>
+    <string name="enable_paxsenix_desc">Wysokiej jakości synchronizowane teksty z Paxsenix API</string>
 </resources>
