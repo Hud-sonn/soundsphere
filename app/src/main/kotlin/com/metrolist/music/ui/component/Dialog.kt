@@ -154,11 +154,10 @@ fun AccountSettingsDialog(
             modifier =
                 Modifier
                     .fillMaxSize()
-                    .clickable(
-                        indication = null,
-                        interactionSource = remember { MutableInteractionSource() },
-                    ) {
-                        onDismiss()
+                    .pointerInput(Unit) {
+                        detectTapGestures(
+                            onTap = { onDismiss() }
+                        )
                     },
             contentAlignment = Alignment.TopCenter,
         ) {
