@@ -28,7 +28,7 @@
     <string name="lyrics">Şarkı sözleri</string>
     <string name="already_in_playlist">Zaten oynatma listesinde:</string>
     <plurals name="n_time">
-        <item quantity="one">%d kez</item>
+        <item quantity="one">%d defa</item>
         <item quantity="other">%d kez</item>
     </plurals>
     <string name="similar_content">Benzer içerik</string>
@@ -80,7 +80,7 @@
     <string name="likes">Beğeni</string>
     <string name="dislikes">Beğenmeme</string>
     <plurals name="seconds">
-        <item quantity="one">%d saniye</item>
+        <item quantity="one">1 saniye</item>
         <item quantity="other">%d saniye</item>
     </plurals>
     <string name="please_wait">Lütfen bekleyin</string>
@@ -238,7 +238,7 @@
     <string name="wrapped_top_5_artists_title">Yılın en iyi sanatçıları</string>
     <string name="wrapped_artist_listening_time">%d dakika</string>
     <string name="wrapped_top_5_songs_title">Yılın en iyi şarkıları</string>
-    <string name="wrapped_top_song_album_art_content_description">Albüm kapağı</string>
+    <string name="wrapped_top_song_album_art_content_description">Albüm görseli</string>
     <string name="wrapped_top_artist_title">Yılın en iyi sanatçısı</string>
     <string name="wrapped_top_artist_image_content_description">En iyi sanatçı görseli</string>
     <string name="wrapped_top_artist_listening_time">Onları %d dakika dinlediniz!</string>
@@ -294,7 +294,7 @@
     <string name="remember_shuffle_and_repeat">Karıştır ve tekrarla ayarını hatırla</string>
     <string name="remember_shuffle_and_repeat_desc">Uygulama yeniden başlatıldığında karıştır ve tekrarla ayarlarını hatırla</string>
     <string name="system_equalizer">Sistem ekolayzırı</string>
-    <string name="album_art">Albüm kapağı</string>
+    <string name="album_art">Albüm görseli</string>
     <string name="no_song_playing">Oynatılan şarkı yok</string>
     <string name="tap_to_open">Metrolist\'i açmak için dokun</string>
     <string name="previous">Önceki</string>
@@ -818,4 +818,19 @@
     <string name="audio_quality_very_high">Olabilğince yüksek</string>
     <string name="autoplay">Oto oynatma</string>
     <string name="autoplay_desc">Şu ankilerden biri biterse bir sonraki şarkıyı otomatikman oynat</string>
+    <string name="system_equalizer_desc">Android\'in içinde gelen ekolayzeri aç</string>
+    <string name="eq_wizard">OtoEQ aracı</string>
+    <string name="eq_download_db">OtoEQ veritabanını indir (17 MB)</string>
+    <string name="eq_downloading">İndiriliyor…</string>
+    <string name="import_from_file">Dosyalardan içe aktar</string>
+    <string name="add_profile">Profil ekle</string>
+    <string name="wizard_select_model">Model seç</string>
+    <string name="wizard_select_profiles">Profilleri seç</string>
+    <string name="wizard_search_model_hint">Kulak içi ve kulak üstü kulaklığınızın modelini arayın</string>
+    <string name="wizard_model_name">Model adı</string>
+    <string name="wizard_model_placeholder">Örneğin Sony WH-1000XM4, Bose QuietComfort 45</string>
+    <string name="wizard_no_models">Model bulunamadı</string>
+    <string name="wizard_multiple_variants">Çoklu modeller bulunmakta</string>
+    <string name="wizard_select_eq_profiles">%s için EQ profili seç</string>
+    <string name="wizard_save_profiles">Profili kaydet</string>
 </resources>
