@@ -45,10 +45,13 @@ import com.metrolist.music.db.entities.SortedSongArtistMap
 import com.metrolist.music.db.entities.SpeedDialItem
 import com.metrolist.music.extensions.toSQLiteQuery
 import timber.log.Timber
+import java.io.File
+import java.text.SimpleDateFormat
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.util.Date
+import java.util.Locale
 
 class MusicDatabase(
     private val delegate: InternalDatabase,
@@ -167,6 +170,7 @@ abstract class InternalDatabase : RoomDatabase() {
                 delegate =
                     Room
                         .databaseBuilder(context, InternalDatabase::class.java, DB_NAME)
+                        .openHelperFactory(BackupBeforeMigrationFactory(context, DB_NAME))
                         .addMigrations(
                             MIGRATION_1_2,
                             MIGRATION_21_24,
@@ -193,10 +197,125 @@ abstract class InternalDatabase : RoomDatabase() {
                                         Timber.tag("MusicDatabase").e(e, "Failed to set PRAGMA settings")
                                     }
                                 }
+
+                                override fun onDestructiveMigration(db: SupportSQLiteDatabase) {
+                                    super.onDestructiveMigration(db)
+                                    backupDatabase(context, DB_NAME)
+                                }
                             },
                         ).build(),
             )
     }
+}
+
+private fun backupDatabase(
+    context: Context,
+    dbName: String,
+): File? {
+    val dbFile = context.getDatabasePath(dbName)
+    if (!dbFile.exists()) return null
+
+    val timestamp = SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", Locale.US).format(Date())
+    val backupDir = File(context.filesDir, "database_backups").apply { mkdirs() }
+    val backupBase = File(backupDir, "${dbName}_backup_$timestamp")
+
+    fun copyFile(
+        src: File,
+        dst: File,
+    ): Boolean =
+        try {
+            src.inputStream().use { input ->
+                dst.outputStream().use { output ->
+                    input.copyTo(output)
+                }
+            }
+            true
+        } catch (e: Exception) {
+            Timber.tag("DatabaseBackup").e(e, "Failed to copy ${src.name}")
+            false
+        }
+
+    val success = copyFile(dbFile, File("$backupBase.db"))
+    if (success) {
+        File("${dbFile.absolutePath}-wal").takeIf { it.exists() }?.let {
+            copyFile(it, File("$backupBase.db-wal"))
+        }
+        File("${dbFile.absolutePath}-shm").takeIf { it.exists() }?.let {
+            copyFile(it, File("$backupBase.db-shm"))
+        }
+        Timber.tag("DatabaseBackup").i("Backed up database to $backupBase.db")
+    }
+    return if (success) File("$backupBase.db") else null
+}
+
+private class BackupBeforeMigrationFactory(
+    private val context: Context,
+    private val dbName: String,
+    private val delegate: SupportSQLiteOpenHelper.Factory =
+        androidx.sqlite.db.framework
+            .FrameworkSQLiteOpenHelperFactory(),
+) : SupportSQLiteOpenHelper.Factory {
+    override fun create(configuration: SupportSQLiteOpenHelper.Configuration): SupportSQLiteOpenHelper {
+        val wrappedCallback = BackupCallback(context, configuration.callback, dbName)
+        val configClass = SupportSQLiteOpenHelper.Configuration::class.java
+        val constructor = configClass.constructors.first()
+        val wrappedConfig =
+            when (constructor.parameterCount) {
+                4 -> {
+                    constructor.newInstance(
+                        configuration.context,
+                        configuration.name,
+                        wrappedCallback,
+                        configuration.useNoBackupDirectory,
+                    )
+                }
+
+                5 -> {
+                    constructor.newInstance(
+                        configuration.context,
+                        configuration.name,
+                        wrappedCallback,
+                        configuration.useNoBackupDirectory,
+                        configClass.getField("allowDataLossOnRecovery").get(configuration),
+                    )
+                }
+
+                else -> {
+                    throw IllegalStateException("Unexpected Configuration constructor")
+                }
+            } as SupportSQLiteOpenHelper.Configuration
+        return delegate.create(wrappedConfig)
+    }
+}
+
+private class BackupCallback(
+    private val context: Context,
+    private val delegate: SupportSQLiteOpenHelper.Callback,
+    private val dbName: String,
+) : SupportSQLiteOpenHelper.Callback(delegate.version) {
+    override fun onCreate(db: SupportSQLiteDatabase) = delegate.onCreate(db)
+
+    override fun onUpgrade(
+        db: SupportSQLiteDatabase,
+        oldVersion: Int,
+        newVersion: Int,
+    ) {
+        Timber.tag("DatabaseBackup").i("Database upgrade $oldVersion -> $newVersion, backing up first")
+        backupDatabase(context, dbName)
+        delegate.onUpgrade(db, oldVersion, newVersion)
+    }
+
+    override fun onDowngrade(
+        db: SupportSQLiteDatabase,
+        oldVersion: Int,
+        newVersion: Int,
+    ) {
+        Timber.tag("DatabaseBackup").i("Database downgrade $oldVersion -> $newVersion, backing up first")
+        backupDatabase(context, dbName)
+        delegate.onDowngrade(db, oldVersion, newVersion)
+    }
+
+    override fun onOpen(db: SupportSQLiteDatabase) = delegate.onOpen(db)
 }
 
 // ===== Migrations =====
@@ -732,15 +851,24 @@ class Migration29To30 : AutoMigrationSpec {
 class Migration35To36 : AutoMigrationSpec {
     override fun onPostMigrate(db: SupportSQLiteDatabase) {
         var hasIsCached = false
+        var hasPlaybackPosition = false
+        var hasUploadEntityId = false
         db.query("PRAGMA table_info('song')").use { cursor ->
             val nameIndex = cursor.getColumnIndex("name")
             while (cursor.moveToNext()) {
                 val colName = if (nameIndex >= 0) cursor.getString(nameIndex) else null
-                if (colName == "isCached") {
-                    hasIsCached = true
-                    break
+                when (colName) {
+                    "isCached" -> hasIsCached = true
+                    "playbackPosition" -> hasPlaybackPosition = true
+                    "uploadEntityId" -> hasUploadEntityId = true
                 }
             }
+        }
+        if (!hasPlaybackPosition) {
+            db.execSQL("ALTER TABLE song ADD COLUMN playbackPosition INTEGER DEFAULT NULL")
+        }
+        if (!hasUploadEntityId) {
+            db.execSQL("ALTER TABLE song ADD COLUMN uploadEntityId TEXT DEFAULT NULL")
         }
         if (!hasIsCached) {
             db.execSQL("ALTER TABLE song ADD COLUMN isCached INTEGER NOT NULL DEFAULT 0")

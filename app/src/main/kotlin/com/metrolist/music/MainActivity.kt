@@ -68,7 +68,6 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -105,6 +104,7 @@ import androidx.core.util.Consumer
 import androidx.core.view.WindowCompat
 import androidx.datastore.preferences.core.edit
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.coroutineScope
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.MediaItem
@@ -239,10 +239,10 @@ class MainActivity : ComponentActivity() {
     // Keep PlayerConnection as regular property - NOT mutableStateOf to prevent UI recomposition
     // when it becomes null during onStop. Only update the snapshot for Compose when needed.
     private var playerConnection: PlayerConnection? = null
-    
+
     // This is the snapshot we pass to Compose - changes here trigger recomposition
     private var playerConnectionSnapshot by mutableStateOf<PlayerConnection?>(null)
-    
+
     private var isServiceBound = false
 
     private val serviceConnection =
@@ -316,7 +316,7 @@ class MainActivity : ComponentActivity() {
         // the service persists independently of binding state on all Android versions, including
         // Android 16+ where startService() from background contexts is not allowed.
         ContextCompat.startForegroundService(this, Intent(this, MusicService::class.java))
-        
+
         // Bind to service - if already bound, this is a no-op but ensures we stay connected
         if (!isServiceBound) {
             bindService(
@@ -605,15 +605,17 @@ class MainActivity : ComponentActivity() {
                             // Remove SimpMusic from serialized order string and append Paxsenix if missing
                             val currentOrder = settings[LyricsProviderOrderKey] ?: ""
                             if (currentOrder.contains("SimpMusic") || !currentOrder.contains("Paxsenix")) {
-                                val orderList = currentOrder.split(",")
-                                    .map { it.trim() }
-                                    .filter { it.isNotBlank() && it != "SimpMusic" }
-                                    .toMutableList()
-                                
+                                val orderList =
+                                    currentOrder
+                                        .split(",")
+                                        .map { it.trim() }
+                                        .filter { it.isNotBlank() && it != "SimpMusic" }
+                                        .toMutableList()
+
                                 if (!orderList.contains("Paxsenix")) {
                                     orderList.add("Paxsenix")
                                 }
-                                
+
                                 settings[LyricsProviderOrderKey] = orderList.joinToString(",")
                             }
 
@@ -683,8 +685,12 @@ class MainActivity : ComponentActivity() {
 
                                 if (dataStore[PauseSearchHistoryKey] != true) {
                                     lifecycleScope.launch(Dispatchers.IO) {
-                                        database.query {
-                                            insert(SearchHistory(query = searchQuery))
+                                        runCatching {
+                                            database.insert(SearchHistory(query = searchQuery))
+                                        }.onFailure { throwable ->
+                                            Timber
+                                                .tag("MainActivity")
+                                                .w(throwable, "Failed to save search history for query: %s", searchQuery)
                                         }
                                     }
                                 }
@@ -1016,24 +1022,31 @@ class MainActivity : ComponentActivity() {
                             val currentBackStackEntry = navController.currentBackStackEntry // reads reactively outside remember
 
                             val onNavItemClick: (Screens, Boolean) -> Unit =
-                                remember(navController, coroutineScope, topAppBarScrollBehavior, playerBottomSheetState, currentBackStackEntry) {
+                                remember(
+                                    navController,
+                                    coroutineScope,
+                                    topAppBarScrollBehavior,
+                                    playerBottomSheetState,
+                                    currentBackStackEntry,
+                                ) {
                                     { screen: Screens, isSelected: Boolean ->
                                         if (playerBottomSheetState.isExpanded) {
                                             playerBottomSheetState.collapseSoft()
                                         }
                                         if (isSelected) {
-                                            val targetEntry = try {
-                                                val route = navController.currentBackStackEntry?.destination?.route
-                                                if (route == "search/{query}" || route == "search_input") {
-                                                    // For search screens, use search_input entry
-                                                    navController.getBackStackEntry("search_input")
-                                                } else {
-                                                    // For other screens, use current entry
-                                                    navController.currentBackStackEntry
+                                            val targetEntry =
+                                                try {
+                                                    val route = navController.currentBackStackEntry?.destination?.route
+                                                    if (route == "search/{query}" || route == "search_input") {
+                                                        // For search screens, use search_input entry
+                                                        navController.getBackStackEntry("search_input")
+                                                    } else {
+                                                        // For other screens, use current entry
+                                                        navController.currentBackStackEntry
+                                                    }
+                                                } catch (e: Exception) {
+                                                    null
                                                 }
-                                            } catch (e: Exception) {
-                                                null
-                                            }
 
                                             // Use appropriate key based on screen type
                                             if (screen == Screens.Search) {
