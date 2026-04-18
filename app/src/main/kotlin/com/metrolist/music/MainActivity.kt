@@ -337,6 +337,9 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onDestroy() {
+        if (isFinishing) {
+            listenTogetherManager.disconnect()
+        }
         super.onDestroy()
         // Use effective playing state so Cast (local player paused, remote playing) is included.
         val stopServiceOnClear =
