@@ -1724,10 +1724,11 @@ fun OriginalLyrics(
             // Removed the more button from bottom - it's now in the top header
         }
 
-        AnimatedVisibility(
-            visible = isSelectionModeActive,
-            enter = slideInVertically { it } + fadeIn(),
-            exit = slideOutVertically { it } + fadeOut(),
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 16.dp),
+            contentAlignment = Alignment.BottomCenter,
         ) {
             AnimatedVisibility(
                 visible = !isAutoScrollEnabled && isSynced && !isSelectionModeActive,
