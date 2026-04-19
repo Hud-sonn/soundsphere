@@ -36,7 +36,7 @@
     <string name="proxy">Proxy</string>
     <string name="default_lib_chips">Thay đổi thư viện mặc định</string>
     <string name="set_quick_picks">Đặt lựa chọn nhanh</string>
-    <string name="last_song_listened">Dựa vào lần cuối bạn đã nghe</string>
+    <string name="last_song_listened">Dựa trên bài hát cuối cùng bạn đã nghe</string>
     <string name="app_language">Ngôn ngữ ứng dụng</string>
     <string name="enable_similar_content">Bật hiển thị nội dung tương tự</string>
     <string name="similar_content_desc">Tự động thêm các bài hát tương tự khi phát hết danh sách hàng chờ</string>
@@ -45,7 +45,7 @@
     <string name="clear_downloads_dialog">Bạn có muốn xóa tất cả bài hát đã tải xuống?</string>
     <string name="not_logged_in_youtube">Chưa đăng nhập vào YouTube</string>
     <string name="default_links">Mở đường liên kết được hỗ trợ</string>
-    <string name="open_app_settings_error">Không thể mở cài đặt</string>
+    <string name="open_app_settings_error">Không thể mở cài đặt ứng dụng</string>
     <string name="release_notes">Ghi chú của bản phát hành</string>
     <string name="all_time">Mọi lúc</string>
     <string name="past_24_hours">24 giờ trước</string>
@@ -98,7 +98,7 @@
     <string name="cached_playlist">Đã lưu vào bộ đệm</string>
     <string name="lyrics_romanize_japanese">La-tinh hóa lời bài hát tiếng Nhật</string>
     <string name="lyrics_romanize_korean">La-tinh hóa lời bài hát tiếng Hàn</string>
-    <string name="yt_sync">Tự động đồng bộ với tài khoản</string>
+    <string name="yt_sync">Tự động đồng bộ tài khoản</string>
     <string name="more_content">Nội dung khác</string>
     <string name="playlist_add_local_to_synced_note">LƯU Ý: Không hỗ trợ thêm bài hát cục bộ vào danh sách phát đã đồng bộ hoặc danh sách phát từ xa. Mọi sự kết hợp khác đều hợp lệ</string>
     <string name="auto_download_on_like">Tự động tải xuống khi thích</string>
@@ -111,8 +111,8 @@
     <string name="subscribed">Đã đăng ký</string>
     <string name="now_playing">Đang Phát</string>
     <string name="close">Đóng</string>
-    <string name="seek_forward_dynamic">+%1$d giây chuyển tiếp</string>
-    <string name="seek_backward_dynamic">-%1$d giây ngược lại</string>
+    <string name="seek_forward_dynamic">+%1$d giây tiến</string>
+    <string name="seek_backward_dynamic">-%1$d giây lùi</string>
     <string name="hide_player_thumbnail">Ẩn hình thu nhỏ của trình phát</string>
     <string name="hide_player_thumbnail_desc">Thay thế ảnh bìa album bằng logo ứng dụng trong trình phát</string>
     <string name="new_mini_player_design">Thiết kế trình phát mini mới</string>
@@ -150,7 +150,7 @@
     <string name="romanize_current_track">La-tinh hóa lời bài hát hiện tại</string>
     <string name="choose_from_library">Chọn từ thư viện</string>
     <string name="remove_custom_image">Xoá ảnh bìa tùy chỉnh</string>
-    <string name="audio_offload">Cho phép giảm tải</string>
+    <string name="audio_offload">Bật tính năng giảm tải âm thanh</string>
     <string name="audio_offload_description">Sử dụng đường dẫn giảm tải âm thanh phần cứng (hardware audio offload) để phát nhạc. Việc tắt tùy chọn này có thể làm tăng mức tiêu thụ pin, nhưng có thể khắc phục các lỗi liên quan đến phát nhạc hoặc hậu xử lý âm thanh</string>
     <string name="uploaded_playlist">Đã tải lên</string>
     <string name="filter_uploaded">Đã tải lên</string>
@@ -170,10 +170,10 @@
     <string name="auto_scroll">Đồng bộ lại</string>
     <string name="show_uploaded_playlist">Hiển danh sách phát đã tải lên</string>
     <string name="shuffle_playlist_first">Phát ngẫu nhiên danh sách phát hoặc album đầu tiên</string>
-    <string name="shuffle_playlist_first_desc">Khi kích hoạt phát đảo trộn, nó sẽ phát tất cả các bài hát từ danh sách phát / Album trước, sau đó sẽ phát nội dung tương tự</string>
+    <string name="shuffle_playlist_first_desc">Khi kích hoạt phát ngẫu nhiên, nó sẽ phát tất cả các bài hát từ danh sách phát / Album trước, sau đó mới phát nội dung tương tự</string>
     <string name="show_wrapped_card">Hiển thị thẻ Wrapped</string>
     <string name="discord_use_details">Dùng chi tiết thay vì trạng thái</string>
-    <string name="discord_use_details_description">Hiện tên bài hát chính thay vì tên nghệ sĩ</string>
+    <string name="discord_use_details_description">Hiện tên bài hát nổi bật thay vì tên nghệ sĩ</string>
     <string name="lyrics_romanize_chinese">La-tinh hóa lời bài hát tiếng Trung</string>
     <string name="updater">Trình cập nhật</string>
     <string name="check_for_updates">Tự động kiểm tra cập nhật</string>
@@ -230,11 +230,11 @@
     <string name="listen_together_logs">Nhật ký kết nối</string>
     <string name="listen_together_no_logs">Chưa có nhật ký nào</string>
     <string name="listen_together_auto_approval_joins">Tự động duyệt yêu cầu tham gia</string>
-    <string name="listen_together_auto_approval_joins_desc">Tự động duyệt yêu cầu tham gia thay vì xem xét thủ công</string>
+    <string name="listen_together_auto_approval_joins_desc">Tự động phê duyệt yêu cầu tham gia thay vì xem xét thủ công</string>
     <string name="listen_together_sync_volume">Đồng bộ âm lượng của chủ phòng</string>
     <string name="listen_together_sync_volume_desc">Khách sẽ khớp với mức âm lượng của chủ phòng</string>
     <string name="listen_together_description">Nghe nhạc cùng bạn bè trong thời gian thực. Hãy tạo phòng để làm chủ trì, hoặc tham gia phòng có sẵn bằng mã</string>
-    <string name="listen_together_background_disconnect_note">LƯU Ý: Bạn có thể bị ngắt kết nối nếu tạo phòng khi không có nhạc đang phát và sau đó chuyển sang ứng dụng khác</string>
+    <string name="listen_together_background_disconnect_note">LƯU Ý: Khi bạn đã được kết nối nhưng không ở trong cùng một phòng, tính năng Nghe Cùng Nhau sẽ tự động ngắt kết nối sau 30 phút chạy ngầm để tiết kiệm pin</string>
     <string name="listen_together_not_configured">Listen Together chưa được thiết lập. Vui lòng cấu hình URL máy chủ tại: Listen Together &gt; Cài đặt &gt; URL máy chủ</string>
     <string name="listen_together_suggestion_received">%1$s đã gợi ý %2$s</string>
     <string name="listen_together_suggestion_sent">Đã gửi gợi ý đến chủ phòng!</string>
@@ -268,7 +268,7 @@
     <string name="pending_requests">Yêu cầu đang chờ</string>
     <string name="pending_suggestions">Gợi ý chờ duyệt</string>
     <string name="suggest_to_host">Gợi ý cho chủ phòng</string>
-    <string name="kick_user">Loại khỏi phòng</string>
+    <string name="kick_user">Đuổi ra khỏi phòng</string>
     <string name="host_label">Chủ phòng</string>
     <string name="you_label">Bạn</string>
     <string name="connected_users">Người dùng đã kết nối</string>
@@ -331,7 +331,7 @@
     <string name="last_fm_send_likes_description">Tự động Yêu thích hoặc Bỏ yêu thích bài hát trên Last.fm khi bạn thích hoặc bỏ thích chúng trên Metrolist</string>
     <string name="logging_in">Đang đăng nhập…</string>
     <string name="hide_video_songs">Ẩn bài hát video</string>
-    <string name="details_desc">Xem thông tin bài hát</string>
+    <string name="details_desc">Xem thông tin chi tiết của bài hát</string>
     <string name="edit_desc">Sửa tên bài hát hoặc nghệ sĩ</string>
     <string name="none">Không có</string>
     <string name="fade">Mờ dần</string>
@@ -343,7 +343,7 @@
     <string name="lyrics_line_spacing">Giãn dòng lời bài hát</string>
     <string name="wavy">Lượn sóng</string>
     <string name="lyrics_offset">Độ trễ của lời bài hát</string>
-    <string name="play_next_desc">Thêm vào đầu danh sách phát nhạc</string>
+    <string name="play_next_desc">Thêm vào đầu danh sách phát trong hàng đợi</string>
     <string name="add_to_queue_desc">Thêm vào cuối hàng chờ</string>
     <string name="add_to_library_desc">Lưu vào thư viện</string>
     <string name="download_desc">Tải xuống để phát ngoại tuyến</string>
@@ -404,7 +404,7 @@
     <string name="view_changelog">Hiện lịch sử cập nhật</string>
     <string name="failed_to_check_updates">Kiểm tra cập nhật không thành công: %s</string>
     <string name="set_as_default">Đặt làm mặc định</string>
-    <string name="sleep_timer_default_set">Hẹn giờ ngủ mặc định đặt là %d phút</string>
+    <string name="sleep_timer_default_set">Hẹn giờ ngủ mặc định được đặt là %d phút</string>
     <string name="resume_on_bluetooth_connect">Tiếp tục khi kết nối Bluetooth</string>
     <string name="crossfade">Chuyển tiếp mượt mà</string>
     <string name="crossfade_desc">Âm lượng của bài hát hiện tại sẽ giảm dần khi bài hát tiếp theo dần to lên</string>
@@ -441,7 +441,7 @@
     <string name="wrapped_top_5_albums_title">Top 5 album của bạn</string>
     <string name="wrapped_album_listening_time">Bạn đã nghe album này được %d phút!</string>
     <string name="wrapped_album_listening_time_minutes">%d phút</string>
-    <string name="wrapped_no_data">Không có dữ liệu</string>
+    <string name="wrapped_no_data">Không có dữ liệu khả dụng</string>
     <string name="credits_license_desc">Phần mềm miễn phí, mã nguồn mở. Bạn có thể sử dụng, học hỏi, chia sẻ và cải thiện nó😉</string>
     <string name="credits_discord">Máy chủ Discord</string>
     <string name="credits_view_repo">Xem kho lưu trữ</string>
@@ -510,9 +510,9 @@
     <string name="wrapped_top_artist_listening_time">Bạn đã nghe họ được %d phút!</string>
     <string name="wrapped_top_song_title">Bài hát bạn phát nhiều nhất là</string>
     <string name="wrapped_top_song_listening_time">Bạn đã nghe được %d phút!</string>
-    <string name="wrapped_total_artists_title">Bạn đã nghe</string>
+    <string name="wrapped_total_artists_title">Bạn đã được nghe</string>
     <string name="wrapped_total_artists_subtitle">nghệ sĩ độc bản!</string>
-    <string name="wrapped_total_songs_title">Bạn đã nghe</string>
+    <string name="wrapped_total_songs_title">Bạn đã được nghe</string>
     <string name="wrapped_total_songs_subtitle">các bài hát độc đáo!</string>
     <string name="wrapped_intro_title">METROLIST</string>
     <string name="wrapped_intro_subtitle">đã đến lúc xem bạn đã nghe những gì trong suốt năm qua…</string>
@@ -539,7 +539,7 @@
     <string name="delete_profile_confirmation">Bạn có chắc mình muốn xoá %1$s không? Hành động này không thể được hoàn tác</string>
     <string name="error_file_read">Không thể đọc file</string>
     <string name="error_file_open">Không thể mở file: %1$s</string>
-    <string name="import_error_title">Lỗi nhập</string>
+    <string name="import_error_title">Lỗi khi nhập</string>
     <string name="error_title">Lỗi</string>
     <string name="error_eq_apply_failed">Không thể áp dụng cấu hình bộ cân bằng âm thanh: %1$s</string>
     <string name="weekly_most_playlist_name">Top Tuần</string>
@@ -573,7 +573,7 @@
     <string name="alarm_time_picker_value">Thời gian: %s</string>
     <string name="alarm_delete">Xoá báo thức</string>
     <string name="alarm_duplicate_time_warning">Đã có một báo thức khác vào thời điểm này. Nếu cả hai cùng kích hoạt một lúc, có thể chỉ một báo thức được phát</string>
-    <string name="alarm_random_song">Phát bài hát ngẫu nhiên từ danh sách</string>
+    <string name="alarm_random_song">Phát bài hát ngẫu nhiên từ danh sách phát</string>
     <string name="alarm_next_trigger">Kích hoạt tiếp theo</string>
     <string name="alarm_not_scheduled">Chưa lên lịch</string>
     <string name="alarm_exact_permission_title">Cho phép báo động chính xác</string>
@@ -581,7 +581,7 @@
     <string name="alarm_battery_optimization_desc">Tắt tính năng tối ưu hóa pin để báo thức hoạt động ổn định hơn khi chạy nền</string>
     <string name="transparent">Trong suốt</string>
     <string name="mini_player_background_not_available">Không khả dụng khi thiết kế trình phát thu nhỏ (mini-player) mới bị vô hiệu hóa</string>
-    <string name="found_in_settings_content">Chuỗi cứng</string>
+    <string name="found_in_settings_content">Tìm ở Cài đặt &gt; Nội dung</string>
     <string name="your_daily_discover">Khám phá hàng ngày của bạn</string>
     <string name="casting_to">Đang phát tới %s</string>
     <string name="listening_to_metrolist">Đang nghe Metrolist</string>
@@ -634,8 +634,8 @@
     <string name="ai_error_lyrics_empty">Lời bài hát trống rỗng</string>
     <string name="ai_error_language_required">Yêu cầu ngôn ngữ đích</string>
     <string name="ai_error_unexpected">Kết quả dịch bất ngờ</string>
-    <string name="ai_error_unknown">Một lỗi không xác định đã xảy ra</string>
-    <string name="ai_error_translation_failed">Không thể dịch</string>
+    <string name="ai_error_unknown">Đã xảy ra lỗi không xác định</string>
+    <string name="ai_error_translation_failed">Dịch thất bại</string>
     <string name="ai_provider_help">Lấy API key</string>
     <string name="ai_provider_openrouter_help">Truy cập https://openrouter.ai cho các mô hình miễn phí và trả phí</string>
     <string name="ai_provider_openai_help">Truy cập https://platform.openai.com/api-keys</string>
@@ -646,7 +646,7 @@
     <string name="ai_api_key">Khoá API</string>
     <string name="ai_provider_perplexity_help">Truy cập https://perplexity.ai/settings/api</string>
     <string name="ai_provider_xai_help">Truy cập https://console.x.ai</string>
-    <string name="ai_provider_deepl_help">Truy cập https://deepl.com/pro-api cho các chìa khoá miễn phí và trả phí</string>
+    <string name="ai_provider_deepl_help">Truy cập https://deepl.com/pro-api cho các keys miễn phí và trả phí</string>
     <string name="ai_provider_mistral_help">Truy cập https://console.mistral.ai/api-keys</string>
     <string name="ai_deepl_formality">Tính trang trọng</string>
     <string name="ai_deepl_formality_default">Mặc định</string>
@@ -809,4 +809,21 @@
     <string name="song_dropdown_more_results">Tiếp tục nhập để thu hẹp kết quả (còn %d)</string>
     <string name="clear_search">Xóa tìm kiếm</string>
     <string name="discord_button_text_variables">Biến số: {song_name}, {artist_name}, {album_name}</string>
+    <string name="system_equalizer_desc">Mở bộ chỉnh âm tích hợp sẵn của Android</string>
+    <string name="eq_wizard">Trình hướng dẫn AutoEQ</string>
+    <string name="eq_download_db">Tải dữ liệu của AutoEQ (17 MB)</string>
+    <string name="eq_downloading">Đang tải xuống…</string>
+    <string name="import_from_file">Nhập từ file</string>
+    <string name="add_profile">Thêm hồ sơ</string>
+    <string name="wizard_select_model">Chọn Model</string>
+    <string name="wizard_select_profiles">Chọn hồ sơ</string>
+    <string name="wizard_search_model_hint">Tìm kiếm model cho tai nghe của bạn</string>
+    <string name="wizard_model_name">Tên Model</string>
+    <string name="wizard_model_placeholder">Ví dụ: Sony WH-1000XM4, Bose QuietComfort 45</string>
+    <string name="wizard_no_models">Không tìm thấy models nào</string>
+    <string name="wizard_multiple_variants">Có nhiều biến thể khác nhau đang khả dụng</string>
+    <string name="wizard_select_eq_profiles">Chọn hồ sơ EQ cho %s</string>
+    <string name="wizard_save_profiles">Lưu hồ sơ</string>
+    <string name="discord_activity_competing">Cạnh tranh</string>
+    <string name="discord_presence">Hiện diện</string>
 </resources>
