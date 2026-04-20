@@ -826,9 +826,18 @@
     <string name="autoplay">Riproduzione automatica</string>
     <string name="autoplay_desc">Riproduci automaticamente il brano successivo al termine di quello corrente</string>
     <string name="system_equalizer_desc">Apri l\'equalizzatore integrato di Android</string>
-    <string name="import_from_file">Importa da un file</string>
-    <string name="add_profile">Aggiungi un profilo</string>
-    <string name="wizard_select_profiles">Seleziona un profilo</string>
+    <string name="import_from_file">Importa da file</string>
+    <string name="add_profile">Aggiungi profilo</string>
+    <string name="wizard_select_profiles">Seleziona Profili</string>
     <string name="wizard_search_model_hint">Cerca il modello delle tue cuffie o auricolari</string>
     <string name="wizard_no_models">Nessun modello trovato</string>
+    <string name="wizard_save_profiles">Salva Profili</string>
+    <string name="wizard_select_eq_profiles">Seleziona i profili EQ per %s</string>
+    <string name="wizard_multiple_variants">Disponibili molteplici varianti</string>
+    <string name="wizard_model_placeholder">ad esempio, Sony WH-1000XM4, Bose QuietComfort 45</string>
+    <string name="wizard_model_name">Nome Modello</string>
+    <string name="wizard_select_model">Seleziona Modello</string>
+    <string name="eq_downloading">Download in corso…</string>
+    <string name="eq_download_db">Scarica il database AutoEQ (17 MB)</string>
+    <string name="eq_wizard">Procedura guidata di equalizzazione automatica</string>
 </resources>
