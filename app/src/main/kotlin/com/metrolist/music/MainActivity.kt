@@ -333,10 +333,11 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onStop() {
-        // CRITICAL FIX: Do NOT unbind service or dispose playerConnection here!
-        // Just disconnect ListenTogetherManager to stop audio routing
-        // This prevents UI recomposition when switching apps
-        listenTogetherManager.setPlayerConnection(null)
+        // Keep the service binding, PlayerConnection and Listen Together wiring alive while
+        // the Activity is backgrounded. The MusicService is a foreground service and keeps
+        // running, so the host must keep reporting playback state to the LT server; detaching
+        // the player listener here used to break LT for any host that wasn't staring at the
+        // app the whole session. Full teardown happens in onDestroy() via safeUnbindService().
         super.onStop()
     }
 
