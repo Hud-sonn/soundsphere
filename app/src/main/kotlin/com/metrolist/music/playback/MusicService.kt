@@ -2505,6 +2505,20 @@ class MusicService :
             (error.cause as? PlaybackException)?.errorCode == PlaybackException.ERROR_CODE_AUDIO_TRACK_WRITE_FAILED ||
             (error.cause as? PlaybackException)?.errorCode == PlaybackException.ERROR_CODE_AUDIO_TRACK_INIT_FAILED
 
+    /**
+     * Checks if the error is an IO_FILE_NOT_FOUND (ENOENT).
+     *
+     * In practice this surfaces when the player cache reports a chunk as cached
+     * but the backing file has been evicted/removed (e.g. LRU eviction racing
+     * with a buffer read, an external cache wipe, or partial corruption).
+     * CacheDataSource then falls back to the upstream DefaultDataSource with a
+     * URI that is just the bare mediaId (no scheme), which is interpreted as a
+     * local file path and fails to open.
+     */
+    private fun isFileNotFoundError(error: PlaybackException): Boolean =
+        error.errorCode == PlaybackException.ERROR_CODE_IO_FILE_NOT_FOUND ||
+            (error.cause as? PlaybackException)?.errorCode == PlaybackException.ERROR_CODE_IO_FILE_NOT_FOUND
+
     override fun onPlayerError(error: PlaybackException) {
         super.onPlayerError(error)
 
@@ -2556,6 +2570,12 @@ class MusicService :
             isExpiredUrlError(error) -> {
                 Timber.tag(TAG).d("Expired URL (403) detected, refreshing stream URL")
                 handleExpiredUrlError(mediaId)
+                return
+            }
+
+            isFileNotFoundError(error) -> {
+                Timber.tag(TAG).d("Cache file missing (ENOENT) detected, refreshing stream")
+                handleFileNotFoundError(mediaId)
                 return
             }
 
@@ -2810,6 +2830,43 @@ class MusicService :
                 player.prepare()
 
                 Timber.tag(TAG).d("Retrying playback for $mediaId after 403 error")
+            }
+    }
+
+    /**
+     * Handles IO_FILE_NOT_FOUND (ENOENT) by purging any cached state for the
+     * media item and forcing the resolver to fetch a fresh stream URL.
+     *
+     * The aggressive cache clear at the top of [onPlayerError] already drops
+     * the player cache entry and the cached stream URL, so re-preparing the
+     * player here causes the resolver to take the "fetch fresh stream" path
+     * instead of attempting another cache read for a file that no longer
+     * exists on disk.
+     */
+    private fun handleFileNotFoundError(mediaId: String?) {
+        if (mediaId == null) {
+            handleFinalFailure()
+            return
+        }
+
+        incrementRetryCount(mediaId)
+
+        retryJob?.cancel()
+        retryJob =
+            scope.launch {
+                delay(RETRY_DELAY_MS)
+
+                val currentPosition = player.currentPosition
+                val currentIndex = player.currentMediaItemIndex
+                if (currentIndex == C.INDEX_UNSET) {
+                    Timber.tag(TAG).w("Invalid media item index during file-not-found recovery")
+                    handleFinalFailure()
+                    return@launch
+                }
+                player.seekTo(currentIndex, currentPosition)
+                player.prepare()
+
+                Timber.tag(TAG).d("Retrying playback for $mediaId after IO_FILE_NOT_FOUND")
             }
     }
 
