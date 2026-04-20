@@ -207,9 +207,14 @@ constructor(
                 .first()
             val enabledProviders = allProviders.filter { it.isEnabled(context) }
 
-            // Fetch from all providers concurrently; callback fires as each one finishes
+            // Separate LyricsPlus from other providers so it only runs conditionally
+            val otherProviders = enabledProviders.filter { it.name != "LyricsPlus" }
+            val lyricsPlusProvider = enabledProviders.find { it.name == "LyricsPlus" }
+
             val callbackMutex = Mutex()
-            val jobs = enabledProviders.map { provider ->
+
+            // Step 1: Fetch from all non-LyricsPlus providers concurrently
+            val otherJobs = otherProviders.map { provider ->
                 launch {
                     try {
                         provider.getAllLyrics(context, mediaId, cleanedTitle, songArtists, duration, album) { lyrics ->
@@ -230,7 +235,31 @@ constructor(
                     }
                 }
             }
-            jobs.forEach { it.join() }
+            otherJobs.forEach { it.join() }
+
+            // Step 2: Only fetch from LyricsPlus if other providers combined returned <= 2 lyrics texts
+            val otherLyricsCount = allResult.count { it.providerName != "LyricsPlus" }
+            if (lyricsPlusProvider != null && otherLyricsCount <= 2) {
+                launch {
+                    try {
+                        lyricsPlusProvider.getAllLyrics(context, mediaId, cleanedTitle, songArtists, duration, album) { lyrics ->
+                            val filteredLyrics = LyricsUtils.filterLyricsCreditLines(lyrics)
+                            val result = LyricsResult(lyricsPlusProvider.name, filteredLyrics)
+                            launch {
+                                callbackMutex.withLock {
+                                    allResult += result
+                                    callback(result)
+                                }
+                            }
+                        }
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (e: Exception) {
+                        reportException(e)
+                    }
+                }.join()
+            }
+
             cache.put(cacheKey, allResult)
         }
 
