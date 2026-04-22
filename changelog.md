@@ -1,3 +1,31 @@
+---v13.4.2
+# MAINTENANCE MODE
+Metrolist is currently in maintenance mode. This means we will only be fixing bugs and making minor improvements. Please do not submit PRs for new features or major changes, as they will not be accepted.
+
+# Major changes
+- Fixed random crashes and some memory leaks (@nyxiereal)
+- Fixed issues with uploading songs to YouTube (@kairosci)
+- Fixed playback for uploaded songs (@punkscience)
+
+## Notable new features
+- EQ screen redesign and guided AutoEQ profile import (@ndellagrotte)
+- Automatically create database backups before updates (@nyxiereal)
+
+## Other improvements
+- Improved support for Android Auto (@cmeka)
+- Brought back the copy lyrics button for experimental lyrics (@nyxiereal)
+- Fixed the re-sync button for experimental lyrics (@nyxiereal)
+- Fixed listen together not working (@nyxiereal)
+- Added back support for choosing an account upon login (@nyxiereal)
+- Implemented concurrent fetching, fix lyrics fetch ordering, and optimize LyricsPlus server selection (@ibratabian17)
+- Corrected the play-next shuffle order (@johannesbrauer)
+- Improved the Android Auto icon (@ThatOneCalculator)
+
+## New Contributors
+- @ndellagrotte made their first contribution in https://github.com/MetrolistGroup/Metrolist/pull/3487
+- @cmeka made their first contribution in https://github.com/MetrolistGroup/Metrolist/pull/3534
+- @punkscience made their first contribution in https://github.com/MetrolistGroup/Metrolist/pull/3517
+
 ---v13.4.1
 # MAINTENANCE MODE
 Metrolist is currently in maintenance mode. This means we will only be fixing bugs and making minor improvements. Please do not submit PRs for new features or major changes, as they will not be accepted.
