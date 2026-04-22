@@ -13,6 +13,7 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.SpringSpec
 import androidx.compose.animation.core.VectorConverter
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.DraggableState
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
@@ -137,7 +138,9 @@ fun BottomSheet(
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null,
                         onClick = { if (isExpandable) state.expandSoft() },
-                    ).fillMaxWidth()
+                    )
+                    .focusable(false)
+                    .fillMaxWidth()
                     .height(state.collapsedBound),
                 content = collapsedContent,
             )

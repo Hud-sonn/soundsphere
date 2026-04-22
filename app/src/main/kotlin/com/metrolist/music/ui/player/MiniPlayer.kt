@@ -21,6 +21,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -142,6 +144,7 @@ fun MiniPlayer(
     positionState: MutableLongState,
     durationState: MutableLongState,
     modifier: Modifier = Modifier,
+    onClick: () -> Unit = {},
 ) {
     val useNewMiniPlayerDesign by rememberPreference(UseNewMiniPlayerDesignKey, true)
 
@@ -152,12 +155,14 @@ fun MiniPlayer(
         NewMiniPlayer(
             progressState = progressState,
             modifier = modifier,
+            onClick = onClick,
         )
     } else {
         Box(modifier = modifier.fillMaxWidth()) {
             LegacyMiniPlayer(
                 progressState = progressState,
                 modifier = Modifier.align(Alignment.Center),
+                onClick = onClick,
             )
         }
     }
@@ -171,6 +176,7 @@ fun MiniPlayer(
 private fun NewMiniPlayer(
     progressState: ProgressState,
     modifier: Modifier = Modifier,
+    onClick: () -> Unit = {},
 ) {
     val playerConnection = LocalPlayerConnection.current ?: return
     val menuState = LocalMenuState.current
@@ -367,6 +373,7 @@ private fun NewMiniPlayer(
                     }
                 },
     ) {
+        val interactionSource = remember { MutableInteractionSource() }
         Box(
             modifier =
                 Modifier
@@ -375,7 +382,12 @@ private fun NewMiniPlayer(
                     .offset { IntOffset(offsetXAnimatable.value.roundToInt(), 0) }
                     .clip(RoundedCornerShape(32.dp))
                     .background(color = backgroundColor)
-                    .border(1.dp, outlineColor.copy(alpha = 0.3f), RoundedCornerShape(32.dp)),
+                    .border(1.dp, outlineColor.copy(alpha = 0.3f), RoundedCornerShape(32.dp))
+                    .clickable(
+                        interactionSource = interactionSource,
+                        indication = LocalIndication.current,
+                        onClick = onClick
+                    ),
         ) {
             when (miniPlayerBackground) {
                 MiniPlayerBackgroundStyle.BLUR -> {
@@ -691,6 +703,7 @@ private fun NewMiniPlayerSongInfo(
 private fun LegacyMiniPlayer(
     progressState: ProgressState,
     modifier: Modifier = Modifier,
+    onClick: () -> Unit = {},
 ) {
     val playerConnection = LocalPlayerConnection.current ?: return
     val pureBlack by rememberPreference(PureBlackMiniPlayerKey, defaultValue = false)
@@ -746,6 +759,8 @@ private fun LegacyMiniPlayer(
     val primaryColor = MaterialTheme.colorScheme.primary
     val trackColor = MaterialTheme.colorScheme.surfaceVariant
 
+    val interactionSource = remember { MutableInteractionSource() }
+
     Box(
         modifier =
             modifier
@@ -759,6 +774,10 @@ private fun LegacyMiniPlayer(
                     } else {
                         MaterialTheme.colorScheme.surfaceContainer
                     },
+                ).clickable(
+                    interactionSource = interactionSource,
+                    indication = LocalIndication.current,
+                    onClick = onClick
                 ).let { baseModifier ->
                     if (swipeThumbnail) {
                         baseModifier.pointerInput(Unit) {

@@ -109,6 +109,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
@@ -343,6 +345,19 @@ fun BottomSheetPlayer(
     val castPosition by castHandler?.castPosition?.collectAsStateWithLifecycle() ?: remember { mutableLongStateOf(0L) }
     val castDuration by castHandler?.castDuration?.collectAsStateWithLifecycle() ?: remember { mutableLongStateOf(0L) }
     val castIsPlaying by castHandler?.castIsPlaying?.collectAsStateWithLifecycle() ?: remember { mutableStateOf(false) }
+
+    val focusRequester = remember { FocusRequester() }
+
+    LaunchedEffect(state.isExpanded) {
+        if (state.isExpanded) {
+            delay(100)
+            try {
+                focusRequester.requestFocus()
+            } catch (e: Exception) {
+                // Ignore if focus request fails
+            }
+        }
+    }
 
     // Use Cast state when casting, otherwise local player
     val effectiveIsPlaying = if (isCasting) castIsPlaying else isPlaying
@@ -881,6 +896,7 @@ fun BottomSheetPlayer(
             MiniPlayer(
                 positionState = positionState,
                 durationState = durationState,
+                onClick = { state.expandSoft() },
             )
         },
     ) {
@@ -1590,7 +1606,8 @@ fun BottomSheetPlayer(
                                 modifier =
                                     Modifier
                                         .height(68.dp)
-                                        .weight(playPauseWeight),
+                                        .weight(playPauseWeight)
+                                        .focusRequester(focusRequester),
                             ) {
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
@@ -1719,7 +1736,8 @@ fun BottomSheetPlayer(
                                             } else {
                                                 playerConnection.player.togglePlayPause()
                                             }
-                                        },
+                                        }
+                                        .focusRequester(focusRequester),
                             ) {
                                 Image(
                                     painter =
