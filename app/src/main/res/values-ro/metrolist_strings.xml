@@ -346,7 +346,7 @@
     <string name="listen_together_logs">Jurnale de conectare</string>
     <string name="listen_together_no_logs">Niciun jurnal încă</string>
     <string name="listen_together_description">Ascultă muzică cu prietenii tăi în timp real. Creează o cameră pentru a găzdui sau alătură-te unei camere existente cu un cod</string>
-    <string name="listen_together_background_disconnect_note">NOTĂ: S-ar putea să poți fi deconectat dacă creezi o cameră în timp ce nu se redă muzică și treci la o altă aplicație</string>
+    <string name="listen_together_background_disconnect_note">NOTĂ: Atunci când ești conectat, dar nu ești într-o cameră, funcția Ascultă împreună te va devonecta după 30 de minute în fundal pentru a economisi baterie</string>
     <string name="listen_together_not_configured">Funcția Ascultă împreună nu este configurată. Te rugăm să setezi adresa URL a serverului în: Ascultă împreună &gt; Setări &gt; URL-ul serverului</string>
     <string name="listen_together_suggestion_received">%1$s a sugerat %2$s</string>
     <string name="listen_together_suggestion_sent">Sugestie trimisă gazdei!</string>
@@ -822,7 +822,22 @@
     <string name="switch_to_list_view">Schimbă la vizualizarea de tip listă</string>
     <string name="switch_to_grid_view">Schimbă la vizualizarea de tip grilă</string>
     <string name="more_options">Mai multe opțiuni</string>
-    <string name="audio_quality_very_high">Foarte înaltă</string>
+    <string name="audio_quality_very_high">Cea mai înaltă posibilă</string>
     <string name="autoplay">Redare automată</string>
     <string name="autoplay_desc">Redă automat următoarea melodie atunci când cea curentă se termină</string>
+    <string name="system_equalizer_desc">Deschide egalizatorul încorporat din Android</string>
+    <string name="eq_wizard">Expert de configurare AutoEQ</string>
+    <string name="eq_download_db">Descarcă baza de date AutoEQ (17 MB)</string>
+    <string name="eq_downloading">Se descarcă…</string>
+    <string name="import_from_file">Importă din fișier</string>
+    <string name="add_profile">Adaugă profil</string>
+    <string name="wizard_select_model">Selectează modelul</string>
+    <string name="wizard_select_profiles">Selectează profilurile</string>
+    <string name="wizard_search_model_hint">Caută-ți modelul căștilor tale</string>
+    <string name="wizard_model_name">Numele modelului</string>
+    <string name="wizard_model_placeholder">de ex. Sony WH-1000XM4, Bose QuietComfort 45</string>
+    <string name="wizard_no_models">Niciun model găsit</string>
+    <string name="wizard_multiple_variants">Variante multiple disponibile</string>
+    <string name="wizard_select_eq_profiles">Selectează profilurile pentru egalizator pentru %s</string>
+    <string name="wizard_save_profiles">Salvează profilurile</string>
 </resources>

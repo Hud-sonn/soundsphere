@@ -132,7 +132,7 @@
     <string name="edit_playlist_cover">Playlist-Cover bearbeiten</string>
     <string name="edit_playlist_cover_note">HINWEIS: Ihr Konto muss mit einer Telefonnummer verknüpft und bei YouTube Music verifiziert sein, um das Cover der Wiedergabeliste ändern zu können</string>
     <string name="edit_playlist_cover_note_wait">Nachdem Sie ein Bild ausgewählt haben, warten Sie bitte einen Moment, bis das neue Cover in Ihrer Wiedergabeliste angezeigt wird</string>
-    <string name="choose_from_library">Von Bibliothek auswählen</string>
+    <string name="choose_from_library">Von Mediathek auswählen</string>
     <string name="remove_custom_image">Benutzerdefiniertes Bild entfernen</string>
     <string name="config_proxy">Proxy konfigurieren</string>
     <string name="proxy_username">Proxy-Benutzername</string>
@@ -203,7 +203,7 @@
     <string name="start_radio_desc">Ein Radio basierend auf diesem Song erstellen</string>
     <string name="play_next_desc">Als nächstes abspielen</string>
     <string name="add_to_queue_desc">Zum Ende Ihrer Warteschlange hinzufügen</string>
-    <string name="add_to_library_desc">In Ihrer Bibliothek speichern</string>
+    <string name="add_to_library_desc">In Ihrer Mediathek speichern</string>
     <string name="download_desc">Herunterladen für die Offline-Wiedergabe</string>
     <string name="add_to_playlist_desc">Zur Wiedergabeliste hinzufügen</string>
     <string name="refetch_desc">Metadaten von YouTube Music aktualisieren</string>
@@ -354,7 +354,7 @@
     <string name="listen_together_sync_volume">Lautstärke des Hosts synchronisieren</string>
     <string name="listen_together_sync_volume_desc">Die Gäste passen ihre Lautstärke der des Gastgebers an.</string>
     <string name="listen_together_description">Hör gemeinsam mit deinen Freunden in Echtzeit Musik. Erstelle einen Raum, um Gastgeber zu sein, oder tritt einem bestehenden Raum mit einem Code bei</string>
-    <string name="listen_together_background_disconnect_note">Hinweis: Die Verbindung kann unterbrochen werden, wenn du einen Raum erstellst, während keine Musik abgespielt wird, und dann zu einer anderen App wechselst.</string>
+    <string name="listen_together_background_disconnect_note">Hinweis: Wenn Sie verbunden sind, aber nicht in einem Raum, wird Listen Together nach 30 Minuten im Hintergrund getrennt, um den Akku zu schonen.</string>
     <string name="listen_together_not_configured">„Gemeinsam hören“ ist nicht eingerichtet. Bitte konfigurieren Sie die Server-URL unter: Gemeinsam hören &gt; Einstellungen &gt; Server-URL</string>
     <string name="listen_together_suggestion_received">%1$s hat %2$s vorgeschlagen</string>
     <string name="listen_together_suggestion_sent">Vorschlag an den Host gesendet!</string>
@@ -601,8 +601,8 @@
     <string name="listen_together_auto_approval_suggestions_desc">Lied-Vorschläge von Gästen automatisch akzeptieren und der Warteschlange hinzufügen</string>
     <string name="importing_playlist">Playlist importieren…</string>
     <string name="discord_activity_playing">Aktuell spielt</string>
-    <string name="logout_dialog_title">Bibliothek behalten?</string>
-    <string name="logout_dialog_message">Willst du deine Playlisten und Bibliothek-Daten behalten? Heruntergeladene Lieder werden immer behalten.</string>
+    <string name="logout_dialog_title">Mediathek behalten?</string>
+    <string name="logout_dialog_message">Willst du deine Playlisten und Mediathek-Daten behalten? Heruntergeladene Lieder werden immer behalten.</string>
     <string name="logout_keep">Behalten</string>
     <string name="logout_clear">Löschen</string>
     <string name="credits_lead_developer">Hauptentwickler</string>
@@ -632,7 +632,7 @@
     <string name="episodes_for_later">Folgen zum später anschauen</string>
     <string name="save_episode_for_later">Für später speichern</string>
     <string name="save_episode_for_later_desc">Zur Wiedergabeliste „Episoden zum späteren Ansehen“ hinzufügen</string>
-    <string name="subscribe_to_podcast">Podcast zur Bibliothek hinzufügen</string>
+    <string name="subscribe_to_podcast">Podcast zur Mediathek hinzufügen</string>
     <plurals name="n_episode">
         <item quantity="one">%d Episode</item>
         <item quantity="other">%d Episoden</item>
@@ -708,8 +708,8 @@
     <string name="deleting">Löschen…</string>
     <string name="discord_activity_watching">Ansehen</string>
     <string name="discord_activity_competing">Wettbewerb</string>
-    <string name="weekly_most_playlist_name">Wöchentliche Top-Playliste</string>
-    <string name="monthly_most_playlist_name">Monatliche Top-Playlists</string>
+    <string name="weekly_most_playlist_name">Wöchentliche Top-Playlist</string>
+    <string name="monthly_most_playlist_name">Monatliche Top-Playlist</string>
     <string name="enable_song_cache">Aktiviere Song cache</string>
     <string name="enable_song_cache_desc">Cache Songs automatisch für schnellere Wiedergabe in der Zukunft</string>
     <string name="sleep_timer_stop_after_current_song_title">Am Ende des derzeitigen Songs stoppen</string>
@@ -815,4 +815,22 @@
     <string name="switch_to_grid_view">Zur Rasteransicht wechseln</string>
     <string name="more_options">Weitere Optionen</string>
     <string name="varispeed">Variable Geschwindigkeit aktivieren</string>
+    <string name="audio_quality_very_high">Höchstmöglich</string>
+    <string name="autoplay_desc">Spiele den nächsten Song automatisch ab, wenn der aktuelle endet</string>
+    <string name="system_equalizer_desc">Öffnen Sie den integrierten Equalizer von Android</string>
+    <string name="eq_wizard">AutoEQ-Assistent</string>
+    <string name="eq_download_db">AutoEQ-Datenbank herunterladen (17 MB)</string>
+    <string name="eq_downloading">Herunterladen…</string>
+    <string name="import_from_file">Importieren aus Datei</string>
+    <string name="add_profile">Profil hinzufügen</string>
+    <string name="wizard_select_model">Modell auswählen</string>
+    <string name="wizard_select_profiles">Profile auswählen</string>
+    <string name="wizard_search_model_hint">Suche nach Ihrem Kopfhörer oder Kopfhörer-Modell</string>
+    <string name="wizard_model_name">Modellname</string>
+    <string name="wizard_model_placeholder">z.B. Sony WH-1000XM4, Bose QuietComfort 45</string>
+    <string name="wizard_no_models">Keine Modelle gefunden</string>
+    <string name="wizard_multiple_variants">Mehrere Varianten verfügbar</string>
+    <string name="wizard_select_eq_profiles">Wählen Sie EQ-Profile für %s</string>
+    <string name="wizard_save_profiles">Profile speichern</string>
+    <string name="autoplay">Automatische Wiedergabe</string>
 </resources>

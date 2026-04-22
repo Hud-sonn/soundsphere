@@ -346,7 +346,7 @@
     <string name="listen_together_logs">Log di connessione</string>
     <string name="listen_together_no_logs">Non ci sono ancora log</string>
     <string name="listen_together_description">Ascolta la musica con i tuoi amici in tempo reale. Crea una stanza da ospitare o unisciti ad una stanza esistente con un codice</string>
-    <string name="listen_together_background_disconnect_note">NOTA: potresti disconnetterti se crei una stanza mentre non è in riproduzione alcuna musica e poi passi ad un\'altra app</string>
+    <string name="listen_together_background_disconnect_note">NOTA: quando sei connesso ma non sei in una stanza, Ascolta Insieme si disconnette dopo 30 minuti in background per risparmiare batteria</string>
     <string name="listen_together_not_configured">Ascolta Insieme non è configurato. Configura l\'URL del server in: Ascolta Insieme &gt; Impostazioni &gt; URL del server</string>
     <string name="listen_together_suggestion_received">%1$s suggerito %2$s</string>
     <string name="listen_together_suggestion_sent">Il suggerimento è stato inviato all\'ospitante!</string>
@@ -495,7 +495,7 @@
     <string name="continue_action">Continua</string>
     <string name="enable">Attiva</string>
     <string name="crossfade">Dissolvenza incrociata</string>
-    <string name="crossfade_desc">Il brano in riproduzione si attenua gradualmente mentre quello successivo inizia gradualmente</string>
+    <string name="crossfade_desc">Dissolve la canzone corrente mentre quella successiva si dissolve in apertura</string>
     <string name="crossfade_duration">Durata della dissolvenza incrociata</string>
     <string name="crossfade_gapless">Disabilita per album senza interruzioni</string>
     <string name="crossfade_gapless_desc">Salta la dissolvenza incrociata per gli album da riprodurre senza interruzioni</string>
@@ -822,7 +822,22 @@
     <string name="switch_to_list_view">Passa alla visualizzazione elenco</string>
     <string name="switch_to_grid_view">Passa alla visualizzazione griglia</string>
     <string name="more_options">Più opzioni</string>
-    <string name="audio_quality_very_high">La più alta possibile</string>
+    <string name="audio_quality_very_high">Il più alto possibile</string>
     <string name="autoplay">Riproduzione automatica</string>
-    <string name="autoplay_desc">Riproduci automaticamente il prossimo brano quando l\'attuale finisce</string>
+    <string name="autoplay_desc">Riproduci automaticamente il brano successivo al termine di quello corrente</string>
+    <string name="system_equalizer_desc">Apri l\'equalizzatore integrato di Android</string>
+    <string name="import_from_file">Importa da file</string>
+    <string name="add_profile">Aggiungi profilo</string>
+    <string name="wizard_select_profiles">Seleziona Profili</string>
+    <string name="wizard_search_model_hint">Cerca il modello delle tue cuffie o auricolari</string>
+    <string name="wizard_no_models">Nessun modello trovato</string>
+    <string name="wizard_save_profiles">Salva Profili</string>
+    <string name="wizard_select_eq_profiles">Seleziona i profili EQ per %s</string>
+    <string name="wizard_multiple_variants">Disponibili molteplici varianti</string>
+    <string name="wizard_model_placeholder">ad esempio, Sony WH-1000XM4, Bose QuietComfort 45</string>
+    <string name="wizard_model_name">Nome Modello</string>
+    <string name="wizard_select_model">Seleziona Modello</string>
+    <string name="eq_downloading">Download in corso…</string>
+    <string name="eq_download_db">Scarica il database AutoEQ (17 MB)</string>
+    <string name="eq_wizard">Procedura guidata di equalizzazione automatica</string>
 </resources>

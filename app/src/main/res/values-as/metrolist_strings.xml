@@ -36,4 +36,13 @@
     <string name="about_artist">বিষয়</string>
     <string name="show_more">অধিক দেখুৱাওক</string>
     <string name="show_less">কম দেখুৱাওক</string>
+    <string name="weekly_most_playlist_name">সাপ্তাহিক সৰ্বাধিক</string>
+    <string name="monthly_most_playlist_name">মাহেকীয়া সৰ্বাধিক</string>
+    <string name="enable">সক্ষম কৰা</string>
+    <string name="artist_page_settings">শিল্পী পৃষ্ঠা</string>
+    <string name="show_artist_description">শিল্পীৰ বিৱৰণ দেখুৱাওক</string>
+    <string name="show_artist_subscriber_count">গ্ৰাহকৰ সংখ্যা দেখুৱাওক</string>
+    <string name="show_artist_monthly_listeners">মাহেকীয়া শ্ৰোতাক দেখুৱাওক</string>
+    <string name="download_playlist_desc">অফলাইন প্লেবেকৰ বাবে সকলো গীত ডাউনলোড কৰক</string>
+    <string name="remove_download_playlist_desc">Remove all downloaded songs from this playlist</string>
 </resources>

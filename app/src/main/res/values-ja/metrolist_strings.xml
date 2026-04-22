@@ -811,4 +811,19 @@
     <string name="audio_quality_very_high">最高音質</string>
     <string name="autoplay">自動再生</string>
     <string name="autoplay_desc">曲の再生が終了すると、次の曲を自動で再生します</string>
+    <string name="system_equalizer_desc">Androidのビルトインイコライザを開く</string>
+    <string name="eq_download_db">AutoEQデータベースをダウンロードする (17MB)</string>
+    <string name="eq_downloading">ダウンロード中…</string>
+    <string name="import_from_file">ファイルからインポートする</string>
+    <string name="add_profile">プロファイルを追加</string>
+    <string name="wizard_select_model">モデルを選択</string>
+    <string name="wizard_select_profiles">プロファイルを選択</string>
+    <string name="wizard_search_model_hint">ヘッドホン・イヤホンのモデルを検索</string>
+    <string name="wizard_model_name">モデル名</string>
+    <string name="wizard_model_placeholder">例: Sony WH-1000XM4、Bose QuietComfort 45</string>
+    <string name="wizard_no_models">モデルが見つかりませんでした</string>
+    <string name="wizard_multiple_variants">複数の種類があります</string>
+    <string name="wizard_select_eq_profiles">%sのEQプロファイルを選択</string>
+    <string name="wizard_save_profiles">プロファイルを保存</string>
+    <string name="eq_wizard">AutoEQウィザード</string>
 </resources>
