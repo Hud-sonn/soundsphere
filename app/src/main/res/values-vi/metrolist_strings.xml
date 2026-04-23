@@ -109,7 +109,7 @@
     <string name="disable">Vô hiệu hóa</string>
     <string name="subscribe">Đăng ký</string>
     <string name="subscribed">Đã đăng ký</string>
-    <string name="now_playing">Đang Phát</string>
+    <string name="now_playing">Đang phát</string>
     <string name="close">Đóng</string>
     <string name="seek_forward_dynamic">+%1$d giây tiến</string>
     <string name="seek_backward_dynamic">-%1$d giây lùi</string>
