@@ -346,7 +346,7 @@
     <string name="listen_together_logs">Jurnale de conectare</string>
     <string name="listen_together_no_logs">Niciun jurnal încă</string>
     <string name="listen_together_description">Ascultă muzică cu prietenii tăi în timp real. Creează o cameră pentru a găzdui sau alătură-te unei camere existente cu un cod</string>
-    <string name="listen_together_background_disconnect_note">NOTĂ: Atunci când ești conectat, dar nu ești într-o cameră, funcția Ascultă împreună te va devonecta după 30 de minute în fundal pentru a economisi baterie</string>
+    <string name="listen_together_background_disconnect_note">NOTĂ: Atunci când ești conectat, dar nu ești într-o cameră, funcția Ascultă împreună te va deconecta după 30 de minute în fundal pentru a economisi baterie</string>
     <string name="listen_together_not_configured">Funcția Ascultă împreună nu este configurată. Te rugăm să setezi adresa URL a serverului în: Ascultă împreună &gt; Setări &gt; URL-ul serverului</string>
     <string name="listen_together_suggestion_received">%1$s a sugerat %2$s</string>
     <string name="listen_together_suggestion_sent">Sugestie trimisă gazdei!</string>
