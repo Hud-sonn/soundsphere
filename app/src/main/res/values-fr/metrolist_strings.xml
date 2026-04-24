@@ -692,7 +692,7 @@
     <string name="sleep_timer_saturday">Samedi</string>
     <string name="sleep_timer_sunday">Dimanche</string>
     <string name="upload_songs">Télécharger des titres</string>
-    <string name="uploading">Téléchargement en cours…</string>
+    <string name="uploading">Envoi en cours…</string>
     <string name="upload_progress">%1$d de %2$d</string>
     <string name="upload_complete">Téléchargement terminé</string>
     <string name="upload_failed">Échec du téléchargement</string>
