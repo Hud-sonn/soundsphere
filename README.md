@@ -141,18 +141,8 @@
     </td>
   </tr>
   <tr>
-    <th align="center" colspan="2">GitHub</th>
-  </tr>
-  <tr>
-    <td align="center" colspan="2">
-      <a href="https://github.com/MetrolistGroup/Metrolist/releases/latest/download/Metrolist.apk">
-        <img src="https://github.com/machiav3lli/oandbackupx/blob/034b226cea5c1b30eb4f6a6f313e4dadcbb0ece4/badge_github.png" alt="Download from GitHub" height="75">
-      </a>
-    </td>
-  </tr>
-  <tr>
     <th align="center">OpenAPK</th>
-    <th align="center">Belberi</th>
+    <th align="center">GitHub</th>
   </tr>
   <tr>
     <td align="center">
@@ -161,8 +151,8 @@
       </a>
     </td>
     <td align="center">
-      <a href="https://belberi.com/metrolist/">
-        <img src="https://github.com/MetrolistGroup/Metrolist/blob/main/fastlane/metadata/android/en-US/images/belberi_github.png" alt="Download from Belberi" height="75">
+      <a href="https://github.com/MetrolistGroup/Metrolist/releases/latest/download/Metrolist.apk">
+        <img src="https://github.com/machiav3lli/oandbackupx/blob/034b226cea5c1b30eb4f6a6f313e4dadcbb0ece4/badge_github.png" alt="Download from GitHub" height="75">
       </a>
     </td>
   </tr>
