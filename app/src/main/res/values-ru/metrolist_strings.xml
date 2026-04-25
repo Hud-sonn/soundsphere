@@ -530,7 +530,7 @@
     <string name="ai_provider_gemini_help">Откройте https://aistudio.google.com/apikey</string>
     <string name="ai_provider_perplexity_help">Откройте https://perplexity.ai/settings/api</string>
     <string name="ai_provider_xai_help">Откройте https://console.x.ai</string>
-    <string name="ai_provider_deepl_help">Откройте https://deepl.com/pro-api, чтобы получить бесплатные или платные ключи</string>
+    <string name="ai_provider_deepl_help">Откройте https://deepl.com/pro-api для получения бесплатных или платных ключей</string>
     <string name="ai_deepl_formality">Степень формальности</string>
     <string name="ai_deepl_formality_default">По умолчанию</string>
     <string name="ai_deepl_formality_more">Более формально</string>
