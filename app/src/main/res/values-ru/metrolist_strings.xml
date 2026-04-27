@@ -847,4 +847,9 @@
     <string name="wizard_multiple_variants">Доступно несколько вариантов</string>
     <string name="wizard_select_eq_profiles">Выберите профили эквалайзера для %s</string>
     <string name="wizard_save_profiles">Сохранить профили</string>
+    <string name="loudness_level">Уровень громкости</string>
+    <string name="loudness_level_aggressive">Агрессивный (-7 дБ)</string>
+    <string name="loudness_level_loud">Громкий (-11 дБ)</string>
+    <string name="loudness_level_balanced">Сбалансированный (-14 дБ)</string>
+    <string name="loudness_level_quiet">Тихий (-19 дБ)</string>
 </resources>
