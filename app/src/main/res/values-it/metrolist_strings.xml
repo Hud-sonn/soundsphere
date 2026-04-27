@@ -840,4 +840,9 @@
     <string name="eq_downloading">Download in corso…</string>
     <string name="eq_download_db">Scarica il database AutoEQ (17 MB)</string>
     <string name="eq_wizard">Procedura guidata di equalizzazione automatica</string>
+    <string name="loudness_level_aggressive">Aggressivo (-7 dB)</string>
+    <string name="loudness_level_balanced">Bilanciato (-14 dB)</string>
+    <string name="loudness_level_quiet">Silenzioso (-19 dB)</string>
+    <string name="loudness_level_loud">Ad alto volume (-11 dB)</string>
+    <string name="loudness_level">Livello di volume</string>
 </resources>
