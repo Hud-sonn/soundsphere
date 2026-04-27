@@ -6,7 +6,6 @@
 package com.metrolist.music.ui.screens.settings
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.height
@@ -53,6 +52,8 @@ import com.metrolist.music.constants.DisableLoadMoreWhenRepeatAllKey
 import com.metrolist.music.constants.EnableGoogleCastKey
 import com.metrolist.music.constants.HistoryDuration
 import com.metrolist.music.constants.KeepScreenOn
+import com.metrolist.music.constants.LoudnessLevel
+import com.metrolist.music.constants.LoudnessLevelKey
 import com.metrolist.music.constants.PauseOnMute
 import com.metrolist.music.constants.PersistentQueueKey
 import com.metrolist.music.constants.PersistentShuffleAcrossQueuesKey
@@ -86,6 +87,7 @@ import com.metrolist.music.ui.component.decodeDayTimes
 import com.metrolist.music.ui.component.encodeDayTimes
 import com.metrolist.music.constants.SleepTimerFadeOutKey
 import com.metrolist.music.constants.SleepTimerStopAfterCurrentSongKey
+import com.metrolist.music.ui.utils.getLoudnessLevelLabel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -123,6 +125,11 @@ fun PlayerSettings(
     val (audioNormalization, onAudioNormalizationChange) = rememberPreference(
         AudioNormalizationKey,
         defaultValue = true
+    )
+
+    val (loudnessLevel, onLoudnessLevelChange) = rememberEnumPreference(
+        LoudnessLevelKey,
+        defaultValue = LoudnessLevel.BALANCED,
     )
 
     val (audioOffload, onAudioOffloadChange) = rememberPreference(
@@ -210,6 +217,10 @@ fun PlayerSettings(
         mutableStateOf(false)
     }
 
+    var showLoudnessLevelDialog by remember {
+        mutableStateOf(false)
+    }
+
     if (showAudioQualityDialog) {
         EnumDialog(
             onDismiss = { showAudioQualityDialog = false },
@@ -228,6 +239,20 @@ fun PlayerSettings(
                     AudioQuality.VERY_HIGH -> stringResource(R.string.audio_quality_very_high)
                 }
             }
+        )
+    }
+
+    if (showLoudnessLevelDialog) {
+        EnumDialog(
+            onDismiss = { showLoudnessLevelDialog = false },
+            onSelect = {
+                onLoudnessLevelChange(it)
+                showLoudnessLevelDialog = false
+            },
+            title = stringResource(R.string.loudness_level),
+            current = loudnessLevel,
+            values = LoudnessLevel.values().toList(),
+            valueText = { getLoudnessLevelLabel(it) }
         )
     }
 
@@ -438,6 +463,16 @@ fun PlayerSettings(
                     },
                     onClick = { onAudioNormalizationChange(!audioNormalization) }
                 ))
+                if (audioNormalization) {
+                    add(Material3SettingsItem(
+                        icon = painterResource(R.drawable.volume_up),
+                        title = { Text(stringResource(R.string.loudness_level)) },
+                        description = {
+                            Text(getLoudnessLevelLabel(loudnessLevel))
+                        },
+                        onClick = { showLoudnessLevelDialog = true }
+                    ))
+                }
                 add(Material3SettingsItem(
                     icon = painterResource(R.drawable.graphic_eq),
                     title = { Text(stringResource(R.string.audio_offload)) },

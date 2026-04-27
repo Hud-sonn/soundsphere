@@ -43,12 +43,26 @@ import com.metrolist.innertube.models.MediaInfo
 import com.metrolist.music.LocalDatabase
 import com.metrolist.music.LocalPlayerConnection
 import com.metrolist.music.R
+import com.metrolist.music.constants.LoudnessLevel
+import com.metrolist.music.constants.LoudnessLevelKey
 import com.metrolist.music.db.entities.FormatEntity
 import com.metrolist.music.db.entities.Song
 import com.metrolist.music.ui.component.Material3SettingsGroup
 import com.metrolist.music.ui.component.Material3SettingsItem
 import com.metrolist.music.ui.component.shimmer.ShimmerHost
 import com.metrolist.music.ui.component.shimmer.TextPlaceholder
+import com.metrolist.music.utils.rememberEnumPreference
+import androidx.compose.ui.platform.LocalLocale
+
+@Composable
+fun getLoudnessLevelLabel(loudnessLevel: LoudnessLevel): String {
+    return when (loudnessLevel) {
+        LoudnessLevel.AGGRESSIVE -> stringResource(R.string.loudness_level_aggressive)
+        LoudnessLevel.LOUD -> stringResource(R.string.loudness_level_loud)
+        LoudnessLevel.BALANCED -> stringResource(R.string.loudness_level_balanced)
+        LoudnessLevel.QUIET -> stringResource(R.string.loudness_level_quiet)
+    }
+}
 
 @Composable
 fun ShowMediaInfo(videoId: String) {
@@ -67,6 +81,13 @@ fun ShowMediaInfo(videoId: String) {
 
     val playerConnection = LocalPlayerConnection.current
     val context = LocalContext.current
+
+    val loudnessLevel by rememberEnumPreference(
+        LoudnessLevelKey,
+        defaultValue = LoudnessLevel.BALANCED
+    )
+
+    val targetLufs: Float = loudnessLevel.targetLufs
 
     LaunchedEffect(Unit, videoId) {
         info = YouTube.getMediaInfo(videoId).getOrNull()
@@ -119,9 +140,12 @@ fun ShowMediaInfo(videoId: String) {
                         R.drawable.gradient,
                         R.drawable.contrast,
                         R.drawable.volume_up,
+                        R.drawable.volume_up,
                         R.drawable.volume_mute,
                         R.drawable.content_copy
                     )
+
+                    val measuredLufs: Double? = currentFormat?.perceptualLoudnessDb ?: currentFormat?.loudnessDb?.let { it + LoudnessLevel.AGGRESSIVE.targetLufs }
 
                     val extendedList = if (currentFormat != null) {
                         listOf(
@@ -133,7 +157,10 @@ fun ShowMediaInfo(videoId: String) {
                             stringResource(R.string.codecs) to currentFormat?.codecs,
                             stringResource(R.string.bitrate) to currentFormat?.bitrate?.let { "${it / 1000} Kbps" },
                             stringResource(R.string.sample_rate) to currentFormat?.sampleRate?.let { "$it Hz" },
-                            stringResource(R.string.loudness) to currentFormat?.loudnessDb?.let { "$it dB" },
+                            stringResource(R.string.loudness) to measuredLufs?.let {
+                                String.format(LocalLocale.current.platformLocale, "%.2f dB", it - targetLufs)
+                            },
+                            stringResource(R.string.loudness_level) to getLoudnessLevelLabel(loudnessLevel),
                             stringResource(R.string.volume) to if (playerConnection != null) "${(playerConnection.player.volume * 100).toInt()}%" else null,
                             stringResource(R.string.file_size) to
                                     currentFormat?.contentLength?.let {
