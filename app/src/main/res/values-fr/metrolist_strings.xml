@@ -840,4 +840,9 @@
     <string name="wizard_multiple_variants">Plusieurs variantes disponibles</string>
     <string name="wizard_select_eq_profiles">Sélectionnez les profils d\'égalisation pour %s</string>
     <string name="wizard_save_profiles">Enregistrer les profils</string>
+    <string name="loudness_level">Niveau sonore</string>
+    <string name="loudness_level_aggressive">Agressif (-7 dB)</string>
+    <string name="loudness_level_loud">Fort (-11 dB)</string>
+    <string name="loudness_level_balanced">Équilibré (-14 dB)</string>
+    <string name="loudness_level_quiet">Silencieux (-19 dB)</string>
 </resources>
