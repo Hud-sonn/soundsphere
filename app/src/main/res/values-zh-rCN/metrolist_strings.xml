@@ -826,4 +826,9 @@
     <string name="wizard_multiple_variants">有多个变体版本可供选择</string>
     <string name="wizard_select_eq_profiles">为 %s 选择均衡器配置文件</string>
     <string name="wizard_save_profiles">保存配置文件</string>
+    <string name="loudness_level">响度级别</string>
+    <string name="loudness_level_aggressive">强劲（-7 分贝）</string>
+    <string name="loudness_level_loud">响亮（-11 分贝）</string>
+    <string name="loudness_level_balanced">均衡（-14 分贝）</string>
+    <string name="loudness_level_quiet">轻柔（-19 分贝）</string>
 </resources>
