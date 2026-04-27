@@ -37,14 +37,11 @@ jobs:
           cache-encryption-key: ${{ secrets.GRADLE_CACHE_KEY }}
           cache-cleanup: on-success
 
-      - name: Setup and Generate Protobuf
-        uses: ./.github/actions/setup-protobuf
-
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
       - name: Build Release APK (No Lint)
-        run: ./gradlew --console=plain assembleFossRelease --warning-mode summary -x lint -x lintFossRelease
+        run: ./gradlew --no-configuration-cache --console=plain assembleFossRelease --warning-mode summary -x lint -x lintFossRelease
         env:
           METROLIST_APPLICATION_ID: com.metrolist.music.test
           METROLIST_APP_NAME: Metrolist Testing

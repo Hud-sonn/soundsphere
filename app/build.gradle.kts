@@ -1,4 +1,7 @@
+import org.gradle.api.tasks.Exec
+import org.gradle.api.tasks.Copy
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.net.URL
 import java.util.Properties
 
 val localProperties = Properties()
@@ -184,6 +187,80 @@ android {
             excludes += "META-INF/INDEX.LIST"
             excludes += "META-INF/io.netty.versions.properties"
         }
+    }
+}
+
+val protocVersion = libs.versions.protobuf.get()
+
+fun getProtocUrl(): String {
+    val os = System.getProperty("os.name").lowercase()
+    val arch = System.getProperty("os.arch").lowercase()
+
+    val osName = when {
+        os.contains("linux") -> "linux"
+        os.contains("mac") || os.contains("darwin") -> "osx"
+        os.contains("windows") -> "windows"
+        else -> "linux"
+    }
+
+    val archName = when {
+        arch.contains("x86_64") || arch.contains("amd64") -> "x86_64"
+        arch.contains("aarch64") || arch.contains("arm64") -> "aarch_64"
+        arch.contains("x86") -> "x86_32"
+        else -> "x86_64"
+    }
+
+    return "https://repo1.maven.org/maven2/com/google/protobuf/protoc/$protocVersion/protoc-$protocVersion-$osName-$archName.exe"
+}
+
+val generateProto by tasks.registering(Exec::class) {
+    group = "build"
+    description = "Generate Kotlin protobuf files"
+
+    val protoDir = rootProject.file("metroproto")
+    val outDir = file("src/main/java")
+    val protoFile = protoDir.resolve("listentogether.proto")
+
+    if (!protoFile.exists()) {
+        logger.warn("Proto file not found at $protoFile. Skipping protobuf generation.")
+        enabled = false
+        return@registering
+    }
+
+    outDir.mkdirs()
+
+    val protocUrl = getProtocUrl()
+    val protocFile = file("${layout.buildDirectory.get().asFile}/protoc-$protocVersion")
+
+    doFirst {
+        logger.lifecycle("Downloading protoc $protocVersion from $protocUrl")
+        protocFile.parentFile.mkdirs()
+        if (!protocFile.exists() || protocFile.length() == 0L) {
+            protocFile.writeBytes(URL(protocUrl).readBytes())
+            protocFile.setExecutable(true)
+        }
+    }
+
+    executable = protocFile.absolutePath
+    args(
+        "--java_out=lite:$outDir",
+        "--kotlin_out=$outDir",
+        "-I=$protoDir",
+        protoFile
+    )
+
+    doFirst {
+        logger.lifecycle("Generating protobuf files in $outDir")
+    }
+
+    doLast {
+        logger.lifecycle("Protobuf files generated successfully")
+    }
+}
+
+tasks.configureEach {
+    if (name.startsWith("compile") || name.startsWith("assemble")) {
+        dependsOn(generateProto)
     }
 }
 
