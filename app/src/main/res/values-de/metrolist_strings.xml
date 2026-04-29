@@ -833,4 +833,9 @@
     <string name="wizard_select_eq_profiles">Wählen Sie EQ-Profile für %s</string>
     <string name="wizard_save_profiles">Profile speichern</string>
     <string name="autoplay">Automatische Wiedergabe</string>
+    <string name="loudness_level">Lautstärkepegel</string>
+    <string name="loudness_level_aggressive">Aggressiv (-7 dB)</string>
+    <string name="loudness_level_loud">Laut (-11 dB)</string>
+    <string name="loudness_level_balanced">Ausgewogen (-14 dB)</string>
+    <string name="loudness_level_quiet">Leise (-19 dB)</string>
 </resources>
