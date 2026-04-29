@@ -826,4 +826,9 @@
     <string name="wizard_save_profiles">Lưu hồ sơ</string>
     <string name="discord_activity_competing">Cạnh tranh</string>
     <string name="discord_presence">Hiện diện</string>
+    <string name="loudness_level">Mức âm lượng</string>
+    <string name="loudness_level_aggressive">Mạnh (-7 dB)</string>
+    <string name="loudness_level_loud">Lớn (-11 dB)</string>
+    <string name="loudness_level_balanced">Cân bằng (-14 dB)</string>
+    <string name="loudness_level_quiet">Nhỏ (-19 dB)</string>
 </resources>
