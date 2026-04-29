@@ -57,7 +57,7 @@ jobs:
           key: ${{ steps.pr_keystore.outputs.cache-primary-key }}
 
       - name: Build and Lint FOSS Debug APK
-        run: ./gradlew --no-configuration-cache --console=plain assembleFossDebug :app:lintFossDebug --warning-mode summary
+        run: ./gradlew --console=plain assembleFossDebug :app:lintFossDebug --warning-mode summary
         env:
           GITHUB_EVENT_NAME: ${{ github.event_name }}
           METROLIST_APPLICATION_ID: com.metrolist.music.pr.p${{ github.event.number }}

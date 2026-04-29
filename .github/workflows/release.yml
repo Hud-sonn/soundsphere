@@ -104,7 +104,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build and Lint Release APK
-        run: ./gradlew --no-configuration-cache --console=plain clean assemble${{ matrix.variantName }}Release :app:lint${{ matrix.variantName }}Release --warning-mode summary
+        run: ./gradlew --console=plain clean assemble${{ matrix.variantName }}Release :app:lint${{ matrix.variantName }}Release --warning-mode summary
         env:
           METROLIST_APPLICATION_ID: com.metrolist.music
           METROLIST_APP_NAME: Metrolist

@@ -41,7 +41,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build Release APK (No Lint)
-        run: ./gradlew --no-configuration-cache --console=plain assembleFossRelease --warning-mode summary -x lint -x lintFossRelease
+        run: ./gradlew --console=plain assembleFossRelease --warning-mode summary -x lint -x lintFossRelease
         env:
           METROLIST_APPLICATION_ID: com.metrolist.music.test
           METROLIST_APP_NAME: Metrolist Testing
