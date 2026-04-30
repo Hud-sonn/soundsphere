@@ -840,4 +840,9 @@
     <string name="wizard_multiple_variants">Várias variantes disponíveis</string>
     <string name="wizard_select_eq_profiles">Selecionar perfil de EQ para %s</string>
     <string name="wizard_save_profiles">Salvar Perfis</string>
+    <string name="loudness_level">Nível de intensidade sonora</string>
+    <string name="loudness_level_aggressive">Agressivo (-7dB)</string>
+    <string name="loudness_level_loud">Alto (-11 dB)</string>
+    <string name="loudness_level_balanced">Balanceado (-14 dB)</string>
+    <string name="loudness_level_quiet">Quieto (-19 dB)</string>
 </resources>
