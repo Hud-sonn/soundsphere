@@ -1986,7 +1986,7 @@ fun HomeScreen(
                             accountPlaylists?.takeIf { it.isNotEmpty() }?.let { accountPlaylists ->
                                 item(key = "account_playlists_title") {
                                     NavigationTitle(
-                                        label = stringResource(R.string.your_youtube_playlists),
+                                        label = stringResource(R.string.mixes),
                                         title = accountName,
                                         thumbnail = {
                                             if (url != null) {

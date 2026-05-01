@@ -297,7 +297,7 @@ fun AndroidAutoSettings(
 
         // YouTube playlists
         Material3SettingsGroup(
-            title = stringResource(R.string.your_youtube_playlists),
+            title = stringResource(R.string.mixes),
             items = listOf(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.queue_music),
