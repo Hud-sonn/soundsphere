@@ -12,8 +12,10 @@ import io.ktor.client.request.parameter
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
+import timber.log.Timber
 
 object BetterLyrics {
+    private const val TAG = "BetterLyrics"
     private val client by lazy {
         HttpClient(CIO) {
             install(ContentNegotiation) {
@@ -49,6 +51,7 @@ object BetterLyrics {
         duration: Int = -1,
         album: String? = null,
     ): String? = runCatching {
+        Timber.tag(TAG).d("Fetching TTML for: $title by $artist (dur=$duration, album=$album)")
         val response = client.get("/getLyrics") {
             parameter("s", title)
             parameter("a", artist)
@@ -60,11 +63,16 @@ object BetterLyrics {
             }
         }
         if (response.status == HttpStatusCode.OK) {
-            response.body<TTMLResponse>().ttml?.trim()?.takeIf { it.isNotEmpty() }
+            val ttml = response.body<TTMLResponse>().ttml?.trim()?.takeIf { it.isNotEmpty() }
+            ttml
         } else {
+            Timber.tag(TAG).w("API returned status: ${response.status}")
             null
         }
-    }.getOrNull()
+    }.getOrElse { e ->
+        Timber.tag(TAG).e(e, "Exception during fetchTTML")
+        null
+    }
 
     suspend fun getLyrics(
         title: String,
@@ -84,18 +92,5 @@ object BetterLyrics {
         }
         
         TTMLParser.toLRC(parsedLines)
-    }
-
-    suspend fun getAllLyrics(
-        title: String,
-        artist: String,
-        duration: Int,
-        album: String? = null,
-        callback: (String) -> Unit,
-    ) {
-        getLyrics(title, artist, duration, album)
-            .onSuccess { lrcString ->
-                callback(lrcString)
-            }
     }
 }

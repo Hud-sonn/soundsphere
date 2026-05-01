@@ -160,29 +160,48 @@ object Paxsenix {
             throw IllegalStateException("No tracks found on Paxsenix")
         }
 
-        // Match getAllLyrics: prefer word-level sync, but still return line-synced or plain Paxsenix
-        // lyrics so LyricsHelper does not skip Paxsenix and fall through to lower-priority providers.
-        var plainOrLineSyncFallback: String? = null
+        var bestLyrics: String? = null
+        var bestQuality = 0
+
         for ((result, score) in allResults.take(10)) {
             Timber.d("Trying: ${result.displayName} (ID: ${result.id}, dur: ${result.duration}, score: $score)")
-            val (lrc, hasWordTimings) = fetchLyricsForTrackWithType(result.id)
+            val lrc = fetchLyricsForTrack(result.id).getOrNull() ?: continue
             if (lrc.isEmpty()) continue
-            Timber.d("Got lyrics, hasWordTimings=$hasWordTimings")
-            if (hasWordTimings) {
-                return Result.success(lrc)
+            
+            val quality = getQuality(lrc)
+            Timber.d("Got lyrics, quality=$quality")
+            
+            if (quality > bestQuality) {
+                bestQuality = quality
+                bestLyrics = lrc
             }
-            if (plainOrLineSyncFallback == null) {
-                plainOrLineSyncFallback = lrc
-            }
+            
+            if (bestQuality == 3) break // Word-synced is best we can get
         }
-        plainOrLineSyncFallback?.let {
-            Timber.d("Using Paxsenix lyrics without word-level sync (respects provider order)")
+
+        bestLyrics?.let {
+            Timber.d("Using Paxsenix lyrics with quality $bestQuality (respects provider order)")
             return Result.success(it)
         }
+        
         Timber.w("No lyrics content from Paxsenix for matched tracks")
         return Result.failure(IllegalStateException("No lyrics available from Paxsenix"))
     }
     
+    private fun getQuality(lrc: String): Int {
+        if (lrc.isBlank()) return 0
+        val hasWordTimings = (lrc.contains("<") && lrc.contains(">") && (lrc.contains("|") || lrc.contains(":"))) ||
+                lrc.contains(Regex("<\\d{1,2}:\\d{2}\\.\\d{2,3}>"))
+        
+        if (hasWordTimings) return 3
+        
+        val hasLineTimings = lrc.contains(Regex("\\[\\d\\d:\\d\\d\\.\\d{2,3}\\]")) ||
+                lrc.contains(Regex("^\\[bg:.*\\]", RegexOption.MULTILINE))
+        
+        if (hasLineTimings) return 2
+        return 1
+    }
+
     private fun scoreAndFilterResults(
         results: List<SearchResult>,
         title: String,
@@ -243,19 +262,9 @@ object Paxsenix {
                 }
             }
             
-            Timber.v("  Score for '${resultTitle}': $score (dur=${result.duration}, targetDur=$durationMs)")
+            Timber.v("  Score for '${resultTitle}': $score")
             result to score
         }.sortedByDescending { it.second }.filter { it.second > 0 }.take(10)
-    }
-
-    private suspend fun fetchLyricsForTrackWithType(id: String): Pair<String, Boolean> {
-        val result = fetchLyricsForTrack(id)
-        if (result.isSuccess) {
-            val lrc = result.getOrNull()!!
-            val hasWordTimings = lrc.contains("<") && lrc.contains(">")
-            return lrc to hasWordTimings
-        }
-        return "" to false
     }
 
     private suspend fun fetchLyricsForTrack(id: String): Result<String> = runCatching {
@@ -372,24 +381,21 @@ object Paxsenix {
             }
         }
 
-        for ((result, _) in scoredResults.take(3)) {
+        val collectedLyrics = mutableListOf<Pair<String, Int>>()
+
+        for ((result, _) in scoredResults.take(5)) {
             Timber.d("Trying lyrics for: ${result.displayName}")
-            val (lrc, hasWordTimings) = fetchLyricsForTrackWithType(result.id)
+            val lrc = fetchLyricsForTrack(result.id).getOrNull() ?: continue
             if (lrc.isNotEmpty()) {
-                if (hasWordTimings) {
-                    callback(lrc)
-                    return
-                } else if (plainFallback == null) {
-                    Timber.d("Storing plain lyrics as fallback from: ${result.displayName}")
-                    plainFallback = lrc
-                }
+                val quality = getQuality(lrc)
+                collectedLyrics.add(lrc to quality)
+                if (quality == 3) break // Found best quality, stop searching
             }
         }
 
-        // No word-by-word found — offer plain lyrics as fallback option, like other providers do
-        plainFallback?.let {
-            Timber.d("Offering plain/non-synced lyrics as fallback")
-            callback(it)
+        // Sort by quality descending and callback
+        collectedLyrics.sortedByDescending { it.second }.forEach { (lrc, _) ->
+            callback(lrc)
         }
     }
     
@@ -404,66 +410,6 @@ object Paxsenix {
         } catch (e: Exception) {
             Timber.e(e, "TTML conversion failed: ${e.message}")
             ""
-        }
-    }
-    
-    data class ManualSearchResult(
-        val id: String,
-        val title: String,
-        val artist: String,
-        val album: String?,
-        val duration: Int?,
-        val hasWordSync: Boolean,
-        val lyrics: String?
-    )
-    
-    /**
-     * Manual search that returns both standard and word-by-word lyrics for user to choose
-     */
-    suspend fun manualSearch(
-        title: String,
-        artist: String,
-        duration: Int,
-        album: String? = null,
-    ): List<ManualSearchResult> {
-        val cleanedTitle = cleanTitle(title)
-        val cleanedArtist = cleanArtist(artist)
-        
-        val searchQuery = if (!album.isNullOrBlank()) {
-            "$cleanedTitle $cleanedArtist $album"
-        } else {
-            "$cleanedTitle $cleanedArtist"
-        }
-        
-        val results = search(searchQuery)
-        
-        if (results.isEmpty()) return emptyList()
-        
-        val scoredResults = scoreAndFilterResults(results, title, artist, duration)
-        
-        return scoredResults.take(5).map { (result, _) ->
-            var hasWordSync = false
-            var lyrics: String? = null
-            
-            try {
-                val (fetchedLyrics, wordSync) = fetchLyricsForTrackWithType(result.id)
-                if (fetchedLyrics.isNotEmpty()) {
-                    lyrics = fetchedLyrics
-                    hasWordSync = wordSync
-                }
-            } catch (e: Exception) {
-                Timber.e(e, "Manual search lyrics fetch failed")
-            }
-            
-            ManualSearchResult(
-                id = result.id,
-                title = result.displayName,
-                artist = result.displayArtist,
-                album = result.albumName,
-                duration = result.duration,
-                hasWordSync = hasWordSync,
-                lyrics = lyrics
-            )
         }
     }
 }

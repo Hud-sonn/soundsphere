@@ -78,9 +78,13 @@ object TTMLParser {
         try {
             val factory = DocumentBuilderFactory.newInstance()
             factory.isNamespaceAware = true
-            factory.setFeature("http://xml.org/sax/features/external-general-entities", false)
-            factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false)
-            factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false)
+            
+            // On Android, some features might not be supported and throw ParserConfigurationException
+            try { factory.setFeature("http://xml.org/sax/features/external-general-entities", false) } catch (e: Exception) {}
+            try { factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false) } catch (e: Exception) {}
+            try { factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false) } catch (e: Exception) {}
+            try { factory.setXIncludeAware(false) } catch (e: Exception) {}
+            try { factory.isExpandEntityReferences = false } catch (e: Exception) {}
             
             val builder = factory.newDocumentBuilder()
             val doc = builder.parse(ttml.byteInputStream())

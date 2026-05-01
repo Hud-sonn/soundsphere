@@ -849,38 +849,6 @@ object LyricsUtils {
         MACEDONIAN
     } */
 
-    fun katakanaToRomaji(katakana: String?): String {
-        if (katakana.isNullOrEmpty()) return ""
-
-        val romajiBuilder = StringBuilder(katakana.length)
-        var i = 0
-        val n = katakana.length
-        while (i < n) {
-            var consumed = false
-            if (i + 1 < n) {
-                val twoCharCandidate = katakana.substring(i, i + 2)
-                val mappedTwoChar = KANA_ROMAJI_MAP[twoCharCandidate]
-                if (mappedTwoChar != null) {
-                    romajiBuilder.append(mappedTwoChar)
-                    i += 2
-                    consumed = true
-                }
-            }
-
-            if (!consumed) {
-                val oneCharCandidate = katakana[i].toString()
-                val mappedOneChar = KANA_ROMAJI_MAP[oneCharCandidate]
-                if (mappedOneChar != null) {
-                    romajiBuilder.append(mappedOneChar)
-                } else {
-                    romajiBuilder.append(oneCharCandidate)
-                }
-                i += 1
-            }
-        }
-        return romajiBuilder.toString().lowercase()
-    }
-
     suspend fun romanizeJapanese(text: String): String = withContext(Dispatchers.Default) {
         val tokens = kuromojiTokenizer.tokenize(text)
         val romanizedTokens = tokens.mapIndexed { index, token ->
@@ -1496,5 +1464,23 @@ object LyricsUtils {
 
     private fun isCyrillicVowel(char: Char): Boolean {
         return "АаЕеЄєИиІіЇїОоУуЮюЯяЫыЭэ".contains(char)
+    }
+
+    fun isWordSynced(lyrics: String): Boolean {
+        return (lyrics.contains("<") && lyrics.contains(">") && (lyrics.contains("|") || lyrics.contains(":"))) ||
+                lyrics.contains(RICH_SYNC_WORD_REGEX)
+    }
+
+    fun isLineSynced(lyrics: String): Boolean {
+        return lyrics.contains(TIME_REGEX) ||
+                lyrics.contains(PAXSENIX_AGENT_LINE_REGEX) ||
+                lyrics.contains(PAXSENIX_BG_LINE_REGEX)
+    }
+
+    fun getLyricsQuality(lyrics: String): Int {
+        if (lyrics.isBlank() || lyrics == "Lyrics not found") return 0
+        if (isWordSynced(lyrics)) return 3
+        if (isLineSynced(lyrics)) return 2
+        return 1
     }
 }
