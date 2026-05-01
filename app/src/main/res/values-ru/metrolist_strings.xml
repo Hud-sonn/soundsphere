@@ -852,4 +852,9 @@
     <string name="loudness_level_loud">Громкий (-11 дБ)</string>
     <string name="loudness_level_balanced">Сбалансированный (-14 дБ)</string>
     <string name="loudness_level_quiet">Тихий (-19 дБ)</string>
+    <string name="mixes">Миксы</string>
+    <string name="show_most_stats_playlists">Еженедельные и ежемесячные выпуски плейлистов</string>
+    <string name="show_most_stats_playlists_desc">Создавать и показывать плейлисты «Самые прослушиваемые» на основе статистики в разделах «Статистика» и «Библиотека»</string>
+    <string name="pin">Закрепить</string>
+    <string name="unpin">Открепить</string>
 </resources>
