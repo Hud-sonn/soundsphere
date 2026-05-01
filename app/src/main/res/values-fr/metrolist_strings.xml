@@ -845,4 +845,9 @@
     <string name="loudness_level_loud">Fort (-11 dB)</string>
     <string name="loudness_level_balanced">Équilibré (-14 dB)</string>
     <string name="loudness_level_quiet">Silencieux (-19 dB)</string>
+    <string name="mixes">Mélanges</string>
+    <string name="show_most_stats_playlists">Afficher les playlists les plus écoutées chaque semaine et chaque mois</string>
+    <string name="show_most_stats_playlists_desc">Créez et affichez les playlists les plus écoutées dans la section « Statistiques » et la « Bibliothèque »</string>
+    <string name="pin">Épingler</string>
+    <string name="unpin">Détacher</string>
 </resources>
