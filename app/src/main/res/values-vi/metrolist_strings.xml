@@ -831,4 +831,9 @@
     <string name="loudness_level_loud">Lớn (-11 dB)</string>
     <string name="loudness_level_balanced">Cân bằng (-14 dB)</string>
     <string name="loudness_level_quiet">Nhỏ (-19 dB)</string>
+    <string name="mixes">Tuyển tập</string>
+    <string name="show_most_stats_playlists">Hiển thị danh sách phát phổ biến theo tuần và tháng</string>
+    <string name="show_most_stats_playlists_desc">Tạo và hiển thị danh sách phát phổ biến nhất trong mục Thống kê và Thư viện</string>
+    <string name="pin">Ghim</string>
+    <string name="unpin">Bỏ ghim</string>
 </resources>
