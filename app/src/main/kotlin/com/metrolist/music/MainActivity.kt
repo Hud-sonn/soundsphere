@@ -610,9 +610,10 @@ class MainActivity : ComponentActivity() {
                     // SimpMusic Removal Migration
                     if (dataStore.data.first()[SimpMusicMigrationDoneKey] != true) {
                         dataStore.edit { settings ->
-                            // Remove SimpMusic from serialized order string and append Paxsenix if missing
                             val currentOrder = settings[LyricsProviderOrderKey] ?: ""
-                            if (currentOrder.contains("SimpMusic") || !currentOrder.contains("Paxsenix")) {
+                            if (currentOrder.contains("SimpMusic")) {
+                                // If the old order only contained SimpMusic, reset to default order
+                                // Otherwise remove SimpMusic and keep the rest
                                 val orderList =
                                     currentOrder
                                         .split(",")
@@ -620,11 +621,11 @@ class MainActivity : ComponentActivity() {
                                         .filter { it.isNotBlank() && it != "SimpMusic" }
                                         .toMutableList()
 
-                                if (!orderList.contains("Paxsenix")) {
-                                    orderList.add("Paxsenix")
+                                if (orderList.isEmpty()) {
+                                    settings[LyricsProviderOrderKey] = ""
+                                } else {
+                                    settings[LyricsProviderOrderKey] = orderList.joinToString(",")
                                 }
-
-                                settings[LyricsProviderOrderKey] = orderList.joinToString(",")
                             }
 
                             // Reset preferred provider if it was SimpMusic

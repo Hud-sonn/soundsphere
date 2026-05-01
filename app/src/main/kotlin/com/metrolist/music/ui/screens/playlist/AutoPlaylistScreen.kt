@@ -6,6 +6,7 @@
 package com.metrolist.music.ui.screens.playlist
 
 import android.net.Uri
+import android.provider.OpenableColumns
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -258,7 +259,19 @@ fun AutoPlaylistScreen(
                             uploadProgress = 0f
 
                             try {
-                                val fileName = uri.lastPathSegment?.substringAfterLast('/') ?: "unknown"
+                                // Get actual display name from content resolver
+                                var fileName = uri.lastPathSegment?.substringAfterLast('/') ?: "unknown"
+                                context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+                                    if (cursor.moveToFirst()) {
+                                        val displayNameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                                        if (displayNameIndex >= 0) {
+                                            val name = cursor.getString(displayNameIndex)
+                                            if (!name.isNullOrBlank()) {
+                                                fileName = name
+                                            }
+                                        }
+                                    }
+                                }
                                 currentFileName = fileName
                                 val extension = fileName.substringAfterLast('.', "").lowercase()
 

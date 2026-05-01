@@ -693,17 +693,20 @@ object YTPlayerUtils {
             Timber.tag(logTag).d("Custom cipher deobfuscation failed")
         }
 
-        // Skip NewPipe for age-restricted content
-        if (skipNewPipe) {
-            Timber.tag(logTag).d("Skipping NewPipe methods for age-restricted content")
-            return null
-        }
-
-        // Try to get URL using NewPipeExtractor signature deobfuscation
+        // Always try NewPipe signature deobfuscation - it doesn't need auth,
+        // it just applies the cipher algorithm from player.js.
+        // This is critical for privately-owned tracks where skipNewPipe is true.
         val deobfuscatedUrl = NewPipeExtractor.getStreamUrl(format, videoId)
         if (deobfuscatedUrl != null) {
             Timber.tag(logTag).d("Stream URL obtained via NewPipe deobfuscation")
             return deobfuscatedUrl
+        }
+
+        // Skip StreamInfo fallback for age-restricted or private content
+        // (StreamInfo fetch may fail without auth for these)
+        if (skipNewPipe) {
+            Timber.tag(logTag).d("Skipping StreamInfo fallback for age-restricted/private content")
+            return null
         }
 
         // Fallback: try to get URL from StreamInfo
