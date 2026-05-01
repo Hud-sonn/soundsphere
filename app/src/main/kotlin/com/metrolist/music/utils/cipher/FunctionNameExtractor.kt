@@ -273,6 +273,13 @@ object FunctionNameExtractor {
                         return NFunctionInfo(name, arrayIdx, isHardcoded = false)
                     }
                     else -> {
+                        // Skip patterns that match but don't expose a usable function name.
+                        // E.g. the `.get("n");if(...){var M=n.match...` April 2026 variant has
+                        // no capturing groups and reading groupValues[1] would throw.
+                        if (pattern.toPattern().matcher("").groupCount() < 1) {
+                            Timber.tag(TAG).d("N-pattern $index matched but has no capture groups; skipping")
+                            continue
+                        }
                         val name = match.groupValues[1]
                         Timber.tag(TAG).d("N-FUNCTION FOUND via pattern $index:")
                         Timber.tag(TAG).d("  name=$name")
