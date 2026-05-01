@@ -15,11 +15,11 @@ import com.metrolist.innertube.models.Artist
 import com.metrolist.music.constants.HideVideoSongsKey
 import com.metrolist.music.constants.LastMonthlyMostPlaylistSyncKey
 import com.metrolist.music.constants.LastWeeklyMostPlaylistSyncKey
+import com.metrolist.music.constants.ShowMostStatsPlaylistsKey
 import com.metrolist.music.constants.StatPeriod
 import com.metrolist.music.constants.statToPeriod
 import com.metrolist.music.db.MusicDatabase
 import com.metrolist.music.db.entities.PlaylistEntity
-import com.metrolist.music.db.entities.PlaylistSongMap
 import com.metrolist.music.ui.screens.OptionStats
 import com.metrolist.music.utils.dataStore
 import com.metrolist.music.utils.reportException
@@ -35,6 +35,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -58,6 +59,10 @@ constructor(
     private val periodicMostPlaylistSyncMutex = Mutex()
     val selectedOption = MutableStateFlow(OptionStats.CONTINUOUS)
     val indexChips = MutableStateFlow(0)
+    private val showMostStatsPlaylists =
+        context.dataStore.data
+            .map { it[ShowMostStatsPlaylistsKey] ?: true }
+            .distinctUntilChanged()
 
     val mostPlayedSongsStats =
         combine(
@@ -219,13 +224,23 @@ constructor(
     }
 
     val weeklyMostPlaylist =
-        database
-            .playlist(PlaylistEntity.WEEKLY_MOST_PLAYLIST_ID)
+        showMostStatsPlaylists.flatMapLatest { isEnabled ->
+            if (isEnabled) {
+                database.playlist(PlaylistEntity.WEEKLY_MOST_PLAYLIST_ID)
+            } else {
+                flowOf(null)
+            }
+        }
             .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     val monthlyMostPlaylist =
-        database
-            .playlist(PlaylistEntity.MONTHLY_MOST_PLAYLIST_ID)
+        showMostStatsPlaylists.flatMapLatest { isEnabled ->
+            if (isEnabled) {
+                database.playlist(PlaylistEntity.MONTHLY_MOST_PLAYLIST_ID)
+            } else {
+                flowOf(null)
+            }
+        }
             .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     val recapPlaylists =
@@ -246,6 +261,12 @@ constructor(
                 val nowEpochMillis = now.toInstant(ZoneOffset.UTC).toEpochMilli()
                 val preferences = context.dataStore.data.first()
                 val hideVideoSongs = preferences[HideVideoSongsKey] ?: false
+                val shouldShowMostStatsPlaylists = preferences[ShowMostStatsPlaylistsKey] ?: true
+
+                if (!shouldShowMostStatsPlaylists) {
+                    clearMostPlaylists()
+                    return@withLock
+                }
 
                 val weeklyPlaylistExists =
                     database.playlist(PlaylistEntity.WEEKLY_MOST_PLAYLIST_ID).first() != null
@@ -295,6 +316,25 @@ constructor(
                     }
                 }
             }
+        }
+    }
+
+    private suspend fun clearMostPlaylists() {
+        database.withTransaction {
+            clearPlaylist(PlaylistEntity.WEEKLY_MOST_PLAYLIST_ID)
+            clearPlaylist(PlaylistEntity.MONTHLY_MOST_PLAYLIST_ID)
+            delete(
+                PlaylistEntity(
+                    id = PlaylistEntity.WEEKLY_MOST_PLAYLIST_ID,
+                    name = "",
+                ),
+            )
+            delete(
+                PlaylistEntity(
+                    id = PlaylistEntity.MONTHLY_MOST_PLAYLIST_ID,
+                    name = "",
+                ),
+            )
         }
     }
 

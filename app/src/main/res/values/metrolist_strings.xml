@@ -150,6 +150,8 @@
     <string name="enable_song_cache">Enable song cache</string>
     <string name="enable_song_cache_desc">Automatically cache songs for faster future playback</string>
     <string name="show_uploaded_playlist">Show Uploaded playlist</string>
+    <string name="show_most_stats_playlists">Show Weekly and Monthly Most playlists</string>
+    <string name="show_most_stats_playlists_desc">Create and show stats-based Most playlists in Stats and Library</string>
     <string name="shuffle_playlist_first">Shuffle playlist or album first</string>
     <string name="shuffle_playlist_first_desc">When shuffling, play all songs from the current playlist or album before moving to similar content</string>
     <string name="prevent_duplicate_tracks_in_queue">Prevent duplicate tracks in queue</string>

@@ -52,6 +52,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.navigation.NavController
+import com.metrolist.music.LocalDatabase
 import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.R
 import com.metrolist.music.constants.AppLanguageKey
@@ -78,6 +79,7 @@ import com.metrolist.music.constants.QuickPicksKey
 import com.metrolist.music.constants.RandomizeHomeOrderKey
 import com.metrolist.music.constants.SYSTEM_DEFAULT
 import com.metrolist.music.constants.ShowArtistDescriptionKey
+import com.metrolist.music.constants.ShowMostStatsPlaylistsKey
 import com.metrolist.music.constants.ShowArtistSubscriberCountKey
 import com.metrolist.music.constants.ShowMonthlyListenersKey
 import com.metrolist.music.constants.ShowWrappedCardKey
@@ -100,6 +102,7 @@ fun ContentSettings(
     navController: NavController
 ) {
     val context = LocalContext.current
+    val database = LocalDatabase.current
     // Used only before Android 13
     val (appLanguage, onAppLanguageChange) = rememberPreference(key = AppLanguageKey, defaultValue = SYSTEM_DEFAULT)
 
@@ -128,10 +131,33 @@ fun ContentSettings(
     val (lengthTop, onLengthTopChange) = rememberPreference(key = TopSize, defaultValue = "50")
     val (quickPicks, onQuickPicksChange) = rememberEnumPreference(key = QuickPicksKey, defaultValue = QuickPicks.QUICK_PICKS)
     val (showWrappedCard, onShowWrappedCardChange) = rememberPreference(key = ShowWrappedCardKey, defaultValue = false)
+    val (showMostStatsPlaylists, onShowMostStatsPlaylistsChange) =
+        rememberPreference(key = ShowMostStatsPlaylistsKey, defaultValue = true)
     val (randomizeHomeOrder, onRandomizeHomeOrderChange) = rememberPreference(
         RandomizeHomeOrderKey,
         defaultValue = true
     )
+
+    LaunchedEffect(showMostStatsPlaylists) {
+        if (!showMostStatsPlaylists) {
+            database.withTransaction {
+                clearPlaylist(com.metrolist.music.db.entities.PlaylistEntity.WEEKLY_MOST_PLAYLIST_ID)
+                clearPlaylist(com.metrolist.music.db.entities.PlaylistEntity.MONTHLY_MOST_PLAYLIST_ID)
+                delete(
+                    com.metrolist.music.db.entities.PlaylistEntity(
+                        id = com.metrolist.music.db.entities.PlaylistEntity.WEEKLY_MOST_PLAYLIST_ID,
+                        name = "",
+                    ),
+                )
+                delete(
+                    com.metrolist.music.db.entities.PlaylistEntity(
+                        id = com.metrolist.music.db.entities.PlaylistEntity.MONTHLY_MOST_PLAYLIST_ID,
+                        name = "",
+                    ),
+                )
+            }
+        }
+    }
 
     val providerDisplayNames =
         mapOf(
@@ -904,6 +930,27 @@ fun ContentSettings(
         Material3SettingsGroup(
             title = "Wrapped",
             items = listOf(
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.stats),
+                    title = { Text(stringResource(R.string.show_most_stats_playlists)) },
+                    description = { Text(stringResource(R.string.show_most_stats_playlists_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = showMostStatsPlaylists,
+                            onCheckedChange = onShowMostStatsPlaylistsChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (showMostStatsPlaylists) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onShowMostStatsPlaylistsChange(!showMostStatsPlaylists) }
+                ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.trending_up),
                     title = { Text(stringResource(R.string.show_wrapped_card)) },
