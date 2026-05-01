@@ -74,6 +74,20 @@ data class MediaMetadata(
             isUploaded = musicVideoType == MUSIC_VIDEO_TYPE_PRIVATELY_OWNED_TRACK,
             uploadEntityId = uploadEntityId
         )
+
+    fun toYTItem() = SongItem(
+        id = id,
+        title = title,
+        artists = artists.map { com.metrolist.innertube.models.Artist(name = it.name, id = it.id) },
+        album = album?.let { com.metrolist.innertube.models.Album(name = it.title, id = it.id) },
+        duration = duration,
+        musicVideoType = musicVideoType,
+        thumbnail = thumbnailUrl ?: "",
+        explicit = explicit,
+        setVideoId = setVideoId,
+        isEpisode = isEpisode,
+        uploadEntityId = uploadEntityId
+    )
 }
 
 /**

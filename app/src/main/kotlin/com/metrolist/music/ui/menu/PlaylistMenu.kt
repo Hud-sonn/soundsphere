@@ -393,7 +393,7 @@ fun PlaylistMenu(
                         ),
                     ),
                 modifier = Modifier.padding(horizontal = 4.dp, vertical = 16.dp),
-                columns = if (isGuest) 1 else 3,
+                columns = if (isGuest) 2 else 3,
             )
         }
 
@@ -498,7 +498,7 @@ fun PlaylistMenu(
                             Material3MenuItemData(
                                 title = {
                                     Text(
-                                        text = if (isPinned) "Unpin from Speed dial" else "Pin to Speed dial",
+                                        text = if (isPinned) stringResource(R.string.unpin_from_speed_dial) else stringResource(R.string.pin_to_speed_dial),
                                     )
                                 },
                                 icon = {
@@ -517,6 +517,7 @@ fun PlaylistMenu(
                                                     id = playlist.id,
                                                     title = playlist.playlist.name,
                                                     subtitle = null,
+                                                    subtitleIds = null,
                                                     thumbnailUrl = playlist.thumbnails.firstOrNull(),
                                                     type = "LOCAL_PLAYLIST",
                                                 ),

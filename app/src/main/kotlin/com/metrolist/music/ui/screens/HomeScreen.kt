@@ -2350,53 +2350,13 @@ fun HomeScreen(
                                                             .width(horizontalLazyGridItemWidth)
                                                             .combinedClickable(
                                                                 onClick = {
-                                                                    when (song) {
-                                                                        is SongItem -> {
-                                                                            if (!isListenTogetherGuest) {
-                                                                                playerConnection.playQueue(
-                                                                                    YouTubeQueue(
-                                                                                        song.endpoint ?: WatchEndpoint(videoId = song.id),
-                                                                                        song.toMediaMetadata(),
-                                                                                    ),
-                                                                                )
-                                                                            }
-                                                                        }
-
-                                                                        // TODO: this will trigger an error in future kotlin releases, make sure it doesnt
-
-                                                                        // is AlbumItem -> {
-                                                                        //    navController.navigate("album/${song.id}")
-                                                                        // }
-
-                                                                        // is ArtistItem -> {
-                                                                        //    navController.navigate("artist/${song.id}")
-                                                                        // }
-
-                                                                        // is PlaylistItem -> {
-                                                                        //    navController.navigate(
-                                                                        //        "online_playlist/${song.id.removePrefix("VL")}",
-                                                                        //    )
-                                                                        // }
-
-                                                                        // is PodcastItem -> {
-                                                                        //    navController.navigate("online_podcast/${song.id}")
-                                                                        // }
-
-                                                                        // is EpisodeItem -> {
-                                                                        //    if (!isListenTogetherGuest) {
-                                                                        //        playerConnection.playQueue(
-                                                                        //            ListQueue(
-                                                                        //                title = song.title,
-                                                                        //                items =
-                                                                        //                    listOf(
-                                                                        //                        (song as EpisodeItem)
-                                                                        //                            .toMediaMetadata()
-                                                                        //                            .toMediaItem(),
-                                                                        //                    ),
-                                                                        //            ),
-                                                                        //        )
-                                                                        //    }
-                                                                        // }
+                                                                    if (!isListenTogetherGuest) {
+                                                                        playerConnection.playQueue(
+                                                                            YouTubeQueue(
+                                                                                song.endpoint ?: WatchEndpoint(videoId = song.id),
+                                                                                song.toMediaMetadata(),
+                                                                            ),
+                                                                        )
                                                                     }
                                                                 },
                                                                 onLongClick = {

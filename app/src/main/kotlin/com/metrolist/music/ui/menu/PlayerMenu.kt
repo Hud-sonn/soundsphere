@@ -91,6 +91,8 @@ import com.metrolist.music.listentogether.ConnectionState
 import com.metrolist.music.listentogether.ListenTogetherEvent
 import com.metrolist.music.models.MediaMetadata
 import com.metrolist.music.playback.ExoDownloadService
+import com.metrolist.music.db.entities.Song
+import com.metrolist.music.db.entities.SpeedDialItem
 import com.metrolist.music.ui.component.BottomSheetState
 import com.metrolist.music.ui.component.ListDialog
 import com.metrolist.music.ui.component.Material3MenuGroup
@@ -141,6 +143,8 @@ fun PlayerMenu(
     val download by LocalDownloadUtil.current
         .getDownload(mediaMetadata.id)
         .collectAsStateWithLifecycle(initialValue = null)
+
+    val isPinned by database.speedDialDao.isPinned(mediaMetadata.id).collectAsStateWithLifecycle(initialValue = false)
 
     val artists =
         remember(mediaMetadata.artists) {
@@ -500,6 +504,32 @@ fun PlayerMenu(
                                 },
                                 onClick = {
                                     playerConnection.toggleLibrary()
+                                    onDismiss()
+                                },
+                            ),
+                        )
+                        add(
+                            Material3MenuItemData(
+                                title = {
+                                    Text(
+                                        text = if (isPinned) stringResource(R.string.unpin_from_speed_dial) else stringResource(R.string.pin_to_speed_dial),
+                                    )
+                                },
+                                icon = {
+                                    Icon(
+                                        painter = painterResource(if (isPinned) R.drawable.remove else R.drawable.add),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(24.dp),
+                                    )
+                                },
+                                onClick = {
+                                    coroutineScope.launch(Dispatchers.IO) {
+                                        if (isPinned) {
+                                            database.speedDialDao.delete(mediaMetadata.id)
+                                        } else {
+                                            database.speedDialDao.insert(SpeedDialItem.fromYTItem(mediaMetadata.toYTItem()))
+                                        }
+                                    }
                                     onDismiss()
                                 },
                             ),

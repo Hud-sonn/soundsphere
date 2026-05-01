@@ -443,7 +443,7 @@ fun AlbumMenu(
                         Material3MenuItemData(
                             title = {
                                 Text(
-                                    text = if (isPinned) "Unpin from Speed dial" else "Pin to Speed dial",
+                                    text = if (isPinned) stringResource(R.string.unpin_from_speed_dial) else stringResource(R.string.pin_to_speed_dial),
                                 )
                             },
                             icon = {
@@ -463,6 +463,7 @@ fun AlbumMenu(
                                                 secondaryId = album.album.playlistId,
                                                 title = album.album.title,
                                                 subtitle = album.artists.joinToString(", ") { it.name },
+                                                subtitleIds = album.artists.joinToString(", ") { it.id },
                                                 thumbnailUrl = album.album.thumbnailUrl,
                                                 type = "ALBUM",
                                                 explicit = album.album.explicit,

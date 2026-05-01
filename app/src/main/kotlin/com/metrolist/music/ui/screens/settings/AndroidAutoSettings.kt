@@ -173,11 +173,10 @@ fun AndroidAutoSettings(
         ) {
             items(sections, key = { (section, _) -> section.id }) { (section, enabled) ->
                 ReorderableItem(reorderableState, key = section.id) {
-                    PreferenceEntry(
-                        modifier = Modifier.fillMaxWidth(),
-                        icon = {
-                            Icon(
-                                painter = painterResource(
+                    Material3SettingsGroup(
+                        items = listOf(
+                            Material3SettingsItem(
+                                icon = painterResource(
                                     when (section) {
                                         AndroidAutoSection.LIKED -> R.drawable.favorite
                                         AndroidAutoSection.SONGS -> R.drawable.music_note
@@ -186,18 +185,15 @@ fun AndroidAutoSettings(
                                         AndroidAutoSection.PLAYLISTS -> R.drawable.queue_music
                                     }
                                 ),
-                                contentDescription = null,
-                            )
-                        },
-                        title = { Text(section.label()) },
-                        trailingContent = {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(
-                                    painter = painterResource(R.drawable.drag_handle),
-                                    contentDescription = null,
-                                    modifier = Modifier
-                                        .size(24.dp)
-                                        .longPressDraggableHandle(
+                                title = { Text(section.label()) },
+                                trailingContent = {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Icon(
+                                            painter = painterResource(R.drawable.drag_handle),
+                                            contentDescription = null,
+                                            modifier = Modifier
+                                                .size(24.dp)
+                                                .longPressDraggableHandle(
                                             onDragStarted = {
                                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                             }
@@ -232,7 +228,9 @@ fun AndroidAutoSettings(
                             onSectionsChange(serializeSections(sections))
                         },
                     )
-                }
+                )
+            )
+        }
             }
         }
 

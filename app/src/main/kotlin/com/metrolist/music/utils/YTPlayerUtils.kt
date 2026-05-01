@@ -484,7 +484,7 @@ object YTPlayerUtils {
             streamUrl,
             streamExpiresInSeconds,
             isPrivatelyOwned = isPrivateTrack || inferredAsPrivate ||
-                streamPlayerResponse?.videoDetails?.musicVideoType == MUSIC_VIDEO_TYPE_PRIVATELY_OWNED_TRACK,
+                streamPlayerResponse.videoDetails?.musicVideoType == MUSIC_VIDEO_TYPE_PRIVATELY_OWNED_TRACK,
         )
     }.onFailure { e ->
         Timber.tag(TAG).e(e, "Playback exception for videoId=$videoId")

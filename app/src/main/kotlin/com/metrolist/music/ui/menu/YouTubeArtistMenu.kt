@@ -118,7 +118,7 @@ fun YouTubeArtistMenu(
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             },
-                            text = if (isPinned) "Unpin" else "Pin",
+                            text = if (isPinned) stringResource(R.string.unpin) else stringResource(R.string.pin),
                             onClick = {
                                 coroutineScope.launch(Dispatchers.IO) {
                                     if (isPinned) {

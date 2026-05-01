@@ -12,6 +12,7 @@ import androidx.lifecycle.viewModelScope
 import com.metrolist.innertube.YouTube
 import com.metrolist.innertube.models.AlbumItem
 import com.metrolist.innertube.models.Artist
+import com.metrolist.innertube.models.ArtistItem
 import com.metrolist.innertube.models.PlaylistItem
 import com.metrolist.innertube.models.SongItem
 import kotlinx.coroutines.flow.combine
@@ -145,6 +146,13 @@ class HomeViewModel @Inject constructor(
                                 year = item.album.year,
                                 thumbnail = item.thumbnailUrl ?: ""
                             )
+                            is com.metrolist.music.db.entities.Artist -> ArtistItem(
+                                id = item.id,
+                                title = item.title,
+                                thumbnail = item.thumbnailUrl,
+                                shuffleEndpoint = null,
+                                radioEndpoint = null
+                            )
                             else -> null
                         }
                     }
@@ -212,6 +220,13 @@ class HomeViewModel @Inject constructor(
                             artists = item.artists.map { Artist(name = it.name, id = it.id) },
                             year = item.album.year,
                             thumbnail = item.thumbnailUrl ?: ""
+                        ))
+                        is com.metrolist.music.db.entities.Artist -> otherSources.add(ArtistItem(
+                            id = item.id,
+                            title = item.title,
+                            thumbnail = item.thumbnailUrl,
+                            shuffleEndpoint = null,
+                            radioEndpoint = null
                         ))
                         else -> {}
                     }
