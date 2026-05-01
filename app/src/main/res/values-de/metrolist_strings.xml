@@ -838,4 +838,6 @@
     <string name="loudness_level_loud">Laut (-11 dB)</string>
     <string name="loudness_level_balanced">Ausgewogen (-14 dB)</string>
     <string name="loudness_level_quiet">Leise (-19 dB)</string>
+    <string name="show_most_stats_playlists">Wöchentliche und monatliche Top-Playlists anzeigen</string>
+    <string name="show_most_stats_playlists_desc">Erstellen und Anzeigen von statistikbasierten „Top“-Playlists in „Statistiken“ und „Bibliothek“</string>
 </resources>
