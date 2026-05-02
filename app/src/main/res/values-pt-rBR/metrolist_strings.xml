@@ -845,4 +845,9 @@
     <string name="loudness_level_loud">Alto (-11 dB)</string>
     <string name="loudness_level_balanced">Balanceado (-14 dB)</string>
     <string name="loudness_level_quiet">Quieto (-19 dB)</string>
+    <string name="mixes">Coletâneas</string>
+    <string name="show_most_stats_playlists">Exibir playlists semanais e mensais</string>
+    <string name="show_most_stats_playlists_desc">Crie e mostre playlists mais populares com base em dados em Estatísticas e Biblioteca</string>
+    <string name="pin">Fixar</string>
+    <string name="unpin">Desfixar</string>
 </resources>
