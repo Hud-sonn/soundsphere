@@ -845,4 +845,9 @@
     <string name="loudness_level_balanced">Echilibrat (-14 dB)</string>
     <string name="loudness_level_quiet">Liniștit (-19 dB)</string>
     <string name="loudness_level">Nivel de intensitate sonoră</string>
+    <string name="pin">Fixează</string>
+    <string name="unpin">Anulează fixarea</string>
+    <string name="mixes">Mixuri</string>
+    <string name="show_most_stats_playlists">Afișează playlisturile Cele mai populare ale săptămânii și Cele mai populare ale lunii</string>
+    <string name="show_most_stats_playlists_desc">Creează și afișează playlisturile bazate pe statistici Cele mai populare în Statistici și Bibliotecă</string>
 </resources>
