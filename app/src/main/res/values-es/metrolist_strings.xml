@@ -840,4 +840,14 @@
     <string name="switch_to_list_view">Cambiar a vista de lista</string>
     <string name="switch_to_grid_view">Cambiar a vista de cuadro</string>
     <string name="more_options">Más opciones</string>
+    <string name="mixes">Mezclas</string>
+    <string name="show_most_stats_playlists">Mostrar listas de reproducción «Lo más escuchado» semanal y mensual</string>
+    <string name="show_most_stats_playlists_desc">Crear y mostrar listas «Lo más escuchado» basadas en estadísticas en las secciones de estadísticas y biblioteca</string>
+    <string name="pin">Anclar</string>
+    <string name="unpin">Desanclar</string>
+    <string name="loudness_level">Nivel de volumen</string>
+    <string name="loudness_level_aggressive">Agresivo (-7 dB)</string>
+    <string name="loudness_level_loud">Alto (-11 dB)</string>
+    <string name="loudness_level_balanced">Equilibrado (-14 dB)</string>
+    <string name="loudness_level_quiet">Bajo (-19 dB)</string>
 </resources>
