@@ -841,13 +841,13 @@
     <string name="eq_download_db">Scarica il database AutoEQ (17 MB)</string>
     <string name="eq_wizard">Procedura guidata di equalizzazione automatica</string>
     <string name="loudness_level_aggressive">Aggressivo (-7 dB)</string>
-    <string name="loudness_level_balanced">Bilanciato (-14 dB)</string>
+    <string name="loudness_level_balanced">Equilibrato (-14 dB)</string>
     <string name="loudness_level_quiet">Silenzioso (-19 dB)</string>
-    <string name="loudness_level_loud">Ad alto volume (-11 dB)</string>
-    <string name="loudness_level">Livello di volume</string>
-    <string name="mixes">Mix</string>
-    <string name="show_most_stats_playlists">Mostra le playlist più ascoltate della settimana e del mese</string>
-    <string name="show_most_stats_playlists_desc">Crea e mostra le playlist \"Più ascoltate\" basate sulle statistiche, nella sezione Statistiche e nella Libreria</string>
+    <string name="loudness_level_loud">Forte (-11 dB)</string>
+    <string name="loudness_level">Intensità Sonora</string>
+    <string name="mixes">Compilation</string>
+    <string name="show_most_stats_playlists">Mostra la maggioranza delle playlist Settimanali e Mensili</string>
+    <string name="show_most_stats_playlists_desc">Crea e mostra le playlist basate maggiormente sulle Statistiche e Libreria</string>
     <string name="pin">Fissa</string>
-    <string name="unpin">Rimuovi fissaggio</string>
+    <string name="unpin">Sblocca</string>
 </resources>
