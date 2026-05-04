@@ -461,7 +461,7 @@
     <string name="ai_error_unknown">Terjadi kesalahan yang tidak diketahui</string>
     <string name="ai_error_translation_failed">Terjemahan gagal</string>
     <string name="play_all">Putar semua</string>
-    <string name="crossfade">Crossfade</string>
+    <string name="crossfade">Transisi silang</string>
     <string name="crossfade_desc">Memudar keluar lagu saat ini seiring lagu berikutnya memudar masuk</string>
     <string name="crossfade_duration">Durasi crossfade</string>
     <string name="crossfade_gapless">Nonaktifkan untuk album tanpa jeda</string>
@@ -831,4 +831,9 @@
     <string name="loudness_level_loud">Keras (-11 dB)</string>
     <string name="loudness_level_balanced">Seimbang (-14 dB)</string>
     <string name="loudness_level_quiet">Hening (-19 dB)</string>
+    <string name="mixes">Mix</string>
+    <string name="show_most_stats_playlists">Tampilkan playlist Terpopuler Mingguan dan Bulanan</string>
+    <string name="show_most_stats_playlists_desc">Buat dan tampilkan playlist berdasarkan statistik Paling Sering Diputar di bagian Statistik dan Pustaka</string>
+    <string name="pin">Pin</string>
+    <string name="unpin">Unpin</string>
 </resources>
