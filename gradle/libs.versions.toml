@@ -33,7 +33,7 @@ timber = "5.0.1"
 materialKolor = "4.1.1"
 kuromojiIpadic = "0.9.0"
 # newpipeextractor = "v0.26.0"
-extractor = "6305155"
+extractor = "3eab168"
 tinypinyin = "2.0.3"
 protobuf = "4.34.1"
 
