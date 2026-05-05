@@ -841,4 +841,6 @@
     <string name="show_most_stats_playlists">Wöchentliche und monatliche Top-Playlists anzeigen</string>
     <string name="show_most_stats_playlists_desc">Erstellen und Anzeigen von statistikbasierten „Top“-Playlists in „Statistiken“ und „Bibliothek“</string>
     <string name="unpin">Abheften</string>
+    <string name="pin">Pin</string>
+    <string name="mixes">Mixe</string>
 </resources>
