@@ -1,6 +1,5 @@
 package com.metrolist.innertube
 
-import android.util.Log
 import com.metrolist.innertube.models.YouTubeClient
 import com.metrolist.innertube.models.response.PlayerResponse
 import io.ktor.http.URLBuilder
@@ -97,89 +96,21 @@ private class NewPipeDownloaderImpl(
         )
     }
 
-    override fun executeAsync(
-        request: Request,
-        callback: AsyncCallback?,
-    ): CancellableCall {
-        val httpRequest =
-            okhttp3.Request
-                .Builder()
-                .method(request.httpMethod(), request.dataToSend()?.toRequestBody())
-                .url(request.url())
-                .addHeader("User-Agent", YouTubeClient.USER_AGENT_WEB)
-                .apply {
-                    request.headers().forEach { (name, values) ->
-                        values.forEach { addHeader(name, it) }
-                    }
-                }.build()
-        val call = client.newCall(httpRequest)
-        call.enqueue(
-            object : okhttp3.Callback {
-                override fun onResponse(
-                    call: okhttp3.Call,
-                    response: okhttp3.Response,
-                ) {
-                    if (response.code == 429) {
-                        response.close()
-                        callback?.onError(ReCaptchaException("reCaptcha Challenge requested", request.url()))
-                        return
-                    }
-                    val latestUrl = response.request.url.toString()
-                    val body = normalizeResponseBody(latestUrl, response.body.string())
-                    val parsedResponse =
-                        Response(
-                            response.code,
-                            response.message,
-                            response.headers.toMultimap(),
-                            body,
-                            body?.toByteArray(),
-                            latestUrl,
-                        )
-                    runCatching {
-                        callback?.onSuccess(parsedResponse)
-                    }.onFailure { error ->
-                        callback?.onError(
-                            if (error is Exception) error else RuntimeException(error),
-                        )
-                    }
-                }
-
-                override fun onFailure(
-                    call: okhttp3.Call,
-                    e: IOException,
-                ) {
-                    callback?.onError(e)
-                }
-            },
-        )
-        return CancellableCall(call)
+    override fun executeAsync(request: Request, callback: AsyncCallback?): CancellableCall {
+        TODO("Placeholder")
     }
 }
 
-/**
- * Wrapper around NewPipe's [YoutubeJavaScriptPlayerManager] for signature/cipher operations.
- * Initialises the NewPipe [Downloader] on first access, routing requests through the
- * configured proxy.
- */
 object NewPipeUtils {
     init {
         NewPipe.init(NewPipeDownloaderImpl(YouTube.proxy, YouTube.proxyAuth))
     }
 
-    /** Returns the signature timestamp needed for InnerTube player requests. */
-    fun getSignatureTimestamp(videoId: String): Result<Int> =
-        runCatching {
-            YoutubeJavaScriptPlayerManager.getSignatureTimestamp(videoId)
-        }
+    fun getSignatureTimestamp(videoId: String): Result<Int> = runCatching {
+        YoutubeJavaScriptPlayerManager.getSignatureTimestamp(videoId)
+    }
 
-    /**
-     * Deobfuscates the signature cipher on [format] and applies throttling parameter
-     * deobfuscation to produce a playable stream URL.
-     */
-    fun getStreamUrl(
-        format: PlayerResponse.StreamingData.Format,
-        videoId: String,
-    ): Result<String> =
+    fun getStreamUrl(format: PlayerResponse.StreamingData.Format, videoId: String): Result<String> =
         runCatching {
             val url =
                 format.url ?: format.signatureCipher?.let { signatureCipher ->
@@ -208,16 +139,7 @@ object NewPipeUtils {
         }
 }
 
-/**
- * Higher-level NewPipe integration that can resolve complete stream lists and perform
- * individual deobfuscation steps. Unlike [NewPipeUtils], methods here return nullable
- * values instead of [Result] and silently swallow exceptions.
- */
 object NewPipeExtractor {
-    /**
-     * Fetches all available stream URLs for [videoId] via NewPipe's [StreamInfo].
-     * Returns a list of (itag, url) pairs, or an empty list on failure.
-     */
     fun newPipePlayer(videoId: String): List<Pair<Int, String>> {
         return try {
             val streamInfo =
@@ -234,40 +156,27 @@ object NewPipeExtractor {
         }
     }
 
-    /** Returns the signature timestamp needed for InnerTube player requests. */
-    fun getSignatureTimestamp(videoId: String): Result<Int> =
-        runCatching {
-            YoutubeJavaScriptPlayerManager.getSignatureTimestamp(videoId)
-        }
+    fun getSignatureTimestamp(videoId: String): Result<Int> = runCatching {
+        YoutubeJavaScriptPlayerManager.getSignatureTimestamp(videoId)
+    }
 
-    /**
-     * Deobfuscates the signature cipher on [format] and applies throttling parameter
-     * deobfuscation. Returns `null` on any failure.
-     */
-    fun getStreamUrl(
-        format: PlayerResponse.StreamingData.Format,
-        videoId: String,
-    ): String? =
-        try {
-            val url =
-                format.url ?: format.signatureCipher?.let { signatureCipher ->
-                    val params = parseQueryString(signatureCipher)
-                    val obfuscatedSignature =
-                        params["s"]
-                            ?: throw ParsingException("Could not parse cipher signature")
-                    val signatureParam =
-                        params["sp"]
-                            ?: throw ParsingException("Could not parse cipher signature parameter")
-                    val url =
-                        params["url"]?.let { URLBuilder(it) }
-                            ?: throw ParsingException("Could not parse cipher url")
-                    url.parameters[signatureParam] =
-                        YoutubeJavaScriptPlayerManager.deobfuscateSignature(
-                            videoId,
-                            obfuscatedSignature,
-                        )
-                    url.toString()
-                } ?: throw ParsingException("Could not find format url")
+    fun getStreamUrl(format: PlayerResponse.StreamingData.Format, videoId: String): String? {
+        return try {
+            val url = format.url ?: format.signatureCipher?.let { signatureCipher ->
+                val params = parseQueryString(signatureCipher)
+                val obfuscatedSignature = params["s"]
+                    ?: throw ParsingException("Could not parse cipher signature")
+                val signatureParam = params["sp"]
+                    ?: throw ParsingException("Could not parse cipher signature parameter")
+                val url = params["url"]?.let { URLBuilder(it) }
+                    ?: throw ParsingException("Could not parse cipher url")
+                url.parameters[signatureParam] =
+                    YoutubeJavaScriptPlayerManager.deobfuscateSignature(
+                        videoId,
+                        obfuscatedSignature
+                    )
+                url.toString()
+            } ?: throw ParsingException("Could not find format url")
 
             YoutubeJavaScriptPlayerManager.getUrlWithThrottlingParameterDeobfuscated(
                 videoId,
@@ -276,20 +185,5 @@ object NewPipeExtractor {
         } catch (e: Exception) {
             null
         }
-
-    /**
-     * Applies only the throttling (n-parameter) deobfuscation to an already-resolved [url].
-     * Useful as a fallback when [CipherDeobfuscator][com.metrolist.music.utils.cipher.CipherDeobfuscator]
-     * fails for privately-owned tracks.
-     */
-    fun getThrottlingDeobfuscatedUrl(
-        videoId: String,
-        url: String,
-    ): String? =
-        try {
-            YoutubeJavaScriptPlayerManager.getUrlWithThrottlingParameterDeobfuscated(videoId, url)
-        } catch (e: Exception) {
-            Log.e("NewPipeExtractor", "getThrottlingDeobfuscatedUrl failed for videoId=$videoId: ${e.message}")
-            null
-        }
+    }
 }

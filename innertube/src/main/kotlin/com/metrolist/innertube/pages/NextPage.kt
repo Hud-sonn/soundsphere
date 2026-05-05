@@ -21,16 +21,8 @@ data class NextResult(
 )
 
 object NextPage {
-    /**
-     * Parses a [PlaylistPanelVideoRenderer] (the "up next" / queue item renderer from YouTube Music)
-     * into a [SongItem]. Returns `null` if required fields (videoId, title) are missing.
-     *
-     * Extracts artist and album info from [PlaylistPanelVideoRenderer.longBylineText],
-     * falling back to [PlaylistPanelVideoRenderer.shortBylineText], and resolves library
-     * add/remove tokens from the renderer's menu items.
-     */
     fun fromPlaylistPanelVideoRenderer(renderer: PlaylistPanelVideoRenderer): SongItem? {
-        val longByLineRuns = (renderer.longBylineText ?: renderer.shortBylineText)?.runs?.splitBySeparator()
+        val longByLineRuns = renderer.longBylineText?.runs?.splitBySeparator() ?: return null
 
         // Extract library tokens using the new method that properly handles multiple toggle items
         val libraryTokens = PageHelper.extractLibraryTokensFromMenuItems(renderer.menu?.menuRenderer?.items)
@@ -43,22 +35,22 @@ object NextPage {
                     ?.firstOrNull()
                     ?.text ?: return null,
             artists =
-                longByLineRuns?.firstOrNull()?.oddElements()?.map {
+                longByLineRuns.firstOrNull()?.oddElements()?.map {
                     Artist(
                         name = it.text,
                         id = it.navigationEndpoint?.browseEndpoint?.browseId,
                     )
-                } ?: emptyList(),
+                } ?: return null,
             album =
                 longByLineRuns
-                    ?.getOrNull(1)
+                    .getOrNull(1)
                     ?.firstOrNull()
-                    ?.let {
-                        val albumId = it.navigationEndpoint?.browseEndpoint?.browseId
-                            ?: return@let null
+                    ?.takeIf {
+                        it.navigationEndpoint?.browseEndpoint != null
+                    }?.let {
                         Album(
                             name = it.text,
-                            id = albumId,
+                            id = it.navigationEndpoint?.browseEndpoint?.browseId!!,
                         )
                     },
             duration =
@@ -66,12 +58,12 @@ object NextPage {
                     ?.runs
                     ?.firstOrNull()
                     ?.text
-                    ?.parseTime(),
+                    ?.parseTime() ?: return null,
             musicVideoType = renderer.navigationEndpoint.musicVideoType,
             thumbnail =
                 renderer.thumbnail.thumbnails
                     .lastOrNull()
-                    ?.url ?: "",
+                    ?.url ?: return null,
             explicit =
                 renderer.badges?.find {
                     it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
