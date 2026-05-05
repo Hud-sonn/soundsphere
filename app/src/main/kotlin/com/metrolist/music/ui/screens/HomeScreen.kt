@@ -155,6 +155,9 @@ import com.metrolist.music.ui.menu.YouTubeArtistMenu
 import com.metrolist.music.ui.menu.YouTubePlaylistMenu
 import com.metrolist.music.ui.menu.YouTubeSongMenu
 import com.metrolist.music.ui.utils.SnapLayoutInfoProvider
+import com.metrolist.music.ui.utils.resize
+import com.metrolist.music.utils.joinByBullet
+import com.metrolist.music.utils.makeTimeString
 import com.metrolist.music.utils.rememberEnumPreference
 import com.metrolist.music.utils.rememberPreference
 import com.metrolist.music.viewmodels.CommunityPlaylistItem
@@ -255,7 +258,7 @@ fun CommunityPlaylistCard(
                                     item.songs
                                         .getOrNull(0)
                                         ?.thumbnail
-                                        ?.replace(Regex("w\\d+-h\\d+"), "w120-h120"),
+                                        ?.resize(200, 200),
                                 contentDescription = null,
                                 contentScale = ContentScale.Crop,
                                 modifier =
@@ -268,7 +271,7 @@ fun CommunityPlaylistCard(
                                     item.songs
                                         .getOrNull(1)
                                         ?.thumbnail
-                                        ?.replace(Regex("w\\d+-h\\d+"), "w120-h120"),
+                                        ?.resize(200, 200),
                                 contentDescription = null,
                                 contentScale = ContentScale.Crop,
                                 modifier =
@@ -283,7 +286,7 @@ fun CommunityPlaylistCard(
                                     item.songs
                                         .getOrNull(2)
                                         ?.thumbnail
-                                        ?.replace(Regex("w\\d+-h\\d+"), "w120-h120"),
+                                        ?.resize(200, 200),
                                 contentDescription = null,
                                 contentScale = ContentScale.Crop,
                                 modifier =
@@ -296,7 +299,7 @@ fun CommunityPlaylistCard(
                                     item.songs
                                         .getOrNull(3)
                                         ?.thumbnail
-                                        ?.replace(Regex("w\\d+-h\\d+"), "w120-h120"),
+                                        ?.resize(200, 200),
                                 contentDescription = null,
                                 contentScale = ContentScale.Crop,
                                 modifier =
@@ -347,7 +350,7 @@ fun CommunityPlaylistCard(
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
                         AsyncImage(
-                            model = song.thumbnail.replace(Regex("w\\d+-h\\d+"), "w120-h120"),
+                            model = song.thumbnail.resize(200, 200),
                             contentDescription = null,
                             modifier =
                                 Modifier
@@ -534,7 +537,7 @@ fun DailyDiscoverCard(
                 model =
                     ImageRequest
                         .Builder(LocalContext.current)
-                        .data(dailyDiscover.recommendation.thumbnail?.replace(Regex("w\\d+-h\\d+"), "w544-h544"))
+                        .data(dailyDiscover.recommendation.thumbnail?.resize(1080, 1080))
                         .crossfade(true)
                         .build(),
                 contentDescription = null,

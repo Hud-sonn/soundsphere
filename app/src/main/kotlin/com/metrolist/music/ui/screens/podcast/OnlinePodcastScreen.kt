@@ -68,7 +68,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
-import com.metrolist.innertube.models.EpisodeItem
+import com.metrolist.music.ui.utils.resize
 import com.metrolist.innertube.models.PodcastItem
 import timber.log.Timber
 import com.metrolist.music.LocalDatabase
@@ -317,7 +317,7 @@ private fun PodcastHeader(
     ) {
         AsyncImage(
             model = ImageRequest.Builder(context)
-                .data(podcast.thumbnail)
+                .data(podcast.thumbnail?.resize(1080, 1080))
                 .build(),
             contentDescription = null,
             contentScale = ContentScale.Crop,

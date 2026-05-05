@@ -371,7 +371,7 @@ fun YouTubePlaylistMenu(
                             modifier = Modifier.size(ListThumbnailSize),
                         ) {
                             AsyncImage(
-                                model = song.thumbnailUrl,
+                                model = song.thumbnailUrl?.resize(200, 200),
                                 contentDescription = null,
                                 modifier =
                                     Modifier

@@ -15,10 +15,16 @@ fun String.resize(
 
     // Support for various Google CDN domains (lh3-6, yt3, etc.)
     val isGoogleCdn = this.contains("googleusercontent.com") || this.contains("ggpht.com")
+    val isYtimg = this.contains("i.ytimg.com")
 
     if (isGoogleCdn) {
         val w = width ?: height!!
         val h = height ?: width!!
+
+        // Handle wNNN-hNNN pattern often used in path segments
+        if (this.contains(Regex("w\\d+-h\\d+"))) {
+            return this.replace(Regex("w\\d+-h\\d+"), "w$w-h$h")
+        }
 
         // Find where parameters start. They usually start with =w, =s, or =h
         val baseUrl = this.split("=w", "=s", "=h", limit = 2)[0]
@@ -33,6 +39,19 @@ fun String.resize(
 
         Timber.d("Resizing image: $this -> $result")
         return result
+    } else if (isYtimg) {
+        val w = width ?: height!!
+        // For ytimg, we can try to get higher quality by replacing the suffix
+        // hqdefault.jpg is 480x360, maxresdefault.jpg is 1280x720
+        return if (w > 480) {
+            this.replace("hqdefault.jpg", "maxresdefault.jpg")
+                .replace("mqdefault.jpg", "maxresdefault.jpg")
+                .replace("sddefault.jpg", "maxresdefault.jpg")
+        } else if (w > 320) {
+            this.replace("mqdefault.jpg", "hqdefault.jpg")
+        } else {
+            this
+        }
     }
 
     return this

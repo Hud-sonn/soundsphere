@@ -210,7 +210,7 @@ fun YouTubeSongMenu(
                     .clip(RoundedCornerShape(ThumbnailCornerRadius))
             ) {
                 AsyncImage(
-                    model = song.thumbnail,
+                    model = song.thumbnail.resize(200, 200),
                     contentDescription = null,
                     modifier = Modifier
                         .fillMaxWidth()
