@@ -181,7 +181,7 @@
     <string name="update_available_title">Đã có cập nhật mới</string>
     <string name="update_channel_name">Cập nhật ứng dụng</string>
     <string name="update_channel_desc">Thông báo về phiên bản mới của ứng dụng</string>
-    <string name="google_cast">Google Cast</string>
+    <string name="google_cast">Google Phát</string>
     <string name="google_cast_description">Truyền âm thanh đến Chromecast và các thiết bị hỗ trợ Cast khác</string>
     <string name="lyrics_romanize_macedonian">Phiên âm chữ Ma-xê-đô-ni-a (Macedonia) sang chữ Latinh</string>
     <string name="integrations">Tích hợp tiện ích</string>
