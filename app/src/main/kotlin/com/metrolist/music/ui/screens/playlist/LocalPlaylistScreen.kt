@@ -444,25 +444,21 @@ fun LocalPlaylistScreen(
     LaunchedEffect(reorderableState.isAnyItemDragging) {
         if (!reorderableState.isAnyItemDragging) {
             dragInfo?.let { (from, to) ->
-                database.transaction {
-                    move(viewModel.playlistId, from, to)
-                }
+                viewModel.viewModelScope.launch(Dispatchers.IO) {
+                    database.withTransaction {
+                        move(viewModel.playlistId, from, to)
+                    }
 
-                // Sync order with YT Music
-                if (viewModel.playlist.value
-                        ?.playlist
-                        ?.browseId != null
-                ) {
-                    viewModel.viewModelScope.launch(Dispatchers.IO) {
+                    // Sync order with YT Music
+                    val browseId = viewModel.playlist.value?.playlist?.browseId
+                    if (browseId != null) {
                         val playlistSongMap = database.playlistSongMaps(viewModel.playlistId, 0)
-                        val successorIndex = if (from > to) to else to + 1
-                        val successorSetVideoId = playlistSongMap.getOrNull(successorIndex)?.setVideoId
+                        val setVideoId = playlistSongMap.getOrNull(to)?.setVideoId
+                        val successorSetVideoId = playlistSongMap.getOrNull(to + 1)?.setVideoId
 
-                        playlistSongMap.getOrNull(from)?.setVideoId?.let { setVideoId ->
+                        if (setVideoId != null) {
                             YouTube.moveSongPlaylist(
-                                viewModel.playlist.value
-                                    ?.playlist
-                                    ?.browseId!!,
+                                browseId,
                                 setVideoId,
                                 successorSetVideoId,
                             )
