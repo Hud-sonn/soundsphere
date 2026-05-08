@@ -582,7 +582,7 @@
     <string name="transparent">Trong suốt</string>
     <string name="mini_player_background_not_available">Không khả dụng khi thiết kế trình phát thu nhỏ (mini-player) mới bị vô hiệu hóa</string>
     <string name="found_in_settings_content">Tìm ở Cài đặt &gt; Nội dung</string>
-    <string name="your_daily_discover">Hôm nay nghe gì?</string>
+    <string name="your_daily_discover">Hôm nay nghe gì</string>
     <string name="casting_to">Đang phát tới %s</string>
     <string name="listening_to_metrolist">Đang nghe Metrolist</string>
     <string name="open">Mở</string>
