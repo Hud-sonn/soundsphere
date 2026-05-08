@@ -812,7 +812,7 @@
     <string name="cd_palette_item">樣式 %1$s</string>
     <string name="recognition_notification_no_match">未找到匹配</string>
     <string name="recently_converted">最近轉換</string>
-    <string name="column_label">列 %d</string>
+    <string name="column_label">行 %d</string>
     <string name="pin_to_speed_dial">固定到快速存取</string>
     <string name="daily_discover_sounds_like">%1$s 相似風格</string>
     <string name="time_transfer_title">時長轉移</string>
@@ -834,5 +834,6 @@
     <string name="loudness_level_loud">響亮（-11 分貝）</string>
     <string name="loudness_level_balanced">平衡（-14 dB）</string>
     <string name="loudness_level_quiet">安靜（-19 分貝）</string>
-    <string name="loudness_level">響度等級</string>
+    <string name="loudness_level">響度級別</string>
+    <string name="mixes">合輯</string>
 </resources>
