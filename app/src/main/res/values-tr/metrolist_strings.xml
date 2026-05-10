@@ -838,4 +838,9 @@
     <string name="loudness_level_loud">Yüksek (-11 dB)</string>
     <string name="loudness_level_balanced">Dengeli (-14 dB)</string>
     <string name="loudness_level_quiet">Sessiz (-19 dB)</string>
+    <string name="mixes">Mixler</string>
+    <string name="show_most_stats_playlists">Haftalık ve Aylık En Çok Dinlelenler</string>
+    <string name="show_most_stats_playlists_desc">En çok dinlenenlere dayalı listeleri İstatistikler ve Kitaplık\'ta oluştur ve göster</string>
+    <string name="pin">Sabitle</string>
+    <string name="unpin">Sabitlemeyi Kaldır</string>
 </resources>
