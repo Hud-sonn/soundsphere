@@ -822,7 +822,7 @@
     <string name="switch_to_list_view">Passa alla visualizzazione elenco</string>
     <string name="switch_to_grid_view">Passa alla visualizzazione griglia</string>
     <string name="more_options">Più opzioni</string>
-    <string name="audio_quality_very_high">Il più alto possibile</string>
+    <string name="audio_quality_very_high">Più alta possibile</string>
     <string name="autoplay">Riproduzione automatica</string>
     <string name="autoplay_desc">Riproduci automaticamente il brano successivo al termine di quello corrente</string>
     <string name="system_equalizer_desc">Apri l\'equalizzatore integrato di Android</string>
