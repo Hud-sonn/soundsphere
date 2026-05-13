@@ -305,7 +305,7 @@
     <string name="show_artist_description">Więcej o artyście</string>
     <string name="show_artist_subscriber_count">Pokaż liczbę obserwujących</string>
     <string name="show_artist_monthly_listeners">Miesięczna liczba słuchaczy</string>
-    <string name="crop_album_art">Przytnij okładkę</string>
+    <string name="crop_album_art">Przytnij okładkę albumu</string>
     <string name="crop_album_art_desc">Wymuś kwadratowe miniatury wideo</string>
     <string name="skip_silence_desc">Pomijaj ciszę w utworach</string>
     <string name="skip_silence_instant">Natychmiast pomijaj ciszę</string>
@@ -813,4 +813,5 @@
     <string name="lyrics_animation_apple">Styl Apple Music</string>
     <string name="enable_paxsenix">Włącz Paxsenix</string>
     <string name="enable_paxsenix_desc">Wysokiej jakości synchronizowane teksty z Paxsenix API</string>
+    <string name="mixes">Miksy</string>
 </resources>
