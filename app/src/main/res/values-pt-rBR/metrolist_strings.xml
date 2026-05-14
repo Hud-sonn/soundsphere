@@ -791,7 +791,7 @@
     <string name="mini_player_background_style">Estilo do plano de fundo do mini reprodutor</string>
     <string name="transparent">Transparente</string>
     <string name="mini_player_background_not_available">Indisponível quando o novo design do mini reprodutor está desativado</string>
-    <string name="your_daily_discover">Sua descuberta diária</string>
+    <string name="your_daily_discover">Sua descoberta diária</string>
     <string name="lyrics_from_provider">Letras de %s</string>
     <string name="hide_status_bar_fullscreen">Ocultar barra de status em tela cheia</string>
     <string name="hide_status_bar_fullscreen_desc">Oculta a barra de status quando o modo letras em tela cheia está ativado</string>
