@@ -847,7 +847,7 @@
     <string name="loudness_level_quiet">Quieto (-19 dB)</string>
     <string name="mixes">Coletâneas</string>
     <string name="show_most_stats_playlists">Exibir playlists semanais e mensais</string>
-    <string name="show_most_stats_playlists_desc">Crie e mostre playlists das música mais tocadas com base em dados em Estatísticas e Biblioteca</string>
+    <string name="show_most_stats_playlists_desc">Criar e mostrar playlists baseadas em estatísticas nas Estatísticas e Biblioteca</string>
     <string name="pin">Fixar</string>
     <string name="unpin">Desfixar</string>
 </resources>
