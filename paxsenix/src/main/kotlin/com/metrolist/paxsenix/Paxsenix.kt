@@ -2,21 +2,27 @@ package com.metrolist.paxsenix
 
 import android.content.Context
 import com.metrolist.music.betterlyrics.TTMLParser
+import com.metrolist.paxsenix.models.AppleMusicSearchResponse
 import com.metrolist.paxsenix.models.LyricsResponse
-import com.metrolist.paxsenix.models.SearchResponse
+
 import com.metrolist.paxsenix.models.SearchResult
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.parameter
+import io.ktor.client.statement.bodyAsText
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.Json
 import timber.log.Timber
+import java.net.URLEncoder
 import java.util.Locale
 import kotlin.math.abs
 
@@ -70,6 +76,16 @@ object Paxsenix {
     private val httpClient: HttpClient
         get() = client ?: throw IllegalStateException("Paxsenix.init() must be called before using Paxsenix")
 
+    private const val APPLE_MUSIC_API_BASE = "https://amp-api.music.apple.com/v1/catalog/us"
+
+    private val appleJson = Json { ignoreUnknownKeys = true }
+    @Volatile
+    private var appleTokenManager: AppleTokenManager? = null
+    private val tokenManager: AppleTokenManager
+        get() = appleTokenManager ?: synchronized(this) {
+            appleTokenManager ?: AppleTokenManager(httpClient).also { appleTokenManager = it }
+        }
+
     private val titleCleanupPatterns = listOf(
         Regex("""\s*\(.*?(official|video|audio|lyrics|lyric|visualizer|hd|hq|4k|remaster|remix|live|acoustic|version|edit|extended|radio|clean|explicit).*?\)""", RegexOption.IGNORE_CASE),
         Regex("""\s*\[.*?(official|video|audio|lyrics|lyric|visualizer|hd|hq|4k|remaster|remix|live|acoustic|version|edit|extended|radio|clean|explicit).*?\]""", RegexOption.IGNORE_CASE),
@@ -105,20 +121,64 @@ object Paxsenix {
     }
 
     private suspend fun search(query: String): List<SearchResult> = runCatching {
-        Timber.d("Searching for: $query")
-        val response = httpClient.get("/apple-music/search") {
-            parameter("q", query)
-        }.body<SearchResponse>()
+        Timber.d("Searching Apple Music for: $query")
         
-        Timber.d("Search results count: ${response.size}")
-        response.forEach { result ->
-            Timber.v("  - ${result.displayName} by ${result.displayArtist} (ID: ${result.id}, Duration: ${result.duration})")
-        }
-        
-        response
+        val token = tokenManager.getToken()
+        return@runCatching searchWithToken(token, query)
     }.getOrElse { e ->
+        if (e is ClientRequestException && e.response.status.value == 401) {
+            tokenManager.clearToken()
+            return@getOrElse runCatching {
+                val newToken = tokenManager.getToken()
+                searchWithToken(newToken, query)
+            }.getOrElse { e2 ->
+                Timber.e(e2, "Search retry error: ${e2.message}")
+                emptyList()
+            }
+        }
         Timber.e(e, "Search error: ${e.message}")
         emptyList()
+    }
+    
+    private suspend fun searchWithToken(token: String, query: String): List<SearchResult> {
+        val encodedQuery = URLEncoder.encode(query, "UTF-8")
+        
+        val response = httpClient.get("$APPLE_MUSIC_API_BASE/search?term=$encodedQuery&types=songs&limit=25&l=en-US&platform=web&format[resources]=map&include[songs]=artists&extend=artistUrl") {
+            header("Authorization", "Bearer $token")
+            header("Origin", "https://music.apple.com")
+            header("Referer", "https://music.apple.com/")
+            header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:95.0) Gecko/20100101 Firefox/95.0")
+            header("Accept", "application/json")
+            header("Accept-Language", "en-US,en;q=0.5")
+            header("x-apple-renewal", "true")
+        }
+        
+        val body = try {
+            appleJson.decodeFromString<AppleMusicSearchResponse>(response.bodyAsText())
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to parse Apple Music search response")
+            return emptyList()
+        }
+        
+        val songs = body.results.songs?.data ?: return emptyList()
+        
+        return songs.mapNotNull { songData ->
+            val detail = body.resources?.songs?.get(songData.id) ?: return@mapNotNull null
+            val attr = detail.attributes
+            SearchResult(
+                id = songData.id,
+                trackName = attr.name,
+                artistName = attr.artistName,
+                albumName = attr.albumName,
+                duration = attr.durationInMillis?.toInt()?.div(1000),
+                artwork = attr.artwork?.url?.replace("{w}", "100")?.replace("{h}", "100")?.replace("{f}", "png")
+            )
+        }.also { results ->
+            Timber.d("Apple Music search results count: ${results.size}")
+            results.forEach { result ->
+                Timber.v("  - ${result.displayName} by ${result.displayArtist} (ID: ${result.id}, Duration: ${result.duration})")
+            }
+        }
     }
 
     suspend fun getLyrics(
@@ -410,6 +470,46 @@ object Paxsenix {
         } catch (e: Exception) {
             Timber.e(e, "TTML conversion failed: ${e.message}")
             ""
+        }
+    }
+
+    private class AppleTokenManager(private val httpClient: HttpClient) {
+        private var cachedToken: String? = null
+        private val mutex = Mutex()
+
+        suspend fun getToken(): String = mutex.withLock {
+            cachedToken?.let { return it }
+
+            try {
+                val mainPageResponse = httpClient.get("https://beta.music.apple.com")
+                val mainPageBody = mainPageResponse.bodyAsText()
+
+                val indexJsRegex = Regex("""/assets/index~[^/]+\.js""")
+                val indexJsMatch = indexJsRegex.find(mainPageBody)
+                    ?: throw Exception("Could not find index JS URL")
+
+                val indexJsUri = indexJsMatch.value
+
+                val indexJsResponse = httpClient.get("https://beta.music.apple.com$indexJsUri")
+                val indexJsBody = indexJsResponse.bodyAsText()
+
+                val tokenRegex = Regex("""eyJh([^"]*)""")
+                val tokenMatch = tokenRegex.find(indexJsBody)
+                    ?: throw Exception("Could not find token")
+
+                val token = tokenMatch.value
+                cachedToken = token
+                Timber.d("Fetched new Apple Music token")
+                return token
+            } catch (e: Exception) {
+                Timber.e(e, "Error fetching Apple Music token")
+                throw Exception("Error fetching Apple Music token: ${e.message}", e)
+            }
+        }
+
+        fun clearToken() {
+            cachedToken = null
+            Timber.d("Cleared cached Apple Music token")
         }
     }
 }
