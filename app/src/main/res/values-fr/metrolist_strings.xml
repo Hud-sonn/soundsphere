@@ -850,4 +850,7 @@
     <string name="show_most_stats_playlists_desc">Créez et affichez les playlists les plus écoutées dans la section « Statistiques » et la « Bibliothèque »</string>
     <string name="pin">Épingler</string>
     <string name="unpin">Détacher</string>
+    <string name="widget_playlists">Playlists</string>
+    <string name="widget_playlists_description">Raccourcis vers les playlists avec commandes du mini-lecteur</string>
+    <string name="choose_something_below">Faites votre choix parmi les options ci-dessous</string>
 </resources>
