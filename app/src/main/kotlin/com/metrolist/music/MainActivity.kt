@@ -195,6 +195,7 @@ import com.metrolist.music.utils.rememberPreference
 import com.metrolist.music.utils.reportException
 import com.metrolist.music.utils.setAppLocale
 import com.metrolist.music.viewmodels.HomeViewModel
+import com.metrolist.music.widget.PlaylistWidgetReceiver
 import com.valentinilk.shimmer.LocalShimmerTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
@@ -218,7 +219,10 @@ class MainActivity : ComponentActivity() {
         private const val ACTION_SEARCH = "com.metrolist.music.action.SEARCH"
         private const val ACTION_LIBRARY = "com.metrolist.music.action.LIBRARY"
         const val ACTION_RECOGNITION = "com.metrolist.music.action.RECOGNITION"
+        const val ACTION_OPEN_WIDGET_TARGET = "com.metrolist.music.action.OPEN_WIDGET_TARGET"
         const val EXTRA_AUTO_START_RECOGNITION = "auto_start_recognition"
+        const val EXTRA_WIDGET_TARGET_TYPE = "widget_target_type"
+        const val EXTRA_WIDGET_TARGET_ID = "widget_target_id"
     }
 
     @Inject
@@ -369,6 +373,7 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         if (::navController.isInitialized) {
+            handleWidgetTargetIntent(intent, navController)
             handleDeepLinkIntent(intent, navController)
         } else {
             pendingIntent = intent
@@ -908,10 +913,12 @@ class MainActivity : ComponentActivity() {
 
                 LaunchedEffect(Unit) {
                     if (pendingIntent != null) {
+                        handleWidgetTargetIntent(pendingIntent!!, navController)
                         handleRecognitionIntent(pendingIntent!!, navController)
                         handleDeepLinkIntent(pendingIntent!!, navController)
                         pendingIntent = null
                     } else {
+                        handleWidgetTargetIntent(intent, navController)
                         handleRecognitionIntent(intent, navController)
                         handleDeepLinkIntent(intent, navController)
                     }
@@ -920,6 +927,7 @@ class MainActivity : ComponentActivity() {
                 DisposableEffect(Unit) {
                     val listener =
                         Consumer<Intent> { intent ->
+                            handleWidgetTargetIntent(intent, navController)
                             handleRecognitionIntent(intent, navController)
                             handleDeepLinkIntent(intent, navController)
                         }
@@ -1377,6 +1385,50 @@ class MainActivity : ComponentActivity() {
         navController.navigate(if (autoStart) "recognition?autoStart=true" else "recognition") {
             launchSingleTop = true
         }
+    }
+
+    private sealed class WidgetTargetRoute(val route: String) {
+        data class LocalPlaylist(val id: String) : WidgetTargetRoute("local_playlist/$id")
+        data class OnlinePlaylist(val id: String) : WidgetTargetRoute("online_playlist/$id")
+        data object LikedSongs : WidgetTargetRoute("auto_playlist/liked")
+        data object DownloadedSongs : WidgetTargetRoute("auto_playlist/downloaded")
+        data class TopSongs(val limit: String) : WidgetTargetRoute("top_playlist/$limit")
+    }
+
+    private fun handleWidgetTargetIntent(
+        intent: Intent,
+        navController: NavHostController,
+    ) {
+        if (intent.action != ACTION_OPEN_WIDGET_TARGET) return
+
+        val targetType = intent.getStringExtra(EXTRA_WIDGET_TARGET_TYPE)
+        val targetId = intent.getStringExtra(EXTRA_WIDGET_TARGET_ID)
+        intent.action = null
+        intent.removeExtra(EXTRA_WIDGET_TARGET_TYPE)
+        intent.removeExtra(EXTRA_WIDGET_TARGET_ID)
+
+        val normalizedTargetId = targetId?.takeIf { it.isNotBlank() }
+
+        val targetRoute = when (targetType) {
+            PlaylistWidgetReceiver.TARGET_TYPE_LOCAL ->
+                normalizedTargetId?.let { WidgetTargetRoute.LocalPlaylist(it) }
+
+            PlaylistWidgetReceiver.TARGET_TYPE_ONLINE ->
+                normalizedTargetId?.let { WidgetTargetRoute.OnlinePlaylist(it) }
+
+            PlaylistWidgetReceiver.TARGET_TYPE_LIKED ->
+                WidgetTargetRoute.LikedSongs
+
+            PlaylistWidgetReceiver.TARGET_TYPE_DOWNLOADED ->
+                WidgetTargetRoute.DownloadedSongs
+
+            PlaylistWidgetReceiver.TARGET_TYPE_TOP ->
+                WidgetTargetRoute.TopSongs(normalizedTargetId ?: "50")
+
+            else -> null
+        } ?: return
+
+        navController.navigate(targetRoute.route)
     }
 
     private fun handleDeepLinkIntent(

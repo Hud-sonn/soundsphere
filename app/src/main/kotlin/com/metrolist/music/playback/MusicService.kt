@@ -179,6 +179,7 @@ import com.metrolist.music.playback.queues.EmptyQueue
 import com.metrolist.music.playback.queues.ListQueue
 import com.metrolist.music.playback.queues.Queue
 import com.metrolist.music.playback.queues.YouTubeQueue
+import com.metrolist.music.playback.queues.YouTubePlaylistQueue
 import com.metrolist.music.playback.queues.filterExplicit
 import com.metrolist.music.playback.queues.filterVideoSongs
 import com.metrolist.music.constants.LoudnessLevel
@@ -194,6 +195,7 @@ import com.metrolist.music.utils.get
 import com.metrolist.music.utils.reportException
 import com.metrolist.music.widget.MetrolistWidgetManager
 import com.metrolist.music.widget.MusicWidgetReceiver
+import com.metrolist.music.widget.PlaylistWidgetReceiver
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CancellationException
 import kotlin.coroutines.coroutineContext
@@ -3749,12 +3751,124 @@ class MusicService :
                 updateWidgetUI(player.isPlaying)
             }
 
-            MusicWidgetReceiver.ACTION_UPDATE_WIDGET -> {
+            MusicWidgetReceiver.ACTION_UPDATE_WIDGET,
+            PlaylistWidgetReceiver.ACTION_UPDATE_WIDGET -> {
                 updateWidgetUI(player.isPlaying)
+            }
+
+            PlaylistWidgetReceiver.ACTION_PLAY_TARGET -> {
+                handlePlaylistWidgetPlay(intent)
             }
         }
 
         return super.onStartCommand(intent, flags, startId)
+    }
+
+
+    private fun handlePlaylistWidgetPlay(intent: Intent) {
+        scope.launch {
+            try {
+                val queue = withContext(Dispatchers.IO) {
+                    buildPlaylistWidgetQueue(intent)
+                }
+                // Fall back to opening the target in app when it cannot be played directly
+                if (queue == null) {
+                    openPlaylistWidgetTarget(intent)
+                    return@launch
+                }
+                playQueue(queue, playWhenReady = true)
+                updateWidgetUI(true)
+            } catch (t: Throwable) {
+                Timber.tag(TAG).e(t, "Failed to start playlist widget target")
+                openPlaylistWidgetTarget(intent)
+            }
+        }
+    }
+
+    private fun openPlaylistWidgetTarget(source: Intent) {
+        val activityIntent = Intent(this, MainActivity::class.java).apply {
+            action = MainActivity.ACTION_OPEN_WIDGET_TARGET
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            putExtra(
+                MainActivity.EXTRA_WIDGET_TARGET_TYPE,
+                source.getStringExtra(PlaylistWidgetReceiver.EXTRA_TARGET_TYPE),
+            )
+            putExtra(
+                MainActivity.EXTRA_WIDGET_TARGET_ID,
+                source.getStringExtra(PlaylistWidgetReceiver.EXTRA_TARGET_ID),
+            )
+        }
+        try {
+            startActivity(activityIntent)
+        } catch (t: Throwable) {
+            Timber.tag(TAG).e(t, "Failed to open playlist widget target")
+        }
+    }
+
+    private suspend fun buildPlaylistWidgetQueue(intent: Intent): Queue? {
+        val targetType = intent.getStringExtra(PlaylistWidgetReceiver.EXTRA_TARGET_TYPE) ?: return null
+        val targetId = intent.getStringExtra(PlaylistWidgetReceiver.EXTRA_TARGET_ID).orEmpty()
+        val targetTitle = intent.getStringExtra(PlaylistWidgetReceiver.EXTRA_TARGET_TITLE)
+
+        return when (targetType) {
+            PlaylistWidgetReceiver.TARGET_TYPE_LOCAL -> {
+                if (targetId.isBlank()) return null
+                val songs = database.playlistSongs(targetId).first()
+                if (songs.isEmpty()) return null
+                val playlistName = database.playlist(targetId).first()?.playlist?.name ?: targetTitle
+                ListQueue(
+                    title = playlistName,
+                    items = songs.map { it.song.toMediaItem() },
+                )
+            }
+
+            PlaylistWidgetReceiver.TARGET_TYPE_ONLINE -> {
+                if (targetId.isBlank()) return null
+                val cachedPlaylist = database.playlistByBrowseId(targetId).first()
+                val cachedSongs = cachedPlaylist?.let { database.playlistSongs(it.playlist.id).first() }.orEmpty()
+                if (cachedSongs.isNotEmpty()) {
+                    ListQueue(
+                        title = cachedPlaylist?.playlist?.name ?: targetTitle,
+                        items = cachedSongs.map { it.song.toMediaItem() },
+                    )
+                } else {
+                    YouTubePlaylistQueue(
+                        playlistId = targetId,
+                        playlistTitle = targetTitle,
+                    )
+                }
+            }
+
+            PlaylistWidgetReceiver.TARGET_TYPE_LIKED -> {
+                val songs = database.likedSongsByCreateDateAsc().first()
+                if (songs.isEmpty()) return null
+                ListQueue(
+                    title = getString(R.string.liked_songs),
+                    items = songs.map { it.toMediaItem() },
+                )
+            }
+
+            PlaylistWidgetReceiver.TARGET_TYPE_DOWNLOADED -> {
+                val songs = database.downloadedSongsByCreateDateAsc().first()
+                if (songs.isEmpty()) return null
+                ListQueue(
+                    title = getString(R.string.downloaded_songs),
+                    items = songs.map { it.toMediaItem() },
+                )
+            }
+
+            PlaylistWidgetReceiver.TARGET_TYPE_TOP -> {
+                val limit = targetId.toIntOrNull() ?: 50
+                val songs = database.mostPlayedSongs(0L, limit = limit).first()
+                if (songs.isEmpty()) return null
+                ListQueue(
+                    title = getString(R.string.my_top),
+                    items = songs.map { it.toMediaItem() },
+                )
+            }
+
+            else -> null
+        }
     }
 
     private fun handleAlarmTrigger(intent: Intent) {

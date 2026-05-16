@@ -958,4 +958,7 @@
     <string name="loudness_level_loud">Loud (-11 dB)</string>
     <string name="loudness_level_balanced">Balanced (-14 dB)</string>
     <string name="loudness_level_quiet">Quiet (-19 dB)</string>
+    <string name="widget_playlists">Playlists</string>
+    <string name="widget_playlists_description">Playlist shortcuts with mini-player controls</string>
+    <string name="choose_something_below">Choose something below</string>
 </resources>
