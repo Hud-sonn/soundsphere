@@ -122,8 +122,8 @@
     <string name="disable">Desactivar</string>
     <string name="subscribe">Suscribir</string>
     <string name="subscribed">Suscrito</string>
-    <string name="disable_load_more_when_repeat_all">Deshabilitar cargar más al repetir todo</string>
-    <string name="disable_load_more_when_repeat_all_desc">No precargar más canciones ni contenido similar cuando repetir todo está activado</string>
+    <string name="disable_load_more_when_repeat_all">Deshabilitar la cargar automática al repetir todo</string>
+    <string name="disable_load_more_when_repeat_all_desc">No precargar más canciones ni contenido similar automáticamente cuando repetir todo está activado</string>
     <string name="sensitivity_percentage">%1$d%%</string>
     <string name="starting_radio">Iniciando radio…</string>
     <string name="settings_section_ui">Interfaz</string>
@@ -391,14 +391,14 @@
     <string name="player_background_solid">Sólido</string>
     <string name="prevent_duplicate_tracks_in_queue">Previene el duplicado de canciones en la cola de reproducción</string>
     <string name="prevent_duplicate_tracks_in_queue_desc">Al agregar una canción que ya está en la cola, se moverá desde su posición anterior en lugar de añadirse de nuevo</string>
-    <string name="resume_on_bluetooth_connect">Resume al conectar Bluetooth</string>
+    <string name="resume_on_bluetooth_connect">Resumir al conectar Bluetooth</string>
     <string name="crossfade">Transición suave</string>
-    <string name="crossfade_desc">Transición suave entre canciones</string>
+    <string name="crossfade_desc">Desvanece la canción actual mientras comienza suavemente la siguiente</string>
     <string name="crossfade_duration">Duración del desvanecido</string>
     <string name="crossfade_gapless">Desactivar para álbumes sin pausas</string>
-    <string name="crossfade_gapless_desc">No desvanecer si el álbum no tiene pausas</string>
-    <string name="crossfade_beta_title">Funciones Beta</string>
-    <string name="crossfade_beta_message">Transición suave es una nueva función y puede tener errores. Si experimentas algún problema, por favor, infórmanos.\n\nEsta función desactiva la descarga de audio debido a limitaciones técnicas.</string>
+    <string name="crossfade_gapless_desc">Omitir la transición suave en álbumes diseñados para reproducción sin pausas</string>
+    <string name="crossfade_beta_title">¡Función beta!</string>
+    <string name="crossfade_beta_message">Transición suave es una nueva función y puede tener errores. Si experimentas algún problema, por favor, infórmanos.\n\nNOTA: Esta función desactiva la descarga de audio debido a limitaciones técnicas.</string>
     <string name="lyrics_romanize_hindi">Romanizar letras Hindi</string>
     <string name="lyrics_romanize_punjabi">Romanizar letras Punjabi</string>
     <string name="audio_offload_disabled_by_crossfade">Deshabilitado porque el desvanecido esta activo</string>
@@ -625,10 +625,10 @@
     <string name="view_changelog">Ver registro de cambios</string>
     <string name="failed_to_check_updates">No se pudieron comprobar las actualizaciones: %s</string>
     <string name="set_as_default">Temporizador de sueño</string>
-    <string name="sleep_timer_default_set">Temporizador de sueño establecido por defecto en %dminutos</string>
-    <string name="enable_automatic_sleeptimer">Habilitar temporizador de sueño automatico</string>
+    <string name="sleep_timer_default_set">Temporizador de apagado por defecto establecido en %d minutos</string>
+    <string name="enable_automatic_sleeptimer">Habilitar temporizador de apagado automático</string>
     <string name="sleep_timer_repeat">Repetir</string>
-    <string name="sleep_timer_weekdays">Lunes a Viernes</string>
+    <string name="sleep_timer_weekdays">Lunes a viernes</string>
     <string name="sleeptimer_description">Inicia el temporizador con la hora por defecto</string>
     <string name="sleep_timer_repeat_description">Establece un día y hora recurrente para activar el temporizador automáticamente</string>
     <string name="sleep_timer_daily">Diario</string>
@@ -840,4 +840,7 @@
     <string name="switch_to_list_view">Cambiar a vista de lista</string>
     <string name="switch_to_grid_view">Cambiar a vista de cuadrícula</string>
     <string name="more_options">Más opciones</string>
+    <string name="mixes">Mezclas</string>
+    <string name="show_most_stats_playlists">Mostrar listas de reproducción \"Lo más escuchado\" semanal y mensual</string>
+    <string name="show_most_stats_playlists_desc">Crear y mostrar listas de reproducción \"Lo más escuchado\" basadas en estadísticas en las secciones de Estadísticas y Biblioteca</string>
 </resources>
