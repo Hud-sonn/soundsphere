@@ -843,4 +843,7 @@
     <string name="show_most_stats_playlists_desc">En çok dinlenenlere dayalı listeleri İstatistikler ve Kitaplık\'ta oluştur ve göster</string>
     <string name="pin">Sabitle</string>
     <string name="unpin">Sabitlemeyi Kaldır</string>
+    <string name="widget_playlists">Oynatma listeleri</string>
+    <string name="widget_playlists_description">Mini oynatıcı için oynatma listesi kısayolu</string>
+    <string name="choose_something_below">Alltan bir şeyler seç</string>
 </resources>
