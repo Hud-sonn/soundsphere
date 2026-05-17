@@ -65,7 +65,7 @@
     <string name="remote_history">Online</string>
     <string name="sync_playlist">Playlist synchronisieren</string>
     <string name="back_button_desc">Zurück</string>
-    <string name="continuous">Durchgängig</string>
+    <string name="continuous">Fortlaufend</string>
     <string name="player_buttons_style">Player-Tastenfarbe</string>
     <string name="album_cover_desc">Albumcover</string>
     <plurals name="n_time">
@@ -130,8 +130,8 @@
     <string name="settings_section_system">System &amp; Über</string>
     <string name="starting_radio">Radio starten …</string>
     <string name="edit_playlist_cover">Playlist-Cover bearbeiten</string>
-    <string name="edit_playlist_cover_note">HINWEIS: Ihr Konto muss mit einer Telefonnummer verknüpft und bei YouTube Music verifiziert sein, um das Cover der Wiedergabeliste ändern zu können</string>
-    <string name="edit_playlist_cover_note_wait">Nachdem Sie ein Bild ausgewählt haben, warten Sie bitte einen Moment, bis das neue Cover in Ihrer Wiedergabeliste angezeigt wird</string>
+    <string name="edit_playlist_cover_note">HINWEIS: Ihr Konto muss mit einer Telefonnummer verknüpft und bei YouTube Music verifiziert sein, um das Cover der Playliste ändern zu können</string>
+    <string name="edit_playlist_cover_note_wait">Nachdem Sie ein Bild ausgewählt haben, warten Sie bitte einen Moment, bis das neue Cover in Ihrer Playliste angezeigt wird</string>
     <string name="choose_from_library">Von Mediathek auswählen</string>
     <string name="remove_custom_image">Benutzerdefiniertes Bild entfernen</string>
     <string name="config_proxy">Proxy konfigurieren</string>
@@ -178,18 +178,18 @@
     <string name="scrobble_delay_minutes">Scrobble Verzögerung (Minuten)</string>
     <string name="swipe_song_to_remove">Wische, um den Titel aus der Wiedergabeliste zu entfernen</string>
     <string name="download_playlist_desc">Alle Songs für die Offline-Wiedergabe herunterladen</string>
-    <string name="remove_download_playlist_desc">Alle heruntergeladenen Songs aus dieser Wiedergabeliste entfernen</string>
+    <string name="remove_download_playlist_desc">Alle heruntergeladenen Songs aus dieser Playliste entfernen</string>
     <string name="download_in_progress_desc">Ein Download läuft</string>
-    <string name="share_playlist_desc">Diese Wiedergabeliste mit anderen teilen</string>
-    <string name="delete_playlist_desc">Diese Wiedergabeliste dauerhaft entfernen</string>
+    <string name="share_playlist_desc">Diese Playlist mit anderen teilen</string>
+    <string name="delete_playlist_desc">Diese Playlist dauerhaft entfernen</string>
     <string name="sync_playlist_desc">Diese Playlist mit YouTube Music synchronisieren</string>
     <string name="primary_color_style">Primärfarbe</string>
     <string name="tertiary_color_style">Tertiärfarbe</string>
     <string name="enable_better_lyrics">Better Lyrics-Songtext-Anbieter aktivieren</string>
     <string name="enable_better_lyrics_desc">Silbensynchronisierte Songtexte für jeden Song, perfekt für Karaoke</string>
     <string name="auto_scroll">Neu synchronisieren</string>
-    <string name="shuffle_playlist_first">Wiedergabeliste oder Album zuerst mischen</string>
-    <string name="shuffle_playlist_first_desc">Gibt beim Mischen zuerst alle Songs der aktuellen Wiedergabeliste oder des aktuellen Albums wieder, bevor ähnliche Inhalte kommen</string>
+    <string name="shuffle_playlist_first">Playliste oder Album zuerst mischen</string>
+    <string name="shuffle_playlist_first_desc">Gibt beim Mischen zuerst alle Songs der aktuellen Playliste oder des aktuellen Albums wieder, bevor ähnliche Inhalte kommen</string>
     <string name="show_wrapped_card">Wrapped-Tab anzeigen</string>
     <string name="lyrics_romanize_chinese">Chinesische Liedtexte romanisieren</string>
     <string name="google_cast">Google Cast</string>
@@ -205,7 +205,7 @@
     <string name="add_to_queue_desc">Zum Ende Ihrer Warteschlange hinzufügen</string>
     <string name="add_to_library_desc">In Ihrer Mediathek speichern</string>
     <string name="download_desc">Herunterladen für die Offline-Wiedergabe</string>
-    <string name="add_to_playlist_desc">Zur Wiedergabeliste hinzufügen</string>
+    <string name="add_to_playlist_desc">Zur Playliste hinzufügen</string>
     <string name="refetch_desc">Metadaten von YouTube Music aktualisieren</string>
     <string name="share_desc">Link zum teilen</string>
     <string name="delete_desc">Diese Playlist dauerhaft entfernen</string>
@@ -314,7 +314,7 @@
     <string name="skip_silence_desc">Stille Teile von Songs vorspulen</string>
     <string name="crop_album_art">Albumcover zuschneiden</string>
     <string name="crop_album_art_desc">Quadratisches Seitenverhältnis durch Zuschneiden der Video-Thumnails erzwingen</string>
-    <string name="persistent_shuffle_desc">Shuffle beim Starten neuer Songs oder Wiedergabelisten aktiviert lassen</string>
+    <string name="persistent_shuffle_desc">Shuffle beim Starten neuer Songs oder Playlisten aktiviert lassen</string>
     <string name="error_title">Fehler</string>
     <string name="error_eq_apply_failed">EQ-Profil konnte nicht angewendet werden: %1$s</string>
     <string name="error_playback_failed">Wiedergabe fehlgeschlagen</string>
@@ -631,7 +631,7 @@
     <string name="new_episodes">Neue Folgen</string>
     <string name="episodes_for_later">Folgen zum später anschauen</string>
     <string name="save_episode_for_later">Für später speichern</string>
-    <string name="save_episode_for_later_desc">Zur Wiedergabeliste „Episoden zum späteren Ansehen“ hinzufügen</string>
+    <string name="save_episode_for_later_desc">Zur Playliste „Episoden zum späteren Ansehen“ hinzufügen</string>
     <string name="subscribe_to_podcast">Podcast zur Mediathek hinzufügen</string>
     <plurals name="n_episode">
         <item quantity="one">%d Episode</item>
@@ -843,4 +843,7 @@
     <string name="unpin">Abheften</string>
     <string name="pin">Pin</string>
     <string name="mixes">Mixe</string>
+    <string name="widget_playlists">Playlists</string>
+    <string name="widget_playlists_description">Schnellzugriff auf Playlisten mit Steuerelementen des Mini-Players</string>
+    <string name="choose_something_below">Wähle unten eine Option aus</string>
 </resources>
