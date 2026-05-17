@@ -88,7 +88,7 @@
     <string name="more_content">Доп. контент</string>
     <string name="general">Общие</string>
     <string name="default_lib_chips">Изменение чипа библиотеки (по умолчанию)</string>
-    <string name="set_quick_picks">Установить быстрый выбор</string>
+    <string name="set_quick_picks">Выбрать тип рекомендаций</string>
     <string name="percentage_format">%d%%</string>
     <string name="import_online">Импортировать плейлист M3U</string>
     <string name="import_csv">Импортировать плейлист CSV</string>
