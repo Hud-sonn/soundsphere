@@ -836,4 +836,7 @@
     <string name="loudness_level_loud">ラウド（-11 dB）</string>
     <string name="loudness_level_balanced">バランス（-14 dB）</string>
     <string name="loudness_level_quiet">静か（-19 dB）</string>
+    <string name="widget_playlists">プレイリスト</string>
+    <string name="widget_playlists_description">ミニプレイヤー操作付きのプレイリストショートカット</string>
+    <string name="choose_something_below">以下から選択してください</string>
 </resources>

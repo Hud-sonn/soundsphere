@@ -88,7 +88,7 @@
     <string name="more_content">Доп. контент</string>
     <string name="general">Общие</string>
     <string name="default_lib_chips">Изменение чипа библиотеки (по умолчанию)</string>
-    <string name="set_quick_picks">Установить быстрый выбор</string>
+    <string name="set_quick_picks">Выбрать тип рекомендаций</string>
     <string name="percentage_format">%d%%</string>
     <string name="import_online">Импортировать плейлист M3U</string>
     <string name="import_csv">Импортировать плейлист CSV</string>
@@ -833,7 +833,7 @@
     <string name="autoplay">Автовоспроизведение</string>
     <string name="autoplay_desc">Автоматически воспроизводить следующий трек после окончания текущего</string>
     <string name="system_equalizer_desc">Открыть встроенный эквалайзер Android</string>
-    <string name="eq_wizard">Мастер настройки AutoEQ</string>
+    <string name="eq_wizard">Мастер AutoEQ</string>
     <string name="eq_download_db">Скачать базу данных AutoEQ (17 МБ)</string>
     <string name="eq_downloading">Скачивание…</string>
     <string name="import_from_file">Импорт из файла</string>
@@ -857,4 +857,7 @@
     <string name="show_most_stats_playlists_desc">Создавать и показывать плейлисты «Самые прослушиваемые» на основе статистики в разделах «Статистика» и «Библиотека»</string>
     <string name="pin">Закрепить</string>
     <string name="unpin">Открепить</string>
+    <string name="widget_playlists">Плейлисты</string>
+    <string name="widget_playlists_description">Ярлыки плейлистов с элементами управления мини-плеером</string>
+    <string name="choose_something_below">Выберите что-нибудь ниже</string>
 </resources>
