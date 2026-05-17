@@ -249,18 +249,18 @@ class MetrolistWidgetManager @Inject constructor(
         val xOffset = (bitmap.width - size) / 2
         val yOffset = (bitmap.height - size) / 2
         val squareBitmap = Bitmap.createBitmap(bitmap, xOffset, yOffset, size, size)
-        
-        // Create circular output
+
         val output = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(output)
-        val paint = Paint().apply {
-            isAntiAlias = true
-            isFilterBitmap = true
-            shader = BitmapShader(squareBitmap, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP)
-        }
+        val paint =
+            Paint().apply {
+                isAntiAlias = true
+                isFilterBitmap = true
+                shader = BitmapShader(squareBitmap, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP)
+            }
         val radius = size / 2f
         canvas.drawCircle(radius, radius, radius, paint)
-        
+
         if (squareBitmap != bitmap) {
             squareBitmap.recycle()
         }

@@ -221,7 +221,8 @@ class MusicRecognizerWidgetService : Service() {
                 }
             } catch (e: Exception) {
                 pulseJob?.cancel()
-                getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit()
+                getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                    .edit()
                     .putInt(PREF_STATE, STATE_ERROR)
                     .putString(PREF_ERROR_MESSAGE, e.message ?: getString(R.string.widget_recognizer_error))
                     .putString(PREF_COVER_ART_PATH, "")
@@ -289,12 +290,16 @@ class MusicRecognizerWidgetService : Service() {
 
     private fun saveState(state: Int) {
         getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            .edit().putInt(PREF_STATE, state).apply()
+            .edit()
+            .putInt(PREF_STATE, state)
+            .apply()
     }
 
     private fun savePulseFrame(frame: Int) {
         getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            .edit().putInt(PREF_PULSE_FRAME, frame).apply()
+            .edit()
+            .putInt(PREF_PULSE_FRAME, frame)
+            .apply()
     }
 
     private fun updateAllWidgets() {

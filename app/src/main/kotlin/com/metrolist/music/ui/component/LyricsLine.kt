@@ -422,7 +422,7 @@ private fun WordLevelLyrics(
     // mapped to exactly one word slot.
     val charToWordData = remember(mainText, effectiveWords, isBackground, graphemeClusters, clusterCharOffsets) {
         val wordIdxMap = IntArray(clusterCount) { -1 }
-        val charInWordMap = IntArray(clusterCount) { 0 }
+        val charInWordMap = IntArray(clusterCount)
         val wordLenMap = IntArray(clusterCount) { 1 }
         var currentPos = 0
         var clCursor = 0

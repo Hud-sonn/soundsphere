@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace = "com.metrolist.paxsenix"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         minSdk = 26

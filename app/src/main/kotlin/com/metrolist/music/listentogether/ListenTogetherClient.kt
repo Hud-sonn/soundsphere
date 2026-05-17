@@ -669,6 +669,7 @@ class ListenTogetherClient
                 Request
                     .Builder()
                     .url(getServerUrl())
+                    .header("User-Agent", context.packageName)
                     .build()
 
             webSocket =

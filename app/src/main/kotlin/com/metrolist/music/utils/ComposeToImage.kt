@@ -206,10 +206,9 @@ object ComposeToImage {
                         isAntiAlias = true
                     }
 
-                canvas.save()
-                canvas.clipPath(path)
-                canvas.drawBitmap(it, null, rect, null)
-                canvas.restore()
+                canvas.withClip(path) {
+                    drawBitmap(it, null, rect, null)
+                }
                 canvas.drawRoundRect(rect, coverCornerRadius, coverCornerRadius, coverBorderPaint)
             }
 
@@ -373,10 +372,9 @@ object ComposeToImage {
                     lyricsTop
                 }
 
-            canvas.save()
-            canvas.translate(padding, lyricsY)
-            lyricsLayout.draw(canvas)
-            canvas.restore()
+            canvas.withTranslation(padding, lyricsY) {
+                lyricsLayout.draw(this)
+            }
 
             return@withContext bitmap
         }

@@ -88,7 +88,7 @@ abstract class GenerateProtoTask : DefaultTask() {
 
 android {
     namespace = "com.metrolist.music"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = applicationIdOverride ?: baseApplicationId

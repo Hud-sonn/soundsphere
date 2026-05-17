@@ -91,6 +91,7 @@ import com.metrolist.music.ui.utils.isScrollingUp
 import com.metrolist.music.utils.rememberEnumPreference
 import com.metrolist.music.utils.rememberPreference
 import com.metrolist.music.viewmodels.LibrarySongsViewModel
+import timber.log.Timber
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -152,7 +153,7 @@ fun LibrarySongsScreen(
                         val takeFlags = android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
                         context.contentResolver.takePersistableUriPermission(uri, takeFlags)
                     } catch (e: SecurityException) {
-                        android.util.Log.w("LibrarySongsScreen", "Could not take persistable permission: ${e.message}")
+                        Timber.w(e, "Could not take persistable permission")
                     }
                 }
                 uploadJob =

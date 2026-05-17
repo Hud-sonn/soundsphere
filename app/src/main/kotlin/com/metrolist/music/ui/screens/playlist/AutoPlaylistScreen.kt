@@ -244,7 +244,7 @@ fun AutoPlaylistScreen(
                         val takeFlags = android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
                         context.contentResolver.takePersistableUriPermission(uri, takeFlags)
                     } catch (e: SecurityException) {
-                        android.util.Log.w("AutoPlaylistScreen", "Could not take persistable permission: ${e.message}")
+                        Timber.w(e, "Could not take persistable permission")
                     }
                 }
                 uploadJob =

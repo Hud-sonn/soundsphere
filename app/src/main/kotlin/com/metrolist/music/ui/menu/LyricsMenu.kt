@@ -351,7 +351,7 @@ fun LyricsMenu(
             if (!isLoading && results.isEmpty()) {
                 item {
                     Text(
-                        text = context.getString(R.string.lyrics_not_found),
+                        text = stringResource(R.string.lyrics_not_found),
                         textAlign = TextAlign.Center,
                         modifier =
                         Modifier

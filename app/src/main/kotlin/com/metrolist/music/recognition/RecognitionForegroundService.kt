@@ -10,7 +10,7 @@ import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
-import android.util.Log
+import timber.log.Timber
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.metrolist.music.MainActivity
@@ -84,7 +84,7 @@ class RecognitionForegroundService : Service() {
             }
             return true
         } catch (foregroundTypeException: SecurityException) {
-            Log.w(TAG, "Unable to start microphone foreground service", foregroundTypeException)
+            Timber.w(foregroundTypeException, "Unable to start microphone foreground service")
             stopSelf()
             return false
         } catch (runtimeException: RuntimeException) {
@@ -93,7 +93,7 @@ class RecognitionForegroundService : Service() {
                     runtimeException::class.java.name ==
                     "android.app.ForegroundServiceStartNotAllowedException"
             ) {
-                Log.w(TAG, "Unable to start microphone foreground service", runtimeException)
+                Timber.w(runtimeException, "Unable to start microphone foreground service")
                 stopSelf()
                 return false
             }
