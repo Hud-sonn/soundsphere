@@ -568,7 +568,7 @@ private fun TopPlaylistHeader(
         // Playlist Name
         Text(
             text = name,
-            style = MaterialTheme.typography.headlineSmall,
+            style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
             textAlign = androidx.compose.ui.text.style.TextAlign.Center,
             maxLines = 2,

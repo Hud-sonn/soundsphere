@@ -31,6 +31,7 @@ import com.metrolist.innertube.models.YouTubeLocale
 import com.metrolist.innertube.models.getContinuation
 import com.metrolist.innertube.models.getItems
 import com.metrolist.innertube.models.oddElements
+import com.metrolist.innertube.models.splitBySeparator
 import com.metrolist.innertube.models.response.AccountMenuResponse
 import com.metrolist.innertube.models.response.BrowseResponse
 import com.metrolist.innertube.models.response.CreatePlaylistResponse
@@ -959,6 +960,53 @@ object YouTube {
 
             val editable = base?.musicEditablePlaylistDetailHeaderRenderer != null
 
+            val description: String? =
+                header?.description?.musicDescriptionShelfRenderer?.description?.runs?.joinToString("") { it.text }
+                    ?: base?.musicEditablePlaylistDetailHeaderRenderer
+                        ?.header?.musicDetailHeaderRenderer
+                        ?.description?.runs?.joinToString("") { it.text }
+                    ?: response.header?.musicDetailHeaderRenderer
+                        ?.description?.runs?.joinToString("") { it.text }
+
+            val author: Artist? = run {
+                val fromStrapline = header?.straplineTextOne?.runs
+                    ?.firstOrNull()
+                    ?.let { Artist(name = it.text, id = it.navigationEndpoint?.browseEndpoint?.browseId) }
+                if (fromStrapline != null) return@run fromStrapline
+
+                val detailSubtitle = base?.musicEditablePlaylistDetailHeaderRenderer
+                    ?.header?.musicDetailHeaderRenderer?.subtitle?.runs
+                    ?: response.header?.musicDetailHeaderRenderer?.subtitle?.runs
+                if (detailSubtitle != null) {
+                    val segments = detailSubtitle.splitBySeparator()
+                    val run = segments.getOrNull(1)?.firstOrNull()
+                        ?: segments.firstOrNull()?.firstOrNull()
+                    val fromDetail = run?.let {
+                        Artist(name = it.text, id = it.navigationEndpoint?.browseEndpoint?.browseId)
+                    }
+                    if (fromDetail != null) return@run fromDetail
+                }
+
+                val fromHeaderSubtitle = header?.subtitle?.runs
+                    ?.firstOrNull { it.navigationEndpoint != null }
+                    ?.let { Artist(name = it.text, id = it.navigationEndpoint?.browseEndpoint?.browseId) }
+                if (fromHeaderSubtitle != null) return@run fromHeaderSubtitle
+
+                val facepile = header?.facepile?.avatarStackViewModel
+                if (facepile != null) {
+                    val name = facepile.text?.content
+                    val browseId = facepile.rendererContext?.commandContext?.onTap?.innertubeCommand?.browseEndpoint?.browseId
+                    if (name != null) return@run Artist(name = name, id = browseId)
+                }
+
+                null
+            }
+
+            val authorAvatarUrl: String? = header?.facepile
+                ?.avatarStackViewModel?.avatars?.firstOrNull()
+                ?.avatarViewModel?.image?.sources?.firstOrNull()
+                ?.url
+
             PlaylistPage(
                 playlist =
                     PlaylistItem(
@@ -969,18 +1017,16 @@ object YouTube {
                                 ?.runs
                                 ?.firstOrNull()
                                 ?.text!!,
-                        author =
-                            header.straplineTextOne?.runs?.firstOrNull()?.let {
-                                Artist(
-                                    name = it.text,
-                                    id = it.navigationEndpoint?.browseEndpoint?.browseId,
-                                )
-                            },
+                        author = author,
                         songCountText =
                             header.secondSubtitle
                                 ?.runs
-                                ?.firstOrNull()
-                                ?.text,
+                                ?.findLast {
+                                    it.text.any { c -> c.isDigit() } &&
+                                        !it.text.contains("view", ignoreCase = true) &&
+                                        !it.text.contains("hour", ignoreCase = true) &&
+                                        !it.text.contains("minute", ignoreCase = true)
+                                }?.text,
                         thumbnail =
                             header.thumbnail
                                 ?.musicThumbnailRenderer
@@ -1009,6 +1055,8 @@ object YouTube {
                                 ?.navigationEndpoint
                                 ?.watchPlaylistEndpoint,
                         isEditable = editable,
+                        description = description,
+                        authorAvatarUrl = authorAvatarUrl,
                     ),
                 songs =
                     response.contents

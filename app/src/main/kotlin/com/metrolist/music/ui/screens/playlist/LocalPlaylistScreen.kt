@@ -69,6 +69,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -102,6 +103,7 @@ import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.metrolist.innertube.YouTube
+import com.metrolist.innertube.models.PlaylistItem
 import com.metrolist.innertube.models.SongItem
 import com.metrolist.innertube.utils.completed
 import com.metrolist.music.LocalDatabase
@@ -128,6 +130,7 @@ import com.metrolist.music.ui.component.ActionPromptDialog
 import com.metrolist.music.ui.component.DefaultDialog
 import com.metrolist.music.ui.component.DraggableScrollbar
 import com.metrolist.music.ui.component.EmptyPlaceholder
+import com.metrolist.music.ui.component.ExpandableText
 import com.metrolist.music.ui.component.IconButton
 import com.metrolist.music.ui.component.LocalMenuState
 import com.metrolist.music.ui.component.OverlayEditButton
@@ -172,6 +175,7 @@ fun LocalPlaylistScreen(
 
     val playlist by viewModel.playlist.collectAsStateWithLifecycle()
     val songs by viewModel.playlistSongs.collectAsStateWithLifecycle()
+    val onlinePlaylist by viewModel.onlinePlaylist.collectAsStateWithLifecycle()
     val mutableSongs = remember { mutableStateListOf<PlaylistSong>() }
     val playlistLength =
         remember(songs) {
@@ -493,6 +497,8 @@ fun LocalPlaylistScreen(
                             LocalPlaylistHeader(
                                 playlist = playlist,
                                 songs = songs,
+                                onlinePlaylist = onlinePlaylist,
+                                navController = navController,
                                 onShowEditDialog = { showEditDialog = true },
                                 onShowRemoveDownloadDialog = { showRemoveDownloadDialog = true },
                                 onshowDeletePlaylistDialog = { showDeletePlaylistDialog = true },
@@ -868,6 +874,8 @@ fun LocalPlaylistScreen(
 fun LocalPlaylistHeader(
     playlist: Playlist,
     songs: List<PlaylistSong>,
+    onlinePlaylist: PlaylistItem?,
+    navController: NavController,
     onShowEditDialog: () -> Unit,
     onShowRemoveDownloadDialog: () -> Unit,
     onshowDeletePlaylistDialog: () -> Unit,
@@ -1237,7 +1245,7 @@ fun LocalPlaylistHeader(
         // Playlist Name
         Text(
             text = playlist.playlist.name,
-            style = MaterialTheme.typography.headlineSmall,
+            style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
             maxLines = 2,
@@ -1245,7 +1253,7 @@ fun LocalPlaylistHeader(
             modifier = Modifier.padding(horizontal = 32.dp),
         )
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         // Metadata - Song Count • Duration
         val songCount =
@@ -1254,18 +1262,66 @@ fun LocalPlaylistHeader(
             } else {
                 playlist.songCount
             }
+        val nSongs = pluralStringResource(R.plurals.n_song, songCount, songCount)
+        val durationText = if (playlistLength > 0) makeTimeString(playlistLength * 1000L) else null
+        val metadataString = buildString {
+            append(nSongs)
+            if (durationText != null) {
+                append(" • ")
+                append(durationText)
+            }
+        }
         Text(
-            text =
-                buildString {
-                    append(pluralStringResource(R.plurals.n_song, songCount, songCount))
-                    if (playlistLength > 0) {
-                        append(" • ")
-                        append(makeTimeString(playlistLength * 1000L))
-                    }
-                },
-            style = MaterialTheme.typography.bodyMedium,
+            text = metadataString,
+            style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
         )
+
+        val onlineAuthor = onlinePlaylist?.author
+        if (onlineAuthor != null) {
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier =
+                    Modifier.combinedClickable(
+                        onClick = {
+                            if (onlineAuthor.id != null) {
+                                navController.navigate("artist/${onlineAuthor.id}")
+                            }
+                        },
+                    ),
+            ) {
+                if (onlinePlaylist.authorAvatarUrl != null) {
+                    AsyncImage(
+                        model = onlinePlaylist.authorAvatarUrl,
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier =
+                            Modifier
+                                .size(24.dp)
+                                .clip(CircleShape),
+                    )
+                }
+                Text(
+                    text = onlineAuthor.name,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+            }
+        }
+
+        val description = onlinePlaylist?.description
+        if (!description.isNullOrBlank()) {
+            Spacer(modifier = Modifier.height(4.dp))
+
+            ExpandableText(
+                text = description,
+                modifier = Modifier.padding(horizontal = 32.dp),
+                collapsedMaxLines = 3,
+            )
+        }
 
         Spacer(modifier = Modifier.height(24.dp))
 
