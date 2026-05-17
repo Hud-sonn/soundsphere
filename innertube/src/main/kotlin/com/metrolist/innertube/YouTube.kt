@@ -1066,12 +1066,18 @@ object YouTube {
                 response.continuationContents
                     ?.sectionListContinuation
                     ?.contents
-                    ?.mapNotNull { content: SectionListRenderer.Content -> content.musicPlaylistShelfRenderer?.contents }
+                    ?.mapNotNull { content: SectionListRenderer.Content ->
+                        content.musicPlaylistShelfRenderer?.contents
+                            ?: content.musicShelfRenderer?.contents
+                    }
                     ?.flatten()
                     ?: emptyList()
 
             val shelfContents: List<MusicShelfRenderer.Content> =
                 response.continuationContents?.musicPlaylistShelfContinuation?.contents ?: emptyList()
+
+            val musicShelfContinuationContents: List<MusicShelfRenderer.Content> =
+                response.continuationContents?.musicShelfContinuation?.contents ?: emptyList()
 
             val appendedContents: List<MusicShelfRenderer.Content> =
                 response.onResponseReceivedActions
@@ -1080,7 +1086,7 @@ object YouTube {
                     ?.continuationItems
                     .orEmpty()
 
-            val allContents = mainContents + shelfContents + appendedContents
+            val allContents = mainContents + shelfContents + musicShelfContinuationContents + appendedContents
 
             val songs =
                 allContents
