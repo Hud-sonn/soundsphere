@@ -545,7 +545,7 @@
     <string name="discord_activity_watching">Guardando</string>
     <string name="discord_activity_listening">Ascoltando</string>
     <string name="discord_activity_playing">Riproducendo</string>
-    <string name="discord_information_warning">Questa funzione utilizza la libreria KizzyRPC per connettersi al Gateway di Discord e aggiornare il tuo stato di Rich Presence. Sebbene non siano state segnalate sospensioni di account dovute a utilizzi simili, questo metodo non è ufficialmente supportato da Discord e potrebbe essere considerato una violazione dei Termini di Servizio. Il tuo token viene gestito localmente e mai inviato a server di terze parti. Procedi a tua discrezione!</string>
+    <string name="discord_information_warning">Metrolist invia il brano attualmente in riproduzione a Discord\'s Gateway per aggiornare la tua Rich Presence. Tutti i dati passano direttamente dal tuo dispositivo a Discord: non sono coinvolti server di terze parti. Il tuo token rimane sul dispositivo e non viene mai condiviso. Tuttavia, l\'utilizzo di un token utente per le connessioni Gateway non è ufficialmente supportato e potrebbe violare i Termini di servizio di Discord. Procedi a tua discrezione!</string>
     <string name="player_background_solid">Solido</string>
     <string name="resume_on_bluetooth_connect">Riprendi dalla connessione Bluetooth</string>
     <string name="lyrics_romanize_hindi">Romanizza testo in Hindi</string>
@@ -850,4 +850,7 @@
     <string name="show_most_stats_playlists_desc">Crea e mostra le playlist basate maggiormente sulle Statistiche e Libreria</string>
     <string name="pin">Fissa</string>
     <string name="unpin">Sblocca</string>
+    <string name="choose_something_below">Scegli qualcosa di seguito</string>
+    <string name="widget_playlists_description">Scorciatoie della playlist con controlli del mini-player</string>
+    <string name="widget_playlists">Playlist</string>
 </resources>
