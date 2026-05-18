@@ -1,3 +1,29 @@
+---v13.4.3
+# MAINTENANCE MODE
+Metrolist is currently in maintenance mode. This means we will only be fixing bugs and making minor improvements. Please do not submit PRs for new features or major changes, as they will not be accepted.
+
+# Major changes
+- Rewrote the Discord RPC integration (@adrielGGmotion)
+- Improved the look of playlist screens (@adrielGGmotion)
+- Added a new playlist widget (@David-2765 @AntonioDionisio05)
+
+## Notable new features
+- Added proper apple music lyrics support (@adrielGGmotion)
+- Added a normalization level selector (@Jeff0945)
+- Added the ability to hide monthly/weekly most playlists (@isotjs)
+
+## Other improvements
+- Improve overall performance and stability (@adrielGGmotion @nyxiereal)
+- Fixed devnagari lyrics not being displayed properly (@cloud-zip)
+- Improve lyrics fetching speed (@nyxiereal)
+- Fixed crashes and some memory leaks (@nyxiereal)
+- Fixed images being low resolution for some users (@adrielGGmotion)
+- Handle playlist paging properly (@kairosci)
+- Multiple smaller improvements by @kairosci <3
+
+## New Contributors
+- @Jeff0945 made their first contribution in https://github.com/MetrolistGroup/Metrolist/pull/3358
+
 ---v13.4.2
 # MAINTENANCE MODE
 Metrolist is currently in maintenance mode. This means we will only be fixing bugs and making minor improvements. Please do not submit PRs for new features or major changes, as they will not be accepted.
