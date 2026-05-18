@@ -529,7 +529,7 @@
     <string name="discord_button_1">Butonul 1</string>
     <string name="discord_button_2">Butonul 2</string>
     <string name="login_successful">Autentificare reușită!</string>
-    <string name="discord_information_warning">Această funcție folosește biblioteca KizzyRPC pentru conectarea la gateway-ul Discord pentru a-ți actualiza statusul Rich Presence. În timp ce nu au fost raportate suspendări ale conturilor prin utilizări similare, această metodă nu este oficial acceptată de către Discord și poate fi considerată o încălcare a Termenilor Serviciului. Tokenul tău este extras local și niciodată trimis către servere terțe. Continui pe propriul risc!</string>
+    <string name="discord_information_warning">Metrolist îți trimite melodia care este redată în prezent către gateway-ul Discord pentru a-ți actualiza Rich Presence-ul. Toate datele merg direct de la dispozitivul tău către Discord — nu este implicat niciun server terț. Tokenul tău este păstrat pe dispozitiv și nu este niciodată partajat. Însă, folosirea unui token pentru conexiunile către gateway nu este oficial acceptată și poate încălca Termenii serviciului Discord. Continui pe propriul risc!</string>
     <string name="discord_activity_type">Tipul activității</string>
     <string name="discord_activity_playing">Se joacă</string>
     <string name="discord_activity_listening">Ascultă</string>
@@ -850,4 +850,7 @@
     <string name="mixes">Mixuri</string>
     <string name="show_most_stats_playlists">Afișează playlisturile Cele mai populare ale săptămânii și Cele mai populare ale lunii</string>
     <string name="show_most_stats_playlists_desc">Creează și afișează playlisturile bazate pe statistici Cele mai populare în Statistici și Bibliotecă</string>
+    <string name="widget_playlists">Playlisturi</string>
+    <string name="widget_playlists_description">Scurtături pentru playlisturi cu controale pentru mini-player</string>
+    <string name="choose_something_below">Alege ceva mai jos</string>
 </resources>
