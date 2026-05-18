@@ -521,7 +521,7 @@
     <string name="discord_button_1">ボタン 1</string>
     <string name="discord_button_2">ボタン 2</string>
     <string name="login_successful">ログインに成功しました！</string>
-    <string name="discord_information_warning">この機能は、KizzyRPCライブラリを使用してDiscordのゲートウェイに接続し、再生状況を表示します。同様の使用によるアカウント停止の報告はありませんが、この方法はDiscordの公式サポート対象ではなく、利用規約違反とみなされる場合があります。トークンはデバイス内でのみ取得され、第三者のサーバーに送信されることはありません。自己責任で使用してください。</string>
+    <string name="discord_information_warning">Metrolistは、再生状況を更新するために、現在再生中の曲をDiscordのゲートウェイに送信します。すべてのデータはお使いのデバイスからDiscordに直接送信され、第三者のサーバーは使用されません。トークンはデバイス内に保持され、共有されることはありません。ただし、ゲートウェイ接続にユーザートークンを使用することはDiscordで正式にサポートされておらず、Discordの利用規約に違反する可能性があります。自己責任で使用してください。</string>
     <string name="discord_activity_type">アクティビティの種類</string>
     <string name="discord_activity_playing">プレイ中</string>
     <string name="discord_activity_listening">再生中</string>
