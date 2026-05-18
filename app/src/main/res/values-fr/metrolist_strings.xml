@@ -529,7 +529,7 @@
     <string name="discord_button_1">Bouton 1</string>
     <string name="discord_button_2">Bouton 2</string>
     <string name="login_successful">Connexion réussie !</string>
-    <string name="discord_information_warning">Cette fonctionnalité utilise la bibliothèque KizzyRPC pour se connecter à la passerelle Discord et mettre à jour votre statut « Rich Presence ». Bien qu\'aucune suspension de compte liée à une utilisation similaire n\'ait été signalée, cette méthode n\'est pas officiellement prise en charge par Discord et peut être considérée comme une violation des conditions d\'utilisation. Votre jeton est traité localement et n\'est jamais envoyé à des serveurs tiers. Vous agissez à vos propres risques !</string>
+    <string name="discord_information_warning">Metrolist envoie le titre en cours de lecture à la passerelle Discord afin de mettre à jour votre profil enrichi. Toutes les données sont transmises directement de votre appareil à Discord — aucun serveur tiers n\'intervient. Votre jeton reste sur votre appareil et n\'est jamais partagé. Cependant, l\'utilisation d\'un jeton utilisateur pour les connexions via la passerelle n\'est pas officiellement prise en charge et peut constituer une violation des conditions d\'utilisation de Discord. Procédez à vos propres risques !</string>
     <string name="discord_activity_type">Type d\'activité</string>
     <string name="discord_activity_playing">Lire</string>
     <string name="discord_activity_listening">Écouter</string>
