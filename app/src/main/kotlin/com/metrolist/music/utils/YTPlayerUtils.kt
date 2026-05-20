@@ -7,7 +7,6 @@ package com.metrolist.music.utils
 
 import android.net.ConnectivityManager
 import android.net.Uri
-import android.util.Log
 import androidx.media3.common.PlaybackException
 import com.metrolist.innertube.NewPipeExtractor
 import com.metrolist.innertube.YouTube
@@ -26,13 +25,12 @@ import com.metrolist.innertube.models.YouTubeClient.Companion.WEB_CREATOR
 import com.metrolist.innertube.models.YouTubeClient.Companion.WEB_REMIX
 import com.metrolist.innertube.models.response.PlayerResponse
 import com.metrolist.music.constants.AudioQuality
-import com.metrolist.music.utils.cipher.CipherDeobfuscator
 import com.metrolist.music.utils.YTPlayerUtils.MAIN_CLIENT
 import com.metrolist.music.utils.YTPlayerUtils.STREAM_FALLBACK_CLIENTS
 import com.metrolist.music.utils.YTPlayerUtils.validateStatus
+import com.metrolist.music.utils.cipher.CipherDeobfuscator
 import com.metrolist.music.utils.potoken.PoTokenGenerator
 import com.metrolist.music.utils.potoken.PoTokenResult
-import com.metrolist.music.utils.sabr.EjsNTransformSolver
 import okhttp3.OkHttpClient
 import timber.log.Timber
 
@@ -147,7 +145,7 @@ object YTPlayerUtils {
 
         // If we still don't have a valid response, throw
 
-        val audioConfig = mainPlayerResponse.playerConfig?.audioConfig
+        var audioConfig = mainPlayerResponse.playerConfig?.audioConfig
         val videoDetails = mainPlayerResponse.videoDetails
         val playbackTracking = mainPlayerResponse.playbackTracking
         var format: PlayerResponse.StreamingData.Format? = null
@@ -218,6 +216,16 @@ object YTPlayerUtils {
                     // Try to get streams using newPipePlayer method
                     val newPipeResponse = YouTube.newPipePlayer(videoId, streamPlayerResponse)
                     newPipeResponse ?: streamPlayerResponse
+                }
+
+                if (audioConfig == null) {
+                    audioConfig = responseToUse.playerConfig?.audioConfig
+
+                    if (audioConfig != null) {
+                        Timber.tag(logTag).d("AudioConfig obtained from response of client: ${if (clientIndex == -1) MAIN_CLIENT.clientName else STREAM_FALLBACK_CLIENTS[clientIndex].clientName}")
+                    } else {
+                        Timber.tag(logTag).d("No audioConfig found in responseToUse.")
+                    }
                 }
 
                 format =
