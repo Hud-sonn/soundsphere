@@ -5,17 +5,15 @@
 
 package com.metrolist.music.utils
 
-import android.content.Context
-import com.metrolist.music.R
 import com.metrolist.music.db.entities.Song
 import com.metrolist.music.discordrpc.ActivityType
 import com.metrolist.music.discordrpc.DiscordRpcConnection
 import com.metrolist.music.discordrpc.SuperProperties
 import com.metrolist.music.discordrpc.entities.Button
 import com.metrolist.music.discordrpc.entities.Timestamps
+import timber.log.Timber
 
 class DiscordRPC(
-    val context: Context,
     token: String,
 ) {
     private val connection = DiscordRpcConnection(
@@ -28,10 +26,12 @@ class DiscordRPC(
     )
 
     fun start() {
+        Timber.d("[DiscordRPC] start() called")
         connection.connect()
     }
 
     fun closeRPC() {
+        Timber.d("[DiscordRPC] closeRPC() called")
         connection.closeDirect()
     }
 
@@ -49,69 +49,89 @@ class DiscordRPC(
         button2Visible: Boolean = true,
         activityType: String = "listening",
         activityName: String = "",
-    ) = runCatching {
-        val currentTime = System.currentTimeMillis()
+    ): Result<Unit> {
+        Timber.d("[DiscordRPC] updateSong: title=${song.song.title}, smallImage=${song.artists.firstOrNull()?.thumbnailUrl != null}")
+        
+        val startTime = System.currentTimeMillis()
+        val result = runCatching {
+            val currentTime = System.currentTimeMillis()
 
-        val adjustedPlaybackTime = (currentPlaybackTimeMillis / playbackSpeed).toLong()
-        val calculatedStartTime = currentTime - adjustedPlaybackTime
+            val adjustedPlaybackTime = (currentPlaybackTimeMillis / playbackSpeed).toLong()
+            val calculatedStartTime = currentTime - adjustedPlaybackTime
 
-        val songTitleWithRate = if (playbackSpeed != 1.0f) {
-            "${song.song.title} [${String.format("%.2fx", playbackSpeed)}]"
-        } else {
-            song.song.title
-        }
+            val songTitleWithRate = if (playbackSpeed != 1.0f) {
+                "${song.song.title} [${String.format("%.2fx", playbackSpeed)}]"
+            } else {
+                song.song.title
+            }
 
-        val remainingDuration = song.song.duration * 1000L - currentPlaybackTimeMillis
-        val adjustedRemainingDuration = (remainingDuration / playbackSpeed).toLong()
+            val remainingDuration = song.song.duration * 1000L - currentPlaybackTimeMillis
+            val adjustedRemainingDuration = (remainingDuration / playbackSpeed).toLong()
 
-        val buttonsList = mutableListOf<Button>()
-        if (button1Visible) {
-            val resolvedText = resolveVariables(
-                button1Text.ifEmpty { "Listen on YouTube Music" },
-                song,
+            val buttonsList = mutableListOf<Button>()
+            if (button1Visible) {
+                val resolvedText = resolveVariables(
+                    button1Text.ifEmpty { "Listen on YouTube Music" },
+                    song,
+                )
+                buttonsList.add(Button(resolvedText, "https://music.youtube.com/watch?v=${song.song.id}"))
+            }
+            if (button2Visible) {
+                val resolvedText = resolveVariables(
+                    button2Text.ifEmpty { "Visit Metrolist" },
+                    song,
+                )
+                buttonsList.add(Button(resolvedText, "https://github.com/MetrolistGroup/Metrolist"))
+            }
+
+            val type = when (activityType) {
+                "playing" -> ActivityType.PLAYING
+                "watching" -> ActivityType.WATCHING
+                "competing" -> ActivityType.COMPETING
+                else -> ActivityType.LISTENING
+            }
+
+            val name = if (activityName.isNotEmpty()) {
+                resolveVariables(activityName, song)
+            } else if (useDetails) {
+                songTitleWithRate
+            } else {
+                song.artists.joinToString { it.name }
+            }
+
+            val smallImageUrl = song.artists.firstOrNull()?.thumbnailUrl
+            Timber.d("[DiscordRPC] Calling setActivity: largeImage=${song.song.thumbnailUrl != null}, smallImage=${smallImageUrl != null}")
+            
+            connection.setActivity(
+                name = name,
+                type = type,
+                details = if (!useDetails) songTitleWithRate else song.artists.joinToString { it.name },
+                state = if (!useDetails) song.artists.joinToString { it.name } else songTitleWithRate,
+                timestamps = Timestamps(
+                    start = calculatedStartTime,
+                    end = currentTime + adjustedRemainingDuration,
+                ),
+                largeImage = song.song.thumbnailUrl,
+                smallImage = smallImageUrl,
+                largeText = song.album?.title,
+                smallText = song.artists.firstOrNull()?.name,
+                buttons = buttonsList.ifEmpty { null },
+                status = status,
+                since = currentTime,
+                applicationId = APPLICATION_ID,
             )
-            buttonsList.add(Button(resolvedText, "https://music.youtube.com/watch?v=${song.song.id}"))
+            Timber.d("[DiscordRPC] setActivity completed in ${System.currentTimeMillis() - startTime}ms")
         }
-        if (button2Visible) {
-            val resolvedText = resolveVariables(
-                button2Text.ifEmpty { "Visit Metrolist" },
-                song,
-            )
-            buttonsList.add(Button(resolvedText, "https://github.com/MetrolistGroup/Metrolist"))
+        
+        if (result.isFailure) {
+            Timber.e(result.exceptionOrNull(), "[DiscordRPC] updateSong failed")
         }
-
-        val type = when (activityType) {
-            "playing" -> ActivityType.PLAYING
-            "watching" -> ActivityType.WATCHING
-            "competing" -> ActivityType.COMPETING
-            else -> ActivityType.LISTENING
-        }
-
-        val name = activityName.ifEmpty {
-            context.getString(R.string.app_name).removeSuffix(" Debug")
-        }
-
-        connection.setActivity(
-            name = name,
-            type = type,
-            details = if (!useDetails) songTitleWithRate else song.artists.joinToString { it.name },
-            state = if (!useDetails) song.artists.joinToString { it.name } else songTitleWithRate,
-            timestamps = Timestamps(
-                start = calculatedStartTime,
-                end = currentTime + adjustedRemainingDuration,
-            ),
-            largeImage = song.song.thumbnailUrl,
-            smallImage = song.artists.firstOrNull()?.thumbnailUrl,
-            largeText = song.album?.title,
-            smallText = song.artists.firstOrNull()?.name,
-            buttons = buttonsList.ifEmpty { null },
-            status = status,
-            since = currentTime,
-            applicationId = APPLICATION_ID,
-        )
+        
+        return result
     }
 
     suspend fun close() {
+        Timber.d("[DiscordRPC] close() called")
         connection.close()
     }
 

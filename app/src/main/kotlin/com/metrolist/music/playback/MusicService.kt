@@ -196,6 +196,7 @@ import com.metrolist.music.utils.reportException
 import com.metrolist.music.widget.MetrolistWidgetManager
 import com.metrolist.music.widget.MusicWidgetReceiver
 import com.metrolist.music.widget.PlaylistWidgetReceiver
+import com.metrolist.music.ui.utils.resize
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CancellationException
 import kotlin.coroutines.coroutineContext
@@ -860,8 +861,10 @@ class MusicService :
                     discordRpc?.closeRPC()
                 }
                 discordRpc = null
+
                 if (key != null && enabled) {
-                    discordRpc = DiscordRPC(this, key)
+                    discordRpc = DiscordRPC(key)
+                    discordRpc?.start() // Connect immediately to avoid first-play delay
                     if (player.playbackState == Player.STATE_READY && player.playWhenReady) {
                         currentSong.value?.let {
                             updateDiscordRPC(it, true)
@@ -3210,9 +3213,14 @@ class MusicService :
         val activityType = if (advancedMode) dataStore.get(DiscordActivityTypeKey, "listening") else "listening"
         val activityName = if (advancedMode) dataStore.get(DiscordActivityNameKey, "") else ""
 
+        val artistThumbnail = song.artists.firstOrNull()?.thumbnailUrl
+        Timber.d("[DiscordRPC] updateDiscordRPC: song=${song.song.title}, artistThumbnail=${artistThumbnail != null}")
+
         discordUpdateJob?.cancel()
         discordUpdateJob =
             scope.launch {
+                Timber.d("[DiscordRPC] Starting RPC update...")
+                val startTime = System.currentTimeMillis()
                 discordRpc
                     ?.updateSong(
                         song,
@@ -3227,8 +3235,7 @@ class MusicService :
                         activityType,
                         activityName,
                     )?.onFailure {
-                        // Rate limited or error
-                        if (showFeedback) {
+                        if (showFeedback && it !is CancellationException) {
                             Handler(Looper.getMainLooper()).post {
                                 Toast
                                     .makeText(
@@ -3238,8 +3245,93 @@ class MusicService :
                                     ).show()
                             }
                         }
+                        Timber.e("[DiscordRPC] RPC update failed: ${it.message}")
+                    }?.onSuccess {
+                        Timber.d("[DiscordRPC] RPC update completed in ${System.currentTimeMillis() - startTime}ms")
                     }
             }
+        // Fetch missing artist thumbnail independently (not cancelled on song skip)
+        scope.launch {
+            Timber.d("[DiscordRPC] Starting artist thumbnail fetch for ${song.artists.firstOrNull()?.name}")
+            val fetched = fetchArtistThumbnail(song)
+            if (fetched != null) {
+                Timber.d("[DiscordRPC] Artist thumbnail fetched, updating RPC...")
+                discordRpc?.updateSong(
+                    fetched,
+                    player.currentPosition,
+                    player.playbackParameters.speed,
+                    useDetails,
+                    status,
+                    b1Text,
+                    b1Visible,
+                    b2Text,
+                    b2Visible,
+                    activityType,
+                    activityName,
+                )
+                Timber.d("[DiscordRPC] Artist thumbnail RPC update completed")
+            } else {
+                Timber.w("[DiscordRPC] Artist thumbnail fetch returned null")
+            }
+        }
+    }
+
+    private suspend fun fetchArtistThumbnail(song: Song): Song? {
+        val artist = song.artists.firstOrNull()
+        Timber.d("[ArtistFetch] fetchArtistThumbnail: artist=${artist?.name}, thumbnailUrl=${artist?.thumbnailUrl}")
+        
+        if (artist == null) {
+            Timber.w("[ArtistFetch] No artist found")
+            return null
+        }
+        
+        if (artist.thumbnailUrl != null) {
+            Timber.d("[ArtistFetch] Artist already has thumbnail, skipping")
+            return null
+        }
+
+        val browseId = when {
+            artist.channelId != null && !artist.channelId.startsWith("LA")
+                && !artist.channelId.startsWith("FEmusic_library_privately_owned") -> {
+                Timber.d("[ArtistFetch] Using channelId: ${artist.channelId}")
+                artist.channelId
+            }
+            !artist.id.startsWith("LA")
+                && !artist.id.startsWith("FEmusic_library_privately_owned") -> {
+                Timber.d("[ArtistFetch] Using id: ${artist.id}")
+                artist.id
+            }
+            else -> {
+                Timber.w("[ArtistFetch] No valid browseId (id=${artist.id}, channelId=${artist.channelId})")
+                return null
+            }
+        }
+
+        return try {
+            Timber.d("[ArtistFetch] Calling YouTube.artist($browseId)...")
+            val startTime = System.currentTimeMillis()
+            val artistPage = withContext(Dispatchers.IO) {
+                YouTube.artist(browseId).getOrNull()
+            }
+            Timber.d("[ArtistFetch] YouTube.artist completed in ${System.currentTimeMillis() - startTime}ms, result=${artistPage != null}")
+            
+            val thumbnail = artistPage?.artist?.thumbnail?.resize(1080, 1080)
+            Timber.d("[ArtistFetch] Thumbnail from API: ${thumbnail != null}")
+            
+            if (thumbnail != null) {
+                database.update(artist.copy(thumbnailUrl = thumbnail))
+                Timber.d("[ArtistFetch] Database updated with thumbnail")
+                val updatedSong = database.getSongById(song.song.id)
+                Timber.d("[ArtistFetch] Returning updated song")
+                updatedSong
+            } else {
+                Timber.w("[ArtistFetch] No thumbnail in artistPage")
+                null
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "[ArtistFetch] Exception during fetch")
+            null
+        }
     }
 
     private fun createDataSourceFactory(): DataSource.Factory {

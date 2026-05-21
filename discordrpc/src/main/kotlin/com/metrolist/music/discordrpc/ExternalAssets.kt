@@ -7,6 +7,8 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -36,28 +38,34 @@ suspend fun fetchExternalAsset(
     if (imageUrl.startsWith("mp:")) return imageUrl
     val api = "https://discord.com/api/v9/applications/$applicationId/external-assets"
     val imageId = imageUrl.takeLast(20)
+    val startTime = System.currentTimeMillis()
     Timber.tag("ExtAssets").d("Uploading external asset: ...$imageId")
-    return runCatching {
-        val body = Json.encodeToString(ExternalAssetRequest(urls = listOf(imageUrl)))
-        val response = client.post(api) {
-            header("Authorization", token)
-            header("User-Agent", userAgent)
-            if (superPropertiesBase64 != null) header("X-Super-Properties", superPropertiesBase64)
-            contentType(ContentType.Application.Json)
-            setBody(body)
+    
+    return withContext(NonCancellable) {
+        try {
+            val body = Json.encodeToString(ExternalAssetRequest(urls = listOf(imageUrl)))
+            val response = client.post(api) {
+                header("Authorization", token)
+                header("User-Agent", userAgent)
+                if (superPropertiesBase64 != null) header("X-Super-Properties", superPropertiesBase64)
+                contentType(ContentType.Application.Json)
+                setBody(body)
+            }
+            val uploadTime = System.currentTimeMillis() - startTime
+            Timber.tag("ExtAssets").d("Upload completed in ${uploadTime}ms, status=${response.status}")
+            val text = response.body<String>()
+            val json = Json { ignoreUnknownKeys = true }
+            val list = json.decodeFromString<List<ExternalAssetResponse>>(text)
+            val result = list.firstOrNull()?.externalAssetPath?.let { "mp:$it" }
+            if (result != null) {
+                Timber.tag("ExtAssets").i("Asset uploaded: ...$imageId -> $result")
+            } else {
+                Timber.tag("ExtAssets").w("Asset upload returned no path for ...$imageId, response: $text")
+            }
+            result
+        } catch (e: Exception) {
+            Timber.tag("ExtAssets").e(e, "Asset upload failed for: ...$imageId")
+            null
         }
-        val text = response.body<String>()
-        val json = Json { ignoreUnknownKeys = true }
-        val list = json.decodeFromString<List<ExternalAssetResponse>>(text)
-        val result = list.firstOrNull()?.externalAssetPath?.let { "mp:$it" }
-        if (result != null) {
-            Timber.tag("ExtAssets").i("Asset uploaded: ...$imageId -> $result")
-        } else {
-            Timber.tag("ExtAssets").w("Asset upload returned no path for ...$imageId")
-        }
-        result
-    }.getOrElse {
-        Timber.tag("ExtAssets").e(it, "Asset upload failed for: ...$imageId")
-        null
     }
 }

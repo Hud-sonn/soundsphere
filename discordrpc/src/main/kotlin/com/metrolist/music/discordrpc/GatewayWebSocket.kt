@@ -66,6 +66,7 @@ class GatewayWebSocket(
     private var intentionalClose = false
     private var lastHeartbeatAckReceivedAt = 0L
     private var heartbeatWatchdogJob: Job? = null
+    private var lastPresence: Presence? = null
 
     fun isSessionEstablished(): Boolean = sessionEstablished
 
@@ -202,10 +203,12 @@ class GatewayWebSocket(
                 resumeUrl = ready.resumeGatewayUrl?.let { "$it/?v=9&encoding=json" }
                 sessionEstablished = true
                 Timber.tag(tag).i("READY received")
+                resendLastPresence()
             }
             "RESUMED" -> {
                 sessionEstablished = true
                 Timber.tag(tag).i("RESUMED — session re-established")
+                resendLastPresence()
             }
             else -> {
                 Timber.tag(tag).d("Unhandled dispatch: ${payload.t}")
@@ -350,6 +353,7 @@ class GatewayWebSocket(
 
     suspend fun updatePresence(presence: Presence) {
         Timber.tag(tag).d("updatePresence: waiting for sessionEstablished...")
+        val startTime = System.currentTimeMillis()
         var waited = 0L
         while (!sessionEstablished) {
             delay(10.milliseconds)
@@ -359,7 +363,16 @@ class GatewayWebSocket(
                 return
             }
         }
+        Timber.tag(tag).d("updatePresence: session ready after ${System.currentTimeMillis() - startTime}ms")
+        lastPresence = presence
         Timber.tag(tag).i("-> PRESENCE_UPDATE: activities=${presence.activities.size}")
+        send(op = OpCode.PRESENCE_UPDATE, d = presence)
+        Timber.tag(tag).d("updatePresence: sent in ${System.currentTimeMillis() - startTime}ms")
+    }
+
+    private suspend fun resendLastPresence() {
+        val presence = lastPresence ?: return
+        Timber.tag(tag).i("Re-sending last presence after session recovery")
         send(op = OpCode.PRESENCE_UPDATE, d = presence)
     }
 
