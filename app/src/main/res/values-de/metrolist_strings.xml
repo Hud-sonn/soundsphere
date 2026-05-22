@@ -509,7 +509,7 @@
     <string name="lyrics_romanize_punjabi">Punjabi-Texte romanisieren</string>
     <string name="lyrics_romanize_as_main">Romanisierten Songtext als Haupttext anzeigen</string>
     <string name="ai_translation_literal_desc">Übersetzt den Sinn in die Zielsprache</string>
-    <string name="discord_information_warning">Diese Funktion nutzt die KizzyRPC-Bibliothek, um eine Verbindung zum Discord-Gateway herzustellen und deinen Rich-Presence-Status zu aktualisieren. Zwar sind bisher keine Kontosperrungen aufgrund einer ähnlichen Nutzung bekannt, doch wird diese Methode von Discord nicht offiziell unterstützt und kann als Verstoß gegen die Nutzungsbedingungen angesehen werden. Dein Token wird lokal verarbeitet und niemals an Server von Drittanbietern gesendet. Die Nutzung erfolgt auf eigene Gefahr!</string>
+    <string name="discord_information_warning">Metrolist sendet den aktuell abgespielten Titel an das Discord-Gateway, um deine Rich Presence zu aktualisieren. Alle Daten werden direkt von deinem Gerät an Discord übertragen – es sind keine Server von Drittanbietern beteiligt. Dein Token verbleibt auf deinem Gerät und wird niemals weitergegeben. Die Verwendung eines Benutzer-Tokens für Gateway-Verbindungen wird jedoch nicht offiziell unterstützt und kann gegen die Nutzungsbedingungen von Discord verstoßen. Handle nach eigenem Ermessen!</string>
     <string name="discord_activity_type">Aktivitätstyp</string>
     <string name="ai_translation_transcribed_desc">Wandelt die Aussprache in die Zielschrift um</string>
     <string name="ai_provider_help">API-Schlüssel abrufen</string>
