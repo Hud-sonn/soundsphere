@@ -339,7 +339,7 @@
     <string name="parsed_from_link">Отримано з посилання</string>
     <string name="weekly_most_playlist_name">Найпопулярніше за тиждень</string>
     <string name="monthly_most_playlist_name">Найпопулярніше за місяць</string>
-    <string name="restart_required">Потрібно перезапустити!</string>
+    <string name="restart_required">Потрібен перезапуск</string>
     <string name="lyrics_from_provider">Текст пісні надано %s</string>
     <string name="hide_status_bar_fullscreen">Приховати рядок стану в повноекранному режимі</string>
     <string name="hide_status_bar_fullscreen_desc">Приховує рядок стану в повноекранному режимі відображення тексту пісень</string>
