@@ -512,13 +512,13 @@
     <string name="column_label">Kolom %d</string>
     <string name="discord_status">Status</string>
     <string name="discord_status_online">Online</string>
-    <string name="discord_status_idle">Idle</string>
+    <string name="discord_status_idle">Tanpa Aktivitas</string>
     <string name="discord_status_dnd">Jangan Ganggu</string>
     <string name="discord_buttons">Tombol</string>
     <string name="discord_button_1">Tombol 1</string>
     <string name="discord_button_2">Tombol 2</string>
     <string name="login_successful">Login berhasil!</string>
-    <string name="discord_information_warning">Fitur ini menggunakan pustaka KizzyRPC untuk terhubung ke Gateway Discord dan memperbarui status Rich Presence Anda. Meskipun tidak ada laporan penangguhan akun dari penggunaan serupa, metode ini tidak didukung secara resmi oleh Discord dan dapat dianggap sebagai pelanggaran Ketentuan Layanan. Token Anda dikelola secara lokal dan tidak pernah dikirim ke server pihak ketiga. Lanjutkan sesuai kebijaksanaan Anda sendiri! Semua data dari perangkat anda langsung menuju Discord, dan tidak ada server pihak ketiga yang terlibat. Token anda akan tetap berada di perangkat anda dan tidak pernah dibagikan. Bagaimanapun, menggunakan token pengguna untuk koneksi Gateway tidak didukung secara resmi dan dapat melanggar Ketentuan Layanan Discord. Lanjutkan sesuai pertimbangan anda sendiri!</string>
+    <string name="discord_information_warning">Metrolist mengirimkan lagu yang sedang Anda putar ke Gateway Discord untuk memperbarui Rich Presence Anda. Semua data dikirim langsung dari perangkat Anda ke Discord — tanpa melibatkan server pihak ketiga. Token Anda tetap tersimpan di perangkat dan tidak pernah dibagikan. Namun, penggunaan token pengguna untuk koneksi Gateway tidak didukung secara resmi dan mungkin melanggar Ketentuan Layanan Discord. Lanjutkan dengan risiko Anda sendiri!</string>
     <string name="discord_activity_type">Jenis aktivitas</string>
     <string name="discord_activity_playing">Bermain</string>
     <string name="discord_activity_listening">Mendengarkan</string>
@@ -803,7 +803,7 @@
     <string name="varispeed">Aktifkan varispeed</string>
     <string name="varispeed_description">Kaitkan nada dengan kecepatan pemutaran, menghasilkan efek percepatan dan perlambatan ala kaset</string>
     <string name="audio_quality_very_high">Setinggi mungkin</string>
-    <string name="autoplay">Putar Otomatis</string>
+    <string name="autoplay">Putar otomatis</string>
     <string name="autoplay_desc">Secara otomatis memutar lagu berikutnya ketika lagu saat ini selesai</string>
     <string name="back">Kembali</string>
     <string name="clear_search">Hapus pencarian</string>
@@ -836,4 +836,7 @@
     <string name="show_most_stats_playlists_desc">Buat dan tampilkan playlist berdasarkan statistik Paling Sering Diputar di bagian Statistik dan Pustaka</string>
     <string name="pin">Pin</string>
     <string name="unpin">Unpin</string>
+    <string name="widget_playlists">Daftar putar</string>
+    <string name="widget_playlists_description">Pintasan daftar putar dengan kontrol pemutar mini</string>
+    <string name="choose_something_below">PIlih salah satu di bawah ini</string>
 </resources>
