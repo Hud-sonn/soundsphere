@@ -629,4 +629,19 @@
     <string name="ai_error_no_lyrics">Немає тексту для перекладу</string>
     <string name="ai_error_lyrics_empty">Текст пісні пустий</string>
     <string name="ai_error_language_required">Необхідно вказати мову перекладу</string>
+    <string name="not_set">Не вказано</string>
+    <string name="error_username_empty">Ім’я користувача є обов’язковим</string>
+    <string name="listen_together_blocked_users">Заблоковані користувачі</string>
+    <string name="ai_error_unknown">Сталася невідома помилка</string>
+    <string name="ai_error_translation_failed">Помилка перекладу</string>
+    <string name="ai_provider_openrouter_help">Відвідайте https://openrouter.ai для доступу до безкоштовних і платних моделей</string>
+    <string name="ai_provider_openai_help">Відвідайте https://platform.openai.com/api-keys</string>
+    <string name="ai_provider_claude_help">Відвідайте https://console.anthropic.com/settings/keys</string>
+    <string name="ai_provider_gemini_help">Відвідайте https://aistudio.google.com/apikey</string>
+    <string name="ai_provider_perplexity_help">Відвідайте https://perplexity.ai/settings/api</string>
+    <string name="ai_provider_xai_help">Відвідайте https://console.x.ai</string>
+    <string name="ai_provider_deepl_help">Відвідайте https://deepl.com/pro-api для доступу до безкоштовних і платних моделей</string>
+    <string name="ai_provider_mistral_help">Відвідайте https://console.mistral.ai/api-keys</string>
+    <string name="ai_deepl_formality_default">За замовчуванням</string>
+    <string name="ai_system_prompt_default">За замовчуванням</string>
 </resources>
