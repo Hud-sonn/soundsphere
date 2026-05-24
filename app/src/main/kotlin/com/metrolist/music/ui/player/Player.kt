@@ -755,6 +755,24 @@ fun BottomSheetPlayer(
         }
     }
 
+    // Auto-switch from repeat one to repeat all when song changes
+    var previousMediaId by remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(mediaMetadata?.id, repeatMode) {
+        val currentId = mediaMetadata?.id
+        
+        // If we've moved to a new song and were in REPEAT_MODE_ONE, switch to REPEAT_MODE_ALL
+        if (currentId != null && 
+            currentId != previousMediaId && 
+            previousMediaId != null && 
+            repeatMode == Player.REPEAT_MODE_ONE &&
+            !isListenTogetherGuest) {
+            playerConnection.player.setRepeatMode(Player.REPEAT_MODE_ALL)
+        }
+        
+        previousMediaId = currentId
+    }
+
     // When casting, use Cast position/duration directly
     // But wait a bit after manual seeks to let Cast catch up
     LaunchedEffect(isCasting, castPosition, castDuration) {
