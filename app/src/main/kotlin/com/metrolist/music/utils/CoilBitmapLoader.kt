@@ -36,10 +36,7 @@ class CoilBitmapLoader(
     private fun Bitmap.createIndependentCopy(): Bitmap {
         if (isRecycled) return createFallbackBitmap()
         val copy = copy(Bitmap.Config.ARGB_8888, false)
-        if (copy != null) {
-            recycle()
-            return copy
-        }
+        if (copy != null) return copy
         return createFallbackBitmap()
     }
 
