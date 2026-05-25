@@ -77,6 +77,18 @@ object FunctionNameExtractor {
             nArrayIndex = null,
             nConstantArgs = null,
             signatureTimestamp = 20543
+        ),
+        // May 2026: direct URLs, no client-side cipher or n-transform
+        "57f5d44f" to HardcodedPlayerConfig(
+            sigFuncName = "",
+            sigConstantArg = null,
+            sigConstantArgs = null,
+            sigPreprocessFunc = null,
+            sigPreprocessArgs = null,
+            nFuncName = "",
+            nArrayIndex = null,
+            nConstantArgs = null,
+            signatureTimestamp = 20591
         )
     )
 
