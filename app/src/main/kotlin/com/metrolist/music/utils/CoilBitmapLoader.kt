@@ -24,7 +24,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.guava.future
 import timber.log.Timber
-import java.io.ByteArrayOutputStream
 
 class CoilBitmapLoader(
     private val context: Context,
@@ -36,14 +35,12 @@ class CoilBitmapLoader(
 
     private fun Bitmap.createIndependentCopy(): Bitmap {
         if (isRecycled) return createFallbackBitmap()
-        return try {
-            val stream = ByteArrayOutputStream()
-            compress(Bitmap.CompressFormat.PNG, 100, stream)
-            val bytes = stream.toByteArray()
-            BitmapFactory.decodeByteArray(bytes, 0, bytes.size) ?: createFallbackBitmap()
-        } catch (e: Exception) {
-            createFallbackBitmap()
+        val copy = copy(Bitmap.Config.ARGB_8888, false)
+        if (copy != null) {
+            recycle()
+            return copy
         }
+        return createFallbackBitmap()
     }
 
     override fun decodeBitmap(data: ByteArray): ListenableFuture<Bitmap> =
