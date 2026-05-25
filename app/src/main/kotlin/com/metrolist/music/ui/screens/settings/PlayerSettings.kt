@@ -47,6 +47,7 @@ import com.metrolist.music.constants.CrossfadeDurationKey
 import com.metrolist.music.constants.CrossfadeEnabledKey
 import com.metrolist.music.constants.CrossfadeGaplessKey
 import com.metrolist.music.constants.AutoLoadMoreKey
+import com.metrolist.music.constants.AutoRadioQueueKey
 import com.metrolist.music.constants.AutoSkipNextOnErrorKey
 import com.metrolist.music.constants.AutoplayKey
 import com.metrolist.music.constants.DisableLoadMoreWhenRepeatAllKey
@@ -160,6 +161,10 @@ fun PlayerSettings(
 
     val (autoLoadMore, onAutoLoadMoreChange) = rememberPreference(
         AutoLoadMoreKey,
+        defaultValue = true
+    )
+    val (autoRadioQueue, onAutoRadioQueueChange) = rememberPreference(
+        AutoRadioQueueKey,
         defaultValue = true
     )
     val (disableLoadMoreWhenRepeatAll, onDisableLoadMoreWhenRepeatAllChange) = rememberPreference(
@@ -820,6 +825,27 @@ fun PlayerSettings(
                         )
                     },
                     onClick = { onAutoLoadMoreChange(!autoLoadMore) }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.radio),
+                    title = { Text(stringResource(R.string.auto_radio_queue)) },
+                    description = { Text(stringResource(R.string.auto_radio_queue_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = autoRadioQueue,
+                            onCheckedChange = onAutoRadioQueueChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (autoRadioQueue) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onAutoRadioQueueChange(!autoRadioQueue) }
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.skip_next),

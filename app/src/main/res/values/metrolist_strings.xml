@@ -200,6 +200,8 @@
     <string name="discord_use_details">Use details instead of state</string>
     <string name="discord_use_details_description">Show the song title prominently instead of the artist name</string>
 
+    <string name="auto_radio_queue">Auto radio queue</string>
+    <string name="auto_radio_queue_desc">Automatically create a radio queue when playing a song from search or home</string>
     <string name="enable_similar_content">Enable similar content</string>
     <string name="similar_content_desc">Automatically adds more similar songs when the end of the queue is reached</string>
     <string name="persistent_shuffle_title">Persistent shuffle</string>

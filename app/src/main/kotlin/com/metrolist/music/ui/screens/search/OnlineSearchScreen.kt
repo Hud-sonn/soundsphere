@@ -63,8 +63,11 @@ import com.metrolist.innertube.models.SongItem
 import com.metrolist.music.LocalDatabase
 import com.metrolist.music.LocalPlayerConnection
 import com.metrolist.music.R
+import com.metrolist.music.constants.AutoRadioQueueKey
 import com.metrolist.music.constants.SuggestionItemHeight
+import com.metrolist.music.extensions.toMediaItem
 import com.metrolist.music.models.toMediaMetadata
+import com.metrolist.music.playback.queues.ListQueue
 import com.metrolist.music.playback.queues.YouTubeQueue
 import com.metrolist.music.ui.component.LocalMenuState
 import com.metrolist.music.ui.component.YouTubeListItem
@@ -72,6 +75,7 @@ import com.metrolist.music.ui.menu.YouTubeAlbumMenu
 import com.metrolist.music.ui.menu.YouTubeArtistMenu
 import com.metrolist.music.ui.menu.YouTubePlaylistMenu
 import com.metrolist.music.ui.menu.YouTubeSongMenu
+import com.metrolist.music.utils.rememberPreference
 import com.metrolist.music.viewmodels.OnlineSearchSuggestionViewModel
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.collectLatest
@@ -102,6 +106,8 @@ fun OnlineSearchScreen(
     val viewState by viewModel.viewState.collectAsStateWithLifecycle()
 
     val lazyListState = rememberLazyListState()
+
+    val autoRadioQueue by rememberPreference(AutoRadioQueueKey, defaultValue = true)
 
     LaunchedEffect(Unit) {
         snapshotFlow { lazyListState.firstVisibleItemScrollOffset }
@@ -244,7 +250,14 @@ fun OnlineSearchScreen(
                                                 playerConnection.togglePlayPause()
                                             } else {
                                                 playerConnection.playQueue(
-                                                    YouTubeQueue.radio(item.toMediaMetadata()),
+                                                    if (autoRadioQueue) {
+                                                        YouTubeQueue.radio(item.toMediaMetadata())
+                                                    } else {
+                                                        ListQueue(
+                                                            title = item.title,
+                                                            items = listOf(item.toMediaItem())
+                                                        )
+                                                    }
                                                 )
                                                 onDismiss()
                                             }
@@ -516,7 +529,14 @@ fun OnlineSearchScreen(
                                             playerConnection.togglePlayPause()
                                         } else {
                                             playerConnection.playQueue(
-                                                YouTubeQueue.radio(item.toMediaMetadata()),
+                                                if (autoRadioQueue) {
+                                                    YouTubeQueue.radio(item.toMediaMetadata())
+                                                } else {
+                                                    ListQueue(
+                                                        title = item.title,
+                                                        items = listOf(item.toMediaItem())
+                                                    )
+                                                }
                                             )
                                             onDismiss()
                                         }
