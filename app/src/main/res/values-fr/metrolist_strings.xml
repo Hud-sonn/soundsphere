@@ -854,4 +854,8 @@
     <string name="widget_playlists_description">Raccourcis vers les playlists avec commandes du mini-lecteur</string>
     <string name="choose_something_below">Faites votre choix parmi les options ci-dessous</string>
     <string name="and">et</string>
+    <string name="auto_radio_queue_desc">Créer automatiquement une file d\'attente radio lors de la lecture d\'un morceau issu de la recherche ou de la page d\'accueil</string>
+    <string name="auto_radio_queue">File d\'attente radio automatique</string>
+    <string name="audio_track_playback_params">Utiliser le traitement audio matériel</string>
+    <string name="audio_track_playback_params_description">Utilisez la fonction AudioTrack d\'Android pour modifier la vitesse ou la hauteur tonale, plutôt que de recourir à un traitement logiciel. Cette méthode est plus fiable pour les valeurs de hauteur tonale extrêmes</string>
 </resources>
