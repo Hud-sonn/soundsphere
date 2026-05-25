@@ -259,11 +259,6 @@ constructor(
                                 }
                             }.onFailure {
                                 reportException(it)
-                                if (it.message?.contains("NOT_FOUND") == true) {
-                                    database.query {
-                                        delete(album.album)
-                                    }
-                                }
                             }
                     }
             }
@@ -430,11 +425,6 @@ constructor(
                                 }
                             }.onFailure {
                                 reportException(it)
-                                if (it.message?.contains("NOT_FOUND") == true) {
-                                    database.query {
-                                        delete(album.album)
-                                    }
-                                }
                             }
                     }
             }
