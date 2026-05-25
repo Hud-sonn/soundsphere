@@ -50,16 +50,20 @@ constructor(
 
     private suspend fun loadSummaryPage() {
         if (summaryPage == null) {
-            YouTube
-                .searchSummary(query)
-                .onSuccess {
-                    val hideExplicit = context.dataStore.get(HideExplicitKey, false)
-                    val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)
-                    val hideYoutubeShorts = context.dataStore.get(HideYoutubeShortsKey, false)
-                    summaryPage =
-                        it.filterExplicit(hideExplicit)
-                          .filterVideoSongs(hideVideoSongs)
-                          .filterYoutubeShorts(hideYoutubeShorts)
+                    YouTube
+                        .searchSummary(query)
+                        .onSuccess { page ->
+                            val resolvedSummaries = page.summaries.map { summary ->
+                                summary.copy(items = YouTube.resolveArtistIds(summary.items))
+                            }
+                            val resolvedPage = page.copy(summaries = resolvedSummaries)
+                            val hideExplicit = context.dataStore.get(HideExplicitKey, false)
+                            val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)
+                            val hideYoutubeShorts = context.dataStore.get(HideYoutubeShortsKey, false)
+                            summaryPage =
+                                resolvedPage.filterExplicit(hideExplicit)
+                                  .filterVideoSongs(hideVideoSongs)
+                                  .filterYoutubeShorts(hideYoutubeShorts)
                 }.onFailure {
                     reportException(it)
                 }
@@ -93,12 +97,13 @@ constructor(
                         YouTube
                             .search(query, filter)
                             .onSuccess { result ->
+                                val resolvedItems = YouTube.resolveArtistIds(result.items)
                                 val hideExplicit = context.dataStore.get(HideExplicitKey, false)
                                 val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)
                                 val hideYoutubeShorts = context.dataStore.get(HideYoutubeShortsKey, false)
                                 viewStateMap[filter.value] =
                                     ItemsPage(
-                                        result.items
+                                        resolvedItems
                                             .distinctBy { it.id }
                                             .filterExplicit(hideExplicit)
                                             .filterVideoSongs(hideVideoSongs)
@@ -122,10 +127,11 @@ constructor(
             val continuation = viewState.continuation ?: return@launch
             val searchResult =
                 YouTube.searchContinuation(continuation).getOrNull() ?: return@launch
+            val resolvedItems = YouTube.resolveArtistIds(searchResult.items)
             val hideExplicit = context.dataStore.get(HideExplicitKey, false)
             val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)
             val hideYoutubeShorts = context.dataStore.get(HideYoutubeShortsKey, false)
-            val newItems = searchResult.items
+            val newItems = resolvedItems
                 .filterExplicit(hideExplicit)
                 .filterVideoSongs(hideVideoSongs)
                 .filterYoutubeShorts(hideYoutubeShorts)

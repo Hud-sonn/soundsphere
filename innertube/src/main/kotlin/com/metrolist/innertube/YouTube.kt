@@ -3267,4 +3267,44 @@ object YouTube {
      * Maximum file size for upload (300MB)
      */
     const val MAX_UPLOAD_SIZE = 314572800L
+
+    suspend fun resolveArtistIds(items: List<YTItem>): List<YTItem> {
+        val missingNames = mutableSetOf<String>()
+        for (item in items) {
+            when (item) {
+                is SongItem -> item.artists.filter { it.id == null }.forEach { missingNames.add(it.name) }
+                is AlbumItem -> item.artists?.filter { it.id == null }?.forEach { missingNames.add(it.name) }
+                is PlaylistItem -> item.author?.let { if (it.id == null) missingNames.add(it.name) }
+                is EpisodeItem -> item.author?.let { if (it.id == null) missingNames.add(it.name) }
+                is PodcastItem -> item.author?.let { if (it.id == null) missingNames.add(it.name) }
+                else -> {}
+            }
+        }
+
+        if (missingNames.isEmpty()) return items
+
+        val resolved = mutableMapOf<String, String>()
+        for (name in missingNames) {
+            val searchResult = search(name, SearchFilter.FILTER_ARTIST).getOrNull()
+            val normalizedName = name.trim()
+            val artistId = searchResult?.items
+                ?.filterIsInstance<ArtistItem>()
+                ?.firstOrNull { candidate ->
+                    candidate.title.trim().equals(normalizedName, ignoreCase = true)
+                }?.id
+            if (artistId != null) resolved[name] = artistId
+        }
+
+        fun Artist.resolve() = if (id == null) resolved[name]?.let { copy(id = it) } ?: this else this
+        return items.map { item ->
+            when (item) {
+                is SongItem -> item.copy(artists = item.artists.map { it.resolve() })
+                is AlbumItem -> item.copy(artists = item.artists?.map { it.resolve() })
+                is PlaylistItem -> item.copy(author = item.author?.resolve())
+                is EpisodeItem -> item.copy(author = item.author?.resolve())
+                is PodcastItem -> item.copy(author = item.author?.resolve())
+                else -> item
+            }
+        }
+    }
 }

@@ -22,6 +22,7 @@ import coil3.request.CachePolicy
 import coil3.request.allowHardware
 import coil3.request.crossfade
 import com.metrolist.innertube.YouTube
+import com.metrolist.innertube.models.ArtistConjunctions
 import com.metrolist.innertube.models.YouTubeLocale
 import com.metrolist.kugou.KuGou
 import com.metrolist.lastfm.LastFM
@@ -98,6 +99,12 @@ class App :
         val settings = dataStore.data.first()
         val locale = Locale.getDefault()
         val languageTag = locale.language
+
+        ArtistConjunctions.conjunctions = listOf(
+            R.string.and,
+        ).mapNotNull { id ->
+            runCatching { getString(id) }.getOrNull()
+        }
 
         YouTube.locale =
             YouTubeLocale(

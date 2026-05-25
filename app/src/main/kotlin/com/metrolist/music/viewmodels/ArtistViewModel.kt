@@ -110,15 +110,19 @@ class ArtistViewModel @Inject constructor(
             val hideYoutubeShorts = context.dataStore.get(HideYoutubeShortsKey, false)
             YouTube.artist(artistId)
                 .onSuccess { page ->
-                    val filteredSections = page.sections
+                    val resolvedSections = page.sections.map { section ->
+                        section.copy(items = YouTube.resolveArtistIds(section.items))
+                    }
+                    val resolvedPage = page.copy(sections = resolvedSections)
+                    val filteredSections = resolvedPage.sections
                         .map { section ->
                             section.copy(items = section.items.filterExplicit(hideExplicit).filterVideoSongs(hideVideoSongs).filterYoutubeShorts(hideYoutubeShorts))
                         }
                         .filter { section -> section.items.isNotEmpty() }
 
-                    artistPage = page.copy(sections = filteredSections)
+                    artistPage = resolvedPage.copy(sections = filteredSections)
                     // Store API subscription state
-                    _apiSubscribed.value = page.isSubscribed
+                    _apiSubscribed.value = resolvedPage.isSubscribed
                 }.onFailure {
                     reportException(it)
                 }

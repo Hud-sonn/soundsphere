@@ -19,6 +19,7 @@ import com.metrolist.innertube.models.filterExplicit
 import com.metrolist.innertube.models.filterVideoSongs
 import com.metrolist.innertube.models.filterYoutubeShorts
 import com.metrolist.innertube.models.oddElements
+import com.metrolist.innertube.models.splitArtistsByConjunction
 import com.metrolist.innertube.models.splitBySeparator
 import com.metrolist.innertube.utils.parseTime
 
@@ -327,6 +328,10 @@ data class SearchSummaryPage(
                             ?: emptyList()
                     val listRun = (secondaryLine + thirdLine).clean()
 
+                    // Split artist runs by conjunction to handle "Artist1 & Artist2" cases
+                    val artistRuns = listRun.getOrNull(0)?.splitArtistsByConjunction()
+                        ?.filter { it.text.isNotBlank() && it.text != "&" && it.text != "," }
+
                     SongItem(
                         // playlistItemData may be absent in some search contexts; fall back to watchEndpoint.
                         id = renderer.playlistItemData?.videoId
@@ -340,10 +345,10 @@ data class SearchSummaryPage(
                                 ?.runs
                                 ?.firstOrNull()
                                 ?.text ?: return null,
-                        artists = listRun.getOrNull(0)?.oddElements()?.map {
+                        artists = artistRuns?.map { run ->
                             Artist(
-                                name = it.text,
-                                id = it.navigationEndpoint?.browseEndpoint?.browseId
+                                name = run.text.trim(),
+                                id = run.navigationEndpoint?.browseEndpoint?.browseId
                             )
                         } ?: return null,
                         album = listRun.getOrNull(1)?.firstOrNull()?.takeIf { it.navigationEndpoint?.browseEndpoint != null }?.let {
