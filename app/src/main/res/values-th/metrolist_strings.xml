@@ -839,4 +839,5 @@
     <string name="listen_on_metrolist">ฟังบน Metrolist</string>
     <string name="pin">ปักหมุด</string>
     <string name="unpin">เลิกปักหมุด</string>
+    <string name="and">และ</string>
 </resources>
