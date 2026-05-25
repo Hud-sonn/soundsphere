@@ -517,7 +517,7 @@
     <string name="discord_button_text_variables">Переменные: {song_name}, {artist_name}, {album_name}</string>
     <string name="discord_rpc_preview">Предпросмотр Rich Presence</string>
     <string name="discord_presence">Присутствие</string>
-    <string name="discord_connect_description">Войдите через Discord, чтобы поделиться тем, что вы слушаете</string>
+    <string name="discord_connect_description">Войдите через Discord, чтобы делиться тем, что вы слушаете</string>
     <string name="discord_playing_metrolist">Играет в Metrolist</string>
     <string name="prevent_duplicate_tracks_in_queue">Исключать дубликаты в очереди</string>
     <string name="prevent_duplicate_tracks_in_queue_desc">Если трек уже есть в очереди, он будет перемещён, а не добавлен повторно</string>
@@ -860,4 +860,9 @@
     <string name="widget_playlists">Плейлисты</string>
     <string name="widget_playlists_description">Ярлыки плейлистов с элементами управления мини-плеером</string>
     <string name="choose_something_below">Выберите что-нибудь ниже</string>
+    <string name="and">и</string>
+    <string name="auto_radio_queue">Автоочередь радио</string>
+    <string name="auto_radio_queue_desc">Автоматически создавать очередь радио при воспроизведении трека из поиска или с главного экрана</string>
+    <string name="audio_track_playback_params">Использовать аппаратную обработку аудио</string>
+    <string name="audio_track_playback_params_description">Использовать Android AudioTrack для изменения скорости/тона вместо программной обработки. Более надёжно при экстремальных значениях тона</string>
 </resources>
