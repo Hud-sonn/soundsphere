@@ -818,7 +818,6 @@
     <string name="time_transfer_title">時長轉移</string>
     <string name="time_transfer_warning">警告：此操作一旦完成就無法撤銷，請在繼續前創建備份。只有至少有一次播放記錄的歌曲才符合條件</string>
     <string name="song_dropdown_more_results">繼續輸入以縮小結果（還有 %d 個）</string>
-    <string name="audio_quality_very_high">播放器與音訊設定</string>
     <string name="autoplay">自動播放</string>
     <string name="autoplay_desc">當目前的歌曲結束時自動播放下一首歌</string>
     <string name="back">無障礙功能</string>

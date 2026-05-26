@@ -831,7 +831,6 @@
     <string name="time_transfer_listen_time_label">Tiempo de escucha:</string>
     <string name="time_transfer_convert">Convertir</string>
     <string name="song_dropdown_more_results">Sigue escribiendo para acotar los resultados (%d más)</string>
-    <string name="audio_quality_very_high">El mejor posible</string>
     <string name="autoplay">Reproducción automatica</string>
     <string name="autoplay_desc">Reproducir automáticamente la siguiente canción cuando termine la actual</string>
     <string name="back">Atrás</string>

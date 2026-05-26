@@ -797,7 +797,6 @@
     <string name="time_transfer_listen_time_label">เวลาในการฟัง:</string>
     <string name="time_transfer_convert">ย้ายข้อมูล</string>
     <string name="song_dropdown_more_results">พิมพ์ต่อเพื่อจำกัดผลลัพธ์ให้แคบลง (เหลืออีก %d รายการ)</string>
-    <string name="audio_quality_very_high">สูงที่สุดเท่าที่เป็นไปได้</string>
     <string name="autoplay">เล่นอัตโนมัติ</string>
     <string name="autoplay_desc">เล่นเพลงถัดไปโดยอัตโนมัติเมื่อเพลงปัจจุบันจบ</string>
     <string name="back">ย้อนกลับ</string>

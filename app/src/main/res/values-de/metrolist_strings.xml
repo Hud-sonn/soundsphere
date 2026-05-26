@@ -815,7 +815,6 @@
     <string name="switch_to_grid_view">Zur Rasteransicht wechseln</string>
     <string name="more_options">Weitere Optionen</string>
     <string name="varispeed">Variable Geschwindigkeit aktivieren</string>
-    <string name="audio_quality_very_high">Höchstmöglich</string>
     <string name="autoplay_desc">Spiele den nächsten Song automatisch ab, wenn der aktuelle endet</string>
     <string name="system_equalizer_desc">Öffnen Sie den integrierten Equalizer von Android</string>
     <string name="eq_wizard">AutoEQ-Assistent</string>

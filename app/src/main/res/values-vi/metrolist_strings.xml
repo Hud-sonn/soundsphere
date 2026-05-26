@@ -793,7 +793,6 @@
     <string name="android_auto_target_playlist_not_set">Chưa chọn danh sách phát nào. Vui lòng chọn một danh sách phát trong cài đặt Android Auto</string>
     <string name="time_transfer_warning">CẢNH BÁO: Thao tác này không thể hoàn tác sau khi hoàn tất. Hãy tạo bản sao lưu trước khi tiếp tục. Chỉ những bài hát có ít nhất một lần phát đã được ghi nhận mới đủ điều kiện</string>
     <string name="time_transfer_listen_time_label">Thời lượng:</string>
-    <string name="audio_quality_very_high">Cao nhất có thể</string>
     <string name="autoplay">Tự động phát</string>
     <string name="autoplay_desc">Tự động phát bài hát tiếp theo khi bài hát hiện tại kết thúc</string>
     <string name="back">Quay lại</string>

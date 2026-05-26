@@ -831,7 +831,6 @@
     <string name="android_auto_target_playlist_auto">No establecido</string>
     <string name="added_to_playlist">Añadido a la lista de reproducción</string>
     <string name="android_auto_target_playlist_not_set">Ninguna lista de reproducción seleccionada. Elige una en los ajustes de Android Auto</string>
-    <string name="audio_quality_very_high">La mejor posible</string>
     <string name="autoplay">Reproducción automatica</string>
     <string name="autoplay_desc">Reproducir la siguiente canción de forma automática cuando la actual termine</string>
     <string name="back">Atrás</string>

@@ -808,7 +808,6 @@
     <string name="speed">再生速度</string>
     <string name="varispeed">音程を再生速度と連動</string>
     <string name="varispeed_description">音程を再生速度と連動させることで、アナログテープのような早送りとスロー再生を実現します</string>
-    <string name="audio_quality_very_high">最高音質</string>
     <string name="autoplay">自動再生</string>
     <string name="autoplay_desc">曲の再生が終了すると、次の曲を自動で再生します</string>
     <string name="system_equalizer_desc">Android標準のイコライザー設定を開きます</string>

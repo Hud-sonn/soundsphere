@@ -824,7 +824,6 @@
     <string name="wizard_multiple_variants">Több féle változat található</string>
     <string name="wizard_select_eq_profiles">Válassza ki a %s EQ profilját</string>
     <string name="wizard_save_profiles">Profilok mentése</string>
-    <string name="audio_quality_very_high">Lehető legjobb</string>
     <string name="autoplay">Auto-lejátszás</string>
     <string name="autoplay_desc">Automatikusan lejátsza a következő dalt a jelenlegi végeztével</string>
     <string name="back">Vissza</string>

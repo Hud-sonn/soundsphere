@@ -815,7 +815,6 @@
     <string name="hide_status_bar_fullscreen">Tam ekranda durum çubuğunu gizle</string>
     <string name="lyrics_from_provider">Şarkı sözleri sağlayıcısı: %s</string>
     <string name="parsed_from_link">Bağlantıdan ayrıştırıldı</string>
-    <string name="audio_quality_very_high">Olabilğince yüksek</string>
     <string name="autoplay">Oto oynatma</string>
     <string name="autoplay_desc">Şu ankilerden biri biterse bir sonraki şarkıyı otomatikman oynat</string>
     <string name="system_equalizer_desc">Android\'in içinde gelen ekolayzeri aç</string>

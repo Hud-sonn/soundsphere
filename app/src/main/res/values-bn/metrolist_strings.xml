@@ -498,7 +498,6 @@
     <string name="time_transfer_listen_time_label">শোনার সময়:</string>
     <string name="time_transfer_convert">রূপান্তর করুন</string>
     <string name="song_dropdown_more_results">ফলাফল আরও সংকুচিত করতে টাইপ করতে থাকুন (আরও %d টি)</string>
-    <string name="audio_quality_very_high">সর্বোচ্চ সম্ভাব্য</string>
     <string name="autoplay">অটোপ্লে</string>
     <string name="autoplay_desc">বর্তমান গানটি শেষ হলে স্বয়ংক্রিয়ভাবে পরবর্তী গানটি বাজবে</string>
     <string name="credits_lead_developer">প্রধান ডেভেলপার</string>

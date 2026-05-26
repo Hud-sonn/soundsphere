@@ -215,7 +215,6 @@
     <string name="time_transfer_target_song">Helburuko abestia</string>
     <string name="time_transfer_convert">Bihurtu</string>
     <string name="song_dropdown_more_results">Idazten jarraitu emaitzak zehatzagoak izateko (%d gehiago)</string>
-    <string name="audio_quality_very_high">Ahalik eta altuen</string>
     <string name="autoplay">Automatikoki jo</string>
     <string name="autoplay_desc">Hurrengo abestia automatikoki jo unekoa amaitzean</string>
     <string name="back">Itzuli</string>
