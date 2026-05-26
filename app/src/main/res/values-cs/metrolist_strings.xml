@@ -860,4 +860,9 @@
     <string name="widget_playlists">Playlisty</string>
     <string name="widget_playlists_description">Zkratky playlistů s ovládáním minipřehrávače</string>
     <string name="choose_something_below">Vyberte si něco níže</string>
+    <string name="and">a</string>
+    <string name="auto_radio_queue">Automatická fronta rádia</string>
+    <string name="auto_radio_queue_desc">Automaticky vytvořit frontu rádia během přehrávání skladby z vyhledávače nebo domovské stránky</string>
+    <string name="audio_track_playback_params">Použít hardwarové zpracování zvuku</string>
+    <string name="audio_track_playback_params_description">Pro změny rychlosti/výšky použít funkci AutoTrack sytému Android namísto softwarového zpracování. Spolehlivější pro extrémní změny hodnoty výšky</string>
 </resources>
