@@ -836,4 +836,6 @@
     <string name="loudness_level_quiet">安靜（-19 分貝）</string>
     <string name="loudness_level">響度級別</string>
     <string name="mixes">合輯</string>
+    <string name="widget_playlists">播放清單</string>
+    <string name="choose_something_below">在下方選擇</string>
 </resources>

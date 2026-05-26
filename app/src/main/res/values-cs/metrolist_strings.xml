@@ -538,7 +538,7 @@
     <string name="discord_button_1">Tlačítko 1</string>
     <string name="discord_button_2">Tlačítko 2</string>
     <string name="login_successful">Přihlášení bylo úspěšné!</string>
-    <string name="discord_information_warning">Tato funkce využívá knihovnu KizzyRPC k připojení k bráně Discordu a změnu vašeho stavu na něm. Ačkoli nebyly nikdy hlášeny žádné případy zrušení účtu v důsledku podobného použití, není tato metoda oficiálně podporována společností Discord a může být považována za porušení podmínek služby. S vaším tokenem je pracováno lokálně a nikdy není odesílán na servery třetích stran. Postupujte podle vlastního uvážení!</string>
+    <string name="discord_information_warning">Metrolist odesílá vaši právě hrající skladbu na bránu společnosti Discord pro aktualizaci vašeho stavu. Všechna data jdou přímo z vašeho zařízení na Discord – nejsou použity žádné servery třetích stran. Váš token zůstane na vašem zařízení a nikdy nebude sdílen. Používání tokenu pro připojení k bráně nicméně není oficiálně podporováno a může porušovat podmínky služby Discord. Pokračujte na vlastní zodpovědnost!</string>
     <string name="discord_activity_type">Typ aktivity</string>
     <string name="discord_activity_playing">Hraje</string>
     <string name="discord_activity_listening">Poslouchá</string>
@@ -857,4 +857,12 @@
     <string name="show_most_stats_playlists_desc">Vytvářet a zobrazovat playlisty Nejpřehrávanější založené na statistice v Statistikách a Knihovně</string>
     <string name="pin">Připnout</string>
     <string name="unpin">Odepnout</string>
+    <string name="widget_playlists">Playlisty</string>
+    <string name="widget_playlists_description">Zkratky playlistů s ovládáním minipřehrávače</string>
+    <string name="choose_something_below">Vyberte si něco níže</string>
+    <string name="and">a</string>
+    <string name="auto_radio_queue">Automatická fronta rádia</string>
+    <string name="auto_radio_queue_desc">Automaticky vytvořit frontu rádia během přehrávání skladby z vyhledávače nebo domovské stránky</string>
+    <string name="audio_track_playback_params">Použít hardwarové zpracování zvuku</string>
+    <string name="audio_track_playback_params_description">Pro změny rychlosti/výšky použít funkci AutoTrack sytému Android namísto softwarového zpracování. Spolehlivější pro extrémní změny hodnoty výšky</string>
 </resources>

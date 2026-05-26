@@ -843,4 +843,12 @@
     <string name="mixes">Mezclas</string>
     <string name="show_most_stats_playlists">Mostrar listas de reproducción \"Lo más escuchado\" semanal y mensual</string>
     <string name="show_most_stats_playlists_desc">Crear y mostrar listas de reproducción \"Lo más escuchado\" basadas en estadísticas en las secciones de Estadísticas y Biblioteca</string>
+    <string name="pin">Anclar</string>
+    <string name="unpin">Desanclar</string>
+    <string name="loudness_level">Niveles de sonoridad</string>
+    <string name="loudness_level_aggressive">Agresivo (-7 dB)</string>
+    <string name="loudness_level_loud">Fuerte (-11 dB)</string>
+    <string name="loudness_level_balanced">Balanceado (-14 dB)</string>
+    <string name="loudness_level_quiet">Suave (-19 dB)</string>
+    <string name="widget_playlists">Playlists</string>
 </resources>

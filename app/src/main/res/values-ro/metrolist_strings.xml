@@ -79,7 +79,7 @@
     <string name="percentage_format">%d%%</string>
     <string name="import_online">Importă un playlist M3U</string>
     <string name="import_csv">Importă un playlist CSV</string>
-    <string name="playlist_add_local_to_synced_note">NOTĂ: Adăugarea de melodii locale la playlisturile sincronizate sau de la distanță nu este suportată. Orice altă combinație este validă</string>
+    <string name="playlist_add_local_to_synced_note">NOTĂ: Adăugarea de melodii locale la playlisturile sincronizate sau de la distanță nu este acceptată. Orice altă combinație este validă</string>
     <string name="auto_download_on_like">Descarcă automat la apreciere</string>
     <string name="auto_download_on_like_desc">Descarcă melodiile automat atunci când le apreciezi</string>
     <string name="swipe_sensitivity">Sensibilitate glisare mini-player</string>
@@ -89,7 +89,7 @@
     <string name="clear_downloads_dialog">Sigur vrei să ștergi toate descărcările?</string>
     <string name="disable">Dezactivează</string>
     <string name="not_logged_in_youtube">Neautentificat la YouTube</string>
-    <string name="default_links">Deschide linkurile suportate</string>
+    <string name="default_links">Deschide linkurile acceptate</string>
     <string name="open_app_settings_error">Nu s-au putut deschide setările aplicației</string>
     <string name="release_notes">Notele lansării</string>
     <string name="top_length">Lungimea listei Topul meu</string>
@@ -481,7 +481,7 @@
     <string name="map_csv_columns">Mapează coloanele CSV</string>
     <string name="column_label">Coloana %d</string>
     <string name="recognition_error">Eroare la recunoaștere</string>
-    <string name="enable_high_refresh_rate_desc">Forțează afișajul să ruleze la cea mai ridicată rată de reîmprospătare suportată a lui (de ex. 120Hz)</string>
+    <string name="enable_high_refresh_rate_desc">Forțează afișajul să ruleze la cea mai ridicată rată de reîmprospătare acceptată a lui (de ex. 120Hz)</string>
     <string name="first_row_is_header">Prima linie este antetul</string>
     <string name="try_again">Încearcă din nou</string>
     <string name="tap_to_recognize">Atinge pentru a recunoaște</string>
@@ -529,7 +529,7 @@
     <string name="discord_button_1">Butonul 1</string>
     <string name="discord_button_2">Butonul 2</string>
     <string name="login_successful">Autentificare reușită!</string>
-    <string name="discord_information_warning">Această funcție folosește biblioteca KizzyRPC pentru conectarea la gateway-ul Discord pentru a-ți actualiza statusul Rich Presence. În timp ce nu au fost raportate suspendări ale conturilor prin utilizări similare, această metodă nu este oficial acceptată de către Discord și poate fi considerată o încălcare a Termenilor Serviciului. Tokenul tău este extras local și niciodată trimis către servere terțe. Continui pe propriul risc!</string>
+    <string name="discord_information_warning">Metrolist îți trimite melodia care este redată în prezent către gateway-ul Discord pentru a-ți actualiza Rich Presence-ul. Toate datele merg direct de la dispozitivul tău către Discord — nu este implicat niciun server terț. Tokenul tău este păstrat pe dispozitiv și nu este niciodată partajat. Însă, folosirea unui token pentru conexiunile către gateway nu este oficial acceptată și poate încălca Termenii serviciului Discord. Continui pe propriul risc!</string>
     <string name="discord_activity_type">Tipul activității</string>
     <string name="discord_activity_playing">Se joacă</string>
     <string name="discord_activity_listening">Ascultă</string>
@@ -850,4 +850,12 @@
     <string name="mixes">Mixuri</string>
     <string name="show_most_stats_playlists">Afișează playlisturile Cele mai populare ale săptămânii și Cele mai populare ale lunii</string>
     <string name="show_most_stats_playlists_desc">Creează și afișează playlisturile bazate pe statistici Cele mai populare în Statistici și Bibliotecă</string>
+    <string name="widget_playlists">Playlisturi</string>
+    <string name="widget_playlists_description">Scurtături pentru playlisturi cu controale pentru mini-player</string>
+    <string name="choose_something_below">Alege ceva mai jos</string>
+    <string name="and">și</string>
+    <string name="auto_radio_queue">Coadă radio automată</string>
+    <string name="auto_radio_queue_desc">Creează automat o coadă radio atunci când redai o melodie din secțiunea Caută sau Acasă</string>
+    <string name="audio_track_playback_params">Folosește procesare audio hardware</string>
+    <string name="audio_track_playback_params_description">Folosește AudioTrack din Android pentru modificarea vitezei/înălțimii în loc de procesarea software. Mai fiabil pentru valorile extreme ale înălțimii</string>
 </resources>

@@ -165,4 +165,12 @@
     <string name="show_downloaded_playlist">Shfaq listën e luajtjes Të Shkarkuar</string>
     <string name="show_top_playlist">Shfaq listën e luajtes Top</string>
     <string name="show_cached_playlist">Shfaq listën e luajtjes së ruajtur në memorinë e përkohshme</string>
+    <string name="hide_status_bar_fullscreen_desc">Fshih shiritin e statusit në tekstet me ekran të plotë</string>
+    <string name="show_interval_indicator">Shfaq treguesin e intervalit</string>
+    <string name="show_interval_indicator_desc">Shfaq shiritin e progresit gjatë pjesëve të gjata instrumentale</string>
+    <string name="views">Shikimet</string>
+    <string name="likes">Pëlqime</string>
+    <string name="dislikes">Mospëlqime</string>
+    <string name="information">Informacion</string>
+    <string name="description">Përshkrimi</string>
 </resources>

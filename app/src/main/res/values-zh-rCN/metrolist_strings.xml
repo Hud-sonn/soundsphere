@@ -209,7 +209,7 @@
     <string name="refetch_desc">从 YouTube Music 刷新最新元数据</string>
     <string name="share_desc">展示此歌曲的链接</string>
     <string name="delete_desc">完全移除此歌曲</string>
-    <string name="advanced_desc">调整歌曲的节奏和音调</string>
+    <string name="advanced_desc">调整歌曲的节奏和音高</string>
     <string name="equalizer_desc">打开音频均衡器</string>
     <string name="enable_dynamic_icon">开启动态图标</string>
     <string name="mini_player">迷你播放器</string>
@@ -521,7 +521,7 @@
     <string name="discord_button_1">按钮 1</string>
     <string name="discord_button_2">按钮 2</string>
     <string name="login_successful">登录成功！</string>
-    <string name="discord_information_warning">此功能使用 KizzyRPC 库连接到 Discord 网关并更新您的 Rich Presence 状态。虽然尚未有因类似使用而导致账号被封禁的报告，但此方法并未获得 Discord 官方支持，并且可能会被视为违反服务条款。您的令牌将在本地处理，绝不会发送至第三方服务器。请自行承担使用风险！</string>
+    <string name="discord_information_warning">Metrolist 会将您当前播放的歌曲发送到 Discord 网关，以更新您的 Rich Presence。所有数据均直接从您的设备传输到 Discord——不涉及任何第三方服务器。您的令牌保留在设备上，绝不会被共享。但是，使用用户令牌进行网关连接并非官方支持，并且可能违反 Discord 的服务条款。请自行承担使用风险！</string>
     <string name="discord_activity_type">活动类型</string>
     <string name="discord_activity_playing">正在播放</string>
     <string name="discord_activity_listening">正在听</string>
@@ -839,4 +839,9 @@
     <string name="widget_playlists">播放列表</string>
     <string name="widget_playlists_description">带有迷你播放器控制的播放列表快捷方式</string>
     <string name="choose_something_below">请在下方选择</string>
+    <string name="and">和</string>
+    <string name="auto_radio_queue">自动创建电台待播列表</string>
+    <string name="auto_radio_queue_desc">从搜索或首页播放歌曲时自动创建电台待播列表</string>
+    <string name="audio_track_playback_params">使用硬件音频处理</string>
+    <string name="audio_track_playback_params_description">使用 Android 的 AudioTrack 进行速度/音高调整，而非软件处理。对极端音高值更可靠</string>
 </resources>
