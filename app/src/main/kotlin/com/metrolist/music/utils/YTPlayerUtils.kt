@@ -424,8 +424,7 @@ object YTPlayerUtils {
         val maxBitrate = audioCapableFormats.maxOfOrNull { it.bitrate } ?: return null
 
         val targetBitrate = when (audioQuality) {
-            AudioQuality.VERY_HIGH -> maxBitrate.toDouble()
-            AudioQuality.HIGH -> minOf(maxBitrate.toDouble(), 256000.0)
+            AudioQuality.HIGH -> maxBitrate.toDouble()
             AudioQuality.LOW -> minOf(maxBitrate.toDouble(), 128000.0)
             AudioQuality.AUTO -> {
                 if (connectivityManager.isActiveNetworkMetered) {
@@ -439,23 +438,8 @@ object YTPlayerUtils {
         Timber.tag(logTag).d("Finding format: maxBitrate=$maxBitrate, targetBitrate=$targetBitrate")
 
         val format = when (audioQuality) {
-            AudioQuality.VERY_HIGH -> {
-                val opus338 = audioCapableFormats.find { it.itag == 338 }
-                if (opus338 != null) {
-                    Timber.tag(logTag).d("Selected Opus itag 338: bitrate=${opus338.bitrate}")
-                    return opus338
-                }
-
-                val opus141 = audioCapableFormats.find { it.itag == 141 }
-                if (opus141 != null) {
-                    Timber.tag(logTag).d("Selected AAC itag 141: bitrate=${opus141.bitrate}")
-                    return opus141
-                }
-
-                audioCapableFormats
-                    .filter { it.isOriginal }
-                    .maxByOrNull { it.bitrate }
-                    ?: audioCapableFormats.maxByOrNull { it.bitrate }
+            AudioQuality.HIGH -> {
+                audioCapableFormats.maxByOrNull { it.bitrate }
             }
 
             else -> {
@@ -479,9 +463,7 @@ object YTPlayerUtils {
             }
         }
 
-        if (format != null && audioQuality == AudioQuality.VERY_HIGH) {
-            Timber.tag(logTag).d("Selected format: ${format.mimeType}, bitrate: ${format.bitrate}")
-        } else if (format == null) {
+        if (format == null) {
             Timber.tag(logTag).d("No suitable audio format found")
         }
 

@@ -644,7 +644,10 @@ class MusicService :
 
         audioManager.registerAudioDeviceCallback(audioDeviceCallback, null)
 
-        audioQuality = dataStore.get(AudioQualityKey).toEnum(com.metrolist.music.constants.AudioQuality.AUTO)
+        audioQuality = dataStore.get(AudioQualityKey)?.let { value ->
+            if (value == "VERY_HIGH") com.metrolist.music.constants.AudioQuality.HIGH
+            else com.metrolist.music.constants.AudioQuality.entries.find { it.name == value }
+        } ?: com.metrolist.music.constants.AudioQuality.AUTO
         playerVolume = MutableStateFlow(dataStore.get(PlayerVolumeKey, 1f).coerceIn(0f, 1f))
 
         // Initialize Google Cast
@@ -698,8 +701,8 @@ class MusicService :
             dataStore.data
                 .map {
                     it[AudioQualityKey]?.let { value ->
-                        com.metrolist.music.constants.AudioQuality.entries
-                            .find { it.name == value }
+                        if (value == "VERY_HIGH") com.metrolist.music.constants.AudioQuality.HIGH
+                        else com.metrolist.music.constants.AudioQuality.entries.find { it.name == value }
                     } ?: com.metrolist.music.constants.AudioQuality.AUTO
                 }.distinctUntilChanged()
                 .collect { newQuality ->
