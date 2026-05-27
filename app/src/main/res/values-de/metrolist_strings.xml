@@ -846,4 +846,8 @@
     <string name="widget_playlists_description">Schnellzugriff auf Playlisten mit Steuerelementen des Mini-Players</string>
     <string name="choose_something_below">Wähle unten eine Option aus</string>
     <string name="and">und</string>
+    <string name="auto_radio_queue_desc">Beim Abspielen eines Titels aus der Suche oder der Startseite automatisch eine Radio-Warteschlange erstellen</string>
+    <string name="audio_track_playback_params">Hardware-Audioverarbeitung verwenden</string>
+    <string name="audio_track_playback_params_description">Verwenden Sie für Geschwindigkeits- und Tonhöhenänderungen die Android-Funktion „AudioTrack“ anstelle einer softwarebasierten Verarbeitung. Dies ist bei extremen Tonhöhenwerten zuverlässiger.</string>
+    <string name="auto_radio_queue">Automatisch Radio-Warteschlange</string>
 </resources>
