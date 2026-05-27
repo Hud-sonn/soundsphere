@@ -838,4 +838,9 @@
     <string name="widget_playlists">Daftar putar</string>
     <string name="widget_playlists_description">Pintasan daftar putar dengan kontrol pemutar mini</string>
     <string name="choose_something_below">PIlih salah satu di bawah ini</string>
+    <string name="and">dan</string>
+    <string name="auto_radio_queue">Antrean radio otomatis</string>
+    <string name="auto_radio_queue_desc">Otomatis buat antrean radio saat memutar lagu dari pencarian atau beranda</string>
+    <string name="audio_track_playback_params">Gunakan pemrosesan audio perangkat keras</string>
+    <string name="audio_track_playback_params_description">Gunakan AudioTrack Android untuk mengubah kecepatan/nada, bukan pemrosesan perangkat lunak. Lebih andal untuk nilai nada yang ekstrem</string>
 </resources>
