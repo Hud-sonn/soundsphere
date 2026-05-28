@@ -536,7 +536,7 @@
     <string name="discord_button_1">Botón 1</string>
     <string name="discord_button_2">Botón 2</string>
     <string name="login_successful">¡Inicio de sesión con éxito!</string>
-    <string name="discord_information_warning">Esta función utiliza la biblioteca KizzyRPC para conectarse a la pasarela (Gateway) de Discord y establecer tu estado de Rich Presence. Aunque no se conocen suspensiones de cuentas por un uso similar, este método no cuenta con el soporte oficial de Discord y podría considerarse una infracción de sus Términos de Servicio. Tu token se extrae localmente y nunca se envía a servidores de terceros. ¡Continúe bajo su propia responsabilidad!</string>
+    <string name="discord_information_warning">Metrolist envía la canción que estás reproduciendo actualmente al Gateway de Discord para actualizar tu Rich Presence. Todos los datos van directamente desde tu dispositivo a Discord; no intervienen servidores de terceros. Tu token permanece en el dispositivo y nunca se comparte. Sin embargo, el uso de un token de usuario para conexiones al Gateway no está oficialmente soportado y puede infringir los Términos de Servicio de Discord. ¡Continúa bajo tu propia responsabilidad!</string>
     <string name="discord_activity_type">Tipo de actividad</string>
     <string name="discord_activity_playing">Jugando</string>
     <string name="discord_activity_listening">Escuchando</string>
@@ -849,4 +849,12 @@
     <string name="loudness_level_loud">Alto (-11 dB)</string>
     <string name="loudness_level_balanced">Equilibrado (-14 dB)</string>
     <string name="loudness_level_quiet">Bajo (-19 dB)</string>
+    <string name="and">y</string>
+    <string name="auto_radio_queue">Cola de la radio del coche</string>
+    <string name="auto_radio_queue_desc">Crear automáticamente una cola de radio al reproducir una canción desde la búsqueda o el inicio</string>
+    <string name="audio_track_playback_params">Usar procesamiento de audio por hardware</string>
+    <string name="audio_track_playback_params_description">Usar AudioTrack de Android para los cambios de velocidad/tono en lugar del procesamiento por software. Más fiable para valores de tono extremos</string>
+    <string name="widget_playlists">Listas de reproducción</string>
+    <string name="widget_playlists_description">Accesos directos de listas de reproducción con controles del mini reproductor</string>
+    <string name="choose_something_below">Elige algo de abajo</string>
 </resources>
