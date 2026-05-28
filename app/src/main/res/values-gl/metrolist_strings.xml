@@ -1,3 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="weeks">Semanas</string>
+    <string name="months">Meses</string>
+    <string name="years">Anos</string>
+    <string name="offline">Descargado</string>
+    <string name="generating_image">Xerando imaxe…</string>
+    <string name="cancel">Cancelar</string>
+    <string name="share_lyrics">Compartir letra</string>
+    <string name="share_as_text">Compartir como texto</string>
+    <string name="share_as_image">Compartir como imaxe</string>
+    <string name="loudness_level_loud">Alto (-11 dB)</string>
+    <string name="loudness_level_balanced">Equilibrado (-14 dB)</string>
+    <string name="loudness_level_quiet">Baixo (-19 dB)</string>
+    <string name="more_options">Máis opcións</string>
 </resources>
