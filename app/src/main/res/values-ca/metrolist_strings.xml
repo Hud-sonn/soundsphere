@@ -13,12 +13,12 @@
     <string name="continuous">Continu</string>
     <string name="liked">Agradat</string>
     <string name="offline">Descarregat</string>
-    <string name="my_top">El meu top</string>
+    <string name="my_top">El meu Top</string>
     <string name="cached_playlist">En memòria cau</string>
     <string name="sync_playlist">Sincronitza la llista</string>
     <string name="sync_disabled">Sincronització deshabitada</string>
-    <string name="allows_for_sync_witch_youtube">Nota: Això permet sincronitzar amb Youtube Music. Un cop fet, això NO es podrà canviar.</string>
-    <string name="generating_image">Generant imatge</string>
+    <string name="allows_for_sync_witch_youtube">NOTA: Aquesta opció activa la sincronització amb YouTube Music i NO es podrà canviar més endavant</string>
+    <string name="generating_image">Generant imatge…</string>
     <string name="please_wait">Sisplau espera</string>
     <string name="cancel">Cancel·la</string>
     <string name="share_lyrics">Compartir lletres</string>
@@ -37,7 +37,7 @@
     <string name="dislike_all">Desagrada a tot</string>
     <string name="sort_by_last_updated">Data d\'actualització</string>
     <string name="link_copied">Enllaç copiat</string>
-    <string name="starting_radio">Començant ràdio</string>
+    <string name="starting_radio">Començant ràdio…</string>
     <string name="now_playing">Reproduïnt</string>
     <string name="lyrics">Lletres</string>
     <string name="close">Tanca</string>
@@ -70,7 +70,7 @@
     <string name="download_in_progress_desc">Descàrrega en procés</string>
     <string name="share_playlist_desc">Comparteix la llista amb altres</string>
     <string name="delete_playlist_desc">Elimina aquesta llista de manera permanent</string>
-    <string name="sync_playlist_desc">Sincronitza una llista amb YouTube Music</string>
+    <string name="sync_playlist_desc">Sincronitza aquesta llista amb YouTube Music</string>
     <string name="primary_color_style">Color primari</string>
     <string name="tertiary_color_style">Color terciari</string>
     <string name="swipe_song_to_add">Llisca la cançó cap a la esquerra per a afegir-la a la cua o a la dreta per a reproduir-la a continuació</string>
@@ -553,7 +553,7 @@
     <string name="discord_information_warning">Aquesta funcionalitat utilitza la llibreria KizzyRPC per a connectar-se als ports de Discord i configurar el vostre estatus de Rich Presence. Encara que no s\'ha informat de cap suspensió de comptes per aquest tipus d\'ús, aquest mètode no està oficialment acceptat per Discord i es podria considerar una violació dels seus Termes d\'ús. El vostre token s\'extrau localment i mai s\'envia a servidors de terceres parts. Actue sota la seua pròpia consideració.</string>
     <string name="display_density">Densitat de pantalla</string>
     <string name="restart">Reinicia</string>
-    <string name="restart_required">Cal reiniciar</string>
+    <string name="restart_required">Cal reiniciar!</string>
     <string name="density_restart_message">En canvi de densitat de pantalla es farà efectiu després de reiniciar l\'aplicació. La vol reiniciar ara?</string>
     <string name="found_in_settings_content">Es troba a Configuració &gt; Contingut</string>
     <string name="plays">reproduccions</string>
@@ -570,7 +570,7 @@
     <string name="from_the_community">De la comunitat</string>
     <string name="enable_lrclib_desc">Base de dades de lletres sincronitzada impulsat per la comunitat</string>
     <string name="enable_kugou_desc">Pren les lletres de KuGou, una coneguda plataforma de música Xinesa</string>
-    <string name="youtube_music_lyrics_note">NOTA: Les lletres provinents de YouTube Music es mostraran automàticament quan no haja cap altra lletra disponible. Les lletres de YTM no solen estar sincronitzades.</string>
+    <string name="youtube_music_lyrics_note">NOTA: Les lletres provinents de YouTube Music es mostraran automàticament quan no haja cap altra lletra disponible. Les lletres de YTM no solen estar sincronitzades</string>
     <string name="enable_lyricsplus">Habilita LyricsPlus</string>
     <string name="enable_lyricsplus_desc">Lletra sincronitzada de diverses fonts</string>
     <string name="lyrics_provider_selection">Selecció de proveïdor</string>
@@ -706,4 +706,9 @@
     <string name="delete_uploaded_songs_confirm">Està segur de que vol eliminar %1$d cançons pujades. Aquesta acció no és reversible.</string>
     <string name="deleted_n_songs">S\'ha eliminat %1$d cançons</string>
     <string name="deleting">Eliminant…</string>
+    <string name="mixes">Mescles</string>
+    <string name="parsed_from_link">Analitzar a partir de l\'enllaç</string>
+    <string name="weekly_most_playlist_name">Els més escoltats de la setmana</string>
+    <string name="monthly_most_playlist_name">Els més escoltats del mes</string>
+    <string name="and">i</string>
 </resources>
