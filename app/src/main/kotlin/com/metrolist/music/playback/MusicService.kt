@@ -4020,7 +4020,7 @@ class MusicService :
 
             PlaylistWidgetReceiver.TARGET_TYPE_TOP -> {
                 val limit = targetId.toIntOrNull() ?: 50
-                val songs = database.mostPlayedSongs(0L, limit = limit).first()
+                val songs = database.mostPlayedSongs(LocalDateTime.of(1970, 1, 1, 0, 0), limit = limit).first()
                 if (songs.isEmpty()) return null
                 ListQueue(
                     title = getString(R.string.my_top),

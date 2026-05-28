@@ -42,6 +42,7 @@ import kotlinx.coroutines.launch
 import java.time.Duration
 import java.time.Instant
 import java.time.LocalDateTime
+import java.time.ZoneId
 import java.time.ZoneOffset
 import javax.inject.Inject
 import kotlinx.coroutines.sync.Mutex
@@ -77,11 +78,7 @@ constructor(
                         limit = -1,
                         toTimeStamp =
                         if (selection == OptionStats.CONTINUOUS || t == 0) {
-                            LocalDateTime
-                                .now()
-                                .toInstant(
-                                    ZoneOffset.UTC,
-                                ).toEpochMilli()
+                            LocalDateTime.now()
                         } else {
                             statToPeriod(selection, t - 1)
                         },
@@ -103,11 +100,7 @@ constructor(
                         limit = -1,
                         toTimeStamp =
                         if (selection == OptionStats.CONTINUOUS || t == 0) {
-                            LocalDateTime
-                                .now()
-                                .toInstant(
-                                    ZoneOffset.UTC,
-                                ).toEpochMilli()
+                            LocalDateTime.now()
                         } else {
                             statToPeriod(selection, t - 1)
                         },
@@ -128,11 +121,7 @@ constructor(
                         limit = -1,
                         toTimeStamp =
                         if (selection == OptionStats.CONTINUOUS || t == 0) {
-                            LocalDateTime
-                                .now()
-                                .toInstant(
-                                    ZoneOffset.UTC,
-                                ).toEpochMilli()
+                            LocalDateTime.now()
                         } else {
                             statToPeriod(selection, t - 1)
                         },
@@ -152,11 +141,7 @@ constructor(
                     limit = -1,
                     toTimeStamp =
                     if (selection == OptionStats.CONTINUOUS || t == 0) {
-                        LocalDateTime
-                            .now()
-                            .toInstant(
-                                ZoneOffset.UTC,
-                            ).toEpochMilli()
+                        LocalDateTime.now()
                     } else {
                         statToPeriod(selection, t - 1)
                     },
@@ -257,8 +242,8 @@ constructor(
     fun syncMostPlaylistsIfNeeded(force: Boolean = false) {
         viewModelScope.launch(Dispatchers.IO) {
             periodicMostPlaylistSyncMutex.withLock {
-                val now = LocalDateTime.now(ZoneOffset.UTC)
-                val nowEpochMillis = now.toInstant(ZoneOffset.UTC).toEpochMilli()
+                val now = LocalDateTime.now()
+                val nowEpochMillis = System.currentTimeMillis()
                 val preferences = context.dataStore.data.first()
                 val hideVideoSongs = preferences[HideVideoSongsKey] ?: false
                 val shouldShowMostStatsPlaylists = preferences[ShowMostStatsPlaylistsKey] ?: true
@@ -292,7 +277,7 @@ constructor(
                     syncMostPlaylist(
                         playlistId = PlaylistEntity.WEEKLY_MOST_PLAYLIST_ID,
                         playlistName = context.getString(R.string.weekly_most_playlist_name),
-                        fromTimeStamp = StatPeriod.WEEK_1.toTimeMillis(),
+                        fromTimeStamp = StatPeriod.WEEK_1.toLocalDateTime(),
                         hideVideoSongs = hideVideoSongs,
                         now = now,
                     )
@@ -302,7 +287,7 @@ constructor(
                     syncMostPlaylist(
                         playlistId = PlaylistEntity.MONTHLY_MOST_PLAYLIST_ID,
                         playlistName = context.getString(R.string.monthly_most_playlist_name),
-                        fromTimeStamp = StatPeriod.MONTH_1.toTimeMillis(),
+                        fromTimeStamp = StatPeriod.MONTH_1.toLocalDateTime(),
                         hideVideoSongs = hideVideoSongs,
                         now = now,
                     )
@@ -344,7 +329,7 @@ constructor(
     ): Boolean {
         if (lastSyncMillis == null || lastSyncMillis <= 0L) return true
 
-        val lastSyncAt = LocalDateTime.ofInstant(Instant.ofEpochMilli(lastSyncMillis), ZoneOffset.UTC)
+        val lastSyncAt = LocalDateTime.ofInstant(Instant.ofEpochMilli(lastSyncMillis), ZoneId.systemDefault())
         return !lastSyncAt.plusWeeks(1).isAfter(now)
     }
 
@@ -354,14 +339,14 @@ constructor(
     ): Boolean {
         if (lastSyncMillis == null || lastSyncMillis <= 0L) return true
 
-        val lastSyncAt = LocalDateTime.ofInstant(Instant.ofEpochMilli(lastSyncMillis), ZoneOffset.UTC)
+        val lastSyncAt = LocalDateTime.ofInstant(Instant.ofEpochMilli(lastSyncMillis), ZoneId.systemDefault())
         return !lastSyncAt.plusMonths(1).isAfter(now)
     }
 
     private suspend fun syncMostPlaylist(
         playlistId: String,
         playlistName: String,
-        fromTimeStamp: Long,
+        fromTimeStamp: LocalDateTime,
         hideVideoSongs: Boolean,
         now: LocalDateTime,
     ) {
@@ -370,7 +355,7 @@ constructor(
                 .mostPlayedSongs(
                     fromTimeStamp = fromTimeStamp,
                     limit = -1,
-                    toTimeStamp = now.toInstant(ZoneOffset.UTC).toEpochMilli(),
+                    toTimeStamp = now,
                 ).first()
                 .let { mostPlayedSongs ->
                     if (hideVideoSongs) {

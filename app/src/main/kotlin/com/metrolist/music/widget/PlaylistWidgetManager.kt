@@ -44,6 +44,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.debounce
+import java.time.LocalDateTime
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -213,7 +214,7 @@ class PlaylistWidgetManager @Inject constructor(
                     )
                 }
             },
-            database.mostPlayedSongs(0L, limit = 50).map { songs ->
+            database.mostPlayedSongs(LocalDateTime.of(1970, 1, 1, 0, 0), limit = 50).map { songs ->
                 songs.map { song ->
                     SongSnapshot(
                         id = song.id,
@@ -374,7 +375,7 @@ class PlaylistWidgetManager @Inject constructor(
         val savedPlaylistsDeferred = async { database.playlistsByCreateDateAsc().first() }
         val likedSongsDeferred = async { database.likedSongsByCreateDateAsc().first() }
         val downloadedSongsDeferred = async { database.downloadedSongsByCreateDateAsc().first() }
-        val topSongsDeferred = async { database.mostPlayedSongs(0L, limit = 50).first() }
+        val topSongsDeferred = async { database.mostPlayedSongs(LocalDateTime.of(1970, 1, 1, 0, 0), limit = 50).first() }
 
         val result = mutableListOf<QuickPick>()
         val seen = mutableSetOf<String>()
