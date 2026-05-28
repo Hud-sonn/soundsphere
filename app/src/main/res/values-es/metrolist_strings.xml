@@ -536,7 +536,7 @@
     <string name="discord_button_1">Botón 1</string>
     <string name="discord_button_2">Botón 2</string>
     <string name="login_successful">¡Inicio de sesión con éxito!</string>
-    <string name="discord_information_warning">Metrolist envía la canción que estás reproduciendo actualmente al Gateway de Discord para actualizar tu Rich Presence. Todos los datos van directamente desde tu dispositivo a Discord; no intervienen servidores de terceros. Tu token permanece en el dispositivo y nunca se comparte. Sin embargo, el uso de un token de usuario para conexiones al Gateway no está oficialmente soportado y puede infringir los Términos de Servicio de Discord. ¡Continúa bajo tu propia responsabilidad!</string>
+    <string name="discord_information_warning">Metrolist envía la canción que estás escuchando a la pasarela (Gateway) de Discord para actualizar tu Rich Presence. Todos los datos viajan directamente de tu dispositivo a Discord; no intervienen servidores de terceros. Tu token permanece en tu dispositivo y nunca se comparte. Sin embargo, usar un token de usuario para conexiones a la puerta de enlace no está oficialmente soportado y podría infringir los Términos de Servicio de Discord. ¡Continúe bajo su propia responsabilidad!</string>
     <string name="discord_activity_type">Tipo de actividad</string>
     <string name="discord_activity_playing">Jugando</string>
     <string name="discord_activity_listening">Escuchando</string>
