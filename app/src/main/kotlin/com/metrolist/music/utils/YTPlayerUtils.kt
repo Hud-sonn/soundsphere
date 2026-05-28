@@ -61,6 +61,7 @@ object YTPlayerUtils {
         WEB,
         WEB_CREATOR
     )
+
     data class PlaybackData(
         val audioConfig: PlayerResponse.PlayerConfig.AudioConfig?,
         val videoDetails: PlayerResponse.VideoDetails?,
@@ -172,6 +173,13 @@ object YTPlayerUtils {
             isAgeRestricted -> 0
             else -> -1
         }
+
+        var bestFallbackFormat: PlayerResponse.StreamingData.Format? = null
+        var bestFallbackUrl: String? = null
+        var bestFallbackExpiry: Int? = null
+        var bestFallbackResponse: PlayerResponse? = null
+
+        val hasHighQuality = mainPlayerResponse.streamingData?.adaptiveFormats?.any { it.audioQuality == "AUDIO_QUALITY_HIGH" } == true
 
         for (clientIndex in (startIndex until STREAM_FALLBACK_CLIENTS.size)) {
             // reset for each client
@@ -319,6 +327,38 @@ object YTPlayerUtils {
 
                 Timber.tag(logTag).d("Stream expires in: $streamExpiresInSeconds seconds")
 
+                fun scoreFallbackQuality(quality: String?): Int = when (quality) {
+                    "AUDIO_QUALITY_HIGH" -> 3
+                    "AUDIO_QUALITY_MEDIUM" -> 2
+                    "AUDIO_QUALITY_LOW" -> 1
+                    else -> 0
+                }
+
+                fun scoreFallbackCodec(mimeType: String): Int = when {
+                    mimeType.contains("opus", ignoreCase = true) -> 2
+                    mimeType.contains("mp4a", ignoreCase = true) -> 1
+                    else -> 0
+                }
+
+                if (audioQuality == AudioQuality.HIGH && format.audioQuality != "AUDIO_QUALITY_HIGH" && hasHighQuality) {
+                    val isBetter = bestFallbackFormat == null ||
+                        compareValuesBy(
+                            format, bestFallbackFormat,
+                            { scoreFallbackQuality(it.audioQuality) },
+                            { it.audioChannels ?: 2 },
+                            { scoreFallbackCodec(it.mimeType) },
+                            { it.bitrate }
+                        ) > 0
+                    if (isBetter) {
+                        Timber.tag(logTag).d("Saving fallback format: ${format.mimeType}, bitrate: ${format.bitrate}")
+                        bestFallbackFormat = format
+                        bestFallbackUrl = streamUrl
+                        bestFallbackExpiry = streamExpiresInSeconds
+                        bestFallbackResponse = streamPlayerResponse
+                    }
+                    continue
+                }
+
                 if (clientIndex == STREAM_FALLBACK_CLIENTS.size - 1) {
                     /** skip [validateStatus] for last client */
                     Timber.tag(logTag).d("Using last fallback client without validation: ${STREAM_FALLBACK_CLIENTS[clientIndex].clientName}")
@@ -339,6 +379,14 @@ object YTPlayerUtils {
             } else {
                 Timber.tag(logTag).d("Player response status not OK: ${streamPlayerResponse?.playabilityStatus?.status}, reason: ${streamPlayerResponse?.playabilityStatus?.reason}")
             }
+        }
+
+        if (audioQuality == AudioQuality.HIGH && format?.audioQuality != "AUDIO_QUALITY_HIGH" && bestFallbackFormat != null) {
+            Timber.tag(logTag).d("Using best fallback format: ${bestFallbackFormat.mimeType}, bitrate: ${bestFallbackFormat.bitrate}")
+            format = bestFallbackFormat
+            streamUrl = bestFallbackUrl
+            streamExpiresInSeconds = bestFallbackExpiry
+            streamPlayerResponse = bestFallbackResponse
         }
 
         if (streamPlayerResponse == null) {
@@ -423,28 +471,50 @@ object YTPlayerUtils {
 
         val maxBitrate = audioCapableFormats.maxOfOrNull { it.bitrate } ?: return null
 
-        val targetBitrate = when (audioQuality) {
-            AudioQuality.HIGH -> maxBitrate.toDouble()
-            AudioQuality.LOW -> minOf(maxBitrate.toDouble(), 128000.0)
-            AudioQuality.AUTO -> {
-                if (connectivityManager.isActiveNetworkMetered) {
-                    minOf(maxBitrate.toDouble(), 128000.0)
-                } else {
-                    maxBitrate.toDouble()
-                }
-            }
+        fun scoreCodec(mimeType: String): Int = when {
+            mimeType.contains("opus", ignoreCase = true) -> 2
+            mimeType.contains("mp4a", ignoreCase = true) -> 1
+            else -> 0
         }
-
-        Timber.tag(logTag).d("Finding format: maxBitrate=$maxBitrate, targetBitrate=$targetBitrate")
 
         val format = when (audioQuality) {
             AudioQuality.HIGH -> {
-                audioCapableFormats.maxByOrNull { it.bitrate }
+                audioCapableFormats.maxWithOrNull(
+                    compareBy<PlayerResponse.StreamingData.Format> { format ->
+                        when (format.audioQuality) {
+                            "AUDIO_QUALITY_HIGH" -> 3
+                            "AUDIO_QUALITY_MEDIUM" -> 2
+                            "AUDIO_QUALITY_LOW" -> 1
+                            else -> 0
+                        }
+                    }.thenBy { it.audioChannels ?: 2 }
+                        .thenBy { scoreCodec(it.mimeType) }
+                        .thenBy { it.bitrate }
+                )
             }
 
-            else -> {
+            AudioQuality.LOW -> {
+                val cappedFormats = audioCapableFormats.filter { it.bitrate <= 128000 }
+                val lowFormat = cappedFormats
+                    .filter { it.isOriginal }
+                    .maxByOrNull { it.bitrate }
+                    ?: cappedFormats.maxByOrNull { it.bitrate }
+                    ?: audioCapableFormats
+                        .filter { it.isOriginal }
+                        .minByOrNull { kotlin.math.abs(it.bitrate.toDouble() - 128000.0) }
+                    ?: audioCapableFormats.maxByOrNull { it.bitrate }
+
+                if (lowFormat != null) {
+                    Timber.tag(logTag).d("Selected LOW format: itag=${lowFormat.itag}, bitrate: ${lowFormat.bitrate}")
+                }
+
+                lowFormat
+            }
+
+            AudioQuality.AUTO -> {
+                val targetBitrate = if (connectivityManager.isActiveNetworkMetered) 128000.0 else maxBitrate.toDouble()
                 val cappedFormats = audioCapableFormats.filter { it.bitrate <= targetBitrate }
-                val format = cappedFormats
+                val autoFormat = cappedFormats
                     .filter { it.isOriginal }
                     .maxByOrNull { it.bitrate }
                     ?: cappedFormats.maxByOrNull { it.bitrate }
@@ -453,17 +523,17 @@ object YTPlayerUtils {
                         .minByOrNull { kotlin.math.abs(it.bitrate - targetBitrate) }
                     ?: audioCapableFormats.maxByOrNull { it.bitrate }
 
-                if (format != null) {
-                    Timber.tag(logTag).d("Selected format: ${format.mimeType}, bitrate: ${format.bitrate}")
-                } else {
-                    Timber.tag(logTag).d("No suitable audio format found")
+                if (autoFormat != null) {
+                    Timber.tag(logTag).d("Selected AUTO format: itag=${autoFormat.itag}, bitrate: ${autoFormat.bitrate}")
                 }
 
-                format
+                autoFormat
             }
         }
 
-        if (format == null) {
+        if (format != null) {
+            Timber.tag(logTag).d("Selected format: itag=${format.itag}, mimeType=${format.mimeType}, bitrate=${format.bitrate}, audioQuality label: ${format.audioQuality}")
+        } else {
             Timber.tag(logTag).d("No suitable audio format found")
         }
 
