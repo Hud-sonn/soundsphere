@@ -711,4 +711,5 @@
     <string name="weekly_most_playlist_name">Els més escoltats de la setmana</string>
     <string name="monthly_most_playlist_name">Els més escoltats del mes</string>
     <string name="and">i</string>
+    <string name="lyrics_from_provider">Lletra de %s</string>
 </resources>
