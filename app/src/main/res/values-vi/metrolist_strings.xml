@@ -338,11 +338,11 @@
     <string name="glow">Phát sáng</string>
     <string name="slide">Trượt</string>
     <string name="karaoke">Karaoke</string>
-    <string name="apple_music_style">Apple Music</string>
+    <string name="apple_music_style">Phong cách Apple Music</string>
     <string name="lyrics_text_size">Cỡ chữ lời bài hát</string>
     <string name="lyrics_line_spacing">Giãn dòng lời bài hát</string>
     <string name="wavy">Lượn sóng</string>
-    <string name="lyrics_offset">Độ trễ của lời bài hát</string>
+    <string name="lyrics_offset">Độ trễ lời bài hát</string>
     <string name="play_next_desc">Thêm vào đầu danh sách phát trong hàng đợi</string>
     <string name="add_to_queue_desc">Thêm vào cuối hàng chờ</string>
     <string name="add_to_library_desc">Lưu vào thư viện</string>
@@ -352,7 +352,7 @@
     <string name="share_desc">Chia sẻ liên kết cho bài hát này</string>
     <string name="delete_desc">Xóa vĩnh viễn bài hát này</string>
     <string name="advanced_desc">Điều chỉnh tốc độ (tempo) và cao độ (pitch) của bài hát</string>
-    <string name="equalizer_desc">Mở bộ cân bằng âm thanh (equalizer)</string>
+    <string name="equalizer_desc">Mở bộ cân bằng âm thanh</string>
     <string name="enable">Cho phép</string>
     <string name="credits_instagram">Instagram</string>
     <string name="save_episode_for_later">Lưu để nghe sau</string>
@@ -429,11 +429,11 @@
     <string name="enable_dynamic_icon">Biểu tượng ứng dụng thích ứng</string>
     <string name="mini_player">Trình phát mini</string>
     <string name="pure_black_mini_player">Trình phát mini đen thuần</string>
-    <string name="cache_size_warning_title">Từ từ đã!</string>
+    <string name="cache_size_warning_title">Khoan đã!</string>
     <string name="cache_size_warning_message">Giới hạn bạn đã chọn (%1$s) nhỏ hơn dung lượng ứng dụng hiện đang sử dụng. Tiếp tục có thể khiến một số %2$s trong bộ nhớ đệm bị xóa. Bạn vẫn muốn tiếp tục chứ?</string>
     <string name="cache_size_warning_confirm">Tiếp tục</string>
     <string name="lyrics_animation_style">Phong cách hoạt hình cho lời bài hát</string>
-    <string name="album_art_for">Ảnh album cho %s</string>
+    <string name="album_art_for">Ảnh album của %s</string>
     <string name="wrapped_total_albums_title">Bạn đã nghe</string>
     <string name="wrapped_total_albums_subtitle">Album độc bản!</string>
     <string name="wrapped_top_album_title">Album nghe nhiều nhất là</string>
@@ -504,7 +504,7 @@
     <string name="wrapped_top_5_artists_title">Các nghệ sĩ yêu thích trong năm của bạn</string>
     <string name="wrapped_artist_listening_time">%d phút</string>
     <string name="wrapped_top_5_songs_title">Các bài hát yêu thích trong năm của bạn</string>
-    <string name="wrapped_top_song_album_art_content_description">Bìa album</string>
+    <string name="wrapped_top_song_album_art_content_description">Ảnh bìa album</string>
     <string name="wrapped_top_artist_title">Nghệ sĩ yêu thích trong năm của bạn là</string>
     <string name="wrapped_top_artist_image_content_description">Ảnh nghệ sĩ yêu thích</string>
     <string name="wrapped_top_artist_listening_time">Bạn đã nghe họ được %d phút!</string>
@@ -527,7 +527,7 @@
     <plurals name="profiles_count">
         <item quantity="other">%d Hồ sơ</item>
     </plurals>
-    <string name="equalizer_header">Bộ chỉnh âm</string>
+    <string name="equalizer_header">Bộ cân bằng âm thanh</string>
     <string name="no_profiles">Không có hồ sơ chỉnh âm</string>
     <string name="import_profile">Nhập hồ sơ</string>
     <string name="system_equalizer">Bộ chỉnh âm hệ thống</string>
@@ -547,7 +547,7 @@
     <string name="enable_song_cache">Bật bộ nhớ đệm bài hát</string>
     <string name="enable_song_cache_desc">Tự động lưu vào bộ nhớ đệm các bài hát để phát lại nhanh hơn trong tương lai</string>
     <string name="sleep_timer_stop_after_current_song_title">Dừng phát khi kết thúc bài hát hiện tại</string>
-    <string name="wrapped_playlist_title">Nhìn lại %s</string>
+    <string name="wrapped_playlist_title">Nhìn lại %s của bạn</string>
     <string name="sort_ascending">Phân loại từ dưới lên trên</string>
     <string name="sort_descending">Phân loại từ trên xuống dưới</string>
     <string name="sleep_timer_stop_after_current_song_description">Chờ bài hát đang phát kết thúc trước khi dừng lại</string>
@@ -642,7 +642,7 @@
     <string name="ai_provider_claude_help">Truy cập https://console.anthropic.com/settings/keys</string>
     <string name="ai_provider_gemini_help">Truy cập https://aistudio.google.com/apikey</string>
     <string name="progress_percent">Tiến trình %s%%</string>
-    <string name="error_playing">Lỗi phát lại</string>
+    <string name="error_playing">Không thể phát bài hát</string>
     <string name="ai_api_key">Khoá API</string>
     <string name="ai_provider_perplexity_help">Truy cập https://perplexity.ai/settings/api</string>
     <string name="ai_provider_xai_help">Truy cập https://console.x.ai</string>
@@ -736,7 +736,7 @@
     <string name="discord_button_1">Nút 1</string>
     <string name="discord_button_2">Nút 2</string>
     <string name="login_successful">Đăng nhập thành công!</string>
-    <string name="discord_information_warning">Metrolist gửi thông tin bài hát bạn đang nghe đến Discord Gateway để cập nhật Trạng thái hoạt động (Rich Presence). Mọi dữ liệu được truyền trực tiếp từ thiết bị của bạn đến Discord — không qua bất kỳ máy chủ bên thứ ba nào. Mã xác thực (token) của bạn được lưu hoàn toàn trên thiết bị và không bao giờ bị chia sẻ. Tuy nhiên, việc sử dụng user token để kết nối với Gateway không được hỗ trợ chính thức và có thể vi phạm Điều khoản dịch vụ của Discord. Xin vui lòng tự chịu trách nhiệm khi thực hiện!</string>
+    <string name="discord_information_warning">Metrolist gửi thông tin bài hát bạn đang phát đến Discord Gateway để cập nhật Trạng thái hoạt động (Rich Presence). Mọi dữ liệu được truyền trực tiếp từ thiết bị của bạn đến Discord — không qua bất kỳ máy chủ bên thứ ba nào. Mã token của bạn được lưu trữ ngay trên thiết bị và không bao giờ bị chia sẻ. Tuy nhiên, việc sử dụng token người dùng (user token) để kết nối Gateway không được hỗ trợ chính thức và có thể vi phạm Điều khoản dịch vụ của Discord. Hãy cân nhắc trước khi tiếp tục!</string>
     <string name="discord_activity_type">Loại hoạt động</string>
     <string name="discord_activity_playing">Đang phát</string>
     <string name="discord_activity_listening">Đang nghe</string>
@@ -838,4 +838,9 @@
     <string name="widget_playlists">Danh sách phát</string>
     <string name="widget_playlists_description">Lối tắt danh sách phát với trình điều khiển mini</string>
     <string name="choose_something_below">Chọn một mục bên dưới</string>
+    <string name="auto_radio_queue_desc">Tự động tạo danh sách phát radio khi phát bài hát từ tìm kiếm hoặc từ trang chủ</string>
+    <string name="audio_track_playback_params">Xử lý âm thanh bằng phần cứng</string>
+    <string name="audio_track_playback_params_description">Sử dụng AudioTrack của Android để thay đổi tốc độ/cao độ thay vì xử lý bằng phần mềm. Hoạt động ổn định hơn khi điều chỉnh cao độ ở mức cực hạn</string>
+    <string name="auto_radio_queue">Tự động thêm vào hàng chờ</string>
+    <string name="and">và</string>
 </resources>
