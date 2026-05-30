@@ -852,4 +852,7 @@
     <string name="choose_something_below">Scegli qualcosa di seguito</string>
     <string name="widget_playlists_description">Scorciatoie della playlist con controlli del mini-player</string>
     <string name="widget_playlists">Playlist</string>
+    <string name="and">e</string>
+    <string name="auto_radio_queue">Coda radio automatica</string>
+    <string name="auto_radio_queue_desc">Crea automaticamente una coda radio quando riproduci una canzone da \"Cerca\" o \"Home\"</string>
 </resources>
