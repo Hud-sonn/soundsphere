@@ -259,7 +259,6 @@ class InnerTube {
     ) = withRetry {
         httpClient.get(url) {
             ytClient(client, true)
-            parameter("ver", "2")
             parameter("c", client.clientName)
             parameter("cpn", cpn)
 

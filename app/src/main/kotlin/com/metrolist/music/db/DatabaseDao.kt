@@ -709,6 +709,10 @@ interface DatabaseDao {
     fun format(id: String?): Flow<FormatEntity?>
 
     @Transaction
+    @Query("SELECT * FROM format WHERE id = :id")
+    suspend fun formatOnce(id: String?): FormatEntity?
+
+    @Transaction
     @Query("SELECT * FROM lyrics WHERE id = :id")
     fun lyrics(id: String?): Flow<LyricsEntity?>
 
