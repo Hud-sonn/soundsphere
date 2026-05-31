@@ -481,7 +481,7 @@
     <string name="discord_button_1">1. gomb</string>
     <string name="discord_button_2">2. gomb</string>
     <string name="login_successful">Sikeres bejelentkezés!</string>
-    <string name="discord_information_warning">Ez a funkció KizzyRPC adatbázisát használja, hogy a Discord Gateway-el vegyen fel kapcsolatot, és ezen keresztül frissítse a Rich Presence státuszt. Habár ezzel kapcsolatban nem történt visszajelzés ban-olt fiókról, hivatalosan nem támogatott, és szembe is megy a Discord felhasználási feltételeinek. A token-e helyileg kerül kezelésre, és nem kerül kiküldésre harmadik fél szervereire. Csak saját felelősségre használja!</string>
+    <string name="discord_information_warning">A Metrolist elküldi az aktuálisan lejátszott dalodat a Discord Gateway-jére, hogy frissítse a Rich Presence-edet. Minden adat közvetlenül az eszközödről a Discordra kerül – nincsenek harmadik féltől származó szerverek. A tokened az eszközön marad, és soha nem kerül megosztásra. A felhasználói token használata Gateway-kapcsolatokhoz azonban hivatalosan nem támogatott, és sértheti a Discord Szolgáltatási Feltételeit. A saját belátásod szerint járj el!</string>
     <string name="discord_activity_type">Tevékenységi típus</string>
     <string name="discord_activity_playing">Lejátszás alatt</string>
     <string name="discord_activity_listening">Hallgatás</string>
@@ -832,4 +832,22 @@
     <string name="switch_to_list_view">Váltás lista nézetbe</string>
     <string name="switch_to_grid_view">Váltás cella elrendezésbe</string>
     <string name="more_options">További beállítások</string>
+    <string name="mixes">Mixek</string>
+    <string name="and">és</string>
+    <string name="show_most_stats_playlists">Heti és Havi Legtöbb lejátszási lista mutatása</string>
+    <string name="show_most_stats_playlists_desc">Statisztikákon alapuló Legtöbb lejátszási lista létrehozása és megjelenítése a Statisztikák és a Könyvtár menüpontban</string>
+    <string name="auto_radio_queue">Automatikus rádió várólistája</string>
+    <string name="auto_radio_queue_desc">Automatikusan rádió várolista létrehozása, amikor egy dalt a keresésből vagy a főmenüből játszol le</string>
+    <string name="audio_track_playback_params">Hardveres hangfeldolgozás használata</string>
+    <string name="audio_track_playback_params_description">Használja az Android AudioTrack funkcióját a sebesség/hangmagasság-változásokhoz a szoftveres feldolgozás helyett. Megbízhatóbb extrém hangmagasság-értékek esetén.</string>
+    <string name="pin">Kitűz</string>
+    <string name="unpin">Kitűzés feloldása</string>
+    <string name="loudness_level">Hangossági szint</string>
+    <string name="loudness_level_aggressive">Aggresszív (-7 dB)</string>
+    <string name="loudness_level_loud">Hangos (-11 dB)</string>
+    <string name="loudness_level_balanced">Közepes (-14 dB)</string>
+    <string name="loudness_level_quiet">Halk (-19 dB)</string>
+    <string name="widget_playlists">Lejátszási listák</string>
+    <string name="widget_playlists_description">Lejátszási lista gyorsgombjai minilejátszó-vezérlőkkel</string>
+    <string name="choose_something_below">Válassz valamit az alábbiak közül</string>
 </resources>
