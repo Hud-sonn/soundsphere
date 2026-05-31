@@ -35,9 +35,15 @@ class CoilBitmapLoader(
 
     private fun Bitmap.createIndependentCopy(): Bitmap {
         if (isRecycled) return createFallbackBitmap()
-        val copy = copy(Bitmap.Config.ARGB_8888, false)
-        if (copy != null) return copy
-        return createFallbackBitmap()
+        return try {
+            val copy = createBitmap(width, height)
+            val canvas = android.graphics.Canvas(copy)
+            canvas.drawBitmap(this, 0f, 0f, null)
+            copy
+        } catch (e: Exception) {
+            Timber.tag("CoilBitmapLoader").w(e, "Failed to create independent copy")
+            createFallbackBitmap()
+        }
     }
 
     override fun decodeBitmap(data: ByteArray): ListenableFuture<Bitmap> =
