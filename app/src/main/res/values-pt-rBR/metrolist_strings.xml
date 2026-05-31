@@ -849,4 +849,7 @@
     <string name="show_most_stats_playlists_desc">Criar e mostrar playlists baseadas em estatísticas nas Estatísticas e Biblioteca</string>
     <string name="pin">Fixar</string>
     <string name="unpin">Desfixar</string>
+    <string name="and">e</string>
+    <string name="auto_radio_queue">Fila do rádio automática</string>
+    <string name="auto_radio_queue_desc">Automaticamente cria uma fila do rádio quando reproduz uma música da pesquisa ou menu</string>
 </resources>
