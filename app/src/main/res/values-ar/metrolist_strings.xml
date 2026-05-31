@@ -52,8 +52,8 @@
     <string name="auto_playlists">قوائم التشغيل التلقائيه</string>
     <string name="show_liked_playlist">إظهار قائمة \"الاعجابات\"</string>
     <string name="show_downloaded_playlist">إظهار قائمة \"التحميلات\"</string>
-    <string name="show_top_playlist">إظهار قائمة \"الأعلى أستماع\"</string>
-    <string name="show_cached_playlist">إظهار قائمة \"الأغاني المخزنة مؤقتًا\'</string>
+    <string name="show_top_playlist">إظهار قائمة \"الأكثر استماعاً\"</string>
+    <string name="show_cached_playlist">إظهار قائمة \"الأغاني المخزنة مؤقتًا\"</string>
     <string name="generating_image">جارٍ إنشاء الصورة…</string>
     <string name="please_wait">انتظر من فضلك</string>
     <string name="cancel">إلغاء</string>
@@ -79,7 +79,7 @@
     <string name="enable_similar_content">تفعيل المحتوى المشابه</string>
     <string name="similar_content_desc">إضافة المزيد من الأغاني المشابهة تلقائيًا عند الوصول إلى نهاية قائمة الانتظار</string>
     <string name="percentage_format">%d%%</string>
-    <string name="auto_download_on_like">التنزيل أوتوماتيكي عند الإعجاب</string>
+    <string name="auto_download_on_like">التنزيل بشكل أوتوماتيكي عند الإعجاب</string>
     <string name="auto_download_on_like_desc">تنزيل الأغاني تلقائيًا عند الاعجاب بها</string>
     <string name="clear_song_cache_dialog">هل أنت متأكد أنك تريد مسح كافة الأغاني المخزنة مؤقتًا؟</string>
     <string name="clear_downloads_dialog">هل أنت متأكد أنك تريد مسح كافة التنزيلات؟</string>
@@ -106,8 +106,8 @@
     <string name="charts">المخططات</string>
     <string name="release_notes">ملاحظات الاصدار الجديد</string>
     <string name="lyrics_auto_scroll">تمرير الكلمات تلقائيًا</string>
-    <string name="playlist_add_local_to_synced_note">ملاحظة: إضافة الأغاني المحلية إلى قوائم التشغيل المتزامنة / قوائم التشغيل عن بعد غير مدعومة. أي نوع آخر منها صالح</string>
-    <string name="import_csv">استيراد قوائم تشغيل csv</string>
+    <string name="playlist_add_local_to_synced_note">ملاحظة: إن خاصية إضافة الأغاني المحلية إلى قوائم التشغيل المتزامنة / قوائم التشغيل عن بعد هي غير مدعومة. يمكن استخدام أي نوع آخر من القوائم</string>
+    <string name="import_csv">استيراد قوائم تشغيل CSV</string>
     <string name="import_online">استيراد قوائم التشغيل من نوع \"m3u\"</string>
     <string name="lyrics_romanize_japanese">كلمات الأغاني اليابانيه الرومانيه</string>
     <string name="lyrics_romanize_korean">كلمات الأغاني الكوريه الرومانيه</string>
@@ -318,7 +318,7 @@
     <string name="skip_silence_instant">تجاوز الصمت فوراً</string>
     <string name="skip_silence_instant_desc">قم بتخطي اللحظات الصامتة بدلاً من تسريع التشغيل</string>
     <string name="remember_shuffle_and_repeat">تذكر خلط الاغاني و تكرار الأغنية</string>
-    <string name="remember_shuffle_and_repeat_desc">تذكر وضع خلط الاغاني و تكرار الاغنية بعد إعادة تشغيل التطبيق</string>
+    <string name="remember_shuffle_and_repeat_desc">تذكر وضع خلط الأغاني و تكرار الأغنية بعد إعادة تشغيل التطبيق</string>
     <string name="lyrics_offset">ازاحة كلمات الأغنية</string>
     <string name="system_equalizer">معادل النظام</string>
     <string name="album_art">صورة الالبوم</string>
@@ -684,12 +684,12 @@
     <string name="export_option_save">حفظ في المستندات</string>
     <string name="enable_automatic_sleeptimer">تفعيل مؤقت النوم التلقائي</string>
     <string name="sleeptimer_description">يُفعّل مؤقت النوم تلقائيًا بالقيمة الافتراضية لمدة زمنية مخصصة</string>
-    <string name="sleep_timer_repeat_description">حدد يومًا ووقتًا مخصصين\nمتى يجب أن يتم تنشيط مؤقت النوم تلقائيًا</string>
+    <string name="sleep_timer_repeat_description">حدد يوماً ووقتاً مخصصين لتفعيل مؤقت النوم تلقائيًا</string>
     <string name="sleep_timer_repeat">تكرار</string>
     <string name="sleep_timer_daily">يومي</string>
     <string name="sleep_timer_weekdays">من الاثنين إلى الجمعة</string>
     <string name="sleep_timer_weekdays_weekends">أيام الأسبوع / عطلات الأسبوع</string>
-    <string name="sleep_timer_weekends">عطلات نهاية الأسبوع (السبت - الأحد)</string>
+    <string name="sleep_timer_weekends">من السبت إلى الأحد</string>
     <string name="sleep_timer_custom">مخصص</string>
     <string name="sleep_timer_start_time">وقت البدء</string>
     <string name="sleep_timer_end_time">وقت الانتهاء</string>
@@ -761,4 +761,17 @@
     <string name="experimental_lyrics_desc">تفعيل مكوّن كلمات الأغاني التجريبي الجديد مع تحسين الحركات والأداء</string>
     <string name="experimental_lyrics_beta_title">ميزة تجريبية</string>
     <string name="experimental_lyrics_beta_message">مكوّن كلمات الأغاني الجديد قيد التطوير حاليًا وقد يحتوي على أخطاء. هل أنت متأكد من رغبتك في تفعيله؟</string>
+    <string name="and">و</string>
+    <string name="auto_radio_queue">قائمة الأغاني المشابهة</string>
+    <string name="auto_radio_queue_desc">إنشاء قائمة أغاني مشابهة بشكل تلقائي عند تشغيل أغنية من قائمة البحث أو من القائمة الرئيسية</string>
+    <string name="sleep_timer_stop_after_current_song_title">إيقاف تشغيل الأغاني تند انتهاء الأغنية</string>
+    <string name="sleep_timer_stop_after_current_song_description">يننظر انتهاء الأغنية الحالية قبل ايقاف الأغاني</string>
+    <string name="sleep_timer_fade_out_title">تخفيض صوت الأغنية عند نهايتها بشكل تدريجي</string>
+    <string name="sleep_timer_fade_out_description">تخفيض صوت الأغنية بشكل تدريجي في آخر دقيقة منها</string>
+    <string name="alarm">مؤقت</string>
+    <string name="alarm_enabled">تفعيل المؤقت</string>
+    <string name="alarm_time">تحديد وقت المؤقت</string>
+    <string name="alarm_playlist">السجل</string>
+    <string name="alarm_select_playlist">تحديد سجل</string>
+    <string name="alarm_no_playlists">لم يتم العثور على أي سجل</string>
 </resources>
