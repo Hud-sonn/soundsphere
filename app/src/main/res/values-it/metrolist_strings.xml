@@ -854,5 +854,7 @@
     <string name="widget_playlists">Playlist</string>
     <string name="and">e</string>
     <string name="auto_radio_queue">Coda radio automatica</string>
-    <string name="auto_radio_queue_desc">Crea automaticamente una coda radio quando riproduci una canzone da \"Cerca\" o \"Home\"</string>
+    <string name="auto_radio_queue_desc">Crea automaticamente una coda radio durante la riproduzione di un brano dalla ricerca o dalla home</string>
+    <string name="audio_track_playback_params">Utilizza l\'elaborazione audio hardware</string>
+    <string name="audio_track_playback_params_description">Utilizza AudioTrack di Android per modifiche di velocità/tono invece dell\'elaborazione software. Più affidabile per valori di pitch estremi</string>
 </resources>
