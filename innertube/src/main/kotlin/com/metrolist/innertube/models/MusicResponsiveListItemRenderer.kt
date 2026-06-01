@@ -31,7 +31,12 @@ data class MusicResponsiveListItemRenderer(
     val navigationEndpoint: NavigationEndpoint?,
 ) {
     val isSong: Boolean
-        get() = navigationEndpoint == null || navigationEndpoint.watchEndpoint != null || navigationEndpoint.watchPlaylistEndpoint != null
+        get() = navigationEndpoint == null
+            || navigationEndpoint.watchEndpoint != null
+            || navigationEndpoint.watchPlaylistEndpoint != null
+            || overlay?.musicItemThumbnailOverlayRenderer
+                ?.content?.musicPlayButtonRenderer
+                ?.playNavigationEndpoint?.watchEndpoint != null
     val isPlaylist: Boolean
         get() = navigationEndpoint?.browseEndpoint?.browseEndpointContextSupportedConfigs?.browseEndpointContextMusicConfig?.pageType == MUSIC_PAGE_TYPE_PLAYLIST
     val isAlbum: Boolean
@@ -76,7 +81,10 @@ data class MusicResponsiveListItemRenderer(
                         ?.pageType == MUSIC_PAGE_TYPE_PODCAST_SHOW_DETAIL_PAGE
                 } == true
             val hasVideoId = playlistItemData?.videoId != null ||
-                navigationEndpoint?.watchEndpoint?.videoId != null
+                navigationEndpoint?.watchEndpoint?.videoId != null ||
+                overlay?.musicItemThumbnailOverlayRenderer
+                    ?.content?.musicPlayButtonRenderer
+                    ?.playNavigationEndpoint?.watchEndpoint?.videoId != null
             return hasPodcastLink && hasVideoId
         }
 
