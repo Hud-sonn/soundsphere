@@ -535,7 +535,7 @@
     <string name="discord_activity_watching">Assistindo</string>
     <string name="discord_activity_competing">Competindo</string>
     <string name="discord_button_text_variables">Variáveis: {song_name}, {artist_name}, {album_name}</string>
-    <string name="discord_information_warning">Esse recurso usa a biblioteca KizzyRPC para se conectar ao Gateway do Discord e atualizar seu status de Rich Presence. Embora nenhuma suspensão de conta por uso similar tenha sido reportado, este método não é oficialmente suportado pela Discord e pode ser considerado uma violação de Termos de Serviço. Seu token é manuseado localmente e nunca enviado para servidores de terceiros. Prossiga a seu próprio critério!</string>
+    <string name="discord_information_warning">Metrolist envia a música tocando no momento para a Gateway do Discord para atualizar a sua Rich Presence. Todos os fatos vão diretamente do seu dispositivo para o Discord — nenhum servidor de terceiros está envolvido. Seu token continua no dispositivo e não é compartilhado. De qualquer maneira, usar um token para conexões de Gateway não é suportado oficialmente e pode violar os termos de serviço do Discord. Prossiga por sua responsabilidade!</string>
     <string name="discord_rpc_preview">Visualização de Rich Presence</string>
     <string name="discord_presence">Presença</string>
     <string name="discord_connect_description">Entre com o Discord para compartilhar o que você está ouvindo</string>
@@ -853,4 +853,8 @@
     <string name="auto_radio_queue">Fila do rádio automática</string>
     <string name="auto_radio_queue_desc">Automaticamente cria uma fila do rádio quando reproduz uma música da pesquisa ou menu</string>
     <string name="audio_track_playback_params">Usar processamento de áudio por hardware</string>
+    <string name="audio_track_playback_params_description">Utilize o AudioTrack do Android para mudanças de velocidade/tom em vez do processamento por software. Mais confiável para valores de tom extremos</string>
+    <string name="widget_playlists">Playlists</string>
+    <string name="widget_playlists_description">Atalhos para a playlist com controles do mini reprodutor</string>
+    <string name="choose_something_below">Escolha algo abaixo</string>
 </resources>
