@@ -852,4 +852,5 @@
     <string name="and">e</string>
     <string name="auto_radio_queue">Fila do rádio automática</string>
     <string name="auto_radio_queue_desc">Automaticamente cria uma fila do rádio quando reproduz uma música da pesquisa ou menu</string>
+    <string name="audio_track_playback_params">Usar processamento de áudio por hardware</string>
 </resources>
