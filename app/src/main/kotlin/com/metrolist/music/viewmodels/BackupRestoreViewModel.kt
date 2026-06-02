@@ -143,7 +143,11 @@ class BackupRestoreViewModel @Inject constructor(
                                 if (currentDbPath == null) {
                                     Timber.tag("RESTORE").e("Database path is null, cannot restore")
                                 } else {
-                                    runBlocking(Dispatchers.IO) { database.checkpoint() }
+                                    try {
+                                        runBlocking(Dispatchers.IO) { database.checkpoint() }
+                                    } catch (e: Exception) {
+                                        Timber.tag("RESTORE").w(e, "Checkpoint failed before DB restore, proceeding anyway")
+                                    }
                                     database.close()
                                     Timber.tag("RESTORE").i("Overwriting DB at path: $currentDbPath")
                                     File("$currentDbPath-wal").takeIf { it.exists() }?.delete()
