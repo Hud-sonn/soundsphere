@@ -1074,7 +1074,9 @@ object YouTube {
                             ?.sectionListRenderer
                             ?.contents
                             ?.firstOrNull()
-                            ?.musicPlaylistShelfRenderer
+                    val twoColContents =
+                        twoColShelf?.musicPlaylistShelfRenderer?.contents
+                            ?: twoColShelf?.musicShelfRenderer?.contents
                     val singleColShelf =
                         response.contents
                             ?.singleColumnBrowseResultsRenderer
@@ -1085,9 +1087,10 @@ object YouTube {
                             ?.sectionListRenderer
                             ?.contents
                             ?.firstOrNull()
-                            ?.musicPlaylistShelfRenderer
-                    (twoColShelf ?: singleColShelf)
-                        ?.contents
+                    val singleColContents =
+                        singleColShelf?.musicPlaylistShelfRenderer?.contents
+                            ?: singleColShelf?.musicShelfRenderer?.contents
+                    (twoColContents ?: singleColContents)
                         ?.getItems()
                         ?.mapNotNull { PlaylistPage.fromMusicResponsiveListItemRenderer(it) }
                         ?: emptyList()
@@ -1100,7 +1103,12 @@ object YouTube {
                             ?.sectionListRenderer
                             ?.contents
                             ?.firstOrNull()
-                            ?.musicPlaylistShelfRenderer
+                    val twoColContents =
+                        twoColShelf?.musicPlaylistShelfRenderer?.contents
+                            ?: twoColShelf?.musicShelfRenderer?.contents
+                    val twoColContinuations =
+                        twoColShelf?.musicPlaylistShelfRenderer?.continuations
+                            ?: twoColShelf?.musicShelfRenderer?.continuations
                     val singleColShelf =
                         response.contents
                             ?.singleColumnBrowseResultsRenderer
@@ -1111,9 +1119,15 @@ object YouTube {
                             ?.sectionListRenderer
                             ?.contents
                             ?.firstOrNull()
-                            ?.musicPlaylistShelfRenderer
-                    val shelf = twoColShelf ?: singleColShelf
-                    shelf?.contents?.getContinuation() ?: shelf?.continuations?.getContinuation()
+                    val singleColContents =
+                        singleColShelf?.musicPlaylistShelfRenderer?.contents
+                            ?: singleColShelf?.musicShelfRenderer?.contents
+                    val singleColContinuations =
+                        singleColShelf?.musicPlaylistShelfRenderer?.continuations
+                            ?: singleColShelf?.musicShelfRenderer?.continuations
+                    val mergedContents = twoColContents ?: singleColContents
+                    val mergedContinuations = twoColContinuations ?: singleColContinuations
+                    mergedContents?.getContinuation() ?: mergedContinuations?.getContinuation()
                 },
                 continuation =
                     response.contents
