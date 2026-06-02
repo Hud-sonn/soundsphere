@@ -42,6 +42,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import timber.log.Timber
+import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.util.zip.ZipEntry
@@ -99,11 +100,31 @@ class BackupRestoreViewModel @Inject constructor(
     }
 
     fun restore(context: Context, uri: Uri, clearAuthData: Boolean = false) {
+        var migrationSucceeded: Boolean? = null
         runCatching {
             Timber.tag("RESTORE").i("Starting restore from URI: $uri, clearAuthData: $clearAuthData")
+            
+            // Backup current DB before restore
+            val currentDbPath = database.openHelper.writableDatabase.path
+            val backupDbFile = if (currentDbPath != null) {
+                val backupFile = File("${currentDbPath}_restore_backup_${System.currentTimeMillis()}")
+                try {
+                    File(currentDbPath).copyTo(backupFile, overwrite = true)
+                    val walFile = File("${currentDbPath}-wal")
+                    if (walFile.exists()) walFile.copyTo(File("${backupFile.absolutePath}-wal"), overwrite = true)
+                    val shmFile = File("${currentDbPath}-shm")
+                    if (shmFile.exists()) shmFile.copyTo(File("${backupFile.absolutePath}-shm"), overwrite = true)
+                    Timber.tag("RESTORE").i("Created DB backup at ${backupFile.absolutePath}")
+                    backupFile
+                } catch (e: Exception) {
+                    Timber.tag("RESTORE").e(e, "Failed to create DB backup")
+                    null
+                }
+            } else null
+            
             context.applicationContext.contentResolver.openInputStream(uri)?.use { raw ->
                 raw.zipInputStream().use { inputStream ->
-                    var entry = tryOrNull { inputStream.nextEntry } // prevent ZipException
+                    var entry = tryOrNull { inputStream.nextEntry }
                     var foundAny = false
                     while (entry != null) {
                         Timber.tag("RESTORE").i("Found zip entry: ${entry.name}")
@@ -119,21 +140,66 @@ class BackupRestoreViewModel @Inject constructor(
                             InternalDatabase.DB_NAME -> {
                                 Timber.tag("RESTORE").i("Restoring DB (entry = ${entry.name})")
                                 foundAny = true
-                                // capture path before closing DB to avoid reopening race
-                                val dbPath = database.openHelper.writableDatabase.path
-                                runBlocking(Dispatchers.IO) { database.checkpoint() }
-                                database.close()
-                                Timber.tag("RESTORE").i("Overwriting DB at path: $dbPath")
-                                FileOutputStream(dbPath).use { outputStream ->
-                                    inputStream.copyTo(outputStream)
+                                if (currentDbPath == null) {
+                                    Timber.tag("RESTORE").e("Database path is null, cannot restore")
+                                } else {
+                                    runBlocking(Dispatchers.IO) { database.checkpoint() }
+                                    database.close()
+                                    Timber.tag("RESTORE").i("Overwriting DB at path: $currentDbPath")
+                                    File("$currentDbPath-wal").takeIf { it.exists() }?.delete()
+                                    File("$currentDbPath-shm").takeIf { it.exists() }?.delete()
+                                    FileOutputStream(currentDbPath).use { outputStream ->
+                                        inputStream.copyTo(outputStream)
+                                    }
+                                    Timber.tag("RESTORE").i("DB overwrite complete, triggering migrations")
+                                    try {
+                                        val migratedDb = InternalDatabase.newInternalDatabaseInstance(context, InternalDatabase.DB_NAME)
+                                        migratedDb.openHelper.writableDatabase
+                                        migratedDb.close()
+                                        Timber.tag("RESTORE").i("Migrations completed successfully")
+                                        // Delete backup on success
+                                        backupDbFile?.delete()
+                                        val walBackup = File("${backupDbFile?.absolutePath}-wal")
+                                        if (walBackup.exists()) walBackup.delete()
+                                        val shmBackup = File("${backupDbFile?.absolutePath}-shm")
+                                        if (shmBackup.exists()) shmBackup.delete()
+                                        migrationSucceeded = true
+                                    } catch (e: Exception) {
+                                        Timber.tag("RESTORE").e(e, "Migration failed, restoring backup")
+                                        var backupRestored = false
+                                        try {
+                                            backupDbFile?.let { backup ->
+                                                File(currentDbPath).delete()
+                                                backup.copyTo(File(currentDbPath), overwrite = true)
+                                                backup.delete()
+                                                val walBackup = File("${backup.absolutePath}-wal")
+                                                if (walBackup.exists()) {
+                                                    walBackup.copyTo(File("${currentDbPath}-wal"), overwrite = true)
+                                                    walBackup.delete()
+                                                }
+                                                val shmBackup = File("${backup.absolutePath}-shm")
+                                                if (shmBackup.exists()) {
+                                                    shmBackup.copyTo(File("${currentDbPath}-shm"), overwrite = true)
+                                                    shmBackup.delete()
+                                                }
+                                                backupRestored = true
+                                            }
+                                        } catch (restoreEx: Exception) {
+                                            Timber.tag("RESTORE").e(restoreEx, "Failed to restore backup after migration failure")
+                                        }
+                                        if (!backupRestored) {
+                                            throw e
+                                        }
+                                        Timber.tag("RESTORE").i("Backup restored, migration not possible")
+                                        migrationSucceeded = false
+                                    }
                                 }
-                                Timber.tag("RESTORE").i("DB overwrite complete")
                             }
                             else -> {
                                 Timber.tag("RESTORE").i("Skipping unexpected entry: ${entry.name}")
                             }
                         }
-                        entry = tryOrNull { inputStream.nextEntry } // prevent ZipException
+                        entry = tryOrNull { inputStream.nextEntry }
                     }
                     if (!foundAny) {
                         Timber.tag("RESTORE").w("No expected entries found in archive")
@@ -155,13 +221,18 @@ class BackupRestoreViewModel @Inject constructor(
                 }
             }
 
-            context.stopService(Intent(context, MusicService::class.java))
-            context.filesDir.resolve(PERSISTENT_QUEUE_FILE).delete()
-            val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)?.apply {
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+            // Only restart if migration succeeded or no DB restore was attempted
+            if (migrationSucceeded != false) {
+                context.stopService(Intent(context, MusicService::class.java))
+                context.filesDir.resolve(PERSISTENT_QUEUE_FILE).delete()
+                val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)?.apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                }
+                context.startActivity(intent)
+                Runtime.getRuntime().exit(0)
+            } else {
+                Toast.makeText(context, R.string.restore_database_incompatible, Toast.LENGTH_LONG).show()
             }
-            context.startActivity(intent)
-            Runtime.getRuntime().exit(0)
         }.onFailure {
             reportException(it)
             Timber.tag("RESTORE").e(it, "Restore failed")

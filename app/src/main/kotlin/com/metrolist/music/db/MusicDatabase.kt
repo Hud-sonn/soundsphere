@@ -206,6 +206,24 @@ abstract class InternalDatabase : RoomDatabase() {
                             },
                         ).build(),
             )
+
+        fun newInternalDatabaseInstance(context: Context, dbName: String = DB_NAME): InternalDatabase =
+            Room
+                .databaseBuilder(context, InternalDatabase::class.java, dbName)
+                .openHelperFactory(BackupBeforeMigrationFactory(context, dbName))
+                .addMigrations(
+                    MIGRATION_1_2,
+                    MIGRATION_21_24,
+                    MIGRATION_22_24,
+                    MIGRATION_24_25,
+                ).setJournalMode(RoomDatabase.JournalMode.WRITE_AHEAD_LOGGING)
+                .setTransactionExecutor(
+                    java.util.concurrent.Executors
+                        .newFixedThreadPool(4),
+                ).setQueryExecutor(
+                    java.util.concurrent.Executors
+                        .newFixedThreadPool(4),
+                ).build()
     }
 }
 
