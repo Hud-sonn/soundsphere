@@ -258,8 +258,6 @@
     <string name="experimental_lyrics_desc">Gaitu animazio eta errendimendu hobea duten hitzen osagai esperimental berria</string>
     <string name="experimental_lyrics_beta_title">Eginbide esperimentala</string>
     <string name="experimental_lyrics_beta_message">Hitzen osagai berria garapenean dago oraindik eta akatsak izan ditzake. Ziur gaitu nahi duzula?</string>
-    <string name="discord_use_details">Xehetasunak egoeraren ordez erabili</string>
-    <string name="discord_use_details_description">Abestiaren izenburua erakutsi bereziki artistaren izenaren ordez</string>
     <string name="persistent_shuffle_title">Ausazko modu iraunkorra</string>
     <string name="persistent_shuffle_desc">Mantendu gaituta ausazko modua abesti edo zerrenda berriak hastean</string>
     <string name="remember_shuffle_and_repeat">Ausazko eta errepikapen moduak gogoratu</string>

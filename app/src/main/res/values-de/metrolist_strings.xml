@@ -157,8 +157,6 @@
     <string name="uploaded_playlist">Hochgeladen</string>
     <string name="filter_uploaded">Hochgeladen</string>
     <string name="show_uploaded_playlist">Hochgeladen-Playlist anzeigen</string>
-    <string name="discord_use_details">Verwende Details anstelle von Statusangaben</string>
-    <string name="discord_use_details_description">Den Songtitel anstelle des Künstlernamens prominent anzeigen</string>
     <string name="updater">Updater</string>
     <string name="check_for_updates">Automatisch nach Updates prüfen</string>
     <string name="update_notifications">Benachrichtigungen zu Updates erhalten</string>
@@ -531,11 +529,8 @@
     <string name="discord_buttons">Schaltflächen</string>
     <string name="discord_button_1">Schaltfläche 1</string>
     <string name="discord_button_2">Schaltfläche 2</string>
-    <string name="login_successful">Anmeldung erfolgreich!</string>
-    <string name="discord_button_text_variables">Variablen: {song_name}, {artist_name}, {album_name}</string>
     <string name="discord_connect_description">Melde dich bei Discord an, um zu teilen, was du gerade hörst</string>
     <string name="discord_activity_name">Aktivitätsname</string>
-    <string name="discord_activity_name_description">Benutzerdefinierter Name für die Aktivität. Leer lassen, um den Standardnamen zu verwenden</string>
     <string name="discord_advanced_mode">Erweiterter Modus</string>
     <string name="discord_advanced_mode_description">Weitere Anpassungsoptionen für „Rich Presence“ anzeigen</string>
     <string name="restart">Neustart</string>
@@ -646,9 +641,6 @@
     <string name="sleep_timer_default_set">Einschlaf-Timer standardmäßig auf %d Minuten eingestellt</string>
     <string name="error_podcast_unsubscribe">Podcast-Abo kündigen fehlgeschlagen</string>
     <string name="discord_rpc_preview">Vorschau auf „Rich Presence“</string>
-    <string name="discord_playing_metrolist">Spielt Metrolist</string>
-    <string name="discord_watching_metrolist">Schaut Metrolist an</string>
-    <string name="discord_competing_metrolist">Im Wettkampf in Metrolist</string>
     <string name="remove_episode_from_saved">Von gespeicherten Episoden entfernen</string>
     <string name="filter_episodes">Episoden</string>
     <string name="filter_channels">Kanäle</string>

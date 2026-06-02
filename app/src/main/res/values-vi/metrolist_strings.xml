@@ -172,8 +172,6 @@
     <string name="shuffle_playlist_first">Phát ngẫu nhiên danh sách phát hoặc album đầu tiên</string>
     <string name="shuffle_playlist_first_desc">Khi kích hoạt phát ngẫu nhiên, nó sẽ phát tất cả các bài hát từ danh sách phát / Album trước, sau đó mới phát nội dung tương tự</string>
     <string name="show_wrapped_card">Hiển thị thẻ Wrapped</string>
-    <string name="discord_use_details">Dùng chi tiết thay vì trạng thái</string>
-    <string name="discord_use_details_description">Hiện tên bài hát nổi bật thay vì tên nghệ sĩ</string>
     <string name="lyrics_romanize_chinese">La-tinh hóa lời bài hát tiếng Trung</string>
     <string name="updater">Trình cập nhật</string>
     <string name="check_for_updates">Tự động kiểm tra cập nhật</string>
@@ -735,7 +733,6 @@
     <string name="discord_buttons">Nút</string>
     <string name="discord_button_1">Nút 1</string>
     <string name="discord_button_2">Nút 2</string>
-    <string name="login_successful">Đăng nhập thành công!</string>
     <string name="discord_information_warning">Metrolist gửi thông tin bài hát bạn đang phát đến Discord Gateway để cập nhật Trạng thái hoạt động (Rich Presence). Mọi dữ liệu được truyền trực tiếp từ thiết bị của bạn đến Discord — không qua bất kỳ máy chủ bên thứ ba nào. Mã token của bạn được lưu trữ ngay trên thiết bị và không bao giờ bị chia sẻ. Tuy nhiên, việc sử dụng token người dùng (user token) để kết nối Gateway không được hỗ trợ chính thức và có thể vi phạm Điều khoản dịch vụ của Discord. Hãy cân nhắc trước khi tiếp tục!</string>
     <string name="discord_activity_type">Loại hoạt động</string>
     <string name="discord_activity_playing">Đang phát</string>
@@ -743,11 +740,7 @@
     <string name="discord_activity_watching">Đang xem</string>
     <string name="discord_rpc_preview">Xem trước Rich Presence</string>
     <string name="discord_connect_description">Đăng nhập bằng Discord để chia sẻ những gì bạn đang nghe</string>
-    <string name="discord_playing_metrolist">Đang phát Metrolist</string>
-    <string name="discord_watching_metrolist">Đang xem Metrolist</string>
-    <string name="discord_competing_metrolist">Đang tham gia trên Metrolist</string>
     <string name="discord_activity_name">Tên hoạt động</string>
-    <string name="discord_activity_name_description">Tên tùy chỉnh cho hoạt động. Để trống để sử dụng tên mặc định</string>
     <string name="discord_advanced_mode">Chế độ nâng cao</string>
     <string name="discord_advanced_mode_description">Hiển thị thêm các tùy chọn tùy chỉnh Rich Presence</string>
     <string name="pin_to_speed_dial">Ghim vào kệ Phát nhanh</string>
@@ -807,7 +800,6 @@
     <string name="time_transfer_convert">Chuyển đổi</string>
     <string name="song_dropdown_more_results">Tiếp tục nhập để thu hẹp kết quả (còn %d)</string>
     <string name="clear_search">Xóa tìm kiếm</string>
-    <string name="discord_button_text_variables">Biến số: {song_name}, {artist_name}, {album_name}</string>
     <string name="system_equalizer_desc">Mở bộ chỉnh âm tích hợp sẵn của Android</string>
     <string name="eq_wizard">Trình hướng dẫn AutoEQ</string>
     <string name="eq_download_db">Tải dữ liệu của AutoEQ (17 MB)</string>
