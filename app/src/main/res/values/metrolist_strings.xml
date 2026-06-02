@@ -803,6 +803,7 @@
     <string name="column_label">Column %d</string>
 
     <string name="discord_connect_description">Sign in with Discord to share what you\'re listening to</string>
+    <string name="discord_gms_only">Discord Rich Presence is only available in the GMS build. Download the GMS variant to use this feature.</string>
     <string name="discord_information_warning">Metrolist uses Discord\'s official OAuth2 SDK to share what you\'re listening to. All data goes directly from your device to Discord — no third-party servers involved. Your token stays on your device and is never shared. Discord\'s SDK bundles permissions together, so you\'ll see requests like friends list and profile access — this is normal and does not give Metrolist access to manage your friends or edit your profile.</string>
     <string name="discord_rpc_preview">Rich Presence preview</string>
     <string name="discord_integration">Discord Integration</string>

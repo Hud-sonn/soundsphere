@@ -190,7 +190,7 @@ import com.metrolist.music.ui.utils.appBarScrollBehavior
 import com.metrolist.music.ui.utils.resetHeightOffset
 import com.metrolist.music.utils.SyncUtils
 import com.metrolist.music.utils.Updater
-import com.discord.socialsdk.DiscordSocialSdkInit
+import com.metrolist.music.discord.DiscordSdkHelper
 import com.metrolist.music.utils.dataStore
 import com.metrolist.music.utils.get
 import com.metrolist.music.utils.rememberEnumPreference
@@ -353,7 +353,7 @@ class MainActivity : ComponentActivity() {
         if (isFinishing) {
             listenTogetherManager.disconnect()
             try {
-                DiscordSocialSdkInit.setEngineActivity(null)
+                DiscordSdkHelper.setEngineActivity(null)
             } catch (_: Exception) {
             }
         }
@@ -397,7 +397,7 @@ class MainActivity : ComponentActivity() {
         // Initialize Listen Together manager
         listenTogetherManager.initialize()
         // Initialize Discord Social SDK engine activity
-        DiscordSocialSdkInit.setEngineActivity(this)
+        DiscordSdkHelper.setEngineActivity(this)
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
             val locale =

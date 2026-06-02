@@ -112,8 +112,7 @@ android {
         buildConfigField("String", "LASTFM_API_KEY", "\"$lastFmKey\"")
         buildConfigField("String", "LASTFM_SECRET", "\"$lastFmSecret\"")
         buildConfigField("String", "ARCHITECTURE", "\"universal\"")
-        buildConfigField("Long", "DISCORD_APP_ID", "1447278780795064401L")
-        manifestPlaceholders["discordAppId"] = "1447278780795064401"
+        manifestPlaceholders["discordAppId"] = ""
     }
 
     flavorDimensions += listOf("variant")
@@ -124,6 +123,7 @@ android {
             isDefault = true
             buildConfigField("Boolean", "CAST_AVAILABLE", "false")
             buildConfigField("Boolean", "UPDATER_AVAILABLE", "true")
+            buildConfigField("Boolean", "DISCORD_RPC_AVAILABLE", "false")
         }
 
         // GMS variant - with Google Cast support (requires Google Play Services)
@@ -131,6 +131,15 @@ android {
             dimension = "variant"
             buildConfigField("Boolean", "CAST_AVAILABLE", "true")
             buildConfigField("Boolean", "UPDATER_AVAILABLE", "true")
+            buildConfigField("Boolean", "DISCORD_RPC_AVAILABLE", "true")
+            buildConfigField("Long", "DISCORD_APP_ID", "1447278780795064401L")
+            manifestPlaceholders["discordAppId"] = "1447278780795064401"
+
+            externalNativeBuild {
+                cmake {
+                    arguments("-DDISCORD_BRIDGE=ON")
+                }
+            }
         }
 
         // IzzyOnDroid variant - no Google Cast, no built-in updater (store handles updates)
@@ -138,6 +147,7 @@ android {
             dimension = "variant"
             buildConfigField("Boolean", "CAST_AVAILABLE", "false")
             buildConfigField("Boolean", "UPDATER_AVAILABLE", "false")
+            buildConfigField("Boolean", "DISCORD_RPC_AVAILABLE", "false")
         }
     }
 
@@ -393,7 +403,7 @@ dependencies {
     implementation(project(":innertube"))
     implementation(project(":kugou"))
     implementation(project(":lrclib"))
-    implementation(files("libs/discord_partner_sdk.aar"))
+    "gmsImplementation"(files("libs/discord_partner_sdk.aar"))
     implementation(project(":lastfm"))
     implementation(project(":betterlyrics"))
     implementation(project(":shazamkit"))
