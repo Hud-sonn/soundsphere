@@ -1,5 +1,7 @@
 [versions]
 androidGradlePlugin = "9.2.1"
+browser = "1.8.0"
+securityCrypto = "1.1.0-alpha07"
 json = "20251224"
 kotlin = "2.3.21"
 compose = "1.11.1"
@@ -64,6 +66,8 @@ material3 = { module = "androidx.compose.material3:material3", version.ref = "ma
 materialKolor = { module = "com.materialkolor:material-kolor", version.ref = "materialKolor" }
 
 appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
+browser = { module = "androidx.browser:browser", version.ref = "browser" }
+security-crypto = { module = "androidx.security:security-crypto", version.ref = "securityCrypto" }
 
 coil = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
 coil-network-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coil" }

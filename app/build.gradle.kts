@@ -101,6 +101,10 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
 
+        ndk {
+            abiFilters += listOf("arm64-v8a", "armeabi-v7a")
+        }
+
         // LastFM API keys from GitHub Secrets
         val lastFmKey = localProperties.getProperty("LASTFM_API_KEY") ?: System.getenv("LASTFM_API_KEY") ?: ""
         val lastFmSecret = localProperties.getProperty("LASTFM_SECRET") ?: System.getenv("LASTFM_SECRET") ?: ""
@@ -108,6 +112,8 @@ android {
         buildConfigField("String", "LASTFM_API_KEY", "\"$lastFmKey\"")
         buildConfigField("String", "LASTFM_SECRET", "\"$lastFmSecret\"")
         buildConfigField("String", "ARCHITECTURE", "\"universal\"")
+        buildConfigField("Long", "DISCORD_APP_ID", "1447278780795064401L")
+        manifestPlaceholders["discordAppId"] = "1447278780795064401"
     }
 
     flavorDimensions += listOf("variant")
@@ -226,6 +232,12 @@ android {
 
     androidResources {
         generateLocaleConfig = true
+    }
+
+    externalNativeBuild {
+        cmake {
+            path = file("src/main/cpp/CMakeLists.txt")
+        }
     }
 
     packaging {
@@ -350,6 +362,8 @@ dependencies {
 
     implementation(libs.coil)
     implementation(libs.coil.network.okhttp)
+    implementation(libs.browser)
+    implementation(libs.security.crypto)
 
     implementation(libs.ucrop)
 
@@ -379,7 +393,7 @@ dependencies {
     implementation(project(":innertube"))
     implementation(project(":kugou"))
     implementation(project(":lrclib"))
-    implementation(project(":discordrpc"))
+    implementation(files("libs/discord_partner_sdk.aar"))
     implementation(project(":lastfm"))
     implementation(project(":betterlyrics"))
     implementation(project(":shazamkit"))
