@@ -166,8 +166,6 @@
     <string name="update_available_title">Atualização disponível</string>
     <string name="update_channel_name">Atualizações do aplicativo</string>
     <string name="update_channel_desc">Notificações sobre novas versões do app</string>
-    <string name="discord_use_details">Usar detalhes em vez do estado</string>
-    <string name="discord_use_details_description">Mostrar o título da música proeminentemente em vez do nome do artista</string>
     <string name="integrations">Integrações</string>
     <string name="username">Nome do usuário</string>
     <string name="password">Senha</string>
@@ -528,22 +526,16 @@
     <string name="discord_buttons">Botões</string>
     <string name="discord_button_1">Botão 1</string>
     <string name="discord_button_2">Botão 2</string>
-    <string name="login_successful">Login bem sucedido!</string>
     <string name="discord_activity_type">Tipo de atividade</string>
     <string name="discord_activity_playing">Jogando</string>
     <string name="discord_activity_listening">Ouvindo</string>
     <string name="discord_activity_watching">Assistindo</string>
     <string name="discord_activity_competing">Competindo</string>
-    <string name="discord_button_text_variables">Variáveis: {song_name}, {artist_name}, {album_name}</string>
-    <string name="discord_information_warning">Esse recurso usa a biblioteca KizzyRPC para se conectar ao Gateway do Discord e atualizar seu status de Rich Presence. Embora nenhuma suspensão de conta por uso similar tenha sido reportado, este método não é oficialmente suportado pela Discord e pode ser considerado uma violação de Termos de Serviço. Seu token é manuseado localmente e nunca enviado para servidores de terceiros. Prossiga a seu próprio critério!</string>
+    <string name="discord_information_warning">Metrolist envia a música tocando no momento para a Gateway do Discord para atualizar a sua Rich Presence. Todos os fatos vão diretamente do seu dispositivo para o Discord — nenhum servidor de terceiros está envolvido. Seu token continua no dispositivo e não é compartilhado. De qualquer maneira, usar um token para conexões de Gateway não é suportado oficialmente e pode violar os termos de serviço do Discord. Prossiga por sua responsabilidade!</string>
     <string name="discord_rpc_preview">Visualização de Rich Presence</string>
     <string name="discord_presence">Presença</string>
     <string name="discord_connect_description">Entre com o Discord para compartilhar o que você está ouvindo</string>
-    <string name="discord_playing_metrolist">Jogando Metrolist</string>
-    <string name="discord_watching_metrolist">Assistindo Metrolist</string>
-    <string name="discord_competing_metrolist">Competindo no Metrolist</string>
     <string name="discord_activity_name">Nome da atividade</string>
-    <string name="discord_activity_name_description">Nome personalizado para a atividade. Deixe vazio para usar o padrão</string>
     <string name="discord_advanced_mode">Modo avançado</string>
     <string name="discord_advanced_mode_description">Mostrar opções adicionais de personalização do Rich Presence</string>
     <string name="player_background_solid">Sólido</string>
@@ -822,7 +814,6 @@
     <string name="switch_to_list_view">Mudar para visualização em lista</string>
     <string name="switch_to_grid_view">Mudar para visualização em grade</string>
     <string name="more_options">Mais opções</string>
-    <string name="audio_quality_very_high">O mais alto possível</string>
     <string name="autoplay">Reprodução Automática</string>
     <string name="autoplay_desc">Reproduzir automaticamente a próxima música quando a atual terminar</string>
     <string name="system_equalizer_desc">Abrir o Equalizador nativo do Android</string>
@@ -850,4 +841,12 @@
     <string name="show_most_stats_playlists_desc">Criar e mostrar playlists baseadas em estatísticas nas Estatísticas e Biblioteca</string>
     <string name="pin">Fixar</string>
     <string name="unpin">Desfixar</string>
+    <string name="and">e</string>
+    <string name="auto_radio_queue">Fila do rádio automática</string>
+    <string name="auto_radio_queue_desc">Automaticamente cria uma fila do rádio quando reproduz uma música da pesquisa ou menu</string>
+    <string name="audio_track_playback_params">Usar processamento de áudio por hardware</string>
+    <string name="audio_track_playback_params_description">Utilize o AudioTrack do Android para mudanças de velocidade/tom em vez do processamento por software. Mais confiável para valores de tom extremos</string>
+    <string name="widget_playlists">Playlists</string>
+    <string name="widget_playlists_description">Atalhos para a playlist com controles do mini reprodutor</string>
+    <string name="choose_something_below">Escolha algo abaixo</string>
 </resources>

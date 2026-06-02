@@ -159,8 +159,6 @@
     <string name="filter_uploaded">Caricato</string>
     <string name="uploaded_playlist">Caricato</string>
     <string name="show_uploaded_playlist">Mostra la playlist dei brani caricati</string>
-    <string name="discord_use_details">Usa i dettagli al posto dello stato</string>
-    <string name="discord_use_details_description">Mostra il titolo della canzone prominente al posto dei nomi degli artisti</string>
     <string name="updater">Aggiornamenti</string>
     <string name="check_for_updates">Controlla automaticamente se ci sono aggiornamenti</string>
     <string name="update_notifications">Attiva le notifiche sugli aggiornamenti</string>
@@ -526,21 +524,15 @@
     <string name="discord_buttons">Pulsanti</string>
     <string name="discord_button_1">Pulsante 1</string>
     <string name="discord_button_2">Pulsante 2</string>
-    <string name="login_successful">Accesso eseguito con successo!</string>
     <string name="discord_activity_type">Tipo di attività</string>
     <string name="prevent_duplicate_tracks_in_queue">Previeni tracce duplicate in coda</string>
     <string name="prevent_duplicate_tracks_in_queue_desc">Quando si aggiunge una traccia già in coda, questa verrà spostata dalla posizione precedente anziché aggiunta nuovamente</string>
     <string name="discord_advanced_mode_description">Mostra ulteriori opzioni di personalizzazione di Rich Presence</string>
     <string name="discord_advanced_mode">Modalità avanzata</string>
-    <string name="discord_activity_name_description">Nome personalizzato per l\'attività. Lascia vuoto per utilizzare l\'impostazione predefinita</string>
     <string name="discord_activity_name">Nome dell\'attività</string>
-    <string name="discord_competing_metrolist">Competendo su Metrolist</string>
-    <string name="discord_watching_metrolist">Guardando video su Metrolist</string>
-    <string name="discord_playing_metrolist">Riproducendo musica su Metrolist</string>
     <string name="discord_connect_description">Accedi con Discord per condividere ciò che stai ascoltando</string>
     <string name="discord_presence">Presenza</string>
     <string name="discord_rpc_preview">Anteprima Rich Presence</string>
-    <string name="discord_button_text_variables">Variabili: {song_name} per il nome del brano, {artist_name} per il nome dell\'artista, {album_name} per il nome dell\'album</string>
     <string name="discord_activity_competing">Competere</string>
     <string name="discord_activity_watching">Guardando</string>
     <string name="discord_activity_listening">Ascoltando</string>
@@ -822,7 +814,6 @@
     <string name="switch_to_list_view">Passa alla visualizzazione elenco</string>
     <string name="switch_to_grid_view">Passa alla visualizzazione griglia</string>
     <string name="more_options">Più opzioni</string>
-    <string name="audio_quality_very_high">Più alta possibile</string>
     <string name="autoplay">Riproduzione automatica</string>
     <string name="autoplay_desc">Riproduci automaticamente il brano successivo al termine di quello corrente</string>
     <string name="system_equalizer_desc">Apri l\'equalizzatore integrato di Android</string>
@@ -853,4 +844,9 @@
     <string name="choose_something_below">Scegli qualcosa di seguito</string>
     <string name="widget_playlists_description">Scorciatoie della playlist con controlli del mini-player</string>
     <string name="widget_playlists">Playlist</string>
+    <string name="and">e</string>
+    <string name="auto_radio_queue">Coda radio automatica</string>
+    <string name="auto_radio_queue_desc">Crea automaticamente una coda radio durante la riproduzione di un brano dalla ricerca o dalla home</string>
+    <string name="audio_track_playback_params">Utilizza l\'elaborazione audio hardware</string>
+    <string name="audio_track_playback_params_description">Utilizza AudioTrack di Android per modifiche di velocità/tono invece dell\'elaborazione software. Più affidabile per valori di pitch estremi</string>
 </resources>

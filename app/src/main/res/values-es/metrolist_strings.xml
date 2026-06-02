@@ -162,8 +162,6 @@
     <string name="updater">Actualizador</string>
     <string name="check_for_updates">Buscar actualizaciones automáticamente</string>
     <string name="lyrics_romanize_macedonian">Romanizar letras en macedonio</string>
-    <string name="discord_use_details">Usar detalles en lugar de estado</string>
-    <string name="discord_use_details_description">Mostrar el título de la canción de forma destacada en lugar de los nombres de los artistas</string>
     <string name="update_notifications">Habilitar notificaciones de actualización</string>
     <string name="update_available_title">Actualización disponible</string>
     <string name="update_channel_name">Actualizaciones de la app</string>
@@ -535,20 +533,14 @@
     <string name="discord_buttons">Botones</string>
     <string name="discord_button_1">Botón 1</string>
     <string name="discord_button_2">Botón 2</string>
-    <string name="login_successful">¡Inicio de sesión con éxito!</string>
-    <string name="discord_information_warning">Esta función utiliza la biblioteca KizzyRPC para conectarse a la pasarela (Gateway) de Discord y establecer tu estado de Rich Presence. Aunque no se conocen suspensiones de cuentas por un uso similar, este método no cuenta con el soporte oficial de Discord y podría considerarse una infracción de sus Términos de Servicio. Tu token se extrae localmente y nunca se envía a servidores de terceros. ¡Continúe bajo su propia responsabilidad!</string>
+    <string name="discord_information_warning">Metrolist envía la canción que estás escuchando a la pasarela (Gateway) de Discord para actualizar tu Rich Presence. Todos los datos viajan directamente de tu dispositivo a Discord; no intervienen servidores de terceros. Tu token permanece en tu dispositivo y nunca se comparte. Sin embargo, usar un token de usuario para conexiones a la puerta de enlace no está oficialmente soportado y podría infringir los Términos de Servicio de Discord. ¡Continúe bajo su propia responsabilidad!</string>
     <string name="discord_activity_type">Tipo de actividad</string>
     <string name="discord_activity_playing">Jugando</string>
     <string name="discord_activity_listening">Escuchando</string>
     <string name="discord_activity_watching">Viendo</string>
-    <string name="discord_button_text_variables">Variables: {song_name}, {artist_name}, {album_name}</string>
     <string name="discord_rpc_preview">Vista previa de Rich Presence</string>
     <string name="discord_connect_description">Inicia sesión con Discord para compartir lo que estás escuchando</string>
-    <string name="discord_playing_metrolist">Reproduciendo Metrolist</string>
-    <string name="discord_watching_metrolist">Viendo Metrolist</string>
-    <string name="discord_competing_metrolist">Compitiendo en Metrolist</string>
     <string name="discord_activity_name">Nombre de la actividad</string>
-    <string name="discord_activity_name_description">Nombre personalizado para la actividad. Déjalo vacío para usar el valor predeterminado</string>
     <string name="discord_advanced_mode">Modo avanzado</string>
     <string name="discord_advanced_mode_description">Mostrar opciones adicionales de personalización de Rich Presence</string>
     <string name="display_density">Densidad de pantalla</string>
@@ -831,7 +823,6 @@
     <string name="android_auto_target_playlist_auto">No establecido</string>
     <string name="added_to_playlist">Añadido a la lista de reproducción</string>
     <string name="android_auto_target_playlist_not_set">Ninguna lista de reproducción seleccionada. Elige una en los ajustes de Android Auto</string>
-    <string name="audio_quality_very_high">La mejor posible</string>
     <string name="autoplay">Reproducción automatica</string>
     <string name="autoplay_desc">Reproducir la siguiente canción de forma automática cuando la actual termine</string>
     <string name="back">Atrás</string>
@@ -850,4 +841,12 @@
     <string name="loudness_level_loud">Alto (-11 dB)</string>
     <string name="loudness_level_balanced">Equilibrado (-14 dB)</string>
     <string name="loudness_level_quiet">Bajo (-19 dB)</string>
+    <string name="and">y</string>
+    <string name="auto_radio_queue">Cola de la radio del coche</string>
+    <string name="auto_radio_queue_desc">Crear automáticamente una cola de radio al reproducir una canción desde la búsqueda o el inicio</string>
+    <string name="audio_track_playback_params">Usar procesamiento de audio por hardware</string>
+    <string name="audio_track_playback_params_description">Usar AudioTrack de Android para los cambios de velocidad/tono en lugar del procesamiento por software. Más fiable para valores de tono extremos</string>
+    <string name="widget_playlists">Listas de reproducción</string>
+    <string name="widget_playlists_description">Accesos directos de listas de reproducción con controles del mini reproductor</string>
+    <string name="choose_something_below">Elige algo de abajo</string>
 </resources>

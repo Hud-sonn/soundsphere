@@ -277,8 +277,6 @@
     <string name="edit_playlist_cover_note_wait">Pasirinkę paveikslėlį, palaukite, kol naujas viršelis pasirodys jūsų grojaraštyje.</string>
     <string name="choose_from_library">Pasirinkti iš bibliotekos</string>
     <string name="proxy">Proxy</string>
-    <string name="discord_use_details">Naudoti detalesnę informaciją, vietoje būsenos</string>
-    <string name="discord_use_details_description">Aiškiai matyti dainos pavadinimą, o ne atlikėjo vardą</string>
     <string name="enable_similar_content">Įjungti panašų turinį</string>
     <string name="similar_content_desc">Automatiškai pridėti daugiau panašių dainų, kai pasiekiama eilės pabaiga</string>
     <string name="persistent_shuffle_title">Nuolatinis maišymas</string>

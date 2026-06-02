@@ -152,8 +152,6 @@
     <string name="config_proxy">প্রক্সি কনফিগার করুন</string>
     <string name="proxy_username">প্রক্সি ব্যবহারকারীর নাম</string>
     <string name="proxy_password">প্রক্সি পাসওয়ার্ড</string>
-    <string name="discord_use_details">বিবৃতির পরিবর্তে বিশদ বিবরণ ব্যবহার করুন</string>
-    <string name="discord_use_details_description">শিল্পীর নামের পরিবর্তে গানের শিরোনামটি স্পষ্টভাবে দেখান</string>
     <string name="similar_content_desc">সারির শেষ প্রান্তে পৌঁছালে স্বয়ংক্রিয়ভাবে আরও একই ধরনের গান যুক্ত করে</string>
     <string name="enable_similar_content">একই ধরনের কন্টেন্ট চালু করুন</string>
     <string name="sensitivity_percentage">%1$d%%</string>
@@ -498,7 +496,6 @@
     <string name="time_transfer_listen_time_label">শোনার সময়:</string>
     <string name="time_transfer_convert">রূপান্তর করুন</string>
     <string name="song_dropdown_more_results">ফলাফল আরও সংকুচিত করতে টাইপ করতে থাকুন (আরও %d টি)</string>
-    <string name="audio_quality_very_high">সর্বোচ্চ সম্ভাব্য</string>
     <string name="autoplay">অটোপ্লে</string>
     <string name="autoplay_desc">বর্তমান গানটি শেষ হলে স্বয়ংক্রিয়ভাবে পরবর্তী গানটি বাজবে</string>
     <string name="credits_lead_developer">প্রধান ডেভেলপার</string>
@@ -559,9 +556,7 @@
     <string name="delete_uploaded_songs_confirm">আপনি কি আপলোড করা %1$d টি গান মুছে ফেলতে নিশ্চিত? এই কাজটি পূর্বাবস্থায় ফেরানো যাবে না</string>
     <string name="deleted_n_songs">%1$d টি গান মুছে ফেলা হয়েছে</string>
     <string name="deleting">মুছে ফেলা হচ্ছে…</string>
-    <string name="discord_competing_metrolist">মেট্রোলিস্টে প্রতিযোগিতা</string>
     <string name="discord_activity_name">কার্যকলাপের নাম</string>
-    <string name="discord_activity_name_description">অ্যাক্টিভিটির জন্য নিজস্ব নাম। ডিফল্ট নাম ব্যবহার করতে খালি রাখুন</string>
     <string name="discord_advanced_mode">উন্নত মোড</string>
     <string name="discord_advanced_mode_description">অতিরিক্ত Rich Presence কাস্টমাইজেশন বিকল্পগুলি দেখান</string>
     <string name="speed_dial">স্পিড ডায়াল</string>
@@ -820,19 +815,15 @@
     <string name="discord_buttons">বাটন</string>
     <string name="discord_button_1">বাটন ১</string>
     <string name="discord_button_2">বাটন ২</string>
-    <string name="login_successful">লগইন সফল হয়েছে!</string>
     <string name="discord_information_warning">এই ফিচারটি ডিসকর্ডের গেটওয়ের সাথে সংযোগ স্থাপন করতে এবং আপনার রিচ প্রেজেন্স স্ট্যাটাস আপডেট করতে KizzyRPC লাইব্রেরি ব্যবহার করে। যদিও এই ধরনের ব্যবহারের জন্য কোনো অ্যাকাউন্ট সাসপেনশনের খবর পাওয়া যায়নি, এই পদ্ধতিটি ডিসকর্ড দ্বারা আনুষ্ঠানিকভাবে সমর্থিত নয় এবং এটিকে পরিষেবার শর্তাবলীর লঙ্ঘন হিসেবে বিবেচনা করা হতে পারে। আপনার টোকেনটি স্থানীয়ভাবে পরিচালনা করা হয় এবং কখনোই তৃতীয় পক্ষের সার্ভারে পাঠানো হয় না। নিজ দায়িত্বে অগ্রসর হোন!</string>
     <string name="discord_activity_type">কার্যকলাপের ধরণ</string>
     <string name="discord_activity_playing">বাজছে</string>
     <string name="discord_activity_listening">শুনছে</string>
     <string name="discord_activity_watching">দেখছে</string>
     <string name="discord_activity_competing">প্রতিযোগিতা করছে</string>
-    <string name="discord_button_text_variables">চলক: {song_name}, {artist_name}, {album_name}</string>
     <string name="discord_rpc_preview">রিচ প্রেজেন্স প্রিভিউ</string>
     <string name="discord_presence">প্রেজেন্স</string>
     <string name="discord_connect_description">আপনি যা শুনছেন তা শেয়ার করতে ডিসকর্ডে সাইন ইন করুন</string>
-    <string name="discord_playing_metrolist">মেট্রোলিস্ট বাজানো হচ্ছে</string>
-    <string name="discord_watching_metrolist">মেট্রোলিস্ট দেখা হচ্ছে</string>
     <string name="mixes">মিক্সসমূহ</string>
     <string name="show_most_stats_playlists">সাপ্তাহিক এবং মাসিক সর্বাধিক প্লেলিস্টগুলি দেখান</string>
     <string name="show_most_stats_playlists_desc">স্ট্যাটস এবং লাইব্রেরিতে পরিসংখ্যান-ভিত্তিক সর্বাধিক শোনা প্লেলিস্ট তৈরি করুন এবং দেখান</string>

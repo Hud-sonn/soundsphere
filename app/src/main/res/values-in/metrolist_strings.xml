@@ -155,8 +155,6 @@
     <string name="uploaded_playlist">Diunggah</string>
     <string name="filter_uploaded">Diunggah</string>
     <string name="show_uploaded_playlist">Tampilkan playlist Diunggah</string>
-    <string name="discord_use_details">Gunakan detail alih-alih status</string>
-    <string name="discord_use_details_description">Tampilkan judul lagu secara menonjol alih-alih nama artis</string>
     <string name="updater">Pembaruan</string>
     <string name="check_for_updates">Periksa pembaruan secara otomatis</string>
     <string name="update_notifications">Aktifkan notifikasi pembaruan</string>
@@ -517,22 +515,16 @@
     <string name="discord_buttons">Tombol</string>
     <string name="discord_button_1">Tombol 1</string>
     <string name="discord_button_2">Tombol 2</string>
-    <string name="login_successful">Login berhasil!</string>
     <string name="discord_information_warning">Metrolist mengirimkan lagu yang sedang Anda putar ke Gateway Discord untuk memperbarui Rich Presence Anda. Semua data dikirim langsung dari perangkat Anda ke Discord — tanpa melibatkan server pihak ketiga. Token Anda tetap tersimpan di perangkat dan tidak pernah dibagikan. Namun, penggunaan token pengguna untuk koneksi Gateway tidak didukung secara resmi dan mungkin melanggar Ketentuan Layanan Discord. Lanjutkan dengan risiko Anda sendiri!</string>
     <string name="discord_activity_type">Jenis aktivitas</string>
     <string name="discord_activity_playing">Bermain</string>
     <string name="discord_activity_listening">Mendengarkan</string>
     <string name="discord_activity_watching">Menonton</string>
     <string name="discord_activity_competing">Berkompetisi</string>
-    <string name="discord_button_text_variables">Variabel: {song_name}, {artist_name}, {album_name}</string>
     <string name="discord_rpc_preview">Pratinjau Rich Presence</string>
     <string name="discord_presence">Kehadiran</string>
     <string name="discord_connect_description">Masuk dengan Discord untuk membagikan apa yang Anda dengarkan</string>
-    <string name="discord_playing_metrolist">Bermain Metrolist</string>
-    <string name="discord_watching_metrolist">Menonton Metrolist</string>
-    <string name="discord_competing_metrolist">Berkompetisi di Metrolist</string>
     <string name="discord_activity_name">Nama aktivitas</string>
-    <string name="discord_activity_name_description">Nama kustom untuk aktivitas. Biarkan kosong untuk menggunakan nama default</string>
     <string name="discord_advanced_mode">Mode lanjutan</string>
     <string name="discord_advanced_mode_description">Tampilkan opsi kustomisasi Rich Presence tambahan</string>
     <string name="enable">Aktifkan</string>
@@ -802,7 +794,6 @@
     <string name="speed">Kecepatan Pemutaran</string>
     <string name="varispeed">Aktifkan varispeed</string>
     <string name="varispeed_description">Kaitkan nada dengan kecepatan pemutaran, menghasilkan efek percepatan dan perlambatan ala kaset</string>
-    <string name="audio_quality_very_high">Setinggi mungkin</string>
     <string name="autoplay">Putar otomatis</string>
     <string name="autoplay_desc">Secara otomatis memutar lagu berikutnya ketika lagu saat ini selesai</string>
     <string name="back">Kembali</string>
@@ -839,4 +830,9 @@
     <string name="widget_playlists">Daftar putar</string>
     <string name="widget_playlists_description">Pintasan daftar putar dengan kontrol pemutar mini</string>
     <string name="choose_something_below">PIlih salah satu di bawah ini</string>
+    <string name="and">dan</string>
+    <string name="auto_radio_queue">Antrean radio otomatis</string>
+    <string name="auto_radio_queue_desc">Otomatis buat antrean radio saat memutar lagu dari pencarian atau beranda</string>
+    <string name="audio_track_playback_params">Gunakan pemrosesan audio perangkat keras</string>
+    <string name="audio_track_playback_params_description">Gunakan AudioTrack Android untuk mengubah kecepatan/nada, bukan pemrosesan perangkat lunak. Lebih andal untuk nilai nada yang ekstrem</string>
 </resources>

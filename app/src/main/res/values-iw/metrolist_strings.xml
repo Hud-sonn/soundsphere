@@ -152,8 +152,6 @@
     <string name="proxy_username">שם משתמש של Proxy</string>
     <string name="proxy_password">סיסמת Proxy</string>
     <string name="enable_authentication">הפעל אימות</string>
-    <string name="discord_use_details">השתמש בפרטים במקום במדינה</string>
-    <string name="discord_use_details_description">הצג את שם השיר במקום בולט במקום את שמות האמנים</string>
     <string name="enable_similar_content">הפעלת תוכן דומה</string>
     <string name="similar_content_desc">הוסף אוטומטית שירים דומים נוספים כאשר מגיע סוף התור</string>
     <string name="persistent_shuffle_title">ערבוב מתמיד</string>
@@ -653,14 +651,12 @@
     <string name="discord_buttons">כפתורים</string>
     <string name="discord_button_1">כפתור 1</string>
     <string name="discord_button_2">כפתור 2</string>
-    <string name="login_successful">כניסה מוצלחת!</string>
     <string name="discord_information_warning">תכונה זו משתמשת בספריית KizzyRPC כדי להתחבר לשער של Discord ולהגדיר את סטטוס הנוכחות העשירה שלך. אמנם לא התרחשו השעיות ידועות של חשבון משימוש דומה, אך שיטה זו אינה נתמכת רשמית על ידי Discord ועשויה להיחשב כהפרה של תנאי השירות. האסימון שלך חולץ באופן מקומי ולעולם לא נשלח לשרתים של צד שלישי. המשך לפי שיקול דעתך.</string>
     <string name="discord_activity_type">סוג פעילות</string>
     <string name="discord_activity_playing">מנגן</string>
     <string name="discord_activity_listening">מקשיב</string>
     <string name="discord_activity_watching">צופה</string>
     <string name="discord_activity_competing">מתחרה</string>
-    <string name="discord_button_text_variables">משתנים: {song_name}, {artist_name}, {album_name}</string>
     <string name="discord_rpc_preview">תצוגה מקדימה של נוכחות עשירה</string>
     <string name="discord_presence">נוכחות</string>
     <string name="parsed_from_link">מנותח מהקישור</string>

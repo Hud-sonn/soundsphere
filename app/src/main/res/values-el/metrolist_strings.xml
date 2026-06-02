@@ -135,8 +135,6 @@
     <string name="proxy_username">Όνομα χρήστη διακομιστή μεσολάβησης</string>
     <string name="proxy_password">Κωδικός πρόσβασης διακομιστή μεσολάβησης</string>
     <string name="enable_authentication">Ενεργοποίηση ελέγχου ταυτότητας</string>
-    <string name="discord_use_details">Χρήση λεπτομερειών αντί πολιτείας</string>
-    <string name="discord_use_details_description">Προβολή τίτλου τραγουδιού με έμφαση αντί για ονόματα καλλιτεχνών</string>
     <string name="disable_load_more_when_repeat_all">Απενεργοποίηση φόρτωσης περισσότερων όταν επαναλαμβάνονται όλα</string>
     <string name="disable_load_more_when_repeat_all_desc">Μην φορτώνετε αυτόματα περισσότερα τραγούδια και παρόμοιο περιεχόμενο όταν είναι ενεργοποιημένη η λειτουργία επανάληψης όλων</string>
     <string name="lyrics_romanization_cyrillic">Κυριλικά</string>
