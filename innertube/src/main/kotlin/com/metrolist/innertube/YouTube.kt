@@ -2025,7 +2025,7 @@ object YouTube {
     private fun convertToChartItem(renderer: MusicResponsiveListItemRenderer): YTItem? {
         return try {
             when {
-                renderer.flexColumns.size >= 3 && renderer.playlistItemData?.videoId != null -> {
+                renderer.flexColumns.size >= 3 && renderer.videoId != null -> {
                     val firstColumn =
                         renderer.flexColumns
                             .getOrNull(0)
@@ -2058,7 +2058,7 @@ object YouTube {
                             ?.text
 
                     SongItem(
-                        id = renderer.playlistItemData.videoId,
+                        id = renderer.videoId!!,
                         title = title,
                         artists = artists,
                         thumbnail = renderer.thumbnail?.musicThumbnailRenderer?.getThumbnailUrl() ?: return null,
@@ -2578,8 +2578,8 @@ object YouTube {
             shelfContents
                 ?.mapNotNull { it.musicResponsiveListItemRenderer }
                 ?.mapNotNull { renderer ->
-                    val videoId = renderer.playlistItemData?.videoId ?: return@mapNotNull null
-                    val setVideoId = renderer.playlistItemData.playlistSetVideoId
+                    val videoId = renderer.videoId ?: return@mapNotNull null
+                    val setVideoId = renderer.playlistSetVideoId
                     val title =
                         renderer.flexColumns
                             .firstOrNull()
@@ -2636,7 +2636,7 @@ object YouTube {
                 ?.flatMap { section ->
                     section.musicShelfRenderer?.contents?.mapNotNull { content ->
                         content.musicResponsiveListItemRenderer?.let { renderer ->
-                            val videoId = renderer.playlistItemData?.videoId ?: return@mapNotNull null
+                            val videoId = renderer.videoId ?: return@mapNotNull null
                             val title =
                                 renderer.flexColumns
                                     .firstOrNull()
