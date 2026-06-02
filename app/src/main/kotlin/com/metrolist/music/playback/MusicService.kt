@@ -24,7 +24,7 @@ import android.media.AudioDeviceInfo
 import android.media.AudioFocusRequest
 import android.media.AudioManager
 import android.media.audiofx.AudioEffect
-import android.media.audiofx.LoudnessEnhancer
+import com.metrolist.music.playback.audio.VolumeNormalizationAudioProcessor
 import android.net.ConnectivityManager
 import android.os.Binder
 import android.os.Build
@@ -393,7 +393,7 @@ class MusicService :
 
     private var isAudioEffectSessionOpened = false
     private var openedAudioEffectSessionId: Int = C.AUDIO_SESSION_ID_UNSET
-    private var loudnessEnhancer: LoudnessEnhancer? = null
+    private val volumeNormalizationProcessor = VolumeNormalizationAudioProcessor()
 
     private var loudnessSetupJob: Job? = null
     private var loudnessSetupGeneration: Long = 0L
@@ -870,7 +870,7 @@ class MusicService :
         }.collectLatest(scope) { (format, normalizeAudio, loudnessLevel) ->
             normalizationEnabledCached = normalizeAudio
             loudnessLevelCached = loudnessLevel
-            setupLoudnessEnhancer()
+            setupAudioNormalization()
         }
 
         combine(
@@ -2105,85 +2105,48 @@ class MusicService :
         )
     }
 
-    private fun applyCachedLoudnessEnhancerNow() {
-        val enhancer = loudnessEnhancer ?: return
-
+    private fun applyCachedAudioNormalizationNow() {
         try {
             val gain = cachedNormalizationGainMb
-
             if (cachedNormalizationEnabled && gain != null) {
-                enhancer.setTargetGain(gain)
-                enhancer.enabled = true
+                volumeNormalizationProcessor.setTargetGain(gain)
+                volumeNormalizationProcessor.enabled = true
             } else {
-                enhancer.enabled = false
+                volumeNormalizationProcessor.enabled = false
             }
         } catch (e: Exception) {
             reportException(e)
-            releaseLoudnessEnhancer()
+            volumeNormalizationProcessor.enabled = false
         }
     }
 
-    private fun createLoudnessEnhancerForSessionId(audioSessionId: Int): Boolean {
-        try {
-            loudnessEnhancer = LoudnessEnhancer(audioSessionId)
-            Timber.tag(TAG).d("LoudnessEnhancer created for sessionId=$audioSessionId")
-
-            return true
-        } catch (e: Exception) {
-            reportException(e)
-            loudnessEnhancer = null
-
-            return false
-        }
-    }
-
-    private fun setupLoudnessEnhancer() {
-        val audioSessionId = player.audioSessionId
-
-        if (audioSessionId == C.AUDIO_SESSION_ID_UNSET || audioSessionId <= 0) {
-            Timber
-                .tag(TAG)
-                .w("setupLoudnessEnhancer: invalid audioSessionId ($audioSessionId), cannot create effect yet")
-            return
-        }
-
-        // Create or recreate enhancer if needed
-        if (loudnessEnhancer == null && !createLoudnessEnhancerForSessionId(audioSessionId)) {
-            return
-        }
-
+    private fun setupAudioNormalization() {
         val requestGeneration = ++loudnessSetupGeneration
         loudnessSetupJob?.cancel()
 
         loudnessSetupJob = scope.launch {
             try {
-                val currentMediaId =
-                    withContext(Dispatchers.Main) {
-                        player.currentMediaItem?.mediaId
-                    }
+                val currentMediaId = withContext(Dispatchers.Main) {
+                    player.currentMediaItem?.mediaId
+                }
 
                 val normalizeAudio = normalizationEnabledCached
 
                 if (normalizeAudio && currentMediaId != null) {
-                    val format =
-                        withContext(Dispatchers.IO) {
-                            database.format(currentMediaId).first()
-                        }
+                    val format = withContext(Dispatchers.IO) {
+                        database.format(currentMediaId).first()
+                    }
 
                     val targetLufs = loudnessLevelCached.targetLufs
 
                     Timber.tag(TAG).d("Audio normalization enabled: $normalizeAudio")
-                    Timber
-                        .tag(TAG)
-                        .d("Format loudnessDb: ${format?.loudnessDb}, perceptualLoudnessDb: ${format?.perceptualLoudnessDb}")
-
-                    // Use perceptualLoudnessDb if available, otherwise fall back to loudnessDb + offset
+                    
                     val measuredLufs: Double? = format?.perceptualLoudnessDb
                         ?: format?.loudnessDb?.let { it + LoudnessLevel.AGGRESSIVE.targetLufs }
 
                     withContext(Dispatchers.Main) {
                         if (!isActive || requestGeneration != loudnessSetupGeneration) return@withContext
-                        if (player.audioSessionId != audioSessionId || player.currentMediaItem?.mediaId != currentMediaId) return@withContext
+                        if (player.currentMediaItem?.mediaId != currentMediaId) return@withContext
 
                         when {
                             measuredLufs != null -> {
@@ -2191,28 +2154,18 @@ class MusicService :
                                 val targetGain = (-loudnessDb * 100.0).toInt()
                                 val clampedGain = targetGain.coerceIn(MIN_GAIN_MB, MAX_GAIN_MB)
 
-                                Timber.tag(TAG)
-                                    .d("Normalization Target LUFS: $targetLufs, Measured LUFS: $measuredLufs, Calculated gain: $targetGain mB, Clamped gain: $clampedGain mB")
-
-                                Timber.tag(TAG)
-                                    .d("Calculated raw normalization gain: $targetGain mB (from loudness: $loudnessDb)")
-
                                 cachedNormalizationGainMb = clampedGain
                                 cachedNormalizationEnabled = true
-                                loudnessEnhancer?.setTargetGain(clampedGain)
-                                loudnessEnhancer?.enabled = true
+                                volumeNormalizationProcessor.setTargetGain(clampedGain)
+                                volumeNormalizationProcessor.enabled = true
                             }
-
                             format == null -> {
-                                // Row not available yet for new track: keep carry-over gain to avoid a jump.
                                 Timber.tag(TAG).d("Loudness row not ready yet; keeping cached normalization state")
                             }
-
                             else -> {
                                 cachedNormalizationGainMb = null
                                 cachedNormalizationEnabled = false
-                                loudnessEnhancer?.enabled = false
-                                Timber.tag(TAG).w("No loudness data available for track - normalization disabled")
+                                volumeNormalizationProcessor.enabled = false
                             }
                         }
                     }
@@ -2221,85 +2174,40 @@ class MusicService :
                         if (!isActive || requestGeneration != loudnessSetupGeneration) return@withContext
                         cachedNormalizationGainMb = null
                         cachedNormalizationEnabled = false
-                        loudnessEnhancer?.enabled = false
-                        Timber.tag(TAG).d("setupLoudnessEnhancer: normalization disabled or mediaId unavailable")
+                        volumeNormalizationProcessor.enabled = false
                     }
                 }
             } catch (e: CancellationException) {
-                Timber.tag(TAG).d("setupLoudnessEnhancer: job cancelled, likely due to new setup request or session change")
                 throw e
             } catch (e: Exception) {
                 reportException(e)
-                releaseLoudnessEnhancer()
+                volumeNormalizationProcessor.enabled = false
             }
-        }
-    }
-
-    private fun releaseLoudnessEnhancer(clearNormalizationCache: Boolean = true) {
-        try {
-            loudnessEnhancer?.release()
-            Timber.tag(TAG).d("LoudnessEnhancer released")
-        } catch (e: Exception) {
-            reportException(e)
-            Timber.tag(TAG).e(e, "Error releasing LoudnessEnhancer: ${e.message}")
-        } finally {
-            if (clearNormalizationCache) {
-                cachedNormalizationGainMb = null
-                cachedNormalizationEnabled = false
-            }
-            loudnessEnhancer = null
         }
     }
 
     private fun openAudioEffectSession() {
         val audioSessionId = player.audioSessionId
         if (audioSessionId == C.AUDIO_SESSION_ID_UNSET || audioSessionId <= 0) {
-            Timber.tag(TAG).w("openAudioEffectSession: invalid audioSessionId=$audioSessionId")
             return
         }
 
-        if (isAudioEffectSessionOpened &&
-            openedAudioEffectSessionId == audioSessionId &&
-            loudnessEnhancer != null
-        ) {
-            applyCachedLoudnessEnhancerNow()
-
-            if (!cachedNormalizationEnabled || cachedNormalizationGainMb == null) {
-                setupLoudnessEnhancer()
-            }
-
+        if (isAudioEffectSessionOpened && openedAudioEffectSessionId == audioSessionId) {
             return
         }
 
         if (isAudioEffectSessionOpened && openedAudioEffectSessionId > 0) {
             closeAudioEffectSession(sessionIdOverride = openedAudioEffectSessionId, clearNormalizationCache = false)
-        } else {
-            releaseLoudnessEnhancer(clearNormalizationCache = false)
-        }
-
-        val enhancerReady = loudnessEnhancer != null || createLoudnessEnhancerForSessionId(audioSessionId)
-
-        if (!enhancerReady) {
-            isAudioEffectSessionOpened = false
-            openedAudioEffectSessionId = C.AUDIO_SESSION_ID_UNSET
-            Timber.tag(TAG).w("openAudioEffectSession: failed to create LoudnessEnhancer for sessionId=$audioSessionId, audio effects will be unavailable")
-            return
         }
 
         isAudioEffectSessionOpened = true
         openedAudioEffectSessionId = audioSessionId
 
-        applyCachedLoudnessEnhancerNow()
-
-        if (!cachedNormalizationEnabled || cachedNormalizationGainMb == null) {
-            setupLoudnessEnhancer()
-        }
-
         sendBroadcast(
-            Intent(AudioEffect.ACTION_OPEN_AUDIO_EFFECT_CONTROL_SESSION).apply {
-                putExtra(AudioEffect.EXTRA_AUDIO_SESSION, audioSessionId)
-                putExtra(AudioEffect.EXTRA_PACKAGE_NAME, packageName)
-                putExtra(AudioEffect.EXTRA_CONTENT_TYPE, AudioEffect.CONTENT_TYPE_MUSIC)
+            Intent(android.media.audiofx.AudioEffect.ACTION_OPEN_AUDIO_EFFECT_CONTROL_SESSION).apply {
+                putExtra(android.media.audiofx.AudioEffect.EXTRA_AUDIO_SESSION, audioSessionId)
+                putExtra(android.media.audiofx.AudioEffect.EXTRA_PACKAGE_NAME, packageName)
+                putExtra(android.media.audiofx.AudioEffect.EXTRA_CONTENT_TYPE, android.media.audiofx.AudioEffect.CONTENT_TYPE_MUSIC)
             },
         )
     }
@@ -2318,9 +2226,6 @@ class MusicService :
                     sessionIdToClose == openedAudioEffectSessionId
 
         if (isClosingCurrentSession) {
-            if (loudnessEnhancer != null) {
-                releaseLoudnessEnhancer(clearNormalizationCache = clearNormalizationCache)
-            }
 
             isAudioEffectSessionOpened = false
             openedAudioEffectSessionId = C.AUDIO_SESSION_ID_UNSET
@@ -2412,7 +2317,7 @@ class MusicService :
 
         lastPlaybackSpeed = -1.0f // force update song
 
-        setupLoudnessEnhancer()
+        setupAudioNormalization()
 
         scrobbleManager?.onSongStop()
         if (player.playWhenReady && player.playbackState == Player.STATE_READY) {
@@ -2559,7 +2464,7 @@ class MusicService :
         }
 
         if (playWhenReady) {
-            applyCachedLoudnessEnhancerNow()
+            applyCachedAudioNormalizationNow()
         }
     }
 
@@ -3681,6 +3586,7 @@ class MusicService :
                 DefaultAudioSink.DefaultAudioProcessorChain(
                     // 2. Inject processor into audio pipeline
                     arrayOf(
+                        volumeNormalizationProcessor,
                         eqProcessor,
                         silenceProcessor,
                     ),
