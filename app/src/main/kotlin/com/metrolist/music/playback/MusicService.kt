@@ -376,8 +376,8 @@ class MusicService :
     private var fadingPlayer: ExoPlayer? = null
     private var isCrossfading = false
     private var crossfadeJob: Job? = null
-
-    private lateinit var mediaSession: MediaLibrarySession
+    private var isRunning = false
+    private var mediaSession: MediaLibrarySession? = null
 
     // Tracks if player has been properly initilized
     private val playerInitialized = MutableStateFlow(false)
@@ -920,7 +920,7 @@ class MusicService :
                 sleepTimer.player = newPlayer
 
                 try {
-                    (mediaSession as MediaSession).player = newPlayer
+                    mediaSession?.let { (it as MediaSession).player = newPlayer }
                 } catch (e: Exception) {
                     Timber.tag(TAG).e(e, "Failed to swap player in MediaSession")
                 }
@@ -1464,7 +1464,7 @@ class MusicService :
     }
 
     private fun updateNotification() {
-        mediaSession.setCustomLayout(
+        mediaSession?.setCustomLayout(
             listOf(
                 CommandButton
                     .Builder()
@@ -3943,7 +3943,7 @@ class MusicService :
         abandonAudioFocus()
         closeAudioEffectSession()
         mediaLibrarySessionCallback.release()
-        mediaSession.release()
+        mediaSession?.release()
         player.removeListener(this)
         player.removeListener(sleepTimer)
         playerSilenceProcessors.remove(player)
@@ -4521,7 +4521,7 @@ class MusicService :
         sleepTimer.player = player
 
         try {
-            (mediaSession as MediaSession).player = player
+            mediaSession?.let { (it as MediaSession).player = player }
         } catch (e: Exception) {
             timber.log.Timber.e(e, "Failed to swap player in MediaSession")
         }
