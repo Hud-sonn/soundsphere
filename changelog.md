@@ -1,3 +1,30 @@
+---v13.5.0
+# MAINTENANCE MODE
+Metrolist is currently in maintenance mode. This means we will only be fixing bugs and making minor improvements. Please do not submit PRs for new features or major changes, as they will not be accepted.
+
+# Major changes
+- Rewrote the Discord RPC integration again (@adrielGGmotion @nyxiereal)
+- Fixed random playback issues and pauses (@DanielSchmerber @isotjs)
+- Fixed liked songs, playlists, albums, search results, etc. not displaying properly (@adrielGGmotion @nyxiereal)
+
+## Notable new features
+- Added a toggle for automatic radio queue generation (@FireLion137)
+- Added automatic tablet UI scaling (@kairosci)
+- Toggle from repeat(1) to repeat(all) after song change (@sunjeetkajla)
+
+## Other improvements
+- Fixe covers not loading sometimes (@Arjuanto)
+- Artist names are now split properly, and are now clickable (@kairosci)
+- Fixed multiple crashes (@kairosci @nyxiereal)
+- Improved audio normalization (@kairosci)
+- Fixed search results not being combined properly (@kairosci)
+- Fixed 'High quality' option not choosing the highest quality option (@kairosci)
+- Fixed history sync not working (@kairosci)
+
+## New Contributors
+- @DanielSchmerber made their first contribution in https://github.com/MetrolistGroup/Metrolist/pull/3777
+- @Arjuanto made their first contribution in https://github.com/MetrolistGroup/Metrolist/pull/3780
+
 ---v13.4.3
 # MAINTENANCE MODE
 Metrolist is currently in maintenance mode. This means we will only be fixing bugs and making minor improvements. Please do not submit PRs for new features or major changes, as they will not be accepted.

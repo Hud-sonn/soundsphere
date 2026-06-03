@@ -96,8 +96,8 @@ android {
         applicationId = applicationIdOverride ?: baseApplicationId
         minSdk = 26
         targetSdk = 36
-        versionCode = 147
-        versionName = "13.4.3"
+        versionCode = 148
+        versionName = "13.5.0"
         resValue("string", "app_name", appNameOverride ?: "Metrolist")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -119,7 +119,7 @@ android {
 
     flavorDimensions += listOf("variant")
     productFlavors {
-        // FOSS variant (default) - F-Droid compatible, no Google Play Services
+        // FOSS - Updater, but no gcast or rpc
         create("foss") {
             dimension = "variant"
             isDefault = true
@@ -128,7 +128,7 @@ android {
             buildConfigField("Boolean", "DISCORD_RPC_AVAILABLE", "false")
         }
 
-        // GMS variant - with Google Cast support (requires Google Play Services)
+        // GMS - Updater, gcast, and rpc
         create("gms") {
             dimension = "variant"
             buildConfigField("Boolean", "CAST_AVAILABLE", "true")
@@ -144,7 +144,7 @@ android {
             }
         }
 
-        // IzzyOnDroid variant - no Google Cast, no built-in updater (store handles updates)
+        // IzzyOnDroid - no gcast, no updater, no rpc - the ONLY F-droid compliant build
         create("izzy") {
             dimension = "variant"
             buildConfigField("Boolean", "CAST_AVAILABLE", "false")
