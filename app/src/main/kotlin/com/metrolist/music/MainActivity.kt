@@ -112,6 +112,7 @@ import androidx.lifecycle.coroutineScope
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -990,6 +991,7 @@ class MainActivity : ComponentActivity() {
 
                 CompositionLocalProvider(
                     LocalDatabase provides database,
+                    LocalNavController provides navController,
                     LocalContentColor provides if (pureBlack) Color.White else contentColorFor(MaterialTheme.colorScheme.surface),
                     LocalPlayerConnection provides playerConnection,
                     LocalPlayerAwareWindowInsets provides playerAwareWindowInsets,
@@ -1361,7 +1363,6 @@ class MainActivity : ComponentActivity() {
 
                     if (showAccountDialog) {
                         AccountSettingsDialog(
-                            navController = navController,
                             onDismiss = {
                                 showAccountDialog = false
                                 homeViewModel.refresh()
@@ -1387,7 +1388,6 @@ class MainActivity : ComponentActivity() {
                                     ) {
                                         YouTubeSongMenu(
                                             song = song,
-                                            navController = navController,
                                             onDismiss = { sharedSong = null },
                                         )
                                     }
@@ -1587,6 +1587,7 @@ class MainActivity : ComponentActivity() {
 }
 
 val LocalDatabase = staticCompositionLocalOf<MusicDatabase> { error("No database provided") }
+val LocalNavController = staticCompositionLocalOf<NavController> { error("No NavController provided") }
 val LocalPlayerConnection = staticCompositionLocalOf<PlayerConnection?> { error("No PlayerConnection provided") }
 val LocalPlayerAwareWindowInsets = compositionLocalOf<WindowInsets> { error("No WindowInsets provided") }
 val LocalDownloadUtil = staticCompositionLocalOf<DownloadUtil> { error("No DownloadUtil provided") }

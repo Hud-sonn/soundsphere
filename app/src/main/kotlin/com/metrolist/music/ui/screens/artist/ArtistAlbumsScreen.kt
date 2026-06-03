@@ -131,7 +131,6 @@ fun ArtistAlbumsScreen(
                 contentType = { CONTENT_TYPE_ALBUM },
             ) { album ->
                 LibraryAlbumGridItem(
-                    navController = navController,
                     menuState = menuState,
                     coroutineScope = coroutineScope,
                     album = album,

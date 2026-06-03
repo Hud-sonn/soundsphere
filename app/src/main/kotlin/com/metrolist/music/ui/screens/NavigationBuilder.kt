@@ -74,7 +74,7 @@ fun NavGraphBuilder.navigationBuilder(
     snackbarHostState: SnackbarHostState,
 ) {
     composable(Screens.Home.route) {
-        HomeScreen(navController = navController, snackbarHostState = snackbarHostState)
+        HomeScreen(snackbarHostState = snackbarHostState)
     }
 
     composable(Screens.Search.route) { backStackEntry ->
@@ -90,14 +90,13 @@ fun NavGraphBuilder.navigationBuilder(
                 pureBlackEnabled && useDarkTheme
             }
         SearchScreen(
-            navController = navController,
             pureBlack = pureBlack,
             savedStateHandle = backStackEntry.savedStateHandle
         )
     }
 
     composable(Screens.Library.route) {
-        LibraryScreen(navController)
+        LibraryScreen()
     }
 
     composable(Screens.ListenTogether.route) {
@@ -179,7 +178,6 @@ fun NavGraphBuilder.navigationBuilder(
         },
     ) { backStackEntry ->
         OnlineSearchResult(
-            navController = navController,
             savedStateHandle = backStackEntry.savedStateHandle
         )
 
@@ -415,11 +413,11 @@ fun NavGraphBuilder.navigationBuilder(
     }
 
     composable("wrapped") {
-        WrappedScreen(navController)
+        WrappedScreen()
     }
 
     composable("equalizer") {
-        EqScreen(navController = navController)
+        EqScreen()
     }
 
     composable("eq_wizard") {

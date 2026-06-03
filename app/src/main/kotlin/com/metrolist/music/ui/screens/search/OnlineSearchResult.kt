@@ -64,7 +64,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.SavedStateHandle
-import androidx.navigation.NavController
+import com.metrolist.music.LocalNavController
 import com.metrolist.innertube.YouTube.SearchFilter.Companion.FILTER_ALBUM
 import com.metrolist.innertube.YouTube.SearchFilter.Companion.FILTER_ARTIST
 import com.metrolist.innertube.YouTube.SearchFilter.Companion.FILTER_COMMUNITY_PLAYLIST
@@ -118,11 +118,11 @@ import java.net.URLEncoder
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun OnlineSearchResult(
-    navController: NavController,
     viewModel: OnlineSearchViewModel = hiltViewModel(),
     pureBlack: Boolean = false,
     savedStateHandle: SavedStateHandle? = null
 ) {
+    val navController = LocalNavController.current
     val database = LocalDatabase.current
     val menuState = LocalMenuState.current
     val playerConnection = LocalPlayerConnection.current ?: return
@@ -244,7 +244,6 @@ fun OnlineSearchResult(
                     is SongItem -> {
                         YouTubeSongMenu(
                             song = item,
-                            navController = navController,
                             onDismiss = menuState::dismiss,
                         )
                     }
@@ -252,7 +251,6 @@ fun OnlineSearchResult(
                     is AlbumItem -> {
                         YouTubeAlbumMenu(
                             albumItem = item,
-                            navController = navController,
                             onDismiss = menuState::dismiss,
                         )
                     }
@@ -283,7 +281,6 @@ fun OnlineSearchResult(
                     is EpisodeItem -> {
                         YouTubeSongMenu(
                             song = item.asSongItem(),
-                            navController = navController,
                             onDismiss = menuState::dismiss,
                         )
                     }
@@ -568,7 +565,6 @@ fun OnlineSearchResult(
                 OnlineSearchScreen(
                     query = query.text,
                     onQueryChange = { query = it },
-                    navController = navController,
                     onSearch = onSearch,
                     onDismiss = {
                         isSearchFocused = false

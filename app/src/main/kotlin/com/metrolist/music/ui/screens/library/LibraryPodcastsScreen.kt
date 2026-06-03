@@ -414,7 +414,6 @@ fun LibraryPodcastsScreen(
                                         menuState.show {
                                             SongMenu(
                                                 originalSong = episode,
-                                                navController = navController,
                                                 onDismiss = menuState::dismiss,
                                             )
                                         }
@@ -550,7 +549,7 @@ private fun AutoPlaylistCard(
                     buildString {
                         append(stringResource(R.string.auto_playlist))
                         if (!episodeCount.isNullOrBlank()) {
-                            append(" • ")
+                            append(" | ")
                             append(episodeCount)
                         }
                     },

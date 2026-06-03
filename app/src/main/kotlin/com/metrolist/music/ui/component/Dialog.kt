@@ -57,7 +57,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import androidx.navigation.NavController
+import com.metrolist.music.LocalNavController
 import com.metrolist.music.R
 import com.metrolist.music.ui.screens.settings.AccountSettings
 import kotlinx.coroutines.delay
@@ -138,10 +138,10 @@ fun DefaultDialog(
 
 @Composable
 fun AccountSettingsDialog(
-    navController: NavController,
     onDismiss: () -> Unit,
     latestVersionName: String,
 ) {
+    val navController = LocalNavController.current
     Dialog(
         onDismissRequest = onDismiss,
         properties =

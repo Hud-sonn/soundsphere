@@ -46,6 +46,8 @@ import com.metrolist.music.extensions.toggleRepeatMode
 import com.metrolist.music.models.toMediaMetadata
 import com.metrolist.music.utils.dataStore
 import com.metrolist.music.utils.get
+import com.metrolist.music.utils.getArtistSeparator
+import com.metrolist.music.utils.joinToArtistString
 import com.metrolist.music.utils.reportException
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
@@ -422,8 +424,8 @@ constructor(
                                             .setMediaMetadata(
                                                 MediaMetadata.Builder()
                                                     .setTitle(songItem.title)
-                                                    .setSubtitle(songItem.artists.joinToString(", ") { it.name })
-                                                    .setArtist(songItem.artists.joinToString(", ") { it.name })
+                                                    .setSubtitle(songItem.artists.joinToArtistString(getArtistSeparator(context)) { it.name })
+                                                    .setArtist(songItem.artists.joinToArtistString(getArtistSeparator(context)) { it.name })
                                                     .setArtworkUri(songItem.thumbnail.toUri())
                                                     .setIsPlayable(true)
                                                     .setIsBrowsable(false)
@@ -551,8 +553,8 @@ constructor(
                                 .setMediaMetadata(
                                     MediaMetadata.Builder()
                                         .setTitle(songItem.title)
-                                        .setSubtitle(songItem.artists.joinToString(", ") { it.name })
-                                        .setArtist(songItem.artists.joinToString(", ") { it.name })
+                                        .setSubtitle(songItem.artists.joinToArtistString(getArtistSeparator(context)) { it.name })
+                                        .setArtist(songItem.artists.joinToArtistString(getArtistSeparator(context)) { it.name })
                                         .setArtworkUri(songItem.thumbnail.toUri())
                                         .setIsPlayable(true)
                                         .setIsBrowsable(true)
@@ -826,12 +828,12 @@ constructor(
             .Builder()
             .setMediaId("$path/$id")
             .setMediaMetadata(
-                MediaMetadata
-                    .Builder()
-                    .setTitle(song.title)
-                    .setSubtitle(artists.joinToString { it.name })
-                    .setArtist(artists.joinToString { it.name })
-                    .setArtworkData(artworkBytes, MediaMetadata.PICTURE_TYPE_ILLUSTRATION)
+                 MediaMetadata
+                     .Builder()
+                     .setTitle(song.title)
+                     .setSubtitle(artists.joinToArtistString(getArtistSeparator(context)) { it.name })
+                     .setArtist(artists.joinToArtistString(getArtistSeparator(context)) { it.name })
+                     .setArtworkData(artworkBytes, MediaMetadata.PICTURE_TYPE_ILLUSTRATION)
                     .setIsPlayable(isPlayable)
                     .setIsBrowsable(isBrowsable)
                     .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC)

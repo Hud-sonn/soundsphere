@@ -292,7 +292,6 @@ fun LibraryAlbumsScreen(
                             contentType = { CONTENT_TYPE_ALBUM },
                         ) { album ->
                             LibraryAlbumListItem(
-                                navController = navController,
                                 menuState = menuState,
                                 album = album,
                                 isActive = album.id == mediaMetadata?.album?.id,
@@ -351,7 +350,6 @@ fun LibraryAlbumsScreen(
                             contentType = { CONTENT_TYPE_ALBUM },
                         ) { album ->
                             LibraryAlbumGridItem(
-                                navController = navController,
                                 menuState = menuState,
                                 coroutineScope = coroutineScope,
                                 album = album,

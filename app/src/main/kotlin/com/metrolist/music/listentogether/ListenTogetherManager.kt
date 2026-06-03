@@ -21,6 +21,8 @@ import com.metrolist.music.models.toMediaMetadata
 import com.metrolist.music.playback.PlayerConnection
 import com.metrolist.music.playback.queues.YouTubeQueue
 import com.metrolist.music.utils.dataStore
+import com.metrolist.music.utils.getArtistSeparator
+import com.metrolist.music.utils.joinToArtistString
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -1719,11 +1721,11 @@ class ListenTogetherManager
             // Use a default duration of 3 minutes if duration is 0 or negative
             val durationMs = if (metadata.duration > 0) metadata.duration.toLong() * 1000 else 180000L
 
-            val trackInfo =
-                TrackInfo(
-                    id = metadata.id,
-                    title = metadata.title,
-                    artist = metadata.artists.joinToString(", ") { it.name },
+             val trackInfo =
+                 TrackInfo(
+                     id = metadata.id,
+                     title = metadata.title,
+                     artist = metadata.artists.joinToArtistString(getArtistSeparator(context)) { it.name },
                     album = metadata.album?.title,
                     duration = durationMs,
                     thumbnail = metadata.thumbnailUrl,
@@ -1820,10 +1822,10 @@ class ListenTogetherManager
         private fun androidx.media3.common.Timeline.Window.toTrackInfo(): TrackInfo {
             val metadata = mediaItem.metadata ?: return TrackInfo("unknown", "Unknown", "Unknown", "", 0, "")
             val durationMs = if (metadata.duration > 0) metadata.duration.toLong() * 1000 else 180000L
-            return TrackInfo(
-                id = metadata.id,
-                title = metadata.title,
-                artist = metadata.artists.joinToString(", ") { it.name },
+             return TrackInfo(
+                 id = metadata.id,
+                 title = metadata.title,
+                 artist = metadata.artists.joinToArtistString(getArtistSeparator(context)) { it.name },
                 album = metadata.album?.title,
                 duration = durationMs,
                 thumbnail = metadata.thumbnailUrl,

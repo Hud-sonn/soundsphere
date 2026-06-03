@@ -56,8 +56,8 @@ import androidx.core.net.toUri
 import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
-import androidx.navigation.NavController
 import com.metrolist.innertube.YouTube
+import com.metrolist.music.LocalNavController
 import com.metrolist.innertube.models.AlbumItem
 import com.metrolist.music.LocalDatabase
 import com.metrolist.music.LocalDownloadUtil
@@ -87,9 +87,9 @@ import kotlinx.coroutines.launch
 @Composable
 fun YouTubeAlbumMenu(
     albumItem: AlbumItem,
-    navController: NavController,
     onDismiss: () -> Unit,
 ) {
+    val navController = LocalNavController.current
     val context = LocalContext.current
     val database = LocalDatabase.current
     val downloadUtil = LocalDownloadUtil.current

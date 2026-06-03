@@ -108,6 +108,7 @@ import com.metrolist.innertube.models.SongItem
 import com.metrolist.innertube.utils.completed
 import com.metrolist.music.LocalDatabase
 import com.metrolist.music.LocalDownloadUtil
+import com.metrolist.music.LocalNavController
 import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.LocalPlayerConnection
 import com.metrolist.music.LocalSyncUtils
@@ -498,7 +499,6 @@ fun LocalPlaylistScreen(
                                 playlist = playlist,
                                 songs = songs,
                                 onlinePlaylist = onlinePlaylist,
-                                navController = navController,
                                 onShowEditDialog = { showEditDialog = true },
                                 onShowRemoveDownloadDialog = { showRemoveDownloadDialog = true },
                                 onshowDeletePlaylistDialog = { showDeletePlaylistDialog = true },
@@ -641,7 +641,6 @@ fun LocalPlaylistScreen(
                                                     originalSong = song.song,
                                                     playlistSong = song,
                                                     playlistBrowseId = playlist?.playlist?.browseId,
-                                                    navController = navController,
                                                     onDismiss = menuState::dismiss,
                                                 )
                                             }
@@ -875,7 +874,6 @@ fun LocalPlaylistHeader(
     playlist: Playlist,
     songs: List<PlaylistSong>,
     onlinePlaylist: PlaylistItem?,
-    navController: NavController,
     onShowEditDialog: () -> Unit,
     onShowRemoveDownloadDialog: () -> Unit,
     onshowDeletePlaylistDialog: () -> Unit,
@@ -883,6 +881,7 @@ fun LocalPlaylistHeader(
     snackbarHostState: SnackbarHostState,
     modifier: Modifier,
 ) {
+    val navController = LocalNavController.current
     val playerConnection = LocalPlayerConnection.current ?: return
     val context = LocalContext.current
     val database = LocalDatabase.current
@@ -1267,7 +1266,7 @@ fun LocalPlaylistHeader(
         val metadataString = buildString {
             append(nSongs)
             if (durationText != null) {
-                append(" • ")
+                append(" | ")
                 append(durationText)
             }
         }

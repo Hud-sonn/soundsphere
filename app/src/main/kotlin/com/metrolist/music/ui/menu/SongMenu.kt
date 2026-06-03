@@ -65,8 +65,8 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
-import androidx.navigation.NavController
 import coil3.compose.AsyncImage
+import com.metrolist.music.LocalNavController
 import com.metrolist.innertube.YouTube
 import com.metrolist.music.LocalDatabase
 import com.metrolist.music.LocalDownloadUtil
@@ -108,12 +108,12 @@ import java.time.LocalDateTime
 fun SongMenu(
     originalSong: Song,
     event: Event? = null,
-    navController: NavController,
     playlistSong: PlaylistSong? = null,
     playlistBrowseId: String? = null,
     onDismiss: () -> Unit,
     isFromCache: Boolean = false,
 ) {
+    val navController = LocalNavController.current
     val context = LocalContext.current
     val database = LocalDatabase.current
     val playerConnection = LocalPlayerConnection.current ?: return

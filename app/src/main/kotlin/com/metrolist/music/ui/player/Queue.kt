@@ -99,7 +99,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.media3.common.Player
 import androidx.media3.common.Timeline
 import androidx.media3.exoplayer.source.ShuffleOrder.DefaultShuffleOrder
-import androidx.navigation.NavController
+import com.metrolist.music.LocalNavController
 import com.metrolist.music.LocalListenTogetherManager
 import com.metrolist.music.LocalPlayerConnection
 import com.metrolist.music.R
@@ -149,7 +149,6 @@ import androidx.compose.material3.Button
 fun Queue(
     state: BottomSheetState,
     playerBottomSheetState: BottomSheetState,
-    navController: NavController,
     modifier: Modifier = Modifier,
     background: Color,
     onBackgroundColor: Color,
@@ -161,6 +160,7 @@ fun Queue(
     playerBackground: PlayerBackgroundStyle = PlayerBackgroundStyle.DEFAULT,
     onToggleLyrics: () -> Unit = {},
 ) {
+    val navController = LocalNavController.current
     val context = LocalContext.current
     val haptic = LocalHapticFeedback.current
     val clipboardManager = LocalClipboard.current
@@ -393,7 +393,6 @@ fun Queue(
                                     menuState.show {
                                         PlayerMenu(
                                             mediaMetadata = mediaMetadata,
-                                            navController = navController,
                                             playerBottomSheetState = playerBottomSheetState,
                                             onShowDetailsDialog = {
                                                 mediaMetadata?.id?.let {
@@ -852,7 +851,6 @@ fun Queue(
                                                         menuState.show {
                                                             QueueMenu(
                                                                 mediaMetadata = window.mediaItem.metadata!!,
-                                                                navController = navController,
                                                                 playerBottomSheetState = playerBottomSheetState,
                                                                 onShowDetailsDialog = {
                                                                     window.mediaItem.mediaId.let {
@@ -1008,7 +1006,6 @@ fun Queue(
                                                 menuState.show {
                                                     QueueMenu(
                                                         mediaMetadata = item.metadata!!,
-                                                        navController = navController,
                                                         playerBottomSheetState = playerBottomSheetState,
                                                         onShowDetailsDialog = {
                                                             item.mediaId.let {

@@ -100,6 +100,7 @@ import com.metrolist.music.playback.CastConnectionHandler
 import com.metrolist.music.playback.PlayerConnection
 import com.metrolist.music.ui.screens.settings.DarkMode
 import com.metrolist.music.ui.utils.resize
+import com.metrolist.music.utils.joinToArtistString
 import com.metrolist.music.utils.rememberEnumPreference
 import com.metrolist.music.utils.rememberPreference
 import kotlinx.coroutines.launch
@@ -670,10 +671,10 @@ private fun NewMiniPlayerSongInfo(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 if (metadata.explicit) MIcon.Explicit()
-                if (metadata.artists.any { it.name.isNotBlank() }) {
-                    Text(
-                        text = metadata.artists.joinToString { it.name },
-                        color = onSurfaceColor.copy(alpha = 0.7f),
+                 if (metadata.artists.any { it.name.isNotBlank() }) {
+                     Text(
+                         text = metadata.artists.joinToArtistString(" ${stringResource(R.string.and)} ") { it.name },
+                         color = onSurfaceColor.copy(alpha = 0.7f),
                         fontSize = 12.sp,
                         maxLines = 1,
                         overflow = TextOverflow.Clip,
@@ -1031,10 +1032,10 @@ private fun LegacyMiniMediaInfo(
                 modifier = Modifier.basicMarquee(),
             )
 
-            if (mediaMetadata.artists.any { it.name.isNotBlank() }) {
-                Text(
-                    text = mediaMetadata.artists.joinToString { it.name },
-                    color = MaterialTheme.colorScheme.secondary,
+             if (mediaMetadata.artists.any { it.name.isNotBlank() }) {
+                 Text(
+                     text = mediaMetadata.artists.joinToArtistString(" ${stringResource(R.string.and)} ") { it.name },
+                     color = MaterialTheme.colorScheme.secondary,
                     fontSize = 12.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,

@@ -51,7 +51,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.SavedStateHandle
-import androidx.navigation.NavController
+import com.metrolist.music.LocalNavController
 import com.metrolist.innertube.models.WatchEndpoint
 import com.metrolist.innertube.utils.YouTubeUrlParser
 import com.metrolist.music.LocalDatabase
@@ -74,10 +74,10 @@ import java.net.URLEncoder
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchScreen(
-    navController: NavController,
     pureBlack: Boolean,
     savedStateHandle: SavedStateHandle,
 ) {
+    val navController = LocalNavController.current
     val database = LocalDatabase.current
     val coroutineScope = rememberCoroutineScope()
     val focusManager = LocalFocusManager.current
@@ -297,7 +297,6 @@ fun SearchScreen(
                     SearchSource.LOCAL -> {
                         LocalSearchScreen(
                             query = query.text,
-                            navController = navController,
                             onDismiss = { navController.navigateUp() },
                             pureBlack = pureBlack,
                         )
@@ -307,7 +306,6 @@ fun SearchScreen(
                         OnlineSearchScreen(
                             query = query.text,
                             onQueryChange = { query = it },
-                            navController = navController,
                             onSearch = onSearchFromSuggestion,
                             onDismiss = { /* Don't dismiss when searching from suggestions */ },
                             pureBlack = pureBlack,

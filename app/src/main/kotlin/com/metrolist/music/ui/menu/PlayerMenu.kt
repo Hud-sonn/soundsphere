@@ -78,8 +78,8 @@ import androidx.media3.common.PlaybackParameters
 import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
-import androidx.navigation.NavController
 import com.metrolist.innertube.YouTube
+import com.metrolist.music.LocalNavController
 import com.metrolist.music.LocalDatabase
 import com.metrolist.music.LocalDownloadUtil
 import com.metrolist.music.LocalListenTogetherManager
@@ -110,13 +110,13 @@ import kotlin.math.round
 @Composable
 fun PlayerMenu(
     mediaMetadata: MediaMetadata?,
-    navController: NavController,
     playerBottomSheetState: BottomSheetState,
     isQueueTrigger: Boolean? = false,
     onShowDetailsDialog: () -> Unit,
     onDismiss: () -> Unit,
 ) {
     mediaMetadata ?: return
+    val navController = LocalNavController.current
     val context = LocalContext.current
     val database = LocalDatabase.current
     val playerConnection = LocalPlayerConnection.current ?: return

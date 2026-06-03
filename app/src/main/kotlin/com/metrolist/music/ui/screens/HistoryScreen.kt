@@ -269,7 +269,6 @@ fun HistoryScreen(
                                         menuState.show {
                                             YouTubeSongMenu(
                                                 song = song,
-                                                navController = navController,
                                                 onDismiss = menuState::dismiss,
                                                 onHistoryRemoved = {
                                                     viewModel.fetchRemoteHistory()
@@ -301,7 +300,6 @@ fun HistoryScreen(
                                             menuState.show {
                                                 YouTubeSongMenu(
                                                     song = song,
-                                                    navController = navController,
                                                     onDismiss = menuState::dismiss,
                                                     onHistoryRemoved = {
                                                         viewModel.fetchRemoteHistory()
@@ -356,7 +354,6 @@ fun HistoryScreen(
                                                 SongMenu(
                                                     originalSong = event.song,
                                                     event = event.event,
-                                                    navController = navController,
                                                     onDismiss = menuState::dismiss,
                                                 )
                                             }

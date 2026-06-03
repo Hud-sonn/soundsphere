@@ -105,7 +105,6 @@ fun BrowseScreen(
                                             is AlbumItem -> {
                                                 YouTubeAlbumMenu(
                                                     albumItem = item,
-                                                    navController = navController,
                                                     onDismiss = menuState::dismiss,
                                                 )
                                             }

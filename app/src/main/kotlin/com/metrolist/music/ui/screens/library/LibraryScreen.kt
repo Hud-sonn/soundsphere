@@ -13,7 +13,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.navigation.NavController
+import com.metrolist.music.LocalNavController
 import com.metrolist.music.R
 import com.metrolist.music.constants.ChipSortTypeKey
 import com.metrolist.music.constants.LibraryFilter
@@ -21,7 +21,8 @@ import com.metrolist.music.ui.component.ChipsRow
 import com.metrolist.music.utils.rememberEnumPreference
 
 @Composable
-fun LibraryScreen(navController: NavController) {
+fun LibraryScreen() {
+    val navController = LocalNavController.current
     var filterType by rememberEnumPreference(ChipSortTypeKey, LibraryFilter.LIBRARY)
 
     val filterContent = @Composable {

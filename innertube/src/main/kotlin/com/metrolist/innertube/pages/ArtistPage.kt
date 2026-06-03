@@ -140,17 +140,12 @@ data class ArtistPage(
                     SongItem(
                         id = renderer.navigationEndpoint.watchEndpoint?.videoId ?: return null,
                         title = renderer.title.runs?.firstOrNull()?.text ?: return null,
-                        artists = artistRuns.filter { 
-                            it.navigationEndpoint?.browseEndpoint?.browseId?.startsWith("UC") == true ||
-                            it.navigationEndpoint?.browseEndpoint != null
-                        }.map {
+                        artists = artistRuns.map { run ->
                             Artist(
-                                name = it.text.trim(),
-                                id = it.navigationEndpoint?.browseEndpoint?.browseId
+                                name = run.text.trim(),
+                                id = run.navigationEndpoint?.browseEndpoint?.browseId
                             )
-                        }.ifEmpty {
-                            artistRuns.map { Artist(name = it.text.trim(), id = null) }
-                        },
+                        }.ifEmpty { null } ?: return null,
                         album = null,
                         duration = null,
                         musicVideoType = renderer.musicVideoType,

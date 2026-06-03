@@ -62,15 +62,10 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.LinkAnnotation
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.text.withLink
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.util.fastForEachIndexed
 import androidx.compose.ui.util.fastForEachReversed
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.media3.exoplayer.offline.Download
@@ -86,6 +81,7 @@ import com.metrolist.music.constants.HideExplicitKey
 import com.metrolist.music.constants.HideVideoSongsKey
 import com.metrolist.music.db.entities.Album
 import com.metrolist.music.playback.queues.LocalAlbumRadio
+import com.metrolist.music.ui.component.ClickableArtistText
 import com.metrolist.music.ui.component.IconButton
 import com.metrolist.music.ui.component.LocalMenuState
 import com.metrolist.music.ui.component.NavigationTitle
@@ -238,31 +234,14 @@ fun AlbumScreen(
                     Spacer(modifier = Modifier.height(8.dp))
 
                     // Artist Names - Below the album name
-                    Text(
-                        buildAnnotatedString {
-                            withStyle(
-                                style =
-                                    MaterialTheme.typography.titleMedium
-                                        .copy(
-                                            fontWeight = FontWeight.Normal,
-                                            color = MaterialTheme.colorScheme.onBackground,
-                                        ).toSpanStyle(),
-                            ) {
-                                albumWithSongs.artists.fastForEachIndexed { index, artist ->
-                                    val link =
-                                        LinkAnnotation.Clickable(artist.id) {
-                                            navController.navigate("artist/${artist.id}")
-                                        }
-                                    withLink(link) {
-                                        append(artist.name)
-                                    }
-                                    if (index != albumWithSongs.artists.lastIndex) {
-                                        append(", ")
-                                    }
-                                }
-                            }
-                        },
-                        textAlign = TextAlign.Center,
+                    ClickableArtistText(
+                        artists = albumWithSongs.artists,
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.Normal,
+                            color = MaterialTheme.colorScheme.secondary,
+                            textAlign = TextAlign.Center,
+                        ),
+                        modifier = Modifier.fillMaxWidth(),
                     )
 
                     Spacer(modifier = Modifier.height(12.dp))
@@ -294,7 +273,7 @@ fun AlbumScreen(
                                         ),
                                     )
                                     if (totalDuration > 0) {
-                                        append(" • ")
+                                        append(" | ")
                                         append(makeTimeString(totalDuration * 1000L))
                                     }
                                 },
@@ -389,7 +368,6 @@ fun AlbumScreen(
                                                 albumWithSongs.album,
                                                 albumWithSongs.artists,
                                             ),
-                                        navController = navController,
                                         onDismiss = menuState::dismiss,
                                     )
                                 }
@@ -444,7 +422,6 @@ fun AlbumScreen(
                                         menuState.show {
                                             SongMenu(
                                                 originalSong = song,
-                                                navController = navController,
                                                 onDismiss = menuState::dismiss,
                                             )
                                         }
@@ -517,7 +494,6 @@ fun AlbumScreen(
                                                 menuState.show {
                                                     YouTubeAlbumMenu(
                                                         albumItem = item,
-                                                        navController = navController,
                                                         onDismiss = menuState::dismiss,
                                                     )
                                                 }

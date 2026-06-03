@@ -214,7 +214,7 @@ fun OnlinePodcastScreen(
                                     onLongClick = {
                                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                         menuState.show {
-                                            YouTubeSongMenu(episode.asSongItem(), navController, menuState::dismiss)
+                                            YouTubeSongMenu(episode.asSongItem(), menuState::dismiss)
                                         }
                                     }
                                 )
@@ -222,7 +222,7 @@ fun OnlinePodcastScreen(
                             trailingContent = {
                                 IconButton(onClick = {
                                     menuState.show {
-                                        YouTubeSongMenu(episode.asSongItem(), navController, menuState::dismiss)
+                                        YouTubeSongMenu(episode.asSongItem(), menuState::dismiss)
                                     }
                                 }) {
                                     Icon(painterResource(R.drawable.more_vert), null)

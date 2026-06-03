@@ -45,7 +45,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.navigation.NavController
+import com.metrolist.music.LocalNavController
 import com.metrolist.music.LocalPlayerConnection
 import com.metrolist.music.R
 import com.metrolist.music.constants.CONTENT_TYPE_LIST
@@ -72,12 +72,12 @@ import kotlinx.coroutines.flow.drop
 @Composable
 fun LocalSearchScreen(
     query: String,
-    navController: NavController,
     onDismiss: () -> Unit,
     isFromCache: Boolean = false,
     pureBlack: Boolean,
     viewModel: LocalSearchViewModel = hiltViewModel(),
 ) {
+    val navController = LocalNavController.current
     val queueSearchedSongsStr = stringResource(R.string.queue_searched_songs)
     val keyboardController = LocalSoftwareKeyboardController.current
     val menuState = LocalMenuState.current
@@ -196,7 +196,6 @@ fun LocalSearchScreen(
                                             menuState.show {
                                                 SongMenu(
                                                     originalSong = item,
-                                                    navController = navController,
                                                     onDismiss = {
                                                         onDismiss()
                                                         menuState.dismiss()
@@ -237,7 +236,6 @@ fun LocalSearchScreen(
                                                 menuState.show {
                                                     SongMenu(
                                                         originalSong = item,
-                                                        navController = navController,
                                                         onDismiss = {
                                                             onDismiss()
                                                             menuState.dismiss()
