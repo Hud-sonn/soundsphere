@@ -1,7 +1,9 @@
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.RelativePath
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.Internal
@@ -317,6 +319,25 @@ val generateProto = if (protoFile.exists()) {
 tasks.configureEach {
     if (name.startsWith("compile") || name.startsWith("assemble")) {
         generateProto?.let { dependsOn(it) }
+    }
+}
+
+val extractDiscordSo = tasks.register<Copy>("extractDiscordSo") {
+    description = "Extracts libdiscord_partner_sdk.so from the AAR into src/gms/jniLibs"
+    from(zipTree("libs/discord_partner_sdk.aar").matching {
+        include("jni/**/libdiscord_partner_sdk.so")
+    })
+    into(file("src/gms/jniLibs"))
+    eachFile {
+        val parts = relativePath.segments
+        relativePath = RelativePath(true, *parts.drop(1).toTypedArray())
+    }
+    includeEmptyDirs = false
+}
+
+tasks.configureEach {
+    if (name.startsWith("buildCMake") || name.startsWith("configureCMake") || name.startsWith("merge") && name.contains("JniLib")) {
+        dependsOn(extractDiscordSo)
     }
 }
 
