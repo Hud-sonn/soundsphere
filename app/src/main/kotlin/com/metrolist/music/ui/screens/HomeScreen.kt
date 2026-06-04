@@ -2450,7 +2450,7 @@ fun HomeScreen(
                                             Modifier
                                                 .height((MoodAndGenresButtonHeight + 12.dp) * 4 + 12.dp),
                                     ) {
-                                        items(moodAndGenres, key = { it.title }) {
+                                        items(moodAndGenres, key = { "${it.title}_${it.endpoint.browseId}_${it.endpoint.params}" }) {
                                             MoodAndGenresButton(
                                                 title = it.title,
                                                 onClick = {
