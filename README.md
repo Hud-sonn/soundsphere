@@ -8,7 +8,9 @@
 
 <br/>
 
-<a href="https://trendshift.io/repositories/20652" target="_blank"><img src="https://trendshift.io/api/badge/repositories/20652" alt="MetrolistGroup%2FMetrolist | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
+<a href="https://trendshift.io/repositories/20652" target="_blank">
+  <img src="https://trendshift.io/api/badge/repositories/20652" alt="MetrolistGroup/Metrolist | Trendshift" width="250" height="55" />
+</a>
 
 <br/>
 
@@ -28,7 +30,7 @@
 </div>
 
 > [!WARNING]
-> Regional Restriction - If YouTube Music is unavailable in your region, this app will not work without a **VPN or proxy** connecting to a supported region.
+> **Regional Restriction** - If YouTube Music is unavailable in your region, this app will not work without a **VPN or proxy** connecting to a supported region.
 
 ---
 
@@ -55,7 +57,7 @@
   <tr>
     <td width="50%" valign="top">
 
-### Playback
+#### Playback
 - Stream any song or video from YouTube Music
 - Background playback
 - Download & cache for offline use
@@ -65,7 +67,7 @@
 </td>
     <td width="50%" valign="top">
 
-### Audio
+#### Audio
 - Audio normalization
 - Tempo & pitch control
 - Equalizer
@@ -75,7 +77,7 @@
   <tr>
     <td width="50%" valign="top">
 
-### Lyrics & Discovery
+#### Lyrics & Discovery
 - Live synced lyrics
 - AI-powered lyrics translation
 - Personalized quick picks
@@ -84,7 +86,7 @@
 </td>
     <td width="50%" valign="top">
 
-### Library & Account
+#### Library & Account
 - Full library management
 - Local playlists
 - Import playlists
@@ -97,16 +99,16 @@
   <tr>
     <td width="50%" valign="top">
 
-### Social
+#### Social
 - Listen together with friends in real-time
 
 </td>
     <td width="50%" valign="top">
 
-### Interface
+#### Interface
 - Home screen widget
 - Light / Dark / Black / Dynamic theme modes
-- Dynamic / 19 color palettes
+- Dynamic color + 19 preset color palettes
 - Built with Material 3
 
 </td>
@@ -131,12 +133,12 @@
   <tr>
     <td align="center">
       <a href="https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/MetrolistGroup/Metrolist/">
-        <img src="https://github.com/ImranR98/Obtainium/blob/main/assets/graphics/badge_obtainium.png" alt="Download from Obtainium" height="50">
+        <img src="https://github.com/ImranR98/Obtainium/blob/main/assets/graphics/badge_obtainium.png" alt="Download from Obtainium" height="40">
       </a>
     </td>
     <td align="center">
       <a href="https://apt.izzysoft.de/fdroid/index/apk/com.metrolist.music">
-        <img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png" alt="Download from IzzyOnDroid" height="75">
+        <img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png" alt="Download from IzzyOnDroid" height="60">
       </a>
     </td>
   </tr>
@@ -147,12 +149,12 @@
   <tr>
     <td align="center">
       <a href="https://www.openapk.net/metrolist/com.metrolist.music/">
-        <img src="https://www.openapk.net/images/openapk-badge.png" alt="Download from OpenAPK" height="75">
+        <img src="https://www.openapk.net/images/openapk-badge.png" alt="Download from OpenAPK" height="60">
       </a>
     </td>
     <td align="center">
       <a href="https://github.com/MetrolistGroup/Metrolist/releases/latest/download/Metrolist.apk">
-        <img src="https://github.com/machiav3lli/oandbackupx/blob/034b226cea5c1b30eb4f6a6f313e4dadcbb0ece4/badge_github.png" alt="Download from GitHub" height="75">
+        <img src="https://github.com/machiav3lli/oandbackupx/blob/034b226cea5c1b30eb4f6a6f313e4dadcbb0ece4/badge_github.png" alt="Download from GitHub" height="60">
       </a>
     </td>
   </tr>
@@ -161,20 +163,16 @@
 <h2>Nightly Build</h2>
 
 <table>
-  <thead>
-    <tr>
-      <th align="center">GitHub</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td align="center">
-        <a href="https://nightly.link/MetrolistGroup/Metrolist/workflows/build/main/app-with-Google-Cast.zip">
-          <img src="https://github.com/machiav3lli/oandbackupx/blob/034b226cea5c1b30eb4f6a6f313e4dadcbb0ece4/badge_github.png" alt="Download from GitHub" height="75">
-        </a>
-      </td>
-    </tr>
-  </tbody>
+  <tr>
+    <th align="center">GitHub</th>
+  </tr>
+  <tr>
+    <td align="center">
+      <a href="https://nightly.link/MetrolistGroup/Metrolist/workflows/build/main/app-with-Google-Cast.zip">
+        <img src="https://github.com/machiav3lli/oandbackupx/blob/034b226cea5c1b30eb4f6a6f313e4dadcbb0ece4/badge_github.png" alt="Download from GitHub" height="75">
+      </a>
+    </td>
+  </tr>
 </table>
 
 </div>
@@ -185,7 +183,7 @@
 
 <h1><a id="faq"></a>FAQ</h1>
 
-<h3>Got questions? Check out our <a href="https://metrolist.cc/#faq">FAQ page</a> for answers to the most common ones!</h3>
+<h3>Got questions? Check out our <a href="https://metrolist.cc/#faq">FAQ page</a> for answers to the most common ones.</h3>
 
 </div>
 
@@ -203,7 +201,7 @@
   <img src="https://hosted.weblate.org/widget/Metrolist/horizontal-auto.svg" alt="Translation status" />
 </a>
 
-<h3>Thank you very much. Every translation makes Metrolist a little more accessible to someone, somewhere in the world!</h3>
+<h3>Thank you! Every translation makes Metrolist a little more accessible to someone, somewhere in the world.</h3>
 
 </div>
 
@@ -215,9 +213,7 @@
 
 <h3>Metrolist is free and open-source. If it brings you joy, consider supporting its development!</h3>
 
-<div align="center">
-
-### Monero (XMR)
+#### Monero (XMR)
 
 <img src="https://github.com/MetrolistGroup/Metrolist/blob/main/assets/XMR.png" alt="Monero QR code" width="150" />
 
@@ -225,13 +221,11 @@
 44XjSELSWcgJTZiCKzjpCQWyXhokrH9RqH3rpp35FkSKi57T25hniHWHQNhLeXyFn3DDYqufmfRB1iEtENerZpJc7xJCcqt
 ```
 
-### Buy Me a Coffee
+#### Buy Me a Coffee
 
 <a href="https://www.buymeacoffee.com/mostafaalagamy">
   <img src="https://github.com/MetrolistGroup/Metrolist/blob/main/assets/buymeacoffee.png?raw=true" alt="Buy Me a Coffee" width="150" />
 </a>
-
-</div>
 
 </div>
 
@@ -241,10 +235,10 @@
 
 <h1>Special Thanks</h1>
 
-<h3>Metrolist stands on the shoulders of incredible open-source work!</h3>
+<h3>Metrolist stands on the shoulders of incredible open-source work.</h3>
 
 <h3>Main Inspirations</h3>
- 
+
 <table>
   <thead>
     <tr>
@@ -254,18 +248,18 @@
   </thead>
   <tbody>
     <tr>
-      <td><strong>InnerTune</strong></td>
-      <td><a href="https://github.com/z-huang">Zion Huang</a> · <a href="https://github.com/Malopieds">Malopieds</a></td>
+      <td align="center"><strong>InnerTune</strong></td>
+      <td align="center"><a href="https://github.com/z-huang">Zion Huang</a> · <a href="https://github.com/Malopieds">Malopieds</a></td>
     </tr>
     <tr>
-      <td><strong>OuterTune</strong></td>
-      <td><a href="https://github.com/DD3Boh">Davide Garberi</a> · <a href="https://github.com/mikooomich">Michael Zh</a></td>
+      <td align="center"><strong>OuterTune</strong></td>
+      <td align="center"><a href="https://github.com/DD3Boh">Davide Garberi</a> · <a href="https://github.com/mikooomich">Michael Zh</a></td>
     </tr>
   </tbody>
 </table>
 
 <h3>Libraries & Integrations</h3>
- 
+
 <table>
   <thead>
     <tr>
@@ -275,29 +269,21 @@
   </thead>
   <tbody>
     <tr>
-      <td><a href="https://github.com/dead8309/Kizzy"><strong>Kizzy</strong></a></td>
-      <td>Discord Rich Presence implementation & inspiration</td>
-    </tr>
-    <tr>
-      <td><a href="https://better-lyrics.boidu.dev"><strong>Better Lyrics</strong></a></td>
+      <td align="center"><a href="https://better-lyrics.boidu.dev"><strong>Better Lyrics</strong></a></td>
       <td>Time-synced lyrics with word-by-word highlighting & YouTube Music integration</td>
     </tr>
     <tr>
-      <td><a href="https://github.com/maxrave-dev/SimpMusic"><strong>SimpMusic Lyrics</strong></a></td>
-      <td>Lyrics data via the SimpMusic Lyrics API</td>
-    </tr>
-    <tr>
-      <td><a href="https://github.com/MetrolistGroup/metroserver"><strong>metroserver</strong></a></td>
+      <td align="center"><a href="https://github.com/MetrolistGroup/metroserver"><strong>metroserver</strong></a></td>
       <td>Listen-together real-time backend</td>
     </tr>
     <tr>
-      <td><a href="https://github.com/aleksey-saenko/MusicRecognizer"><strong>MusicRecognizer</strong></a></td>
+      <td align="center"><a href="https://github.com/aleksey-saenko/MusicRecognizer"><strong>MusicRecognizer</strong></a></td>
       <td>Music recognition feature & Shazam API integration</td>
     </tr>
   </tbody>
 </table>
 
-<h3>We also thank the entire open-source community! Every library, tool, and API that powers this project!</h3>
+<h3>We also thank the entire open-source community! For every library, tool, and API that powers this project.</h3>
 
 </div>
 
@@ -310,7 +296,7 @@
 <h3>This project wouldn't exist without these amazing people!</h3>
 
 <a href="https://github.com/MetrolistGroup/Metrolist/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=MetrolistGroup/Metrolist" alt="Contributors"/>
+  <img src="https://contrib.rocks/image?repo=MetrolistGroup/Metrolist" alt="Contributors" />
 </a>
 
 </div>
@@ -321,7 +307,7 @@
 
 <h1>Disclaimer</h1>
 
-This project is **not affiliated with, funded, authorized, endorsed by, or associated** with YouTube, Google LLC, Metrolist Group LLC, or any of their affiliates and subsidiaries.
+This project is **not affiliated with, funded, authorized, endorsed by, or in any way associated** with YouTube, Google LLC, Metrolist Group LLC, or any of their affiliates and subsidiaries.
 
 All trademarks, service marks, and intellectual property rights referenced in this project belong to their respective owners.
 
