@@ -273,7 +273,7 @@ fun AlbumScreen(
                                         ),
                                     )
                                     if (totalDuration > 0) {
-                                        append(" | ")
+                                        append(" ")
                                         append(makeTimeString(totalDuration * 1000L))
                                     }
                                 },

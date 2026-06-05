@@ -586,7 +586,7 @@ private fun OnlinePlaylistHeader(
         val metadataText = buildString {
             append(nSongs)
             if (durationText != null) {
-                append(" | ")
+                append(" ")
                 append(durationText)
             }
         }

@@ -513,13 +513,16 @@ fun SongListItem(
                             style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.secondary),
                             modifier = Modifier.weight(1f)
                         )
-                        Text(
-                            text = " | ${makeTimeString(song.song.duration * 1000L)}",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.secondary,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
+                        val durationText = makeTimeString(song.song.duration * 1000L)
+                        if (durationText.isNotEmpty()) {
+                            Text(
+                                text = durationText,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.secondary,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
                     }
                  } else {
                      Text(
@@ -606,13 +609,16 @@ fun SongGridItem(
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f)
             )
-            Text(
-                text = " | ${makeTimeString(song.song.duration * 1000L)}",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.secondary,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
+            val durationText = makeTimeString(song.song.duration * 1000L)
+            if (durationText.isNotEmpty()) {
+                Text(
+                    text = durationText,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.secondary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
         }
     },
     badges = badges,
@@ -760,7 +766,7 @@ fun AlbumListItem(
                 modifier = Modifier.weight(1f)
             )
             Text(
-                text = " | ${pluralStringResource(R.plurals.n_song, album.album.songCount, album.album.songCount)}${album.album.year?.let { " | $it" } ?: ""}",
+                text = " • ${pluralStringResource(R.plurals.n_song, album.album.songCount, album.album.songCount)}${album.album.year?.let { " • $it" } ?: ""}",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.secondary,
                 maxLines = 1,
@@ -1081,16 +1087,19 @@ fun MediaMetadataListItem(
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f)
                 )
-                Text(
-                    text = " | ${makeTimeString(mediaMetadata.duration * 1000L)}",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.secondary,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
+                val durationText = makeTimeString(mediaMetadata.duration * 1000L)
+                if (durationText.isNotEmpty()) {
+                    Text(
+                        text = durationText,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.secondary,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
                 if (mediaMetadata.suggestedBy != null) {
                     Text(
-                        text = " | ",
+                        text = " • ",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.secondary,
                         maxLines = 1,

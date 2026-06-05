@@ -17,7 +17,7 @@ fun List<Run>.splitBySeparator(): List<List<Run>> {
     val res = mutableListOf<List<Run>>()
     var tmp = mutableListOf<Run>()
     forEach { run ->
-        if (run.text == " • ") {
+        if (run.text.trim() == "•") {
             res.add(tmp)
             tmp = mutableListOf()
         } else {
@@ -46,6 +46,7 @@ fun List<Run>.splitArtistsByConjunction(): List<Run> {
                 }
             }
         } else if (text.trim().equals("&", ignoreCase = true) ||
+                text.trim().equals("•") ||
                 words.any { text.trim().equals(it, ignoreCase = true) }
         ) {
         } else {
