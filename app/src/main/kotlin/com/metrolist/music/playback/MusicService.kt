@@ -543,6 +543,7 @@ class MusicService :
     override fun onCreate() {
         super.onCreate()
         isRunning = true
+        shutdownDeferred = kotlinx.coroutines.CompletableDeferred<Unit>()
 
         setListener(
             object : MediaSessionService.Listener {
@@ -3843,6 +3844,13 @@ class MusicService :
                 database.updatePlaybackPosition(currentMetadata.id, player.currentPosition)
             }
         }
+        
+        try {
+            database.close()
+        } catch (e: Exception) {
+            Timber.e(e, "Error closing database in onDestroy")
+        }
+        shutdownDeferred.complete(Unit)
 
         try {
             unregisterReceiver(screenStateReceiver)
@@ -4557,5 +4565,7 @@ class MusicService :
         @Volatile
         var isRunning = false
             private set
+            
+        var shutdownDeferred = kotlinx.coroutines.CompletableDeferred<Unit>()
     }
 }
