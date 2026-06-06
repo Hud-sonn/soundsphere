@@ -181,6 +181,55 @@ fun ClickableArtistText(
     )
 }
 
+@JvmName("ClickableArtistTextInnerTube")
+@Composable
+fun ClickableArtistText(
+    artists: List<com.metrolist.innertube.models.Artist>,
+    modifier: Modifier = Modifier,
+    style: TextStyle = MaterialTheme.typography.bodySmall,
+    maxLines: Int = 1,
+    overflow: TextOverflow = TextOverflow.Ellipsis,
+    color: Color = LocalContentColor.current
+) {
+    val navController = LocalNavController.current
+    val andString = stringResource(R.string.and)
+    val annotatedString = remember(artists, andString, color) {
+        buildAnnotatedString {
+            artists.forEachIndexed { index, artist ->
+                val artistId = artist.id
+                if (artistId != null) {
+                    withLink(
+                        LinkAnnotation.Clickable(
+                            tag = artistId,
+                            styles = TextLinkStyles(SpanStyle(color = color)),
+                        ) {
+                            navController.navigate("artist/$artistId")
+                        }
+                    ) {
+                        append(artist.name)
+                    }
+                } else {
+                    append(artist.name)
+                }
+                if (index != artists.lastIndex) {
+                    if (index == artists.lastIndex - 1) {
+                        append(" $andString ")
+                    } else {
+                        append(", ")
+                    }
+                }
+            }
+        }
+    }
+    Text(
+        text = annotatedString,
+        style = style,
+        maxLines = maxLines,
+        overflow = overflow,
+        modifier = modifier,
+    )
+}
+
 @JvmName("ClickableArtistTextMedia")
 @Composable
 fun ClickableArtistText(
@@ -196,13 +245,14 @@ fun ClickableArtistText(
     val annotatedString = remember(artists, andString) {
         buildAnnotatedString {
             artists.forEachIndexed { index, artist ->
-                if (artist.id != null) {
+                val artistId = artist.id
+                if (artistId != null) {
                     withLink(
                         LinkAnnotation.Clickable(
-                            tag = artist.id!!,
+                            tag = artistId,
                             styles = TextLinkStyles(SpanStyle(color = linkColor)),
                         ) {
-                            navController.navigate("artist/${artist.id}")
+                            navController.navigate("artist/$artistId")
                         }
                     ) {
                         append(artist.name)
@@ -313,7 +363,7 @@ inline fun ListItem(
 
             if (subtitle != null) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    subtitle()
+                    subtitle(this)
                 }
             }
         }
@@ -335,7 +385,7 @@ fun ListItem(
 ) = ListItem(
     title = title,
     subtitle = {
-        badges()
+        badges(this)
         if (subtitle != null) {
             Text(
                 text = subtitle,
@@ -367,7 +417,7 @@ fun ListItem(
 ) = ListItem(
     title = title,
     subtitle = {
-        badges()
+        badges(this)
 
         if (!subtitle.isNullOrEmpty()) {
             Text(
@@ -390,7 +440,7 @@ fun ListItem(
 fun GridItem(
     modifier: Modifier = Modifier,
     title: @Composable () -> Unit,
-    subtitle: @Composable () -> Unit,
+    subtitle: @Composable RowScope.() -> Unit,
     badges: @Composable RowScope.() -> Unit = {},
     thumbnailContent: @Composable BoxWithConstraintsScope.() -> Unit,
     thumbnailRatio: Float = 1f,
@@ -425,9 +475,9 @@ fun GridItem(
         title()
 
         Row(verticalAlignment = Alignment.CenterVertically) {
-            badges()
+            badges(this)
 
-            subtitle()
+            subtitle(this)
         }
     }
 }
@@ -505,24 +555,22 @@ fun SongListItem(
          ListItem(
              title = song.song.title,
              subtitle = {
-                 badges()
+                 badges(this)
                  if (subtitleOverride == null) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        ClickableArtistText(
-                            artists = song.orderedArtists,
-                            style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.secondary),
-                            modifier = Modifier.weight(1f)
+                    ClickableArtistText(
+                        artists = song.orderedArtists,
+                        style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.secondary),
+                        modifier = Modifier.weight(1f, fill = false)
+                    )
+                    val durationText = makeTimeString(song.song.duration * 1000L)
+                    if (durationText.isNotEmpty()) {
+                        Text(
+                            text = " • $durationText",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.secondary,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
                         )
-                        val durationText = makeTimeString(song.song.duration * 1000L)
-                        if (durationText.isNotEmpty()) {
-                            Text(
-                                text = durationText,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.secondary,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                        }
                     }
                  } else {
                      Text(
@@ -607,7 +655,7 @@ fun SongGridItem(
                 style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.secondary),
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f, fill = false)
             )
             val durationText = makeTimeString(song.song.duration * 1000L)
             if (durationText.isNotEmpty()) {
@@ -758,21 +806,19 @@ fun AlbumListItem(
 ) = ListItem(
     title = album.album.title,
     subtitle = {
-        badges()
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            ClickableArtistText(
-                artists = album.artists,
-                style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.secondary),
-                modifier = Modifier.weight(1f)
-            )
-            Text(
-                text = " • ${pluralStringResource(R.plurals.n_song, album.album.songCount, album.album.songCount)}${album.album.year?.let { " • $it" } ?: ""}",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.secondary,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
+        badges(this)
+        ClickableArtistText(
+            artists = album.artists,
+            style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.secondary),
+            modifier = Modifier.weight(1f, fill = false)
+        )
+        Text(
+            text = " • ${pluralStringResource(R.plurals.n_song, album.album.songCount, album.album.songCount)}${album.album.year?.let { " • $it" } ?: ""}",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.secondary,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
     },
     thumbnailContent = {
         ItemThumbnail(
@@ -841,14 +887,14 @@ fun AlbumGridItem(
         )
     },
      subtitle = {
-         Text(
-             text = album.artists.joinToArtistString(" ${stringResource(R.string.and)} ") { it.name },
-             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.secondary,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis
-        )
-    },
+         ClickableArtistText(
+             artists = album.artists,
+             style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.secondary),
+             maxLines = 2,
+             overflow = TextOverflow.Ellipsis,
+             modifier = Modifier.weight(1f, fill = false)
+         )
+     },
     badges = badges,
     thumbnailContent = {
         val database = LocalDatabase.current
@@ -1079,25 +1125,24 @@ fun MediaMetadataListItem(
         title = mediaMetadata.title,
         subtitle = {
             if (mediaMetadata.explicit) Icon.Explicit()
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                ClickableArtistText(
-                    artists = mediaMetadata.artists,
-                    style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.secondary),
+            ClickableArtistText(
+                artists = mediaMetadata.artists,
+                style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.secondary),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f, fill = false)
+            )
+            val durationText = makeTimeString(mediaMetadata.duration * 1000L)
+            if (durationText.isNotEmpty()) {
+                Text(
+                    text = " • $durationText",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.secondary,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f)
                 )
-                val durationText = makeTimeString(mediaMetadata.duration * 1000L)
-                if (durationText.isNotEmpty()) {
-                    Text(
-                        text = durationText,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.secondary,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
-                if (mediaMetadata.suggestedBy != null) {
+            }
+            if (mediaMetadata.suggestedBy != null) {
                     Text(
                         text = " • ",
                         style = MaterialTheme.typography.bodyMedium,
@@ -1113,7 +1158,6 @@ fun MediaMetadataListItem(
                         overflow = TextOverflow.Ellipsis,
                     )
                 }
-            }
         },
         thumbnailContent = {
             ItemThumbnail(
@@ -1170,17 +1214,50 @@ fun YouTubeListItem(
     val swipeEnabled by rememberPreference(SwipeToSongKey, defaultValue = false)
 
     val content: @Composable () -> Unit = {
+        val subtitleLambda: @Composable RowScope.() -> Unit = {
+            if (item !is ArtistItem) {
+                badges(this)
+                val artists = when (item) {
+                    is SongItem -> item.artists
+                    is AlbumItem -> item.artists
+                    is PlaylistItem -> listOfNotNull(item.author)
+                    is PodcastItem -> listOfNotNull(item.author)
+                    is EpisodeItem -> listOfNotNull(item.author)
+                    else -> null
+                }.takeIf { it?.isNotEmpty() == true }
+
+                if (artists != null) {
+                    ClickableArtistText(
+                        artists = artists,
+                        style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.secondary),
+                        color = MaterialTheme.colorScheme.secondary,
+                        modifier = Modifier.weight(1f, fill = false)
+                    )
+                }
+
+                val otherInfo = when (item) {
+                    is SongItem -> makeTimeString(item.duration?.times(1000L))
+                    is AlbumItem -> item.year?.toString()
+                    is PlaylistItem -> item.songCountText
+                    is PodcastItem -> item.episodeCountText
+                    is EpisodeItem -> joinByBullet(item.publishDateText, makeTimeString(item.duration?.times(1000L)))
+                    else -> null
+                }
+
+                if (!otherInfo.isNullOrEmpty()) {
+                    Text(
+                        text = (if (artists != null) " • " else "") + otherInfo,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.secondary,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+        }
         ListItem(
             title = item.title,
-            subtitle = when (item) {
-                is SongItem -> joinByBullet(item.artists.joinToArtistString(" ${stringResource(R.string.and)} ") { it.name }, makeTimeString(item.duration?.times(1000L)))
-                is AlbumItem -> joinByBullet(item.artists?.joinToArtistString(" ${stringResource(R.string.and)} ") { it.name }, item.year?.toString())
-                is ArtistItem -> null
-                is PlaylistItem -> joinByBullet(item.author?.name, item.songCountText)
-                is PodcastItem -> joinByBullet(item.author?.name, item.episodeCountText)
-                is EpisodeItem -> joinByBullet(item.author?.name, item.publishDateText, makeTimeString(item.duration?.times(1000L)))
-            },
-            badges = badges,
+            subtitle = subtitleLambda,
             thumbnailContent = {
                 ItemThumbnail(
                     thumbnailUrl = item.thumbnail,
@@ -1253,17 +1330,36 @@ fun YouTubeGridItem(
         )
     },
      subtitle = {
-         val subtitle = when (item) {
-             is SongItem -> joinByBullet(item.artists.joinToArtistString(" ${stringResource(R.string.and)} ") { it.name }, makeTimeString(item.duration?.times(1000L)))
-             is AlbumItem -> joinByBullet(item.artists?.joinToArtistString(" ${stringResource(R.string.and)} ") { it.name }, item.year?.toString())
-            is ArtistItem -> null
-            is PlaylistItem -> joinByBullet(item.author?.name, item.songCountText)
-            is PodcastItem -> joinByBullet(item.author?.name, item.episodeCountText)
-            is EpisodeItem -> joinByBullet(item.author?.name, makeTimeString(item.duration?.times(1000L)))
-        }
-        if (subtitle != null) {
+         val artists = when (item) {
+             is SongItem -> item.artists
+             is AlbumItem -> item.artists
+             is PlaylistItem -> listOfNotNull(item.author)
+             is PodcastItem -> listOfNotNull(item.author)
+             is EpisodeItem -> listOfNotNull(item.author)
+             else -> null
+         }.takeIf { it?.isNotEmpty() == true }
+
+         if (artists != null) {
+             ClickableArtistText(
+                 artists = artists,
+                 style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.secondary),
+                 color = MaterialTheme.colorScheme.secondary,
+                 modifier = Modifier.weight(1f, fill = false)
+             )
+         }
+
+         val otherInfo = when (item) {
+             is SongItem -> makeTimeString(item.duration?.times(1000L))
+             is AlbumItem -> item.year?.toString()
+             is PlaylistItem -> item.songCountText
+             is PodcastItem -> item.episodeCountText
+             is EpisodeItem -> makeTimeString(item.duration?.times(1000L)) // EpisodeItem grid subtitle didn't have publishDateText previously
+             else -> null
+         }
+
+        if (!otherInfo.isNullOrEmpty()) {
             Text(
-                text = subtitle,
+                text = (if (artists != null) " • " else "") + otherInfo,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.secondary,
                 maxLines = 2,
