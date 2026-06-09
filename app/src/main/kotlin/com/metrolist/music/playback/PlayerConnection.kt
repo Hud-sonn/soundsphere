@@ -173,6 +173,7 @@ class PlayerConnection(
 
     val error = MutableStateFlow<PlaybackException?>(null)
     val isMuted = service.isMuted
+    val currentStreamClient = service.currentStreamClient
 
     val waitingForNetworkConnection = service.waitingForNetworkConnection
 

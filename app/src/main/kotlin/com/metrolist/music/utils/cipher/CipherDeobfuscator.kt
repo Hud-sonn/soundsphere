@@ -3,6 +3,8 @@ package com.metrolist.music.utils.cipher
 import android.content.Context
 import android.net.Uri
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 
@@ -26,6 +28,7 @@ object CipherDeobfuscator {
 
     private var cipherWebView: CipherWebView? = null
     private var currentPlayerHash: String? = null
+    private val deobfuscateMutex = Mutex()
 
     /**
      * Deobfuscate a signatureCipher stream URL.
@@ -37,17 +40,11 @@ object CipherDeobfuscator {
      *
      * Returns the full URL with deobfuscated signature, or null if failed.
      */
-    suspend fun deobfuscateStreamUrl(signatureCipher: String, videoId: String): String? {
-        Timber.tag(TAG).d("=== DEOBFUSCATE STREAM URL ===")
-        Timber.tag(TAG).d("videoId: $videoId")
-        Timber.tag(TAG).d("signatureCipher length: ${signatureCipher.length}")
-        Timber.tag(TAG).d("signatureCipher preview: ${signatureCipher.take(100)}...")
-
-        return try {
+    suspend fun deobfuscateStreamUrl(signatureCipher: String, videoId: String): String? = deobfuscateMutex.withLock {
+        try {
             deobfuscateInternal(signatureCipher, videoId, isRetry = false)
         } catch (e: Exception) {
             Timber.tag(TAG).e(e, "Cipher deobfuscation failed, retrying with fresh JS: ${e.message}")
-            Timber.tag(TAG).d("Invalidating cache and retrying...")
             try {
                 PlayerJsFetcher.invalidateCache()
                 closeWebView()

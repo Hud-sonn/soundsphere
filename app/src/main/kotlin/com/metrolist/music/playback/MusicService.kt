@@ -314,6 +314,7 @@ class MusicService :
     lateinit var connectivityObserver: NetworkConnectivityObserver
     val waitingForNetworkConnection = MutableStateFlow(false)
     private val isNetworkConnected = MutableStateFlow(false)
+    val currentStreamClient = MutableStateFlow<String?>(null)
 
     private lateinit var audioQuality: com.metrolist.music.constants.AudioQuality
 
@@ -3563,6 +3564,7 @@ class MusicService :
                 }
 
                 val streamUrl = nonNullPlayback.streamUrl
+                currentStreamClient.value = nonNullPlayback.streamClient
 
                 songUrlCache[mediaId] =
                     streamUrl to System.currentTimeMillis() + (nonNullPlayback.streamExpiresInSeconds * 1000L)

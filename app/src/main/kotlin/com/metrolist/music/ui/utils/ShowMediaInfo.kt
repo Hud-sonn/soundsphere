@@ -28,6 +28,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -80,6 +81,7 @@ fun ShowMediaInfo(videoId: String) {
     var currentFormat by remember { mutableStateOf<FormatEntity?>(null) }
 
     val playerConnection = LocalPlayerConnection.current
+    val currentStreamClient by playerConnection?.currentStreamClient?.collectAsState() ?: remember { mutableStateOf(null) }
     val context = LocalContext.current
 
     val loudnessLevel by rememberEnumPreference(
@@ -135,6 +137,7 @@ fun ShowMediaInfo(videoId: String) {
                         R.drawable.media3_icon_thumb_up_unfilled,
                         R.drawable.media3_icon_thumb_down_unfilled,
                         R.drawable.key,
+                        R.drawable.play,
                         R.drawable.info,
                         R.drawable.radio,
                         R.drawable.gradient,
@@ -153,6 +156,7 @@ fun ShowMediaInfo(videoId: String) {
                             stringResource(R.string.likes) to info?.like?.let(::numberFormatter).orEmpty(),
                             stringResource(R.string.dislikes) to info?.dislike?.let(::numberFormatter).orEmpty(),
                             "Itag" to currentFormat?.itag?.toString(),
+                            stringResource(R.string.stream_client) to currentStreamClient,
                             stringResource(R.string.mime_type) to currentFormat?.mimeType,
                             stringResource(R.string.codecs) to currentFormat?.codecs,
                             stringResource(R.string.bitrate) to currentFormat?.bitrate?.let { "${it / 1000} Kbps" },
