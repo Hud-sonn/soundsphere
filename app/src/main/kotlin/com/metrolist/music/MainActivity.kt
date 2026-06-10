@@ -190,6 +190,7 @@ import com.metrolist.music.ui.theme.MetrolistTheme
 import com.metrolist.music.ui.theme.extractThemeColor
 import com.metrolist.music.ui.utils.appBarScrollBehavior
 import com.metrolist.music.ui.utils.resetHeightOffset
+import com.metrolist.music.utils.SearchRoutes
 import com.metrolist.music.utils.SyncUtils
 import com.metrolist.music.utils.Updater
 import com.metrolist.music.discord.DiscordSdkHelper
@@ -212,8 +213,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
-import java.net.URLDecoder
-import java.net.URLEncoder
 import java.util.Locale
 import javax.inject.Inject
 
@@ -756,7 +755,7 @@ class MainActivity : ComponentActivity() {
                     remember {
                         { searchQuery ->
                             if (searchQuery.isNotEmpty()) {
-                                navController.navigate("search/${URLEncoder.encode(searchQuery, "UTF-8")}")
+                                navController.navigate(SearchRoutes.resultRoute(searchQuery))
 
                                 if (dataStore[PauseSearchHistoryKey] != true) {
                                     lifecycleScope.launch(Dispatchers.IO) {
@@ -856,14 +855,9 @@ class MainActivity : ComponentActivity() {
                 LaunchedEffect(navBackStackEntry) {
                     if (inSearchScreen) {
                         val searchQuery =
-                            withContext(Dispatchers.IO) {
-                                val rawQuery = navBackStackEntry?.arguments?.getString("query")!!
-                                try {
-                                    URLDecoder.decode(rawQuery, "UTF-8")
-                                } catch (e: IllegalArgumentException) {
-                                    rawQuery
-                                }
-                            }
+                            SearchRoutes.decodeQuery(
+                                navBackStackEntry?.arguments?.getString("query").orEmpty(),
+                            )
                         onQueryChange(
                             TextFieldValue(
                                 searchQuery,
@@ -1117,7 +1111,7 @@ class MainActivity : ComponentActivity() {
                                             val targetEntry =
                                                 try {
                                                     val route = navController.currentBackStackEntry?.destination?.route
-                                                    if (route == "search/{query}" || route == "search_input") {
+                                                    if (route == SearchRoutes.ROUTE || route == "search_input") {
                                                         // For search screens, use search_input entry
                                                         navController.getBackStackEntry("search_input")
                                                     } else {
@@ -1524,7 +1518,7 @@ class MainActivity : ComponentActivity() {
 
             "search" -> {
                 uri.getQueryParameter("q")?.let {
-                    navController.navigate("search/${URLEncoder.encode(it, "UTF-8")}")
+                    navController.navigate(SearchRoutes.resultRoute(it))
                 }
             }
 
