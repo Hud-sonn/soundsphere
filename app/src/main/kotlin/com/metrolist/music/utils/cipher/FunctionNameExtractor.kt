@@ -137,6 +137,77 @@ object FunctionNameExtractor {
             nConstantArgs = null,
             nJsExpression = "(function(n){try{var u=new g.uY('https://x.googlevideo.com/videoplayback?n='+n,true);var t=u.get('n');return(t&&t!==n)?t:n;}catch(e){return n;}})(INPUT)",
             signatureTimestamp = 20607
+        ),
+        // player_ias 16ee6936 (2026-06-09): VM-dispatch via mP/Yx. STS 20613.
+        // sig=mP(4,155,sig) (inner call is decodeURIComponent, pre-decoded); n=g.Yx URL-param trick.
+        // Validated against the live CDN (HTTP 206).
+        "16ee6936" to HardcodedPlayerConfig(
+            sigFuncName = "_expr_sig",
+            sigConstantArg = null,
+            sigJsExpression = "mP(4,155,INPUT)",
+            nFuncName = "_expr_n",
+            nArrayIndex = null,
+            nConstantArgs = null,
+            nJsExpression = "(function(n){try{var u=new g.Yx('https://x.googlevideo.com/videoplayback?n='+n,true);var t=u.get('n');return(t&&t!==n)?t:n;}catch(e){return n;}})(INPUT)",
+            signatureTimestamp = 20613
+        ),
+        // MD5-fallback alias for 16ee6936
+        "ca366632" to HardcodedPlayerConfig(
+            sigFuncName = "_expr_sig",
+            sigConstantArg = null,
+            sigJsExpression = "mP(4,155,INPUT)",
+            nFuncName = "_expr_n",
+            nArrayIndex = null,
+            nConstantArgs = null,
+            nJsExpression = "(function(n){try{var u=new g.Yx('https://x.googlevideo.com/videoplayback?n='+n,true);var t=u.get('n');return(t&&t!==n)?t:n;}catch(e){return n;}})(INPUT)",
+            signatureTimestamp = 20613
+        ),
+        // player_ias ce74690f (2026-06-09): VM-dispatch via $9/cV. STS 20612.
+        // sig=$9(2,6487,sig) (inner f3(4,1144,.) is decodeURIComponent, pre-decoded); n=g.cV trick.
+        // Validated against the live CDN (HTTP 206).
+        "ce74690f" to HardcodedPlayerConfig(
+            sigFuncName = "_expr_sig",
+            sigConstantArg = null,
+            sigJsExpression = "\$9(2,6487,INPUT)",
+            nFuncName = "_expr_n",
+            nArrayIndex = null,
+            nConstantArgs = null,
+            nJsExpression = "(function(n){try{var u=new g.cV('https://x.googlevideo.com/videoplayback?n='+n,true);var t=u.get('n');return(t&&t!==n)?t:n;}catch(e){return n;}})(INPUT)",
+            signatureTimestamp = 20612
+        ),
+        // MD5-fallback alias for ce74690f
+        "a5669e32" to HardcodedPlayerConfig(
+            sigFuncName = "_expr_sig",
+            sigConstantArg = null,
+            sigJsExpression = "\$9(2,6487,INPUT)",
+            nFuncName = "_expr_n",
+            nArrayIndex = null,
+            nConstantArgs = null,
+            nJsExpression = "(function(n){try{var u=new g.cV('https://x.googlevideo.com/videoplayback?n='+n,true);var t=u.get('n');return(t&&t!==n)?t:n;}catch(e){return n;}})(INPUT)",
+            signatureTimestamp = 20612
+        ),
+        // player_ias 6b8eecd5 (2026-06-10): 16ee6936's mP/Yx generation under a new URL hash. STS 20613.
+        // Validated against the live CDN (HTTP 206).
+        "6b8eecd5" to HardcodedPlayerConfig(
+            sigFuncName = "_expr_sig",
+            sigConstantArg = null,
+            sigJsExpression = "mP(4,155,INPUT)",
+            nFuncName = "_expr_n",
+            nArrayIndex = null,
+            nConstantArgs = null,
+            nJsExpression = "(function(n){try{var u=new g.Yx('https://x.googlevideo.com/videoplayback?n='+n,true);var t=u.get('n');return(t&&t!==n)?t:n;}catch(e){return n;}})(INPUT)",
+            signatureTimestamp = 20613
+        ),
+        // MD5-fallback alias for 6b8eecd5
+        "6ea478fa" to HardcodedPlayerConfig(
+            sigFuncName = "_expr_sig",
+            sigConstantArg = null,
+            sigJsExpression = "mP(4,155,INPUT)",
+            nFuncName = "_expr_n",
+            nArrayIndex = null,
+            nConstantArgs = null,
+            nJsExpression = "(function(n){try{var u=new g.Yx('https://x.googlevideo.com/videoplayback?n='+n,true);var t=u.get('n');return(t&&t!==n)?t:n;}catch(e){return n;}})(INPUT)",
+            signatureTimestamp = 20613
         )
     )
 
