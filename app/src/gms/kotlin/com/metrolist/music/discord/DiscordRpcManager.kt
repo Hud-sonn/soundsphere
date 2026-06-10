@@ -304,7 +304,7 @@ object DiscordRpcManager {
             val json = JSONObject(responseBody)
             val id = json.getString("id")
             val username = json.getString("username")
-            val name = json.optString("global_name", username)
+            val name = if (json.isNull("global_name")) username else json.optString("global_name")
             val avatarHash = json.optString("avatar")
             val avatar = if (avatarHash.isNotEmpty() && avatarHash != "null") {
                 "https://cdn.discordapp.com/avatars/$id/$avatarHash.png"
