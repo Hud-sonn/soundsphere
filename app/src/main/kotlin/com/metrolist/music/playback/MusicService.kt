@@ -2892,9 +2892,15 @@ class MusicService :
                 return
             }
 
-            !isNetworkConnected.value || isNetworkRelatedError(error) -> {
-                Timber.tag(TAG).d("Network-related error detected, waiting for connection")
+            !isNetworkConnected.value -> {
+                Timber.tag(TAG).d("No internet connection, waiting for connection")
                 waitOnNetworkError()
+                return
+            }
+
+            isNetworkRelatedError(error) -> {
+                Timber.tag(TAG).d("Network-related error detected while connected, attempting recovery")
+                handleGenericIOError(mediaId)
                 return
             }
         }
@@ -3198,8 +3204,11 @@ class MusicService :
                 performAggressiveCacheClear(mediaId)
                 delay(RETRY_DELAY_MS)
 
+                val currentPosition = player.currentPosition
                 val currentIndex = player.currentMediaItemIndex
-                player.stop()
+                if (currentIndex != C.INDEX_UNSET) {
+                    player.seekTo(currentIndex, currentPosition)
+                }
                 player.prepare()
 
                 Timber.tag(TAG).d("Retrying playback for $mediaId after generic IO error")
