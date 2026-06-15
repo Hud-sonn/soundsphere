@@ -378,6 +378,27 @@ object FunctionNameExtractor {
             nJsExpression = "(function(n){try{var u=new g.e4('https://x.googlevideo.com/videoplayback?n='+n,true);var t=u.get('n');return(t&&t!==n)?t:n;}catch(e){return n;}})(INPUT)",
             signatureTimestamp = 20616
         ),
+        // player_ias ae0b654c / efc5f0ec (2026-06-15): Ge(91,8257,INPUT) via g.bK. STS 20618. CDN-validated (HTTP 206).
+        "ae0b654c" to HardcodedPlayerConfig(
+            sigFuncName = "_expr_sig",
+            sigConstantArg = null,
+            sigJsExpression = "Ge(91,8257,INPUT)",
+            nFuncName = "_expr_n",
+            nArrayIndex = null,
+            nConstantArgs = null,
+            nJsExpression = "(function(n){try{var u=new g.bK('https://x.googlevideo.com/videoplayback?n='+n,true);var t=u.get('n');return(t&&t!==n)?t:n;}catch(e){return n;}})(INPUT)",
+            signatureTimestamp = 20618
+        ),
+        "efc5f0ec" to HardcodedPlayerConfig(
+            sigFuncName = "_expr_sig",
+            sigConstantArg = null,
+            sigJsExpression = "Ge(91,8257,INPUT)",
+            nFuncName = "_expr_n",
+            nArrayIndex = null,
+            nConstantArgs = null,
+            nJsExpression = "(function(n){try{var u=new g.bK('https://x.googlevideo.com/videoplayback?n='+n,true);var t=u.get('n');return(t&&t!==n)?t:n;}catch(e){return n;}})(INPUT)",
+            signatureTimestamp = 20618
+        ),
     )
 
     // ==================== DETECTION PATTERNS ====================
