@@ -2,6 +2,7 @@ package com.metrolist.music.utils.cipher
 
 import android.content.Context
 import android.net.Uri
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -23,12 +24,52 @@ object CipherDeobfuscator {
     fun initialize(context: Context) {
         Timber.tag(TAG).d("CipherDeobfuscator initializing...")
         appContext = context.applicationContext
+        // Load the player-config table (bundled asset + last-good cached remote overlay) so
+        // configs exist before any lookup, then kick a non-blocking TTL-gated refresh against
+        // the remote config file. Order is load-bearing: synchronous load first, async refresh after.
+        Timber.tag(TAG).d("Initializing PlayerConfigStore (bundled + cached overlay)...")
+        PlayerConfigStore.initialize(appContext)
+        Timber.tag(TAG).d("Known config hashes after init: ${PlayerConfigStore.knownHashes().sorted().joinToString()}")
+        PlayerConfigStore.scheduleStartupRefresh()
+        // Cosmetic "cipher support added" dates for the song-details sheet — pulled purely from a
+        // remote file and decoupled from the decipher path (any failure just yields an unknown date).
+        PlayerDatesStore.initialize(appContext)
         Timber.tag(TAG).d("CipherDeobfuscator initialized")
     }
 
     private var cipherWebView: CipherWebView? = null
+
+    // Written on the decipher coroutine (Dispatchers.IO) but read via lastUsedPlayerHash from the
+    // Compose UI thread (song-details sheet), so @Volatile to publish the write across threads.
+    @Volatile
     private var currentPlayerHash: String? = null
+
+    /**
+     * The player_ias hash last used to decipher a web stream (sig/n), or null if none yet.
+     * Diagnostic only — surfaced in the song-details sheet. Direct-URL clients (ANDROID_VR/IOS)
+     * never run the cipher, so this reflects the last web stream.
+     */
+    val lastUsedPlayerHash: String? get() = currentPlayerHash
+
     private val deobfuscateMutex = Mutex()
+
+    /**
+     * SignatureTimestamp of the player JS this cipher actually deciphers with, fetching (or
+     * reusing the cached) player JS if needed. API callers must send THIS value in the
+     * /player request: during A/B rollouts other sources (e.g. NewPipe's own player fetch)
+     * can land on a different player generation, and a sig minted for one player but
+     * deciphered by another produces a URL the CDN 403s.
+     */
+    suspend fun signatureTimestamp(): Int? {
+        Timber.tag(TAG).d("Resolving cipher player signatureTimestamp...")
+        val (playerJs, hash) = PlayerJsFetcher.getPlayerJs(forceRefresh = false) ?: run {
+            Timber.tag(TAG).w("signatureTimestamp: could not fetch player JS")
+            return null
+        }
+        val sts = FunctionNameExtractor.extractSignatureTimestamp(playerJs)
+        Timber.tag(TAG).d("Cipher player STS (hash=$hash): $sts")
+        return sts
+    }
 
     /**
      * Deobfuscate a signatureCipher stream URL.
@@ -43,12 +84,16 @@ object CipherDeobfuscator {
     suspend fun deobfuscateStreamUrl(signatureCipher: String, videoId: String): String? = deobfuscateMutex.withLock {
         try {
             deobfuscateInternal(signatureCipher, videoId, isRetry = false)
+        } catch (e: CancellationException) {
+            throw e // request superseded/cancelled — propagate, don't treat as a decipher failure
         } catch (e: Exception) {
             Timber.tag(TAG).e(e, "Cipher deobfuscation failed, retrying with fresh JS: ${e.message}")
             try {
                 PlayerJsFetcher.invalidateCache()
                 closeWebView()
                 deobfuscateInternal(signatureCipher, videoId, isRetry = true)
+            } catch (retryE: CancellationException) {
+                throw retryE
             } catch (retryE: Exception) {
                 Timber.tag(TAG).e(retryE, "Cipher deobfuscation retry also failed: ${retryE.message}")
                 null
@@ -113,6 +158,8 @@ object CipherDeobfuscator {
 
         return try {
             transformNInternal(url)
+        } catch (e: CancellationException) {
+            throw e // request superseded/cancelled — propagate rather than masking as a no-op transform
         } catch (e: Exception) {
             Timber.tag(TAG).e(e, "N-transform failed, returning original URL: ${e.message}")
             url
@@ -191,7 +238,28 @@ object CipherDeobfuscator {
 
         // Run full analysis for logging - pass the known hash from PlayerJsFetcher
         Timber.tag(TAG).d("Analyzing player JS for cipher functions (knownHash=$hash)...")
-        val analysis = FunctionNameExtractor.analyzePlayerJs(playerJs, knownHash = hash)
+        var analysis = FunctionNameExtractor.analyzePlayerJs(playerJs, knownHash = hash)
+
+        // Mid-session self-heal: a rotated player_ias whose validated config may already be
+        // published in the remote config file. Trigger when EITHER transform is missing OR was
+        // resolved by the legacy regex heuristics (isHardcoded == false) instead of a validated
+        // config. The regexes are unanchored and can false-match anywhere in the ~2 MB player JS,
+        // returning a non-null but WRONG result; gating on null alone would let that shadow the
+        // validated config and silently break playback. forceRefresh returns true only when the
+        // hash is now in the table, so re-extraction runs exactly when it can succeed; a genuine
+        // old-style regex player with no config simply gets false back (one cooldown-gated fetch)
+        // and keeps its working regex result.
+        val sigFromConfig = analysis.sigInfo?.isHardcoded == true
+        val nFromConfig = analysis.nFuncInfo?.isHardcoded == true
+        if (!sigFromConfig || !nFromConfig) {
+            Timber.tag(TAG).w("Extraction not fully config-backed for player $hash (sigConfig=$sigFromConfig, nConfig=$nFromConfig; sig=${analysis.sigInfo != null}, n=${analysis.nFuncInfo != null}) — forcing remote config refresh")
+            val healed = PlayerConfigStore.forceRefresh(missingHash = hash)
+            Timber.tag(TAG).d("forceRefresh($hash) -> hashNowKnown=$healed")
+            if (healed) {
+                analysis = FunctionNameExtractor.analyzePlayerJs(playerJs, knownHash = hash)
+                Timber.tag(TAG).d("Re-extracted after refresh: sigConfig=${analysis.sigInfo?.isHardcoded == true}, nConfig=${analysis.nFuncInfo?.isHardcoded == true}")
+            }
+        }
 
         if (analysis.sigInfo == null) {
             Timber.tag(TAG).e("Could not extract signature function info from player JS")

@@ -50,357 +50,6 @@ object FunctionNameExtractor {
         val signatureTimestamp: Int
     )
 
-    // ==================== KNOWN PLAYER CONFIGS ====================
-
-    /**
-     * Known player.js configurations indexed by hash
-     *
-     * Player hash 74edf1a3 (March 2026):
-     * - Signature: JI(48, 1918, f1(1, 6528, sig)) -> reverse, swap(0, 57%), reverse
-     * - N-transform: GU(6, 6010, n) with 87-element self-referential array
-     */
-    private val KNOWN_PLAYER_CONFIGS = mapOf(
-        "74edf1a3" to HardcodedPlayerConfig(
-            sigFuncName = "JI",
-            sigConstantArg = 48, // Legacy
-            sigConstantArgs = listOf(48, 1918), // JI(48, 1918, processedSig)
-            sigPreprocessFunc = "f1", // sig must be preprocessed through f1()
-            sigPreprocessArgs = listOf(1, 6528), // f1(1, 6528, sig)
-            nFuncName = "GU",
-            nArrayIndex = null, // Direct function, not array access
-            nConstantArgs = listOf(6, 6010), // GU(6, 6010, n) - the function requires 3 args!
-            signatureTimestamp = 20522
-        ),
-        "f4c47414" to HardcodedPlayerConfig(
-            sigFuncName = "hJ",
-            sigConstantArg = 6,
-            sigConstantArgs = listOf(6), // hJ(6, decodeURIComponent(h.s))
-            sigPreprocessFunc = null, // No preprocessing needed
-            sigPreprocessArgs = null,
-            nFuncName = "", // Will be extracted via regex
-            nArrayIndex = null,
-            nConstantArgs = null,
-            signatureTimestamp = 20543
-        ),
-        // May 2026: direct URLs, no client-side cipher or n-transform
-        "57f5d44f" to HardcodedPlayerConfig(
-            sigFuncName = "",
-            sigConstantArg = null,
-            sigConstantArgs = null,
-            sigPreprocessFunc = null,
-            sigPreprocessArgs = null,
-            nFuncName = "",
-            nArrayIndex = null,
-            nConstantArgs = null,
-            signatureTimestamp = 20591
-        ),
-        // player_ias 69e2a55d (2026-06-08): VM-dispatch via Jf/C6/iE. STS 20611.
-        "69e2a55d" to HardcodedPlayerConfig(
-            sigFuncName = "_expr_sig",
-            sigConstantArg = null,
-            sigJsExpression = "Jf(20,3699,INPUT)",
-            nFuncName = "_expr_n",
-            nArrayIndex = null,
-            nConstantArgs = null,
-            nJsExpression = "(function(n){try{var u=new g.iE('https://x.googlevideo.com/videoplayback?n='+n,true);var t=u.get('n');return(t&&t!==n)?t:n;}catch(e){return n;}})(INPUT)",
-            signatureTimestamp = 20611
-        ),
-        // MD5-fallback alias for 69e2a55d
-        "70d8066f" to HardcodedPlayerConfig(
-            sigFuncName = "_expr_sig",
-            sigConstantArg = null,
-            sigJsExpression = "Jf(20,3699,INPUT)",
-            nFuncName = "_expr_n",
-            nArrayIndex = null,
-            nConstantArgs = null,
-            nJsExpression = "(function(n){try{var u=new g.iE('https://x.googlevideo.com/videoplayback?n='+n,true);var t=u.get('n');return(t&&t!==n)?t:n;}catch(e){return n;}})(INPUT)",
-            signatureTimestamp = 20611
-        ),
-        // player_ias 9d2ef9ef (2026-06-08): VM-dispatch via v0/n7/uY. STS 20607.
-        "9d2ef9ef" to HardcodedPlayerConfig(
-            sigFuncName = "_expr_sig",
-            sigConstantArg = null,
-            sigJsExpression = "v0(35,4499,INPUT)",
-            nFuncName = "_expr_n",
-            nArrayIndex = null,
-            nConstantArgs = null,
-            nJsExpression = "(function(n){try{var u=new g.uY('https://x.googlevideo.com/videoplayback?n='+n,true);var t=u.get('n');return(t&&t!==n)?t:n;}catch(e){return n;}})(INPUT)",
-            signatureTimestamp = 20607
-        ),
-        // MD5-fallback alias for 9d2ef9ef
-        "6fb43da5" to HardcodedPlayerConfig(
-            sigFuncName = "_expr_sig",
-            sigConstantArg = null,
-            sigJsExpression = "v0(35,4499,INPUT)",
-            nFuncName = "_expr_n",
-            nArrayIndex = null,
-            nConstantArgs = null,
-            nJsExpression = "(function(n){try{var u=new g.uY('https://x.googlevideo.com/videoplayback?n='+n,true);var t=u.get('n');return(t&&t!==n)?t:n;}catch(e){return n;}})(INPUT)",
-            signatureTimestamp = 20607
-        ),
-        // player_ias 16ee6936 (2026-06-09): VM-dispatch via mP/Yx. STS 20613.
-        // sig=mP(4,155,sig) (inner call is decodeURIComponent, pre-decoded); n=g.Yx URL-param trick.
-        // Validated against the live CDN (HTTP 206).
-        "16ee6936" to HardcodedPlayerConfig(
-            sigFuncName = "_expr_sig",
-            sigConstantArg = null,
-            sigJsExpression = "mP(4,155,INPUT)",
-            nFuncName = "_expr_n",
-            nArrayIndex = null,
-            nConstantArgs = null,
-            nJsExpression = "(function(n){try{var u=new g.Yx('https://x.googlevideo.com/videoplayback?n='+n,true);var t=u.get('n');return(t&&t!==n)?t:n;}catch(e){return n;}})(INPUT)",
-            signatureTimestamp = 20613
-        ),
-        // MD5-fallback alias for 16ee6936
-        "ca366632" to HardcodedPlayerConfig(
-            sigFuncName = "_expr_sig",
-            sigConstantArg = null,
-            sigJsExpression = "mP(4,155,INPUT)",
-            nFuncName = "_expr_n",
-            nArrayIndex = null,
-            nConstantArgs = null,
-            nJsExpression = "(function(n){try{var u=new g.Yx('https://x.googlevideo.com/videoplayback?n='+n,true);var t=u.get('n');return(t&&t!==n)?t:n;}catch(e){return n;}})(INPUT)",
-            signatureTimestamp = 20613
-        ),
-        // player_ias ce74690f (2026-06-09): VM-dispatch via $9/cV. STS 20612.
-        // sig=$9(2,6487,sig) (inner f3(4,1144,.) is decodeURIComponent, pre-decoded); n=g.cV trick.
-        // Validated against the live CDN (HTTP 206).
-        "ce74690f" to HardcodedPlayerConfig(
-            sigFuncName = "_expr_sig",
-            sigConstantArg = null,
-            sigJsExpression = "\$9(2,6487,INPUT)",
-            nFuncName = "_expr_n",
-            nArrayIndex = null,
-            nConstantArgs = null,
-            nJsExpression = "(function(n){try{var u=new g.cV('https://x.googlevideo.com/videoplayback?n='+n,true);var t=u.get('n');return(t&&t!==n)?t:n;}catch(e){return n;}})(INPUT)",
-            signatureTimestamp = 20612
-        ),
-        // MD5-fallback alias for ce74690f
-        "a5669e32" to HardcodedPlayerConfig(
-            sigFuncName = "_expr_sig",
-            sigConstantArg = null,
-            sigJsExpression = "\$9(2,6487,INPUT)",
-            nFuncName = "_expr_n",
-            nArrayIndex = null,
-            nConstantArgs = null,
-            nJsExpression = "(function(n){try{var u=new g.cV('https://x.googlevideo.com/videoplayback?n='+n,true);var t=u.get('n');return(t&&t!==n)?t:n;}catch(e){return n;}})(INPUT)",
-            signatureTimestamp = 20612
-        ),
-        // player_ias 6b8eecd5 (2026-06-10): 16ee6936's mP/Yx generation under a new URL hash. STS 20613.
-        // Validated against the live CDN (HTTP 206).
-        "6b8eecd5" to HardcodedPlayerConfig(
-            sigFuncName = "_expr_sig",
-            sigConstantArg = null,
-            sigJsExpression = "mP(4,155,INPUT)",
-            nFuncName = "_expr_n",
-            nArrayIndex = null,
-            nConstantArgs = null,
-            nJsExpression = "(function(n){try{var u=new g.Yx('https://x.googlevideo.com/videoplayback?n='+n,true);var t=u.get('n');return(t&&t!==n)?t:n;}catch(e){return n;}})(INPUT)",
-            signatureTimestamp = 20613
-        ),
-        // MD5-fallback alias for 6b8eecd5
-        "6ea478fa" to HardcodedPlayerConfig(
-            sigFuncName = "_expr_sig",
-            sigConstantArg = null,
-            sigJsExpression = "mP(4,155,INPUT)",
-            nFuncName = "_expr_n",
-            nArrayIndex = null,
-            nConstantArgs = null,
-            nJsExpression = "(function(n){try{var u=new g.Yx('https://x.googlevideo.com/videoplayback?n='+n,true);var t=u.get('n');return(t&&t!==n)?t:n;}catch(e){return n;}})(INPUT)",
-            signatureTimestamp = 20613
-        ),
-        // ===== player_ias configs for the last 7 days of player rotations =====
-        // player_ias 445213fb / d62bd338 (2026-06-10): mP(4,155,INPUT) via g.Yx. STS 20613. CDN-validated (HTTP 206).
-        "445213fb" to HardcodedPlayerConfig(
-            sigFuncName = "_expr_sig",
-            sigConstantArg = null,
-            sigJsExpression = "mP(4,155,INPUT)",
-            nFuncName = "_expr_n",
-            nArrayIndex = null,
-            nConstantArgs = null,
-            nJsExpression = "(function(n){try{var u=new g.Yx('https://x.googlevideo.com/videoplayback?n='+n,true);var t=u.get('n');return(t&&t!==n)?t:n;}catch(e){return n;}})(INPUT)",
-            signatureTimestamp = 20613
-        ),
-        "d62bd338" to HardcodedPlayerConfig(
-            sigFuncName = "_expr_sig",
-            sigConstantArg = null,
-            sigJsExpression = "mP(4,155,INPUT)",
-            nFuncName = "_expr_n",
-            nArrayIndex = null,
-            nConstantArgs = null,
-            nJsExpression = "(function(n){try{var u=new g.Yx('https://x.googlevideo.com/videoplayback?n='+n,true);var t=u.get('n');return(t&&t!==n)?t:n;}catch(e){return n;}})(INPUT)",
-            signatureTimestamp = 20613
-        ),
-        // player_ias a32660fc / e786ad71 (2026-06-10): mP(4,155,INPUT) via g.Yx. STS 20613. CDN-validated (HTTP 206).
-        "a32660fc" to HardcodedPlayerConfig(
-            sigFuncName = "_expr_sig",
-            sigConstantArg = null,
-            sigJsExpression = "mP(4,155,INPUT)",
-            nFuncName = "_expr_n",
-            nArrayIndex = null,
-            nConstantArgs = null,
-            nJsExpression = "(function(n){try{var u=new g.Yx('https://x.googlevideo.com/videoplayback?n='+n,true);var t=u.get('n');return(t&&t!==n)?t:n;}catch(e){return n;}})(INPUT)",
-            signatureTimestamp = 20613
-        ),
-        "e786ad71" to HardcodedPlayerConfig(
-            sigFuncName = "_expr_sig",
-            sigConstantArg = null,
-            sigJsExpression = "mP(4,155,INPUT)",
-            nFuncName = "_expr_n",
-            nArrayIndex = null,
-            nConstantArgs = null,
-            nJsExpression = "(function(n){try{var u=new g.Yx('https://x.googlevideo.com/videoplayback?n='+n,true);var t=u.get('n');return(t&&t!==n)?t:n;}catch(e){return n;}})(INPUT)",
-            signatureTimestamp = 20613
-        ),
-        // player_ias 959dabb2 / 79c1b58e (2026-06-12): IR(84,305,INPUT) via g.Ga. STS 20614. CDN-validated (HTTP 206).
-        "959dabb2" to HardcodedPlayerConfig(
-            sigFuncName = "_expr_sig",
-            sigConstantArg = null,
-            sigJsExpression = "IR(84,305,INPUT)",
-            nFuncName = "_expr_n",
-            nArrayIndex = null,
-            nConstantArgs = null,
-            nJsExpression = "(function(n){try{var u=new g.Ga('https://x.googlevideo.com/videoplayback?n='+n,true);var t=u.get('n');return(t&&t!==n)?t:n;}catch(e){return n;}})(INPUT)",
-            signatureTimestamp = 20614
-        ),
-        "79c1b58e" to HardcodedPlayerConfig(
-            sigFuncName = "_expr_sig",
-            sigConstantArg = null,
-            sigJsExpression = "IR(84,305,INPUT)",
-            nFuncName = "_expr_n",
-            nArrayIndex = null,
-            nConstantArgs = null,
-            nJsExpression = "(function(n){try{var u=new g.Ga('https://x.googlevideo.com/videoplayback?n='+n,true);var t=u.get('n');return(t&&t!==n)?t:n;}catch(e){return n;}})(INPUT)",
-            signatureTimestamp = 20614
-        ),
-        // player_ias bb52fe90 / f6046ecd (2026-06-12): Ez(5,408,INPUT) via g.Oq. STS 20615. CDN-validated (HTTP 206).
-        "bb52fe90" to HardcodedPlayerConfig(
-            sigFuncName = "_expr_sig",
-            sigConstantArg = null,
-            sigJsExpression = "Ez(5,408,INPUT)",
-            nFuncName = "_expr_n",
-            nArrayIndex = null,
-            nConstantArgs = null,
-            nJsExpression = "(function(n){try{var u=new g.Oq('https://x.googlevideo.com/videoplayback?n='+n,true);var t=u.get('n');return(t&&t!==n)?t:n;}catch(e){return n;}})(INPUT)",
-            signatureTimestamp = 20615
-        ),
-        "f6046ecd" to HardcodedPlayerConfig(
-            sigFuncName = "_expr_sig",
-            sigConstantArg = null,
-            sigJsExpression = "Ez(5,408,INPUT)",
-            nFuncName = "_expr_n",
-            nArrayIndex = null,
-            nConstantArgs = null,
-            nJsExpression = "(function(n){try{var u=new g.Oq('https://x.googlevideo.com/videoplayback?n='+n,true);var t=u.get('n');return(t&&t!==n)?t:n;}catch(e){return n;}})(INPUT)",
-            signatureTimestamp = 20615
-        ),
-        // player_ias 1acfe3aa / fbcdec38 (2026-06-12): na(16,3372,INPUT) via g.dn. STS 20616. CDN-validated (HTTP 206).
-        "1acfe3aa" to HardcodedPlayerConfig(
-            sigFuncName = "_expr_sig",
-            sigConstantArg = null,
-            sigJsExpression = "na(16,3372,INPUT)",
-            nFuncName = "_expr_n",
-            nArrayIndex = null,
-            nConstantArgs = null,
-            nJsExpression = "(function(n){try{var u=new g.dn('https://x.googlevideo.com/videoplayback?n='+n,true);var t=u.get('n');return(t&&t!==n)?t:n;}catch(e){return n;}})(INPUT)",
-            signatureTimestamp = 20616
-        ),
-        "fbcdec38" to HardcodedPlayerConfig(
-            sigFuncName = "_expr_sig",
-            sigConstantArg = null,
-            sigJsExpression = "na(16,3372,INPUT)",
-            nFuncName = "_expr_n",
-            nArrayIndex = null,
-            nConstantArgs = null,
-            nJsExpression = "(function(n){try{var u=new g.dn('https://x.googlevideo.com/videoplayback?n='+n,true);var t=u.get('n');return(t&&t!==n)?t:n;}catch(e){return n;}})(INPUT)",
-            signatureTimestamp = 20616
-        ),
-        // player_ias c7119fda / bfba3b57 (2026-06-12): na(16,3372,INPUT) via g.dn. STS 20616. CDN-validated (HTTP 206).
-        "c7119fda" to HardcodedPlayerConfig(
-            sigFuncName = "_expr_sig",
-            sigConstantArg = null,
-            sigJsExpression = "na(16,3372,INPUT)",
-            nFuncName = "_expr_n",
-            nArrayIndex = null,
-            nConstantArgs = null,
-            nJsExpression = "(function(n){try{var u=new g.dn('https://x.googlevideo.com/videoplayback?n='+n,true);var t=u.get('n');return(t&&t!==n)?t:n;}catch(e){return n;}})(INPUT)",
-            signatureTimestamp = 20616
-        ),
-        "bfba3b57" to HardcodedPlayerConfig(
-            sigFuncName = "_expr_sig",
-            sigConstantArg = null,
-            sigJsExpression = "na(16,3372,INPUT)",
-            nFuncName = "_expr_n",
-            nArrayIndex = null,
-            nConstantArgs = null,
-            nJsExpression = "(function(n){try{var u=new g.dn('https://x.googlevideo.com/videoplayback?n='+n,true);var t=u.get('n');return(t&&t!==n)?t:n;}catch(e){return n;}})(INPUT)",
-            signatureTimestamp = 20616
-        ),
-        // player_ias 88c25a98 / 62100781 (2026-06-13): il(16,3372,INPUT) via g.e4. STS 20616. CDN-validated (HTTP 206).
-        "88c25a98" to HardcodedPlayerConfig(
-            sigFuncName = "_expr_sig",
-            sigConstantArg = null,
-            sigJsExpression = "il(16,3372,INPUT)",
-            nFuncName = "_expr_n",
-            nArrayIndex = null,
-            nConstantArgs = null,
-            nJsExpression = "(function(n){try{var u=new g.e4('https://x.googlevideo.com/videoplayback?n='+n,true);var t=u.get('n');return(t&&t!==n)?t:n;}catch(e){return n;}})(INPUT)",
-            signatureTimestamp = 20616
-        ),
-        "62100781" to HardcodedPlayerConfig(
-            sigFuncName = "_expr_sig",
-            sigConstantArg = null,
-            sigJsExpression = "il(16,3372,INPUT)",
-            nFuncName = "_expr_n",
-            nArrayIndex = null,
-            nConstantArgs = null,
-            nJsExpression = "(function(n){try{var u=new g.e4('https://x.googlevideo.com/videoplayback?n='+n,true);var t=u.get('n');return(t&&t!==n)?t:n;}catch(e){return n;}})(INPUT)",
-            signatureTimestamp = 20616
-        ),
-        // player_ias 712f0810 / 02a03f06 (2026-06-13): il(16,3372,INPUT) via g.e4. STS 20616. CDN-validated (HTTP 206).
-        "712f0810" to HardcodedPlayerConfig(
-            sigFuncName = "_expr_sig",
-            sigConstantArg = null,
-            sigJsExpression = "il(16,3372,INPUT)",
-            nFuncName = "_expr_n",
-            nArrayIndex = null,
-            nConstantArgs = null,
-            nJsExpression = "(function(n){try{var u=new g.e4('https://x.googlevideo.com/videoplayback?n='+n,true);var t=u.get('n');return(t&&t!==n)?t:n;}catch(e){return n;}})(INPUT)",
-            signatureTimestamp = 20616
-        ),
-        "02a03f06" to HardcodedPlayerConfig(
-            sigFuncName = "_expr_sig",
-            sigConstantArg = null,
-            sigJsExpression = "il(16,3372,INPUT)",
-            nFuncName = "_expr_n",
-            nArrayIndex = null,
-            nConstantArgs = null,
-            nJsExpression = "(function(n){try{var u=new g.e4('https://x.googlevideo.com/videoplayback?n='+n,true);var t=u.get('n');return(t&&t!==n)?t:n;}catch(e){return n;}})(INPUT)",
-            signatureTimestamp = 20616
-        ),
-        // player_ias ae0b654c / efc5f0ec (2026-06-15): Ge(91,8257,INPUT) via g.bK. STS 20618. CDN-validated (HTTP 206).
-        "ae0b654c" to HardcodedPlayerConfig(
-            sigFuncName = "_expr_sig",
-            sigConstantArg = null,
-            sigJsExpression = "Ge(91,8257,INPUT)",
-            nFuncName = "_expr_n",
-            nArrayIndex = null,
-            nConstantArgs = null,
-            nJsExpression = "(function(n){try{var u=new g.bK('https://x.googlevideo.com/videoplayback?n='+n,true);var t=u.get('n');return(t&&t!==n)?t:n;}catch(e){return n;}})(INPUT)",
-            signatureTimestamp = 20618
-        ),
-        "efc5f0ec" to HardcodedPlayerConfig(
-            sigFuncName = "_expr_sig",
-            sigConstantArg = null,
-            sigJsExpression = "Ge(91,8257,INPUT)",
-            nFuncName = "_expr_n",
-            nArrayIndex = null,
-            nConstantArgs = null,
-            nJsExpression = "(function(n){try{var u=new g.bK('https://x.googlevideo.com/videoplayback?n='+n,true);var t=u.get('n');return(t&&t!==n)?t:n;}catch(e){return n;}})(INPUT)",
-            signatureTimestamp = 20618
-        ),
-    )
-
     // ==================== DETECTION PATTERNS ====================
 
     // Detect Q-array obfuscation: var Q="...".split("}")
@@ -492,51 +141,43 @@ object FunctionNameExtractor {
     }
 
     /**
-     * Get hardcoded config for a known player.js hash
+     * Get the validated config for a known player.js hash from [PlayerConfigStore] (the
+     * bundled asset overlaid by the remote table). Replaces the former hardcoded map — new
+     * players are now added by pushing to player_configs.json, not by editing this file.
      */
     fun getHardcodedConfig(playerHash: String): HardcodedPlayerConfig? {
-        val config = KNOWN_PLAYER_CONFIGS[playerHash]
+        val config = PlayerConfigStore.get(playerHash)
         if (config != null) {
-            Timber.tag(TAG).d("Found hardcoded config for hash $playerHash:")
+            Timber.tag(TAG).d("Found config for hash $playerHash:")
             Timber.tag(TAG).d("  sigFunc=${config.sigFuncName}(${config.sigConstantArg}, ...)")
+            Timber.tag(TAG).d("  sigExpr=${config.sigJsExpression}")
             Timber.tag(TAG).d("  nFunc=${config.nFuncName}[${config.nArrayIndex}]")
             Timber.tag(TAG).d("  signatureTimestamp=${config.signatureTimestamp}")
         } else {
-            Timber.tag(TAG).w("No hardcoded config for hash: $playerHash")
-            Timber.tag(TAG).w("Known hashes: ${KNOWN_PLAYER_CONFIGS.keys.joinToString()}")
+            Timber.tag(TAG).w("No config for hash: $playerHash")
+            Timber.tag(TAG).w("Known hashes: ${PlayerConfigStore.knownHashes().sorted().joinToString()}")
         }
         return config
     }
 
     /**
-     * Extract signature function info from player.js
+     * Extract signature function info from player.js.
      *
-     * Uses regex patterns first, falls back to hardcoded config if Q-array detected
+     * Validated config FIRST, legacy regex heuristics only as a fallback: config entries are
+     * proven against the live CDN (HTTP 206) before they ship, while the patterns below are
+     * unanchored heuristics that can false-match anywhere in the ~2 MB player JS. A heuristic
+     * must never shadow a validated config — and a false positive here must not block the
+     * unknown-player forced refresh in CipherDeobfuscator.
      * @param playerJs The player.js content
-     * @param knownHash Optional hash for hardcoded config lookup
+     * @param knownHash Optional hash for config lookup
      */
     fun extractSigFunctionInfo(playerJs: String, knownHash: String? = null): SigFunctionInfo? {
         Timber.tag(TAG).d("========== EXTRACTING SIG FUNCTION ==========")
         Timber.tag(TAG).d("Player.js size: ${playerJs.length} chars")
 
-        // Try regex patterns first
-        for ((index, pattern) in SIG_FUNCTION_PATTERNS.withIndex()) {
-            Timber.tag(TAG).v("Trying sig pattern $index: ${pattern.pattern.take(60)}...")
-            val match = pattern.find(playerJs)
-            if (match != null) {
-                val name = match.groupValues[1]
-                val constArg = if (match.groupValues.size > 2) match.groupValues[2].toIntOrNull() else null
-                Timber.tag(TAG).d("SIG FUNCTION FOUND via pattern $index:")
-                Timber.tag(TAG).d("  name=$name, constantArg=$constArg")
-                Timber.tag(TAG).d("  match context: ...${playerJs.substring(maxOf(0, match.range.first - 20), minOf(playerJs.length, match.range.last + 20))}...")
-                return SigFunctionInfo(name, constArg, isHardcoded = false)
-            }
-        }
-
-        Timber.tag(TAG).w("No sig pattern matched, trying hardcoded config...")
-
+        // Validated config first.
         val hashToUse = knownHash ?: extractPlayerHash(playerJs)
-        Timber.tag(TAG).d("Using hash for hardcoded lookup: $hashToUse (knownHash=$knownHash)")
+        Timber.tag(TAG).d("Using hash for config lookup: $hashToUse (knownHash=$knownHash)")
         if (hashToUse != null) {
             val config = getHardcodedConfig(hashToUse)
             if (config != null) {
@@ -558,23 +199,56 @@ object FunctionNameExtractor {
             }
         }
 
+        Timber.tag(TAG).w("No config for hash $hashToUse, trying legacy sig patterns...")
+
+        for ((index, pattern) in SIG_FUNCTION_PATTERNS.withIndex()) {
+            Timber.tag(TAG).v("Trying sig pattern $index: ${pattern.pattern.take(60)}...")
+            val match = pattern.find(playerJs)
+            if (match != null) {
+                val name = match.groupValues[1]
+                val constArg = if (match.groupValues.size > 2) match.groupValues[2].toIntOrNull() else null
+                Timber.tag(TAG).d("SIG FUNCTION FOUND via pattern $index:")
+                Timber.tag(TAG).d("  name=$name, constantArg=$constArg")
+                Timber.tag(TAG).d("  match context: ...${playerJs.substring(maxOf(0, match.range.first - 20), minOf(playerJs.length, match.range.last + 20))}...")
+                return SigFunctionInfo(name, constArg, isHardcoded = false)
+            }
+        }
+
         Timber.tag(TAG).e("========== SIG FUNCTION EXTRACTION FAILED ==========")
         Timber.tag(TAG).e("Could not find signature deobfuscation function name")
         return null
     }
 
     /**
-     * Extract N-transform function info from player.js
+     * Extract N-transform function info from player.js.
      *
-     * Uses regex patterns first, falls back to hardcoded config if Q-array detected
+     * Validated config FIRST, legacy regex heuristics only as a fallback — same precedence
+     * rationale as [extractSigFunctionInfo].
      * @param playerJs The player.js content
-     * @param knownHash Optional hash for hardcoded config lookup
+     * @param knownHash Optional hash for config lookup
      */
     fun extractNFunctionInfo(playerJs: String, knownHash: String? = null): NFunctionInfo? {
         Timber.tag(TAG).d("========== EXTRACTING N-FUNCTION ==========")
         Timber.tag(TAG).d("Player.js size: ${playerJs.length} chars")
 
-        // Try regex patterns first
+        // Validated config first.
+        val hashToUse = knownHash ?: extractPlayerHash(playerJs)
+        Timber.tag(TAG).d("Using hash for config lookup: $hashToUse (knownHash=$knownHash)")
+        if (hashToUse != null) {
+            val config = getHardcodedConfig(hashToUse)
+            if (config != null) {
+                if (config.nJsExpression != null) {
+                    Timber.tag(TAG).d("USING EXPRESSION-BASED N-FUNCTION: ${config.nJsExpression.take(60)}")
+                } else {
+                    Timber.tag(TAG).d("USING HARDCODED N-FUNCTION: ${config.nFuncName}[${config.nArrayIndex}]")
+                    Timber.tag(TAG).d("N-function constant args: ${config.nConstantArgs}")
+                }
+                return NFunctionInfo(config.nFuncName, config.nArrayIndex, config.nConstantArgs, config.nJsExpression, isHardcoded = true)
+            }
+        }
+
+        Timber.tag(TAG).w("No config for hash $hashToUse, trying legacy n-func patterns...")
+
         for ((index, pattern) in N_FUNCTION_PATTERNS.withIndex()) {
             Timber.tag(TAG).v("Trying n-func pattern $index: ${pattern.pattern.take(60)}...")
             val match = pattern.find(playerJs)
@@ -608,23 +282,6 @@ object FunctionNameExtractor {
                         return NFunctionInfo(name, null, isHardcoded = false)
                     }
                 }
-            }
-        }
-
-        Timber.tag(TAG).w("No n-func pattern matched, trying hardcoded config...")
-
-        val hashToUse = knownHash ?: extractPlayerHash(playerJs)
-        Timber.tag(TAG).d("Using hash for hardcoded lookup: $hashToUse (knownHash=$knownHash)")
-        if (hashToUse != null) {
-            val config = getHardcodedConfig(hashToUse)
-            if (config != null) {
-                if (config.nJsExpression != null) {
-                    Timber.tag(TAG).d("USING EXPRESSION-BASED N-FUNCTION: ${config.nJsExpression.take(60)}")
-                } else {
-                    Timber.tag(TAG).d("USING HARDCODED N-FUNCTION: ${config.nFuncName}[${config.nArrayIndex}]")
-                    Timber.tag(TAG).d("N-function constant args: ${config.nConstantArgs}")
-                }
-                return NFunctionInfo(config.nFuncName, config.nArrayIndex, config.nConstantArgs, config.nJsExpression, isHardcoded = true)
             }
         }
 

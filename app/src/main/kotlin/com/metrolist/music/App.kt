@@ -78,10 +78,12 @@ class App :
             Timber.e(e, "Failed to ensure DataStore directory")
         }
 
+        // Plant logging BEFORE cipher init so the synchronous config-store load
+        // (bundled asset + cached overlay) is captured, not just the async remote refresh.
+        Timber.plant(Timber.DebugTree())
+
         // Initialize cipher deobfuscator for WEB_REMIX streaming
         CipherDeobfuscator.initialize(this)
-
-        Timber.plant(Timber.DebugTree())
 
         // Pre-read Coil cache size on background to avoid runBlocking in newImageLoader
         applicationScope.launch(Dispatchers.IO) {

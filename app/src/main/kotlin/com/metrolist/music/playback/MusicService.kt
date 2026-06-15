@@ -98,6 +98,13 @@ import com.metrolist.music.constants.AudioTrackPlaybackParamsKey
 import com.metrolist.music.constants.AutoDownloadOnLikeKey
 import com.metrolist.music.constants.AutoLoadMoreKey
 import com.metrolist.music.constants.AutoSkipNextOnErrorKey
+import com.metrolist.music.constants.StreamSourceAndroidCreatorKey
+import com.metrolist.music.constants.StreamSourceAndroidVRKey
+import com.metrolist.music.constants.StreamSourceIOSKey
+import com.metrolist.music.constants.StreamSourceTVHTML5Key
+import com.metrolist.music.constants.StreamSourceVisionOSKey
+import com.metrolist.music.constants.StreamSourceWebCreatorKey
+import com.metrolist.music.constants.StreamSourceWebRemixKey
 import com.metrolist.music.constants.AutoplayKey
 import com.metrolist.music.constants.CrossfadeDurationKey
 import com.metrolist.music.constants.CrossfadeEnabledKey
@@ -1122,6 +1129,28 @@ class MusicService :
         }
         scope.launch {
             dataStore.data.map { it[AutoLoadMoreKey] ?: true }.distinctUntilChanged().collect { cachedAutoLoadMore = it }
+        }
+        // Keep YTPlayerUtils in sync with the stream source toggles (Settings → Stream sources).
+        // Map to the derived set + distinctUntilChanged so an unrelated preference write doesn't
+        // rebuild the set and rewrite the @Volatile field on every DataStore emission.
+        scope.launch {
+            dataStore.data
+                .map { prefs ->
+                    buildSet {
+                        if (prefs[StreamSourceWebRemixKey] == false) add("WEB_REMIX")
+                        if (prefs[StreamSourceTVHTML5Key] == false) add("TVHTML5")
+                        if (prefs[StreamSourceAndroidVRKey] == false) add("ANDROID_VR")
+                        // The IOS toggle covers both the iOS and iPadOS clients (they share clientName
+                        // "IOS"); ANDROID_CREATOR needs DroidGuard — these default OFF (`!= true`: unset
+                        // or false both disable; only an explicit toggle enables them).
+                        if (prefs[StreamSourceIOSKey] != true) add("IOS")
+                        if (prefs[StreamSourceVisionOSKey] == false) add("VISIONOS")
+                        if (prefs[StreamSourceWebCreatorKey] == false) add("WEB_CREATOR")
+                        if (prefs[StreamSourceAndroidCreatorKey] != true) add("ANDROID_CREATOR")
+                    }
+                }
+                .distinctUntilChanged()
+                .collect { YTPlayerUtils.disabledStreamClients = it }
         }
 
         if (startupPrefs!![PersistentQueueKey] ?: true) {
