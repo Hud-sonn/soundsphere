@@ -2177,7 +2177,6 @@ class MusicService :
 
                     withContext(Dispatchers.Main) {
                         if (!isActive || requestGeneration != loudnessSetupGeneration) return@withContext
-                        if (isCrossfading) return@withContext
                         if (player.currentMediaItem?.mediaId != currentMediaId) return@withContext
 
                         when {
@@ -2188,18 +2187,30 @@ class MusicService :
 
                                 cachedNormalizationGainMb = clampedGain
                                 cachedNormalizationEnabled = true
-                                playerNormalizationProcessors.values.forEach {
-                                    it.setTargetGain(clampedGain)
-                                    it.enabled = true
+                                if (isCrossfading) {
+                                    playerNormalizationProcessors[player]?.let {
+                                        it.setTargetGain(clampedGain)
+                                        it.enabled = true
+                                    }
+                                } else {
+                                    playerNormalizationProcessors.values.forEach {
+                                        it.setTargetGain(clampedGain)
+                                        it.enabled = true
+                                    }
                                 }
                             }
                             format == null -> {
                                 Timber.tag(TAG).d("Loudness row not ready yet; keeping cached normalization state")
+                                if (isCrossfading) return@withContext
                             }
                             else -> {
-                                cachedNormalizationGainMb = null
+                                cachedNormalizationGainMb = 0
                                 cachedNormalizationEnabled = false
-                                playerNormalizationProcessors.values.forEach { it.enabled = false }
+                                if (isCrossfading) return@withContext
+                                playerNormalizationProcessors.values.forEach {
+                                    it.setTargetGain(0)
+                                    it.enabled = false
+                                }
                             }
                         }
                     }

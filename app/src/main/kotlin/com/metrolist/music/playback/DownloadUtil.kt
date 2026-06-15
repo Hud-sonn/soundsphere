@@ -106,6 +106,28 @@ constructor(
             }.getOrThrow()
             val format = playbackData.format
 
+            val actualContentLength = format.contentLength ?: run {
+                var length: Long? = null
+                val client = OkHttpClient.Builder()
+                    .proxy(YouTube.proxy)
+                    .proxyAuthenticator { _, response ->
+                        YouTube.proxyAuth?.let { auth ->
+                            response.request.newBuilder()
+                                .header("Proxy-Authorization", auth)
+                                .build()
+                        } ?: response.request
+                    }
+                    .build()
+                val request = okhttp3.Request.Builder()
+                    .head()
+                    .url(playbackData.streamUrl)
+                    .build()
+                client.newCall(request).execute().use { response ->
+                    length = response.header("Content-Length")?.toLongOrNull()
+                }
+                length ?: error("Failed to retrieve content length")
+            }
+
             database.query {
                 upsert(
                     FormatEntity(
@@ -115,7 +137,7 @@ constructor(
                         codecs = format.mimeType.split("codecs=")[1].removeSurrounding("\""),
                         bitrate = format.bitrate,
                         sampleRate = format.audioSampleRate,
-                        contentLength = format.contentLength!!,
+                        contentLength = actualContentLength,
                         loudnessDb = playbackData.audioConfig?.loudnessDb,
                         perceptualLoudnessDb = playbackData.audioConfig?.perceptualLoudnessDb,
                         playbackUrl = playbackData.playbackTracking?.videostatsPlaybackUrl?.baseUrl
@@ -146,7 +168,7 @@ constructor(
             }
 
             val streamUrl = playbackData.streamUrl.let {
-                "${it}&range=0-${format.contentLength ?: 10000000}"
+                "${it}&range=0-${actualContentLength}"
             }
 
             songUrlCache[mediaId] = streamUrl to playbackData.streamExpiresInSeconds * 1000L
