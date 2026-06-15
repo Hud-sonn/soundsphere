@@ -149,7 +149,7 @@ fun ClickableArtistText(
     val navController = LocalNavController.current
     val andString = stringResource(R.string.and)
     val linkColor = LocalContentColor.current
-    val annotatedString = remember(artists, andString) {
+    val annotatedString = remember(artists, andString, linkColor) {
         buildAnnotatedString {
             artists.forEachIndexed { index, artist ->
                 withLink(
@@ -242,7 +242,7 @@ fun ClickableArtistText(
     val navController = LocalNavController.current
     val andString = stringResource(R.string.and)
     val linkColor = LocalContentColor.current
-    val annotatedString = remember(artists, andString) {
+    val annotatedString = remember(artists, andString, linkColor) {
         buildAnnotatedString {
             artists.forEachIndexed { index, artist ->
                 val artistId = artist.id
