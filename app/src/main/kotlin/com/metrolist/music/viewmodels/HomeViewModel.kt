@@ -386,7 +386,7 @@ class HomeViewModel @Inject constructor(
         val artistSeeds = database.mostPlayedArtists(fromTimeStamp, limit = 10).first()
             .filter { it.artist.isYouTubeArtist }
             .shuffled().take(3)
-        val songSeeds = database.mostPlayedSongs(fromTimeStamp, limit = 5).first()
+        val songSeeds = database.mostPlayedSongs(fromTimeStamp = fromTimeStamp, limit = 5, offset = 0, toTimeStamp = LocalDateTime.now()).first()
             .shuffled().take(2)
 
         val candidatePlaylists = java.util.Collections.synchronizedList(mutableListOf<PlaylistItem>())
@@ -474,7 +474,7 @@ class HomeViewModel @Inject constructor(
             }
 
             launch(Dispatchers.IO) {
-                val songs = database.mostPlayedSongs(fromTimeStamp, limit = 15, offset = 5).first()
+                val songs = database.mostPlayedSongs(fromTimeStamp = fromTimeStamp, limit = 15, offset = 5, toTimeStamp = LocalDateTime.now()).first()
                     .filterVideoSongs(hideVideoSongs).shuffled().take(10)
                 val albums = database.mostPlayedAlbums(fromTimeStamp, limit = 8, offset = 2).first()
                     .filter { it.album.thumbnailUrl != null }.shuffled().take(5)
@@ -539,7 +539,7 @@ class HomeViewModel @Inject constructor(
                     )
                 }
 
-            val songRecommendations = database.mostPlayedSongs(fromTimeStamp, limit = 15).first()
+            val songRecommendations = database.mostPlayedSongs(fromTimeStamp = fromTimeStamp, limit = 15, offset = 0, toTimeStamp = LocalDateTime.now()).first()
                 .filter { it.album != null }
                 .shuffled().take(3)
                 .mapNotNull { song ->
