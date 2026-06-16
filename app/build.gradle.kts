@@ -1,9 +1,8 @@
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
-import org.gradle.api.file.RelativePath
+
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
-import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.Internal
@@ -120,42 +119,31 @@ android {
         buildConfigField("String", "LASTFM_API_KEY", "\"$lastFmKey\"")
         buildConfigField("String", "LASTFM_SECRET", "\"$lastFmSecret\"")
         buildConfigField("String", "ARCHITECTURE", "\"universal\"")
-        manifestPlaceholders["discordAppId"] = ""
+        buildConfigField("Long", "DISCORD_APP_ID", "1447278780795064401L")
     }
 
     flavorDimensions += listOf("variant")
     productFlavors {
-        // FOSS - Updater, but no gcast or rpc
+        // FOSS - Updater, but no gcast
         create("foss") {
             dimension = "variant"
             isDefault = true
             buildConfigField("Boolean", "CAST_AVAILABLE", "false")
             buildConfigField("Boolean", "UPDATER_AVAILABLE", "true")
-            buildConfigField("Boolean", "DISCORD_RPC_AVAILABLE", "false")
         }
 
-        // GMS - Updater, gcast, and rpc
+        // GMS - Updater and gcast
         create("gms") {
             dimension = "variant"
             buildConfigField("Boolean", "CAST_AVAILABLE", "true")
             buildConfigField("Boolean", "UPDATER_AVAILABLE", "true")
-            buildConfigField("Boolean", "DISCORD_RPC_AVAILABLE", "true")
-            buildConfigField("Long", "DISCORD_APP_ID", "1447278780795064401L")
-            manifestPlaceholders["discordAppId"] = "1447278780795064401"
-
-            externalNativeBuild {
-                cmake {
-                    arguments("-DDISCORD_BRIDGE=ON")
-                }
-            }
         }
 
-        // IzzyOnDroid - no gcast, no updater, no rpc - the ONLY F-droid compliant build
+        // IzzyOnDroid - no gcast, no updater - the ONLY F-droid compliant build
         create("izzy") {
             dimension = "variant"
             buildConfigField("Boolean", "CAST_AVAILABLE", "false")
             buildConfigField("Boolean", "UPDATER_AVAILABLE", "false")
-            buildConfigField("Boolean", "DISCORD_RPC_AVAILABLE", "false")
         }
     }
 
@@ -252,12 +240,6 @@ android {
         generateLocaleConfig = true
     }
 
-    externalNativeBuild {
-        cmake {
-            path = file("src/main/cpp/CMakeLists.txt")
-        }
-    }
-
     packaging {
         jniLibs {
             useLegacyPackaging = false
@@ -328,25 +310,6 @@ tasks.configureEach {
     }
 }
 
-val extractDiscordSo = tasks.register<Copy>("extractDiscordSo") {
-    description = "Extracts libdiscord_partner_sdk.so from the AAR into src/gms/jniLibs"
-    from(zipTree("libs/discord_partner_sdk.aar").matching {
-        include("jni/**/libdiscord_partner_sdk.so")
-    })
-    into(file("src/gms/jniLibs"))
-    eachFile {
-        val parts = relativePath.segments
-        relativePath = RelativePath(true, *parts.drop(1).toTypedArray())
-    }
-    includeEmptyDirs = false
-}
-
-tasks.configureEach {
-    if (name.startsWith("buildCMake") || name.startsWith("configureCMake") || name.startsWith("merge") && name.contains("JniLib")) {
-        dependsOn(extractDiscordSo)
-    }
-}
-
 ksp {
     arg("room.schemaLocation", "$projectDir/schemas")
 }
@@ -400,7 +363,6 @@ dependencies {
     implementation(libs.coil)
     implementation(libs.coil.network.okhttp)
     implementation(libs.browser)
-    implementation(libs.security.crypto)
 
     implementation(libs.ucrop)
 
@@ -430,7 +392,6 @@ dependencies {
     implementation(project(":innertube"))
     implementation(project(":kugou"))
     implementation(project(":lrclib"))
-    "gmsImplementation"(files("libs/discord_partner_sdk.aar"))
     implementation(project(":lastfm"))
     implementation(project(":betterlyrics"))
     implementation(project(":shazamkit"))
@@ -439,6 +400,9 @@ dependencies {
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.cio)
     implementation(libs.ktor.client.content.negotiation)
+    implementation(libs.ktor.client.encoding)
+    implementation(libs.ktor.server.core)
+    implementation(libs.ktor.server.cio)
     implementation(libs.ktor.serialization.json)
 
     // Protobuf for message serialization (lite version for Android)
@@ -448,4 +412,9 @@ dependencies {
     coreLibraryDesugaring(libs.desugaring)
 
     implementation(libs.timber)
+
+    testImplementation(libs.junit)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.androidx.test.core)
+    testImplementation(libs.ktor.client.mock)
 }

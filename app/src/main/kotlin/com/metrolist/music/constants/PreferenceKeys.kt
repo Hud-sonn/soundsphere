@@ -174,9 +174,7 @@ val DiscordInfoDismissedKey = booleanPreferencesKey("discordInfoDismissed")
 val DiscordUsernameKey = stringPreferencesKey("discordUsername")
 val DiscordNameKey = stringPreferencesKey("discordName")
 val DiscordAvatarKey = stringPreferencesKey("discordAvatar")
-// Token is now stored in EncryptedSharedPreferences via DiscordTokenStore.
-// This key is retained only for potential migration from old plain-text instances.
-val DiscordAccessTokenKey = stringPreferencesKey("discordAccessToken")
+
 val DiscordAdvancedModeKey = booleanPreferencesKey("discordAdvancedMode")
 val DiscordActivityTypeKey = stringPreferencesKey("discordActivityType")
 val DiscordActivityNameKey = stringPreferencesKey("discordActivityName")
