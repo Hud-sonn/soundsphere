@@ -1624,6 +1624,14 @@ class MusicService :
                 if (song.song.isVideo != mediaMetadata.isVideoSong) {
                     updatedSong = updatedSong.copy(isVideo = mediaMetadata.isVideoSong)
                 }
+                // Set dateDownload when song is cached during playback
+                // This ensures cached songs appear in the Cache Playlist
+                if (updatedSong.dateDownload == null && updatedSong.isDownloaded == false) {
+                    val contentLength = song.format?.contentLength
+                    if (contentLength != null && playerCache.isCached(mediaId, 0, contentLength)) {
+                        updatedSong = updatedSong.copy(dateDownload = java.time.LocalDateTime.now())
+                    }
+                }
                 if (updatedSong != song.song) {
                     update(updatedSong)
                 }
