@@ -861,4 +861,26 @@
     <string name="audio_track_playback_params_description">ใช้ AudioTrack ของ Android สำหรับการปรับความเร็ว/ระดับเสียง (Pitch) แทนการประมวลผลด้วยซอฟต์แวร์ ให้ความเสถียรมากกว่าสำหรับการปรับ Pitch ในระดับที่สูงหรือต่ำมาก</string>
     <string name="restore_database_incompatible">ไม่สามารถกู้คืนข้อมูลสำรองได้: เวอร์ชันฐานข้อมูลไม่เข้ากัน ข้อมูลปัจจุบันของคุณยังคงถูกเก็บรักษาไว้</string>
     <string name="stream_client">สตรีมไคลเอ็นต์</string>
+    <string name="format_player_hash">แฮชของเพลเยอร์</string>
+    <string name="format_cipher_support_added">เพิ่มการรองรับ Cipher แล้ว</string>
+    <string name="not_applicable">ไม่มี</string>
+    <string name="stream_sources">แหล่งที่มาของสตรีม</string>
+    <string name="stream_source_order">ลำดับการเลือกแหล่งสตรีม</string>
+    <string name="stream_source_web_clients">ไคลเอนต์เว็บ</string>
+    <string name="stream_source_native_clients">ไคลเอนต์เนทีฟ</string>
+    <string name="stream_source_creator_clients">ไคลเอนต์สำหรับครีเอเตอร์</string>
+    <string name="stream_source_web_remix">WEB_REMIX</string>
+    <string name="stream_source_web_remix_desc">ไคลเอนต์หลัก ต้องเข้าสู่ระบบ และรองรับเพลงส่วนใหญ่</string>
+    <string name="stream_source_tvhtml5">TVHTML5</string>
+    <string name="stream_source_tvhtml5_desc">ไคลเอนต์สำหรับทีวี ใช้เป็นตัวสำรองได้อย่างน่าเชื่อถือ</string>
+    <string name="stream_source_visionos">visionOS</string>
+    <string name="stream_source_visionos_desc">ไคลเอนต์สำหรับ Apple Vision ไม่มีข้อจำกัดด้านการควบคุมความเร็วสตรีม และมีความเสถียรสูง</string>
+    <string name="stream_source_android_vr">Android VR</string>
+    <string name="stream_source_android_vr_desc">ไคลเอนต์ Android VR (ทุกเวอร์ชัน)</string>
+    <string name="stream_source_ios">iOS / iPadOS</string>
+    <string name="stream_source_ios_desc">ไคลเอนต์สำหรับ Apple iOS และ iPadOS ปิดใช้งานไว้ตามค่าเริ่มต้น และมีการจำกัดความเร็วหลังจากข้อมูลประมาณ 1 MiB</string>
+    <string name="stream_source_web_creator">WEB_CREATOR</string>
+    <string name="stream_source_web_creator_desc">ไคลเอนต์เว็บสำหรับครีเอเตอร์</string>
+    <string name="stream_source_android_creator">ANDROID_CREATOR</string>
+    <string name="stream_source_android_creator_desc">ไคลเอนต์ Android สำหรับครีเอเตอร์ ปิดใช้งานไว้ตามค่าเริ่มต้น และต้องใช้ DroidGuard</string>
 </resources>
