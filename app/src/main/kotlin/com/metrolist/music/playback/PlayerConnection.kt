@@ -147,18 +147,22 @@ class PlayerConnection(
         )
 
     val mediaMetadata = MutableStateFlow(player.currentMetadata)
+    // stateIn so the latest DB result is cached and shared: on resume / re-subscription the value
+    // is available immediately instead of re-running the Room query (which delayed now-playing
+    // details, format and like-state on every foreground). Lazily keeps it hot across lifecycle
+    // pauses, matching isPlaying above. StateFlow is still a Flow, so existing collectors are unaffected.
     val currentSong =
         mediaMetadata.flatMapLatest {
             database.song(it?.id)
-        }
+        }.stateIn(scope, SharingStarted.Lazily, null)
     val currentLyrics =
         mediaMetadata.flatMapLatest { mediaMetadata ->
             database.lyrics(mediaMetadata?.id)
-        }
+        }.stateIn(scope, SharingStarted.Lazily, null)
     val currentFormat =
         mediaMetadata.flatMapLatest { mediaMetadata ->
             database.format(mediaMetadata?.id)
-        }
+        }.stateIn(scope, SharingStarted.Lazily, null)
 
     val queueTitle = MutableStateFlow<String?>(null)
     val queueWindows = MutableStateFlow<List<Timeline.Window>>(emptyList())

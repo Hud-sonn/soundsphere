@@ -72,6 +72,19 @@ object CipherDeobfuscator {
     }
 
     /**
+     * Best-effort: create the cipher WebView (fetch player JS + load it) ahead of first playback so
+     * the deobfuscation hot path is already warm. Holds the same mutex as deobfuscateStreamUrl /
+     * transformNParamInUrl so it can't race a real request for the shared single-WebView state. On
+     * failure the WebView is simply created lazily on first use.
+     */
+    suspend fun prewarm() {
+        Timber.tag(TAG).d("Prewarming cipher WebView...")
+        deobfuscateMutex.withLock {
+            getOrCreateWebView(forceRefresh = false)
+        }
+    }
+
+    /**
      * Deobfuscate a signatureCipher stream URL.
      *
      * The signatureCipher is a query string containing:
@@ -151,12 +164,15 @@ object CipherDeobfuscator {
      * IMPORTANT: This must be called for WEB_REMIX, WEB, WEB_CREATOR, TVHTML5 clients
      * and for privately owned tracks (uploaded songs).
      */
-    suspend fun transformNParamInUrl(url: String): String {
+    suspend fun transformNParamInUrl(url: String): String = deobfuscateMutex.withLock {
+        // Hold the same mutex as deobfuscateStreamUrl/prewarm: the shared CipherWebView has
+        // single-shot continuation slots, so sig deciphering, n-transform, and warm-up must never
+        // touch it concurrently (concurrent calls would clobber each other's WebView state).
         Timber.tag(TAG).d("=== N-TRANSFORM URL ===")
         Timber.tag(TAG).d("Input URL length: ${url.length}")
         Timber.tag(TAG).d("Input URL preview: ${url.take(100)}...")
 
-        return try {
+        try {
             transformNInternal(url)
         } catch (e: CancellationException) {
             throw e // request superseded/cancelled — propagate rather than masking as a no-op transform

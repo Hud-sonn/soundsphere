@@ -61,6 +61,7 @@ import androidx.media3.datasource.cache.CacheDataSource
 import androidx.media3.datasource.cache.CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR
 import androidx.media3.datasource.cache.SimpleCache
 import androidx.media3.datasource.okhttp.OkHttpDataSource
+import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.analytics.AnalyticsListener
@@ -1314,6 +1315,15 @@ class MusicService :
                 .Builder(this)
                 .setMediaSourceFactory(createMediaSourceFactory())
                 .setRenderersFactory(createRenderersFactory(normalizationProcessor, eqProcessor, silenceProcessor, useAudioTrackPlaybackParams))
+                .setLoadControl(
+                    // Start playback once ~750ms is buffered (media3's default is 1000ms) so first
+                    // audio is audible a touch sooner. min/max/after-rebuffer match the media3 1.x
+                    // defaults (50s / 50s / 2000ms) so buffering and post-stall recovery are unchanged.
+                    DefaultLoadControl
+                        .Builder()
+                        .setBufferDurationsMs(50_000, 50_000, 750, 2_000)
+                        .build(),
+                )
                 .setHandleAudioBecomingNoisy(true)
                 .setWakeMode(C.WAKE_MODE_NETWORK)
                 .setAudioAttributes(
@@ -3132,7 +3142,10 @@ class MusicService :
 
         // Clear the cached URL
         songUrlCache.remove(mediaId)
-        Timber.tag(TAG).d("Cleared cached URL for $mediaId")
+        // A 403/410 on GET means the (HEAD-unvalidated) WEB_REMIX stream URL was bad — mark it so the
+        // re-resolution falls through to the fallback clients instead of retrying WEB_REMIX.
+        YTPlayerUtils.markWebRemixFailed(mediaId)
+        Timber.tag(TAG).d("Cleared cached URL for $mediaId, marked WEB_REMIX failed")
 
         // Clear decryption caches
         try {
@@ -3585,12 +3598,14 @@ class MusicService :
                 }
 
                 if (usePlayerCache && playerCache.isCached(mediaId, dataSpec.position, CHUNK_LENGTH)) {
-                    songUrlCache[mediaId]?.takeIf { it.second > System.currentTimeMillis() }?.let { (url, _) ->
-                        scope.launch(Dispatchers.IO) { recoverSong(mediaId) }
-                        return@Factory dataSpec.withUri(url.toUri())
-                    }
-                    Timber.tag(TAG).w("Ghost cache entry for $mediaId, re-fetching")
-                    playerCache.removeResource(mediaId)
+                    // Serve cached audio straight from disk like the download cache — no URL needed,
+                    // no network re-resolve. On a cold relaunch songUrlCache is always empty, and the
+                    // old "ghost" path here deleted valid cached audio and re-downloaded it every
+                    // relaunch (the main reason relaunch was slow vs. playing from cache instantly).
+                    // CacheDataSource serves by key (mediaId); uncached chunks fall through below and
+                    // resolve a URL on demand. FLAG_IGNORE_CACHE_ON_ERROR covers a genuinely bad file.
+                    scope.launch(Dispatchers.IO) { recoverSong(mediaId) }
+                    return@Factory dataSpec
                 }
 
                 songUrlCache[mediaId]?.takeIf { it.second > System.currentTimeMillis() }?.let {

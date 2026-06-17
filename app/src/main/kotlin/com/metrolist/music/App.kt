@@ -32,12 +32,14 @@ import com.metrolist.music.di.ApplicationScope
 import com.metrolist.music.extensions.toEnum
 import com.metrolist.music.extensions.toInetSocketAddress
 import com.metrolist.music.utils.CrashHandler
+import com.metrolist.music.utils.YTPlayerUtils
 import com.metrolist.music.utils.cipher.CipherDeobfuscator
 import com.metrolist.music.utils.dataStore
 import com.metrolist.music.utils.reportException
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -92,7 +94,31 @@ class App :
 
         // تهيئة إعدادات التطبيق عند الإقلاع
         applicationScope.launch {
+            // Apply settings (incl. YouTube.proxy) FIRST: the cipher/PoToken OkHttpClients are built
+            // once and cached, so warming them before the proxy is set would snapshot a null proxy and
+            // bypass a configured proxy for the whole session. Warm-up is launched only after this.
             initializeSettings()
+
+            // Warm the cipher WebView off the first-play critical path. It needs no session, so kick it
+            // as soon as settings settle (don't gate it behind visitorData — that's the bigger cold
+            // cost). Best-effort; on failure the WebView is created lazily on first play.
+            launch(Dispatchers.IO) {
+                delay(1500)
+                runCatching { CipherDeobfuscator.prewarm() }
+            }
+
+            // Warm the PoToken/BotGuard generator (the ~2-5s cold cost) once a session (visitorData) is
+            // available; gate only this half on it. Best-effort and delayed so it never competes with startup.
+            launch(Dispatchers.IO) {
+                delay(2500)
+                var waitedMs = 0
+                while (YouTube.visitorData == null && waitedMs < 12_000) {
+                    delay(500)
+                    waitedMs += 500
+                }
+                runCatching { YTPlayerUtils.prewarmPoToken() }
+            }
+
             observeSettingsChanges()
         }
     }

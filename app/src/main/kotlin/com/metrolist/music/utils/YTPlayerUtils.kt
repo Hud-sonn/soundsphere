@@ -34,6 +34,8 @@ import com.metrolist.music.utils.cipher.FunctionNameExtractor
 import com.metrolist.music.utils.cipher.PlayerJsFetcher
 import com.metrolist.music.utils.potoken.PoTokenGenerator
 import com.metrolist.music.utils.potoken.PoTokenResult
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import timber.log.Timber
 
@@ -46,6 +48,16 @@ object YTPlayerUtils {
         .build()
 
     private val poTokenGenerator = PoTokenGenerator()
+
+    // Track videoIds whose WEB_REMIX stream URL 403'd on the ExoPlayer GET, so the next resolution
+    // falls through to the fallback clients instead of skipping HEAD validation and looping.
+    private val webRemixFailedIds = java.util.Collections.newSetFromMap(
+        java.util.concurrent.ConcurrentHashMap<String, Boolean>(),
+    )
+
+    fun markWebRemixFailed(videoId: String) {
+        webRemixFailedIds.add(videoId)
+    }
 
     private val MAIN_CLIENT: YouTubeClient = WEB_REMIX
 
@@ -71,6 +83,27 @@ object YTPlayerUtils {
     /** Client names disabled by the user in Settings → Stream sources. Updated reactively by MusicService. */
     @Volatile
     var disabledStreamClients: Set<String> = emptySet()
+
+    // A stable video id used only to warm the local BotGuard token generator; the token is
+    // discarded. PoToken generation is a local WebView computation (no YouTube /player call), so
+    // this triggers no network request to YouTube for the video itself.
+    private const val POTOKEN_WARMUP_VIDEO_ID = "jNQXAC9IVRw"
+
+    /**
+     * Best-effort warm-up of the PoToken/BotGuard generator (BotGuard cold-start is ~2–5s) so the
+     * first real playback skips it. Requires a session (visitorData); the caller should gate this on
+     * visitorData being ready. The cipher WebView warm-up is separate (CipherDeobfuscator.prewarm)
+     * since it needs no session. Failure is swallowed; playback falls back to lazy init unchanged.
+     */
+    suspend fun prewarmPoToken() {
+        val sessionId = YouTube.visitorData ?: return
+        if (!MAIN_CLIENT.useWebPoTokens) return
+        runCatching {
+            withContext(Dispatchers.IO) {
+                poTokenGenerator.getWebClientPoToken(POTOKEN_WARMUP_VIDEO_ID, sessionId)
+            }
+        }.onFailure { Timber.tag(TAG).w(it, "PoToken prewarm skipped: ${it.message}") }
+    }
 
     data class PlaybackData(
         val audioConfig: PlayerResponse.PlayerConfig.AudioConfig?,
@@ -389,6 +422,19 @@ object YTPlayerUtils {
                     Timber.tag(logTag).d("Using last fallback client without validation: ${STREAM_FALLBACK_CLIENTS[clientIndex].clientName}")
                     Timber.tag(TAG)
                         .i("Playback: client=${currentClient.clientName}, videoId=$videoId")
+                    successClient = currentClient.clientName
+                    break
+                }
+
+                // WEB_REMIX authenticated CDN URLs can 403 on HEAD yet serve fine on the byte-range
+                // GET that ExoPlayer makes. Skip HEAD validation for the main client and let ExoPlayer
+                // try directly, UNLESS this videoId already 403'd on GET (markWebRemixFailed) — then
+                // fall through to the fallback clients. Saves a validateStatus round-trip per resolve.
+                if (clientIndex == -1 && currentClient.clientName == "WEB_REMIX" &&
+                    !webRemixFailedIds.contains(videoId)
+                ) {
+                    Timber.tag(logTag).d("WEB_REMIX — skipping HEAD validation, letting ExoPlayer try directly")
+                    Timber.tag(TAG).i("Playback: client=${currentClient.clientName}, videoId=$videoId")
                     successClient = currentClient.clientName
                     break
                 }

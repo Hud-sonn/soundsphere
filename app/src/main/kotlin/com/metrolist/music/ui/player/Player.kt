@@ -74,6 +74,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableLongStateOf
@@ -257,7 +258,7 @@ fun BottomSheetPlayer(
             }
         }
 
-    val isPlaying by playerConnection.isPlaying.collectAsStateWithLifecycle()
+    val isPlaying by playerConnection.isPlaying.collectAsState()
     val isKeepScreenOn by rememberPreference(KeepScreenOn, false)
     val keepScreenOn = isPlaying && isKeepScreenOn
 
@@ -316,8 +317,8 @@ fun BottomSheetPlayer(
             useDarkTheme && pureBlack
         }
 
-    val playbackState by playerConnection.playbackState.collectAsStateWithLifecycle()
-    val mediaMetadata by playerConnection.mediaMetadata.collectAsStateWithLifecycle()
+    val playbackState by playerConnection.playbackState.collectAsState()
+    val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
     val currentSong by playerConnection.currentSong.collectAsStateWithLifecycle(initialValue = null)
     val automix by playerConnection.service.automixItems.collectAsStateWithLifecycle()
     val repeatMode by playerConnection.repeatMode.collectAsStateWithLifecycle()
@@ -345,7 +346,7 @@ fun BottomSheetPlayer(
     val isCasting by castHandler?.isCasting?.collectAsStateWithLifecycle() ?: remember { mutableStateOf(false) }
     val castPosition by castHandler?.castPosition?.collectAsStateWithLifecycle() ?: remember { mutableLongStateOf(0L) }
     val castDuration by castHandler?.castDuration?.collectAsStateWithLifecycle() ?: remember { mutableLongStateOf(0L) }
-    val castIsPlaying by castHandler?.castIsPlaying?.collectAsStateWithLifecycle() ?: remember { mutableStateOf(false) }
+    val castIsPlaying by castHandler?.castIsPlaying?.collectAsState() ?: remember { mutableStateOf(false) }
 
     val focusRequester = remember { FocusRequester() }
 
@@ -364,9 +365,17 @@ fun BottomSheetPlayer(
     val effectiveIsPlaying = if (isCasting) castIsPlaying else isPlaying
 
     // Use State objects for position/duration to pass to MiniPlayer without causing recomposition
-    // These states persist across playback state changes to ensure continuous progress updates
-    val positionState = remember { mutableLongStateOf(0L) }
-    val durationState = remember { mutableLongStateOf(0L) }
+    // These states persist across playback state changes to ensure continuous progress updates.
+    // Seed from the player's current values so re-entering composition on resume shows the real
+    // time immediately instead of flashing 0:00 until the first poll fires. runCatching guards the
+    // player-not-ready race; the poll loop corrects duration if it isn't known yet.
+    val positionState = remember { mutableLongStateOf(runCatching { playerConnection.player.currentPosition }.getOrDefault(0L)) }
+    val durationState = remember {
+        mutableLongStateOf(
+            (mediaMetadata?.duration?.takeIf { it > 0 }?.toLong()?.times(1000L))
+                ?: runCatching { playerConnection.player.duration }.getOrDefault(0L).coerceAtLeast(0L),
+        )
+    }
 
     // Convenience accessors for local use
     var position by positionState
@@ -742,7 +751,8 @@ fun BottomSheetPlayer(
                 delay(100) // Update more frequently for smoother progress bar
                 if (sliderPosition == null) { // Only update if user isn't dragging
                     position = playerConnection.player.currentPosition
-                    duration = playerConnection.player.duration
+                    // Don't clobber a valid (metadata-derived) duration with 0/UNSET mid-resolve.
+                    playerConnection.player.duration.takeIf { it > 0 }?.let { duration = it }
                 }
             }
         }
@@ -752,7 +762,11 @@ fun BottomSheetPlayer(
     LaunchedEffect(playbackState, mediaMetadata?.id) {
         if (!isCasting) {
             position = playerConnection.player.currentPosition
-            duration = playerConnection.player.duration
+            // Prefer the song's known duration (from metadata, available instantly from the restored
+            // queue) so the slider range is right even when restored paused / before the stream
+            // resolves; fall back to the player's duration once it is known.
+            duration = (mediaMetadata?.duration?.takeIf { it > 0 }?.toLong()?.times(1000L))
+                ?: playerConnection.player.duration
         }
     }
 
