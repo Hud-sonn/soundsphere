@@ -842,4 +842,7 @@
     <string name="audio_track_playback_params">Hardware-Audioverarbeitung verwenden</string>
     <string name="audio_track_playback_params_description">Verwenden Sie für Geschwindigkeits- und Tonhöhenänderungen die Android-Funktion „AudioTrack“ anstelle einer softwarebasierten Verarbeitung. Dies ist bei extremen Tonhöhenwerten zuverlässiger.</string>
     <string name="auto_radio_queue">Automatisch Radio-Warteschlange</string>
+    <string name="discord_status_connecting">Verbindung zu Discord wird hergestellt…</string>
+    <string name="discord_status_reconnecting">Verbindung zu Discord wird wiederhergestellt…</string>
+    <string name="discord_status_connected">Verbunden</string>
 </resources>
