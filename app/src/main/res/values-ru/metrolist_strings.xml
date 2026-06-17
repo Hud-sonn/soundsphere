@@ -507,7 +507,7 @@
     <string name="hide_youtube_shorts">Скрыть YouTube Shorts</string>
     <string name="listen_together_in_top_bar">«Слушать вместе» в верхней панели</string>
     <string name="listen_together_in_top_bar_desc">Показывать «Слушать вместе» в верхней панели вместо панели навигации</string>
-    <string name="discord_advanced_mode_description">Показать дополнительные параметры настройки Rich Presence</string>
+    <string name="discord_advanced_mode_description">Настраивайте каждое поле Rich Presence с помощью плейсхолдеров</string>
     <string name="discord_activity_playing">Играет</string>
     <string name="discord_activity_listening">Слушает</string>
     <string name="discord_activity_watching">Смотрит</string>
