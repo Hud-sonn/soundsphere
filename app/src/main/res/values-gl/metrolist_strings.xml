@@ -455,4 +455,5 @@
     <string name="autoplay_desc">Reproducir automaticamente a seguinte canción cando remate a actual</string>
     <string name="back">Voltar</string>
     <string name="clear_search">Limpar procura</string>
+    <string name="alarm_next_trigger">Seguinte activación</string>
 </resources>
