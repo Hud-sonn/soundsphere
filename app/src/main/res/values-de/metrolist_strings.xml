@@ -845,4 +845,16 @@
     <string name="discord_status_connecting">Verbindung zu Discord wird hergestellt…</string>
     <string name="discord_status_reconnecting">Verbindung zu Discord wird wiederhergestellt…</string>
     <string name="discord_status_connected">Verbunden</string>
+    <string name="discord_status_authorizing">Autorisieren…</string>
+    <string name="discord_status_authorized">Autorisiert</string>
+    <string name="discord_status_not_initialized">Nicht initialisiert</string>
+    <string name="discord_error_loopback_timeout">Discord hat nicht rechtzeitig geantwortet. Bitte versuche es erneut.</string>
+    <string name="discord_error_loopback_unbound">Ein lokaler Callback-Port konnte nicht geöffnet werden. Bitte geben Sie einen frei und versuchen Sie es erneut.</string>
+    <string name="discord_error_no_browser">Es wurde kein Browser gefunden, um die Discord-Autorisierung abzuschließen.</string>
+    <string name="discord_error_token_refresh_failed">Die Discord-Sitzung ist abgelaufen. Bitte stelle die Verbindung erneut her.</string>
+    <string name="discord_error_invalid_scope">Discord hat die Verbindung abgelehnt. Bitte stelle die Verbindung erneut her und erteile die erforderliche Berechtigung.</string>
+    <string name="discord_error_banner_title">Discord-Fehler</string>
+    <string name="discord_integration">Discord-Integration</string>
+    <string name="enable_discord_rpc">„Rich Presence“ aktivieren</string>
+    <string name="discord_state">Bundesstaat</string>
 </resources>
