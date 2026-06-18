@@ -456,4 +456,8 @@
     <string name="back">Voltar</string>
     <string name="clear_search">Limpar procura</string>
     <string name="alarm_next_trigger">Seguinte activación</string>
+    <plurals name="n_time">
+        <item quantity="one">%d vez</item>
+        <item quantity="other">%d veces</item>
+    </plurals>
 </resources>
