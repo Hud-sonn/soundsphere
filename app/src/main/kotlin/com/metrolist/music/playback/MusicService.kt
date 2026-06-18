@@ -208,6 +208,7 @@ import com.metrolist.music.utils.SyncUtils
 import com.metrolist.music.utils.getArtistSeparator
 import com.metrolist.music.utils.joinToArtistString
 import com.metrolist.music.utils.YTPlayerUtils
+import com.metrolist.music.utils.cipher.CipherDeobfuscator
 import com.metrolist.music.utils.dataStore
 import com.metrolist.music.utils.get
 import com.metrolist.music.utils.reportException
@@ -3152,6 +3153,18 @@ class MusicService :
             YTPlayerUtils.forceRefreshForVideo(mediaId)
         } catch (e: Exception) {
             Timber.tag(TAG).e(e, "Failed to clear decryption caches")
+        }
+
+        // A 403 can also mean the cipher produced a wrong-but-non-throwing signature from a
+        // stale/wrong player config — invisible to the cipher's own exception-retry. Ask it to
+        // re-fetch its config (rate-limited); if that corrects the table, the cipher rebuilds its
+        // WebView on the next decipher, so we clear the WEB_REMIX failure set to let playback return
+        // to WEB_REMIX — no app restart. Affects every cipher client (WEB_REMIX/WEB_CREATOR/TVHTML5/WEB).
+        scope.launch {
+            if (CipherDeobfuscator.onStreamRejected()) {
+                Timber.tag(TAG).d("Player config changed after stream rejection — restoring WEB_REMIX")
+                YTPlayerUtils.clearWebRemixFailures()
+            }
         }
 
         retryJob?.cancel()
