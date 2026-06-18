@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -496,10 +497,10 @@ fun OnlineSearchResult(
                                 NavigationTitle(summary.title)
                             }
 
-                            items(
+                            itemsIndexed(
                                 items = summary.items,
-                                key = { "${summary.title}/${it.id}/${summary.items.indexOf(it)}" },
-                                itemContent = ytItemContent,
+                                key = { index, item -> "${summary.title}/${item.id}/$index" },
+                                itemContent = { index, item -> ytItemContent(item) },
                             )
                         }
 
