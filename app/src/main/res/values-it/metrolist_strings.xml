@@ -537,7 +537,7 @@
     <string name="discord_activity_watching">Guardando</string>
     <string name="discord_activity_listening">Ascoltando</string>
     <string name="discord_activity_playing">Riproducendo</string>
-    <string name="discord_information_warning">Metrolist invia il brano attualmente in riproduzione a Discord\'s Gateway per aggiornare la tua Rich Presence. Tutti i dati passano direttamente dal tuo dispositivo a Discord: non sono coinvolti server di terze parti. Il tuo token rimane sul dispositivo e non viene mai condiviso. Tuttavia, l\'utilizzo di un token utente per le connessioni Gateway non è ufficialmente supportato e potrebbe violare i Termini di servizio di Discord. Procedi a tua discrezione!</string>
+    <string name="discord_information_warning">Metrolist utilizza l\'OAuth2 pubblico e le API gateway di Discord per condividere ciò che stai ascoltando. L\'autorizzazione avviene tramite una sessione nel browser locale che si chiude automaticamente dopo aver acquisito il codice — nulla viene inviato a server di terze parti. Il tuo token viene memorizzato su questo dispositivo nelle preferenze crittografate e non viene mai condiviso. Metrolist si connette direttamente a wss://gateway.discord.gg per pubblicare la tua attività e richiede solo l\'ambito minimo di applicazione necessario (sdk.social_layer_presence).</string>
     <string name="player_background_solid">Solido</string>
     <string name="resume_on_bluetooth_connect">Riprendi dalla connessione Bluetooth</string>
     <string name="lyrics_romanize_hindi">Romanizza testo in Hindi</string>
@@ -849,4 +849,12 @@
     <string name="auto_radio_queue_desc">Crea automaticamente una coda radio durante la riproduzione di un brano dalla ricerca o dalla home</string>
     <string name="audio_track_playback_params">Utilizza l\'elaborazione audio hardware</string>
     <string name="audio_track_playback_params_description">Utilizza AudioTrack di Android per modifiche di velocità/tono invece dell\'elaborazione software. Più affidabile per valori di pitch estremi</string>
+    <string name="discord_status_connecting">Connessione a Discord in corso…</string>
+    <string name="discord_status_reconnecting">Riconnessione a Discord in corso…</string>
+    <string name="discord_status_connected">Connesso</string>
+    <string name="discord_status_authorizing">Autorizzazione in corso…</string>
+    <string name="discord_status_authorized">Autorizzato</string>
+    <string name="discord_status_not_initialized">Non inizializzato</string>
+    <string name="discord_error_loopback_timeout">Discord non ha inviato la risposta in tempo. Per favore riprova.</string>
+    <string name="discord_error_loopback_unbound">Non è stato possibile aprire una porta callback locale. Per favore liberane una e riprova.</string>
 </resources>
