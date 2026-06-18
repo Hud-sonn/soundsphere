@@ -28,7 +28,7 @@
     <string name="lyrics">Şarkı sözleri</string>
     <string name="already_in_playlist">Zaten oynatma listesinde:</string>
     <plurals name="n_time">
-        <item quantity="one">%d defa</item>
+        <item quantity="one">%d kez</item>
         <item quantity="other">%d kez</item>
     </plurals>
     <string name="similar_content">Benzer içerik</string>
@@ -80,7 +80,7 @@
     <string name="likes">Beğeni</string>
     <string name="dislikes">Beğenmeme</string>
     <plurals name="seconds">
-        <item quantity="one">1 saniye</item>
+        <item quantity="one">%d saniye</item>
         <item quantity="other">%d saniye</item>
     </plurals>
     <string name="please_wait">Lütfen bekleyin</string>
@@ -227,20 +227,20 @@
     <string name="album_art_for">%s için albüm kapağı</string>
     <string name="wrapped_total_albums_title">Şunları dinledin</string>
     <string name="wrapped_total_albums_subtitle">benzersiz albüm!</string>
-    <string name="wrapped_top_album_title">En iyi albümün</string>
+    <string name="wrapped_top_album_title">En çok dinlediğin albüm</string>
     <string name="wrapped_playlist_ready">Kişisel çalma listen hazır!</string>
-    <string name="wrapped_top_5_albums_title">En iyi 5 albümün</string>
+    <string name="wrapped_top_5_albums_title">En çok dinlediğin 5 albüm</string>
     <string name="wrapped_album_listening_time">Bu albümü %d dakika dinledin!</string>
     <string name="wrapped_album_listening_time_minutes">%d dakika</string>
     <string name="wrapped_no_data">Veri yok</string>
-    <string name="wrapped_top_5_artists_title">Yılın en iyi sanatçıları</string>
+    <string name="wrapped_top_5_artists_title">Yılın en çok dinlediğin sanatçıları</string>
     <string name="wrapped_artist_listening_time">%d dakika</string>
-    <string name="wrapped_top_5_songs_title">Yılın en iyi şarkıları</string>
+    <string name="wrapped_top_5_songs_title">Yılın en çok dinlediğin şarkıları</string>
     <string name="wrapped_top_song_album_art_content_description">Albüm görseli</string>
-    <string name="wrapped_top_artist_title">Yılın en iyi sanatçısı</string>
-    <string name="wrapped_top_artist_image_content_description">En iyi sanatçı görseli</string>
-    <string name="wrapped_top_artist_listening_time">Onları %d dakika dinlediniz!</string>
-    <string name="wrapped_top_song_title">En çok çaldığın şarkı</string>
+    <string name="wrapped_top_artist_title">Yılın en çok dinlediğin sanatçısı</string>
+    <string name="wrapped_top_artist_image_content_description">En çok dinlenen sanatçı görseli</string>
+    <string name="wrapped_top_artist_listening_time">Onları %d dakika dinledin!</string>
+    <string name="wrapped_top_song_title">En çok dinlediğin şarkı</string>
     <string name="wrapped_top_song_listening_time">%d dakika boyunca dinlediniz!</string>
     <string name="wrapped_total_artists_title">Şunları dinlediniz</string>
     <string name="wrapped_total_artists_subtitle">benzersiz sanatçı!</string>
@@ -436,7 +436,7 @@
     <string name="user_blocked_by_host">Oda sahibi tarafından engellendi</string>
     <string name="transfer_ownership">Sahipliği devret</string>
     <string name="not_playing">Şarkı oynatılmıyor</string>
-    <string name="tap_to_play">Metrolist\'i açmak için tıkla</string>
+    <string name="tap_to_play">Metrolist\'i açmak için dokun</string>
     <string name="widget_music_player">Müzik Çalar</string>
     <string name="widget_turntable">Dönen plak</string>
     <string name="together">Birlikte</string>
@@ -508,7 +508,7 @@
     <string name="ai_provider_openai_help">https://platform.openai.com/api-keys adresini ziyaret edin</string>
     <string name="ai_provider_claude_help">https://console.anthropic.com/settings/keys adresini ziyaret edin</string>
     <string name="ai_provider_gemini_help">https://aistudio.google.com/apikey adresini ziyaret edin</string>
-    <string name="ai_provider_perplexity_help">https://perplexity.ai/settings/api sitesini ziyaret et</string>
+    <string name="ai_provider_perplexity_help">https://perplexity.ai/settings/api adresini ziyaret edin</string>
     <string name="ai_provider_xai_help">https://console.x.ai adresini ziyaret edin</string>
     <string name="ai_provider_deepl_help">Ücretli ve ücretsiz anahtarlar için https://deepl.com/pro-api adresini ziyaret edin</string>
     <string name="ai_deepl_formality">Resmiyet</string>
@@ -520,8 +520,8 @@
     <string name="discord_status_idle">Boşta</string>
     <string name="discord_status_dnd">Rahatsız etmeyin</string>
     <string name="discord_buttons">Butonlar</string>
-    <string name="discord_button_1">1. tuş</string>
-    <string name="discord_button_2">2. tuş</string>
+    <string name="discord_button_1">1. buton</string>
+    <string name="discord_button_2">2. buton</string>
     <string name="discord_information_warning">Metrolist, ne dinlediğinizi paylaşmak için Discord\'un herkese açık OAuth2 ve Gateway API\'lerini kullanır. Yetkilendirme, kodu aldıktan sonra kendini kapatan yerel bir tarayıcı oturumu üzerinden yapılır; üçüncü taraf sunuculara hiçbir şey gönderilmez. Token\'ınız bu cihazda şifrelenmiş tercihlerde saklanır ve asla paylaşılmaz. Metrolist, etkinliğinizi yayımlamak için doğrudan wss://gateway.discord.gg adresine bağlanır ve yalnızca gereken minimum kapsamı ister (sdk.social_layer_presence).</string>
     <string name="discord_activity_type">Etkinlik türü</string>
     <string name="discord_activity_playing">Oynuyor</string>
@@ -586,9 +586,9 @@
     <string name="daily_discover_because_you_listen_to">%1$s dinlediğin için</string>
     <string name="daily_discover_similar_to">%1$s benzeri</string>
     <string name="daily_discover_based_on">%1$s baz alınarak</string>
-    <string name="daily_discover_for_fans_of">%1$s fanları için</string>
+    <string name="daily_discover_for_fans_of">%1$s sevenler için</string>
     <string name="from_the_community">Topluluktan</string>
-    <string name="logout_dialog_title">Kütüphane verileri saklansın mı?</string>
+    <string name="logout_dialog_title">Kitaplık verileri saklansın mı?</string>
     <string name="logout_dialog_message">Oynatma listelerinizi ve kitaplık verilerinizi saklamak istiyor musunuz? İndirilen şarkılar her durumda saklanacaktır</string>
     <string name="logout_keep">Sakla</string>
     <string name="logout_clear">Temizle</string>
@@ -621,7 +621,7 @@
     <string name="save_episode_for_later">Daha sonrası için kaydet</string>
     <string name="save_episode_for_later_desc">Daha sonra dinle listenize ekleyin</string>
     <string name="remove_episode_from_saved">Kaydedilenlerden kaldır</string>
-    <string name="subscribe_to_podcast">Podcast\'i kütüphaneye kaydet</string>
+    <string name="subscribe_to_podcast">Podcast\'i kitaplığa kaydet</string>
     <plurals name="n_episode">
         <item quantity="one">%d bölüm</item>
         <item quantity="other">%d bölüm</item>
@@ -825,7 +825,7 @@
     <string name="wizard_select_eq_profiles">%s için EQ profili seç</string>
     <string name="wizard_save_profiles">Profilleri kaydet</string>
     <string name="loudness_level">Ses seviyesi</string>
-    <string name="loudness_level_aggressive">Agresif (-7dB)</string>
+    <string name="loudness_level_aggressive">Agresif (-7 dB)</string>
     <string name="loudness_level_loud">Yüksek (-11 dB)</string>
     <string name="loudness_level_balanced">Dengeli (-14 dB)</string>
     <string name="loudness_level_quiet">Sessiz (-19 dB)</string>
@@ -833,14 +833,14 @@
     <string name="show_most_stats_playlists">Haftalık ve Aylık En Çok Dinlenenler listelerini göster</string>
     <string name="show_most_stats_playlists_desc">En çok dinlenenlere dayalı listeleri İstatistikler ve Kitaplık\'ta oluştur ve göster</string>
     <string name="pin">Sabitle</string>
-    <string name="unpin">Sabitlemeyi Kaldır</string>
+    <string name="unpin">Sabitlemeyi kaldır</string>
     <string name="widget_playlists">Oynatma listeleri</string>
     <string name="widget_playlists_description">Mini oynatıcı kontrolleri olan oynatma listesi kısayolları</string>
     <string name="choose_something_below">Alttan bir şey seç</string>
     <string name="and">ve</string>
     <string name="auto_radio_queue">otomatik radyo sırası</string>
     <string name="auto_radio_queue_desc">aramadan veya ana ekrandan şarkı başlatıldığında otomatik olarak şarkı sırası oluştur</string>
-    <string name="audio_track_playback_params">donanım ses işleyicisini kullan</string>
+    <string name="audio_track_playback_params">Donanım ses işlemeyi kullan</string>
     <string name="audio_track_playback_params_description">Yazılımsal işleme yerine hız/perde (speed/pitch) değişiklikleri için Android\'in AudioTrack altyapısını kullanır. Aşırı perde değerlerinde daha güvenilirdir</string>
     <string name="discord_status_connecting">Discord\'a bağlanılıyor…</string>
     <string name="discord_status_reconnecting">Discord\'a yeniden bağlanılıyor…</string>
