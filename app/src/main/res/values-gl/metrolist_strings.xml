@@ -460,4 +460,17 @@
         <item quantity="one">%d vez</item>
         <item quantity="other">%d veces</item>
     </plurals>
+    <string name="stream_source_native_clients">Clientes nativos</string>
+    <string name="stream_source_creator_clients">Clientes de creadores</string>
+    <string name="stream_source_web_remix">WEB_REMIX</string>
+    <string name="stream_source_web_remix_desc">Cliente primario. Autenticado; cobre a maioría das pistas.</string>
+    <string name="stream_source_tvhtml5">TVHTML5</string>
+    <string name="stream_source_tvhtml5_desc">Cliente de TV. Alternativa fiable.</string>
+    <string name="stream_source_visionos">visionOS</string>
+    <string name="stream_source_visionos_desc">Apple Vision. Sen control de fluxo restritivo; moi fiable.</string>
+    <string name="stream_source_android_vr">Android VR</string>
+    <string name="stream_source_android_vr_desc">Clientes de Android VR (todas as versións).</string>
+    <string name="stream_source_ios">iOS / iPadOS</string>
+    <string name="stream_source_ios_desc">Clientes de Apple iOS e iPadOS. Desactivado por defecto; limitado ao superar ~1 MiB.</string>
+    <string name="stream_source_web_creator">WEB_CREATOR</string>
 </resources>
