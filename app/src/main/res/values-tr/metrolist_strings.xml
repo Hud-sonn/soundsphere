@@ -148,7 +148,7 @@
     <string name="lyrics_romanize_serbian">Sırpça sözleri Latinleştir</string>
     <string name="lyrics_romanize_bulgarian">Bulgarca sözleri Latinleştir</string>
     <string name="line_by_line_option_title">Dili satır satır algıla</string>
-    <string name="line_by_line_option_desc">Kiril alfabesinde metin, tüm şarkı olarak algılanmak yerine satır satır algılanacaktır</string>
+    <string name="line_by_line_option_desc">Kiril yazısı, şarkının tamamı üzerinden değil, satır satır algılanacaktır</string>
     <string name="line_by_line_dialog_title">Emin misiniz?</string>
     <string name="line_by_line_dialog_desc">Bu, başarılı veya başarısız olabilecek deneysel bir özelliktir.\n\nVarsayılan olarak dil tüm şarkı üzerinden belirlenir. Bu seçenek açık olduğunda, dil parçalara ayırılarak belirlenecektir. Bu sayede çok dilli şarkılar da çalışabilir ancak algılanan dil her zaman doğru olmayabilir. Örneğin, Ukraynaca bir satır Ukraynaca’ya özgü karakter içermiyorsa, yanlışlıkla Rusça olarak Latinleştirilebilir.\n\nSorun yaşamıyorsanız, bu seçeneği kapalı bırakmanız önerilir</string>
     <string name="romanize_current_track">Mevcut parçayı Latinleştir</string>
