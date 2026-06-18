@@ -335,7 +335,7 @@
     <string name="listen_together_you_are_host">Oda sahibi sensin</string>
     <string name="listen_together_you_are_guest">Misafirsin</string>
     <string name="listen_together_join_requests">Katılma istekleri</string>
-    <string name="listen_together_view_logs">Logları görüntüle</string>
+    <string name="listen_together_view_logs">Kayıtları görüntüle</string>
     <string name="listen_together_view_logs_desc">Bağlantı olaylarını ve mesajları hata ayıklamak için incele</string>
     <string name="listen_together_logs">Bağlantı kayıtları</string>
     <string name="listen_together_no_logs">Henüz hiç kayıt yok</string>
@@ -385,11 +385,11 @@
     <string name="unmute">Sesi aç</string>
     <string name="crash_title">Uygulama çöktü</string>
     <string name="crash_description">Beklenmedik bir hata oluştu. Sorunu düzeltmemize yardımcı olmak için lütfen hata raporunu paylaşın</string>
-    <string name="crash_share_logs">Günlükleri paylaş</string>
+    <string name="crash_share_logs">Kayıtları paylaş</string>
     <string name="crash_share_title">Hata raporlarını paylaş</string>
     <string name="crash_report_subject">Metrolist hata raporu</string>
     <string name="crash_close">Kapat</string>
-    <string name="crash_no_log">Hata logları bulunmamakta</string>
+    <string name="crash_no_log">Çökme kayıtları mevcut değil</string>
     <string name="palette_dynamic">Dinamik</string>
     <string name="palette_crimson">Kıpkırmızı</string>
     <string name="palette_rose">Gül Pembesi</string>
