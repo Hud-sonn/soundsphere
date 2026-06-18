@@ -280,8 +280,8 @@
     <string name="import_profile">Profili içe aktar</string>
     <string name="eq_disabled">Devre dışı</string>
     <plurals name="band_count">
-        <item quantity="one">%d grup</item>
-        <item quantity="other">%d grup</item>
+        <item quantity="one">%d bant</item>
+        <item quantity="other">%d bant</item>
     </plurals>
     <string name="delete_profile_desc">Profili sil</string>
     <string name="delete_profile_confirmation">%1$s profilini silmek istediğinizden emin misiniz? Bu işlem geri alınamaz</string>
@@ -800,7 +800,7 @@
     <string name="lyrics_animation_fade">Solma</string>
     <string name="lyrics_animation_none">Yok</string>
     <string name="respect_agent_positioning_desc">Şarkı sözlerini sanatçı rolüne göre hizala (ör. arka vokaller)</string>
-    <string name="respect_agent_positioning">Rol konumlandırmasına uyun</string>
+    <string name="respect_agent_positioning">Rol konumlandırmasına uy</string>
     <string name="show_interval_indicator_desc">Uzun enstrümantal bölümlerde bir ilerleme çubuğu gösterir</string>
     <string name="show_interval_indicator">Aralık göstergesini göster</string>
     <string name="hide_status_bar_fullscreen_desc">Şarkı sözleri tam ekran modundayken durum çubuğunu gizle</string>
