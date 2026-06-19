@@ -34,7 +34,10 @@ import com.metrolist.music.utils.cipher.FunctionNameExtractor
 import com.metrolist.music.utils.cipher.PlayerJsFetcher
 import com.metrolist.music.utils.potoken.PoTokenGenerator
 import com.metrolist.music.utils.potoken.PoTokenResult
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import timber.log.Timber
@@ -67,6 +70,14 @@ object YTPlayerUtils {
     fun clearWebRemixFailures() {
         webRemixFailedIds.clear()
     }
+
+    // Fire-and-forget scope for the cipher config self-heal triggered when a cipher client fails
+    // stream validation during resolution. Only WEB_REMIX skips HEAD validation (so its bad URL
+    // 403s on ExoPlayer and hits MusicService's handler); WEB_CREATOR / TVHTML5 / WEB are validated
+    // here and never reach ExoPlayer, so without this trigger a WEB_REMIX-disabled user would never
+    // self-heal a stale/wrong cipher config. Kept off the resolution coroutine so the (network)
+    // refresh never blocks falling through to the next client.
+    private val cipherRefreshScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     private val MAIN_CLIENT: YouTubeClient = WEB_REMIX
 
@@ -457,6 +468,17 @@ object YTPlayerUtils {
                     break
                 } else {
                     Timber.tag(logTag).d("Stream validation failed for client: ${currentClient.clientName}")
+                    // A cipher client failing validation can mean a wrong-but-non-throwing signature
+                    // from a stale/wrong player config — caught here at resolution, so it never
+                    // reaches ExoPlayer and MusicService's 403 handler never fires. Ask the cipher to
+                    // re-fetch its config (rate-limited, off this coroutine); if it changes, the
+                    // cipher rebuilds its WebView and the next resolution returns to this client — no
+                    // app restart. This is what covers WEB_CREATOR/TVHTML5/WEB-only users.
+                    if (needsNTransform) {
+                        cipherRefreshScope.launch {
+                            if (CipherDeobfuscator.onStreamRejected()) clearWebRemixFailures()
+                        }
+                    }
                 }
             } else {
                 Timber.tag(logTag).d("Player response status not OK: ${streamPlayerResponse?.playabilityStatus?.status}, reason: ${streamPlayerResponse?.playabilityStatus?.reason}")
