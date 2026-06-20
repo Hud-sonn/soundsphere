@@ -856,7 +856,7 @@
     <string name="discord_error_banner_title">Discord-Fehler</string>
     <string name="discord_integration">Discord-Integration</string>
     <string name="enable_discord_rpc">„Rich Presence“ aktivieren</string>
-    <string name="discord_state">Bundesstaat</string>
+    <string name="discord_state">Status</string>
     <string name="discord_details">Details</string>
     <string name="discord_enable_button_1">Schaltfläche 1 anzeigen</string>
     <string name="discord_enable_button_2">Schaltfläche 2 anzeigen</string>
