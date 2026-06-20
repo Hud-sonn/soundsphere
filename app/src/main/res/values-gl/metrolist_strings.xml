@@ -829,4 +829,9 @@
     <string name="prevent_duplicate_tracks_in_queue_desc">Ao engadir unha pista que xa está na cola, moverase da súa posición anterior en vez de engadirse de novo</string>
     <string name="show_wrapped_card">Amosar a tarxeta do Wrapped</string>
     <string name="enable_swipe_thumbnail">Activa o escorregamento para cambiar de canción</string>
+    <string name="swipe_song_to_add">Escorrega á esquerda para engadir a canción á cola ou á dereita para reproducir a seguinte</string>
+    <string name="swipe_song_to_remove">Escorrega para eliminar a canción da lista de reprodución</string>
+    <string name="lyrics_click_change">Cambiar a letra ao premer</string>
+    <string name="lyrics_from_provider">Letras de %s</string>
+    <string name="youtube_music_lyrics_note">NOTA: as letras de YouTube Music amosaranse automaticamente cando non haxa outra fonte dispoñible. Polo xeral, non están sincronizadas</string>
 </resources>
