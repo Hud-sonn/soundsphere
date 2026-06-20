@@ -81,7 +81,6 @@ import com.metrolist.music.constants.HideExplicitKey
 import com.metrolist.music.constants.HideVideoSongsKey
 import com.metrolist.music.db.entities.Album
 import com.metrolist.music.playback.queues.LocalAlbumRadio
-import com.metrolist.music.ui.component.ClickableArtistText
 import com.metrolist.music.ui.component.IconButton
 import com.metrolist.music.ui.component.LocalMenuState
 import com.metrolist.music.ui.component.NavigationTitle
@@ -93,6 +92,7 @@ import com.metrolist.music.ui.menu.SongMenu
 import com.metrolist.music.ui.menu.YouTubeAlbumMenu
 import com.metrolist.music.ui.utils.backToMain
 import com.metrolist.music.ui.utils.resize
+import com.metrolist.music.utils.joinToArtistString
 import com.metrolist.music.utils.makeTimeString
 import com.metrolist.music.utils.rememberPreference
 import com.metrolist.music.viewmodels.AlbumViewModel
@@ -234,8 +234,8 @@ fun AlbumScreen(
                     Spacer(modifier = Modifier.height(8.dp))
 
                     // Artist Names - Below the album name
-                    ClickableArtistText(
-                        artists = albumWithSongs.artists,
+                    Text(
+                        text = albumWithSongs.artists.joinToArtistString(" ${stringResource(R.string.and)} ") { it.name },
                         style = MaterialTheme.typography.titleMedium.copy(
                             fontWeight = FontWeight.Normal,
                             color = MaterialTheme.colorScheme.secondary,
