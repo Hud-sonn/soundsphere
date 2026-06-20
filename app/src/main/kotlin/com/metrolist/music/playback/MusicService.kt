@@ -497,6 +497,25 @@ class MusicService :
         }
     )
 
+    // Tracks mediaIds for which a recoverSong() coroutine is currently in flight.
+    //
+    // resolveDataSpec() (createDataSourceFactory()) calls recoverSong() on every
+    // dataSpec/chunk resolution, not just once per song. For a song cached a long
+    // time ago the cache index can be fragmented into many small CacheSpans
+    // (interrupted downloads, LeastRecentlyUsedCacheEvictor reclaiming arbitrary
+    // spans), so a single playback can re-resolve dozens or hundreds of times in a
+    // very short window. Without this guard, every single resolve would launch its
+    // own coroutine doing a Room read + a hop to Dispatchers.Main + a Room
+    // transaction — all redundant, since they all converge on the same mediaId and
+    // mostly no-op. If those launches outpace how fast they can drain (e.g. the
+    // Main thread is busy with playback/UI work), dozens of them pile up in memory
+    // at once, which is enough to blow past this app's heap limit on low-RAM
+    // devices and surface as an OutOfMemoryError that looks like a leak.
+    //
+    // This set makes recoverSong() effectively a no-op while a call for the same
+    // mediaId is already running, so at most one is ever in flight per song.
+    private val recoveringSongs = Collections.synchronizedSet(mutableSetOf<String>())
+
     private val sessionKey
         get() = YouTube.dataSyncId.takeIf { !it.isNullOrBlank() }
             ?: YouTube.visitorData.takeIf { !it.isNullOrBlank() }
@@ -1710,6 +1729,32 @@ class MusicService :
                             relatedSongId = it.id,
                         )
                     }.forEach(::insert)
+            }
+        }
+    }
+
+    /**
+     * Launches [recoverSong] for [mediaId] unless a call for the same mediaId is
+     * already in flight, in which case this is a no-op.
+     *
+     * recoverSong() is called from resolveDataSpec() on every dataSpec/chunk
+     * resolution rather than once per song, so without this guard a heavily
+     * fragmented (e.g. long-cached) file can fan out dozens of redundant,
+     * concurrent recoverSong() coroutines — each doing a Room read, a hop to
+     * Dispatchers.Main, and a Room transaction — for work that's already done
+     * after the first one completes. Always call this instead of launching
+     * recoverSong() directly.
+     */
+    private fun recoverSongDeduped(
+        mediaId: String,
+        playbackData: YTPlayerUtils.PlaybackData? = null,
+    ) {
+        if (!recoveringSongs.add(mediaId)) return
+        scope.launch(Dispatchers.IO) {
+            try {
+                recoverSong(mediaId, playbackData)
+            } finally {
+                recoveringSongs.remove(mediaId)
             }
         }
     }
@@ -3703,7 +3748,7 @@ class MusicService :
                     }
 
                 if (downloadCache.isCached(mediaId, dataSpec.position, requiredLength)) {
-                    scope.launch(Dispatchers.IO) { recoverSong(mediaId) }
+                    recoverSongDeduped(mediaId)
                     return@Factory dataSpec
                 }
 
@@ -3714,12 +3759,12 @@ class MusicService :
                     // relaunch (the main reason relaunch was slow vs. playing from cache instantly).
                     // CacheDataSource serves by key (mediaId); uncached chunks fall through below and
                     // resolve a URL on demand. FLAG_IGNORE_CACHE_ON_ERROR covers a genuinely bad file.
-                    scope.launch(Dispatchers.IO) { recoverSong(mediaId) }
+                    recoverSongDeduped(mediaId)
                     return@Factory dataSpec
                 }
 
                 songUrlCache[mediaId]?.takeIf { it.second > System.currentTimeMillis() }?.let {
-                    scope.launch(Dispatchers.IO) { recoverSong(mediaId) }
+                    recoverSongDeduped(mediaId)
                     return@Factory dataSpec.withUri(it.first.toUri())
                 }
             } else {
@@ -3798,7 +3843,7 @@ class MusicService :
                         ),
                     )
                 }
-                scope.launch(Dispatchers.IO) { recoverSong(mediaId, nonNullPlayback) }
+                recoverSongDeduped(mediaId, nonNullPlayback)
 
                 // Clear bypass flag now that we've fetched fresh stream
                 if (bypassCacheForQualityChange.remove(mediaId)) {
@@ -4479,29 +4524,57 @@ class MusicService :
     /**
      * Updates all app widgets with current playback state
      */
+    // Tracks whether an updateWidgetUI() coroutine is currently running, and the most
+    // recently requested (isPlaying, isLiked) pair while one is in flight.
+    //
+    // updateWidgetUI() is called from ~10 different sites plus the 200ms polling loop
+    // in startWidgetUpdates(). It previously launched a brand new coroutine on every
+    // single call with no bound on concurrency, so a burst of calls (player state
+    // changing rapidly, or just the routine 200ms tick landing mid-burst) could pile up
+    // several of these in flight at once. updateWidgetUI() doesn't leak memory on its
+    // own, but during any future heap pressure elsewhere, unbounded concurrent launches
+    // like this are exactly the kind of thing that adds more candidates for whichever
+    // tiny allocation ends up being the one that fails. This makes it single-flight: at
+    // most one update runs at a time, and any calls that arrive while it's running are
+    // coalesced into a single follow-up using the latest requested state — no update is
+    // silently dropped, it's just never run more than once concurrently.
+    private var widgetUpdateInFlight = false
+    private var pendingWidgetUpdate: Pair<Boolean, Boolean?>? = null
+
     private fun updateWidgetUI(
         isPlaying: Boolean,
         isLiked: Boolean? = currentSong.value?.song?.let { if (it.isEpisode) it.inLibrary != null else it.liked }
     ) {
+        pendingWidgetUpdate = isPlaying to isLiked
+        if (widgetUpdateInFlight) return
+        widgetUpdateInFlight = true
+
         scope.launch {
             try {
-                val songData = currentSong.value
-                val song = songData?.song
-                val songTitle = song?.title ?: getString(R.string.no_song_playing)
-                 val artistName = songData?.artists?.joinToArtistString(getArtistSeparator(this@MusicService)) { it.name } ?: getString(R.string.tap_to_open)
-                val resolvedIsLiked = isLiked == true
+                while (true) {
+                    val (playing, isLikedRequested) = pendingWidgetUpdate ?: break
+                    pendingWidgetUpdate = null
 
-                widgetManager.updateWidgets(
-                    title = songTitle,
-                    artist = artistName,
-                    artworkUri = song?.thumbnailUrl,
-                    isPlaying = isPlaying,
-                    isLiked = resolvedIsLiked,
-                    duration = if (player.duration != C.TIME_UNSET) player.duration else 0,
-                    currentPosition = player.currentPosition,
-                )
+                    val songData = currentSong.value
+                    val song = songData?.song
+                    val songTitle = song?.title ?: getString(R.string.no_song_playing)
+                    val artistName = songData?.artists?.joinToArtistString(getArtistSeparator(this@MusicService)) { it.name } ?: getString(R.string.tap_to_open)
+                    val resolvedIsLiked = isLikedRequested == true
+
+                    widgetManager.updateWidgets(
+                        title = songTitle,
+                        artist = artistName,
+                        artworkUri = song?.thumbnailUrl,
+                        isPlaying = playing,
+                        isLiked = resolvedIsLiked,
+                        duration = if (player.duration != C.TIME_UNSET) player.duration else 0,
+                        currentPosition = player.currentPosition,
+                    )
+                }
             } catch (e: Exception) {
                 // Widget not added to home screen or other error
+            } finally {
+                widgetUpdateInFlight = false
             }
         }
     }
