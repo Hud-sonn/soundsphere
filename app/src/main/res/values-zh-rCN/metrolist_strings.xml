@@ -883,4 +883,5 @@
     <string name="discord_error_token_refresh_failed">Discord 会话已过期。请重新连接。</string>
     <string name="discord_error_invalid_scope">Discord 已拒绝连接。请重新连接并授予所需权限。</string>
     <string name="discord_error_banner_title">Discord 错误</string>
+    <string name="error_job_cancelled">视频无法播放。请重试或跳到下一首歌曲。</string>
 </resources>
