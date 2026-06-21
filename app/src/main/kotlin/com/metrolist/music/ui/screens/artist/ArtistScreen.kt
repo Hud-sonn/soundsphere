@@ -75,7 +75,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.util.fastForEach
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
@@ -173,6 +172,12 @@ fun ArtistScreen(
         derivedStateOf {
             lazyListState.firstVisibleItemIndex == 0 && lazyListState.firstVisibleItemScrollOffset < 100
         }
+    }
+
+    val distinctItemsBySection = remember(artistPage?.sections) {
+        artistPage?.sections?.map { section ->
+            section.items.distinctBy { it.id }
+        } ?: emptyList()
     }
 
     LaunchedEffect(libraryArtist) {
@@ -652,7 +657,7 @@ fun ArtistScreen(
                         }
                     }
                 } else {
-                    artistPage?.sections?.fastForEach { section ->
+                    artistPage?.sections?.forEachIndexed { index, section ->
                         if (section.items.isNotEmpty()) {
                             item(key = "section_${section.title}") {
                                 NavigationTitle(
@@ -672,7 +677,7 @@ fun ArtistScreen(
 
                         if ((section.items.firstOrNull() as? SongItem)?.album != null) {
                             items(
-                                items = section.items.distinctBy { it.id },
+                                items = distinctItemsBySection[index] ?: section.items,
                                 key = { "youtube_song_${it.id}" },
                             ) { song ->
                                 YouTubeListItem(
@@ -731,7 +736,7 @@ fun ArtistScreen(
                                     contentPadding = WindowInsets.systemBars.only(WindowInsetsSides.Horizontal).asPaddingValues(),
                                 ) {
                                     items(
-                                        items = section.items.distinctBy { it.id },
+                                        items = distinctItemsBySection[index] ?: section.items,
                                         key = { "youtube_album_${it.id}" },
                                     ) { item ->
                                         YouTubeGridItem(

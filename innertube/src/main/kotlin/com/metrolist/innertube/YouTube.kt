@@ -72,6 +72,9 @@ import com.metrolist.innertube.pages.SearchSummary
 import com.metrolist.innertube.pages.SearchSummaryPage
 import io.ktor.client.call.body
 import io.ktor.client.statement.bodyAsText
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -3342,16 +3345,25 @@ object YouTube {
 
         if (missingNames.isEmpty()) return items
 
-        val resolved = mutableMapOf<String, String>()
-        for (name in missingNames) {
-            val searchResult = search(name, SearchFilter.FILTER_ARTIST).getOrNull()
-            val normalizedName = name.trim()
-            val artistId = searchResult?.items
-                ?.filterIsInstance<ArtistItem>()
-                ?.firstOrNull { candidate ->
-                    candidate.title.trim().equals(normalizedName, ignoreCase = true)
-                }?.id
-            if (artistId != null) resolved[name] = artistId
+        val resolved = coroutineScope {
+            val semaphore = kotlinx.coroutines.sync.Semaphore(8)
+            missingNames.map { name ->
+                async {
+                    semaphore.acquire()
+                    try {
+                        val searchResult = search(name, SearchFilter.FILTER_ARTIST).getOrNull()
+                        val normalizedName = name.trim()
+                        val artistId = searchResult?.items
+                            ?.filterIsInstance<ArtistItem>()
+                            ?.firstOrNull { candidate ->
+                                candidate.title.trim().equals(normalizedName, ignoreCase = true)
+                            }?.id
+                        if (artistId != null) name to artistId else null
+                    } finally {
+                        semaphore.release()
+                    }
+                }
+            }.awaitAll().filterNotNull().toMap()
         }
 
         fun Artist.resolve() = if (id == null) resolved[name]?.let { copy(id = it) } ?: this else this
@@ -3364,6 +3376,48 @@ object YouTube {
                 is PodcastItem -> item.copy(author = item.author?.resolve())
                 else -> item
             }
+        }
+    }
+
+    /**
+     * Collects all unique missing artist names from [items], resolves them in parallel,
+     * and returns a name -> id map. Use this when resolving across multiple sections
+     * to avoid duplicate searches for the same artist.
+     */
+    suspend fun resolveArtistIdMap(items: List<YTItem>): Map<String, String> {
+        val missingNames = mutableSetOf<String>()
+        for (item in items) {
+            when (item) {
+                is SongItem -> item.artists.filter { it.id == null }.forEach { missingNames.add(it.name) }
+                is AlbumItem -> item.artists?.filter { it.id == null }?.forEach { missingNames.add(it.name) }
+                is PlaylistItem -> item.author?.let { if (it.id == null) missingNames.add(it.name) }
+                is EpisodeItem -> item.author?.let { if (it.id == null) missingNames.add(it.name) }
+                is PodcastItem -> item.author?.let { if (it.id == null) missingNames.add(it.name) }
+                else -> {}
+            }
+        }
+
+        if (missingNames.isEmpty()) return emptyMap()
+
+        return coroutineScope {
+            val semaphore = kotlinx.coroutines.sync.Semaphore(8)
+            missingNames.map { name ->
+                async {
+                    semaphore.acquire()
+                    try {
+                        val searchResult = search(name, SearchFilter.FILTER_ARTIST).getOrNull()
+                        val normalizedName = name.trim()
+                        val artistId = searchResult?.items
+                            ?.filterIsInstance<ArtistItem>()
+                            ?.firstOrNull { candidate ->
+                                candidate.title.trim().equals(normalizedName, ignoreCase = true)
+                            }?.id
+                        if (artistId != null) name to artistId else null
+                    } finally {
+                        semaphore.release()
+                    }
+                }
+            }.awaitAll().filterNotNull().toMap()
         }
     }
 }
