@@ -897,4 +897,5 @@
     <string name="stream_source_web_creator_desc">Client web Creator.</string>
     <string name="stream_source_android_creator">ANDROID_CREATOR</string>
     <string name="stream_source_android_creator_desc">Client créateur Android. Désactivé par défaut ; nécessite DroidGuard.</string>
+    <string name="error_job_cancelled">La vidéo ne peut pas être lue. Réessayez ou passez au titre suivant.</string>
 </resources>
