@@ -874,4 +874,13 @@
     <string name="stream_source_tvhtml5">TVHTML5</string>
     <string name="stream_source_tvhtml5_desc">Ứng dụng khách dành cho TV. Phương án dự phòng đáng tin cậy.</string>
     <string name="stream_source_visionos">visionOS</string>
+    <string name="stream_source_visionos_desc">Apple Vision. Không bóp hiệu năng; rất ổn định.</string>
+    <string name="stream_source_android_vr">Android VR</string>
+    <string name="stream_source_android_vr_desc">Ứng dụng Android VR (mọi phiên bản).</string>
+    <string name="stream_source_ios">iOS / iPadOS</string>
+    <string name="stream_source_ios_desc">Ứng dụng Apple iOS và iPadOS. Mặc định tắt; bóp hiệu năng khi vượt quá ~1 MiB.</string>
+    <string name="stream_source_web_creator">WEB_CREATOR</string>
+    <string name="stream_source_web_creator_desc">Ứng dụng web cho nhà sáng tạo</string>
+    <string name="stream_source_android_creator">ANDROID_CREATOR</string>
+    <string name="stream_source_android_creator_desc">Ứng dụng Android cho Nhà sáng tạo. Mặc định tắt; cần có DroidGuard.</string>
 </resources>
