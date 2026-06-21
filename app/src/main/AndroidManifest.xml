@@ -158,6 +158,23 @@
                 android:resource="@xml/shortcuts" />
         </activity>
 
+        <activity
+            android:name=".discord.DiscordOAuthActivity"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:theme="@style/Theme.AppCompat.NoActionBar">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="metrolistdiscord" />
+                <data android:host="oauth2" />
+                <data android:pathPrefix="/callback" />
+            </intent-filter>
+        </activity>
+
         <activity-alias
             android:name=".MainActivityAlias"
             android:enabled="true"
