@@ -189,22 +189,24 @@ data class HomePage(
 
                 return when {
                     renderer.isSong -> {
-                        val subtitleRuns = renderer.subtitle?.runs ?: return null
-                        val artistRuns = subtitleRuns.filter { 
-                            it.navigationEndpoint?.browseEndpoint?.browseId?.startsWith("MPREb_") != true 
-                        }
-                        val title = renderer.title.runs?.firstOrNull()?.text ?: return null
-                        val videoId = renderer.navigationEndpoint.watchEndpoint?.videoId ?: return null
-                        val artists = PageHelper.extractArtists(artistRuns).ifEmpty {
-                            subtitleRuns.firstOrNull()?.let { run ->
-                                listOf(Artist(name = run.text, id = null))
-                            } ?: emptyList()
-                        }
-                        
+                        val subtitleRuns = renderer.subtitle?.runs?.oddElements() ?: return null
                         SongItem(
-                            id = videoId,
-                            title = title,
-                            artists = artists,
+                            id = renderer.navigationEndpoint.watchEndpoint?.videoId ?: return null,
+                            title = renderer.title.runs?.firstOrNull()?.text ?: return null,
+                            artists = subtitleRuns.filter { run ->
+                                run.navigationEndpoint?.browseEndpoint?.browseId?.startsWith("UC") == true ||
+                                (run.navigationEndpoint?.browseEndpoint != null && 
+                                 run.navigationEndpoint.browseEndpoint.browseId.startsWith("MPREb_") != true)
+                            }.map { run ->
+                                Artist(
+                                    name = run.text,
+                                    id = run.navigationEndpoint?.browseEndpoint?.browseId
+                                )
+                            }.ifEmpty {
+                                subtitleRuns.firstOrNull()?.let { run -> 
+                                    listOf(Artist(name = run.text, id = null)) 
+                                } ?: emptyList()
+                            },
                             album = subtitleRuns.firstOrNull { 
                                 it.navigationEndpoint?.browseEndpoint?.browseId?.startsWith("MPREb_") == true 
                             }?.let {

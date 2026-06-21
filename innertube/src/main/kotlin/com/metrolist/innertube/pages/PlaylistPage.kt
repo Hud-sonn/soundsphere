@@ -1,11 +1,13 @@
 package com.metrolist.innertube.pages
 
 import com.metrolist.innertube.models.Album
+import com.metrolist.innertube.models.Artist
 import com.metrolist.innertube.models.MusicResponsiveListItemRenderer
 import com.metrolist.innertube.models.PlaylistItem
 import com.metrolist.innertube.models.SongItem
+import com.metrolist.innertube.models.oddElements
+import com.metrolist.innertube.models.splitBySeparator
 import com.metrolist.innertube.utils.parseTime
-import timber.log.Timber
 
 data class PlaylistPage(
     val playlist: PlaylistItem,
@@ -15,28 +17,28 @@ data class PlaylistPage(
 ) {
     companion object {
         fun fromMusicResponsiveListItemRenderer(renderer: MusicResponsiveListItemRenderer): SongItem? {
+            // Extract library tokens using the new method that properly handles multiple toggle items
             val libraryTokens = PageHelper.extractLibraryTokensFromMenuItems(renderer.menu?.menuRenderer?.items)
 
+            // Split the secondary line by bullet separator to separate artists from other metadata (like views)
             val secondaryLineRuns = renderer.flexColumns
                 .getOrNull(1)
                 ?.musicResponsiveListItemFlexColumnRenderer
                 ?.text
                 ?.runs
-
-            val title = renderer.flexColumns.firstOrNull()
-                ?.musicResponsiveListItemFlexColumnRenderer?.text
-                ?.runs?.firstOrNull()?.text ?: return null
-
-            if (secondaryLineRuns == null) {
-                Timber.w("PlaylistPage.fromMusicResponsiveListItemRenderer: Song '$title' - NO SECONDARY LINE (flexColumns[1] is null)")
-            }
-
-            val artists = PageHelper.extractArtists(secondaryLineRuns)
+                ?.splitBySeparator()
 
             return SongItem(
                 id = renderer.videoId ?: return null,
-                title = title,
-                artists = artists,
+                title = renderer.flexColumns.firstOrNull()
+                    ?.musicResponsiveListItemFlexColumnRenderer?.text
+                    ?.runs?.firstOrNull()?.text ?: return null,
+                artists = secondaryLineRuns?.firstOrNull()?.oddElements()?.map {
+                    Artist(
+                        name = it.text,
+                        id = it.navigationEndpoint?.browseEndpoint?.browseId,
+                    )
+                }.orEmpty(),
                 album = renderer.flexColumns.getOrNull(2)?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.firstOrNull()?.let {
                     Album(
                         name = it.text,
