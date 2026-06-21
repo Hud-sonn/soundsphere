@@ -192,7 +192,7 @@ fun ArtistScreen(
             state = lazyListState,
             contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues(),
         ) {
-            if (artistPage == null && !showLocal && libraryArtist == null) {
+            if (artistPage == null && !showLocal) {
                 item(key = "shimmer") {
                     ShimmerHost(
                         modifier =
