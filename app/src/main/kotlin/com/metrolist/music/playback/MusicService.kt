@@ -2970,6 +2970,9 @@ class MusicService :
         error.errorCode == PlaybackException.ERROR_CODE_IO_FILE_NOT_FOUND ||
             (error.cause as? PlaybackException)?.errorCode == PlaybackException.ERROR_CODE_IO_FILE_NOT_FOUND
 
+    private fun isRemotePlaybackError(error: PlaybackException): Boolean =
+        error.errorCode == PlaybackException.ERROR_CODE_REMOTE_ERROR
+
     override fun onPlayerError(error: PlaybackException) {
         super.onPlayerError(error)
 
@@ -3027,6 +3030,12 @@ class MusicService :
             isFileNotFoundError(error) -> {
                 Timber.tag(TAG).d("Cache file missing (ENOENT) detected, refreshing stream")
                 handleFileNotFoundError(mediaId)
+                return
+            }
+
+            isRemotePlaybackError(error) -> {
+                Timber.tag(TAG).d("Remote playback error detected (${error.errorCode}), refreshing stream URL")
+                handleExpiredUrlError(mediaId)
                 return
             }
 
