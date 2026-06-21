@@ -755,4 +755,12 @@
     <string name="pin">Закачи</string>
     <string name="unpin">Откачи</string>
     <string name="randomize_home_order">Разбъркай нареждането на главния екран</string>
+    <string name="widget_recognizer_channel_desc">Показва известие при идентифициране на песен от уиджета</string>
+    <string name="randomize_home_order_desc">Произволно пренареждане на секциите на началния екран, използвайки претеглени приоритети</string>
+    <string name="daily_discover_sounds_like">Звучи като %1$s</string>
+    <string name="daily_discover_because_you_listen_to">Защото слушате до %1$s</string>
+    <string name="daily_discover_similar_to">Подобно на %1$s</string>
+    <string name="daily_discover_based_on">Въз основа на %1$s</string>
+    <string name="daily_discover_for_fans_of">За феновете на %1$s</string>
+    <string name="from_the_community">От общността</string>
 </resources>
