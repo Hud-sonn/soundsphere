@@ -67,9 +67,15 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLinkStyles
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withLink
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
@@ -93,6 +99,7 @@ import com.metrolist.innertube.models.SongItem
 import com.metrolist.innertube.models.YTItem
 import com.metrolist.music.LocalDatabase
 import com.metrolist.music.LocalDownloadUtil
+import com.metrolist.music.LocalNavController
 import com.metrolist.music.LocalPlayerConnection
 import com.metrolist.music.R
 import com.metrolist.music.constants.CropAlbumArtKey
@@ -106,6 +113,7 @@ import com.metrolist.music.constants.SwipeToSongKey
 import com.metrolist.music.constants.ThumbnailCornerRadius
 import com.metrolist.music.db.entities.Album
 import com.metrolist.music.db.entities.Artist
+import com.metrolist.music.db.entities.ArtistEntity
 import com.metrolist.music.db.entities.Playlist
 import com.metrolist.music.db.entities.Song
 import com.metrolist.music.extensions.toMediaItem
@@ -125,6 +133,7 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.math.roundToInt
+import kotlin.jvm.JvmName
 
 const val ActiveBoxAlpha = 0.6f
 
@@ -132,6 +141,148 @@ const val ActiveBoxAlpha = 0.6f
 fun currentGridThumbnailHeight(): Dp {
     val gridItemSize by rememberEnumPreference(GridItemsSizeKey, GridItemSize.BIG)
     return if (gridItemSize == GridItemSize.BIG) GridThumbnailHeight else SmallGridThumbnailHeight
+}
+
+@JvmName("ClickableArtistTextEntities")
+@Composable
+fun ClickableArtistText(
+    artists: List<ArtistEntity>,
+    modifier: Modifier = Modifier,
+    style: TextStyle = MaterialTheme.typography.bodySmall,
+    color: Color = LocalContentColor.current,
+    maxLines: Int = 1,
+    overflow: TextOverflow = TextOverflow.Ellipsis,
+) {
+    val navController = LocalNavController.current
+    val andString = stringResource(R.string.and)
+    val annotatedString = remember(artists, andString, color) {
+        buildAnnotatedString {
+            artists.forEachIndexed { index, artist ->
+                withLink(
+                    LinkAnnotation.Clickable(
+                        tag = artist.id,
+                        styles = TextLinkStyles(SpanStyle(color = color)),
+                    ) {
+                        navController.navigate("artist/${artist.id}")
+                    }
+                ) {
+                    append(artist.name)
+                }
+                if (index != artists.lastIndex) {
+                    if (index == artists.lastIndex - 1) {
+                        append(" $andString ")
+                    } else {
+                        append(", ")
+                    }
+                }
+            }
+        }
+    }
+    Text(
+        text = annotatedString,
+        style = style,
+        maxLines = maxLines,
+        overflow = overflow,
+        modifier = modifier,
+    )
+}
+
+@JvmName("ClickableArtistTextInnerTube")
+@Composable
+fun ClickableArtistText(
+    artists: List<com.metrolist.innertube.models.Artist>,
+    modifier: Modifier = Modifier,
+    style: TextStyle = MaterialTheme.typography.bodySmall,
+    maxLines: Int = 1,
+    overflow: TextOverflow = TextOverflow.Ellipsis,
+    color: Color = LocalContentColor.current
+) {
+    val navController = LocalNavController.current
+    val andString = stringResource(R.string.and)
+    val annotatedString = remember(artists, andString, color) {
+        buildAnnotatedString {
+            artists.forEachIndexed { index, artist ->
+                val artistId = artist.id
+                if (artistId != null) {
+                    withLink(
+                        LinkAnnotation.Clickable(
+                            tag = artistId,
+                            styles = TextLinkStyles(SpanStyle(color = color)),
+                        ) {
+                            navController.navigate("artist/$artistId")
+                        }
+                    ) {
+                        append(artist.name)
+                    }
+                } else {
+                    append(artist.name)
+                }
+                if (index != artists.lastIndex) {
+                    if (index == artists.lastIndex - 1) {
+                        append(" $andString ")
+                    } else {
+                        append(", ")
+                    }
+                }
+            }
+        }
+    }
+    Text(
+        text = annotatedString,
+        style = style,
+        maxLines = maxLines,
+        overflow = overflow,
+        modifier = modifier,
+    )
+}
+
+@JvmName("ClickableArtistTextMedia")
+@Composable
+fun ClickableArtistText(
+    artists: List<MediaMetadata.Artist>,
+    modifier: Modifier = Modifier,
+    style: TextStyle = MaterialTheme.typography.bodySmall,
+    color: Color = LocalContentColor.current,
+    maxLines: Int = 1,
+    overflow: TextOverflow = TextOverflow.Ellipsis,
+) {
+    val navController = LocalNavController.current
+    val andString = stringResource(R.string.and)
+    val annotatedString = remember(artists, andString, color) {
+        buildAnnotatedString {
+            artists.forEachIndexed { index, artist ->
+                val artistId = artist.id
+                if (artistId != null) {
+                    withLink(
+                        LinkAnnotation.Clickable(
+                            tag = artistId,
+                            styles = TextLinkStyles(SpanStyle(color = color)),
+                        ) {
+                            navController.navigate("artist/$artistId")
+                        }
+                    ) {
+                        append(artist.name)
+                    }
+                } else {
+                    append(artist.name)
+                }
+                if (index != artists.lastIndex) {
+                    if (index == artists.lastIndex - 1) {
+                        append(" $andString ")
+                    } else {
+                        append(", ")
+                    }
+                }
+            }
+        }
+    }
+    Text(
+        text = annotatedString,
+        style = style,
+        maxLines = maxLines,
+        overflow = overflow,
+        modifier = modifier,
+    )
 }
 
 // Basic list item - optimized with inline to reduce recomposition
