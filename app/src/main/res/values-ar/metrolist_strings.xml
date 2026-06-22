@@ -649,7 +649,7 @@
     </plurals>
     <string name="restore_confirm_title">استعادة النسخة الاحتياطية؟</string>
     <string name="restore_confirm_message">سيؤدي هذا إلى استعادة بيانات تطبيقك من النسخة الاحتياطية.</string>
-    <string name="restore_account_warning">ستحتاج إلى تسجيل الدخول مرة أخرى بعد الاستعادة. سيتم تسجيل خروج الحساب التالي:</string>
+    <string name="restore_account_warning">سيتم استعادة معلومات الحساب التالي والاحتفاظ بها:</string>
     <string name="restore">استعادة</string>
     <string name="checking_previous_account">جارٍ التحقق من الحساب السابق…</string>
     <string name="no_account_found">لم يتم العثور على حساب</string>
