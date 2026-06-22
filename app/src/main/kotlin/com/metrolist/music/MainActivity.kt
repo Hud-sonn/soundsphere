@@ -136,6 +136,7 @@ import com.metrolist.music.constants.DefaultOpenTabKey
 import com.metrolist.music.constants.DisableScreenshotKey
 import com.metrolist.music.constants.DynamicThemeKey
 import com.metrolist.music.constants.EnableHighRefreshRateKey
+import com.metrolist.music.constants.EnableLandscapeScalingKey
 import com.metrolist.music.constants.ExperimentalLyricsKey
 import com.metrolist.music.constants.LastSeenVersionKey
 import com.metrolist.music.constants.ListenTogetherInTopBarKey
@@ -558,6 +559,7 @@ class MainActivity : ComponentActivity() {
             setSystemBarAppearance(useDarkTheme)
         }
 
+        val enableLandscapeScaling by rememberPreference(EnableLandscapeScalingKey, defaultValue = false)
         val pureBlackEnabled by rememberPreference(PureBlackKey, defaultValue = false)
         val pureBlack =
             remember(pureBlackEnabled, useDarkTheme) {
@@ -634,14 +636,19 @@ class MainActivity : ComponentActivity() {
         ) {
             val currentDensity = LocalDensity.current
             val windowInfo = LocalWindowInfo.current
-            val containerWidthDp = windowInfo.containerDpSize.width
+            val containerSize = windowInfo.containerDpSize
+            val smallestDimensionDp = minOf(containerSize.width, containerSize.height)
 
-            val densityScale = remember(containerWidthDp) {
-                when {
-                    containerWidthDp >= 840.dp -> 1.25f
-                    containerWidthDp >= 720.dp -> 1.15f
-                    containerWidthDp >= 600.dp -> 1.1f
-                    else -> 1.0f
+            val densityScale = remember(smallestDimensionDp, enableLandscapeScaling) {
+                if (enableLandscapeScaling) {
+                    when {
+                        smallestDimensionDp >= 840.dp -> 1.15f
+                        smallestDimensionDp >= 720.dp -> 1.1f
+                        smallestDimensionDp >= 600.dp -> 1.05f
+                        else -> 1.0f
+                    }
+                } else {
+                    1.0f
                 }
             }
             val scaledDensity: Density = remember(currentDensity, densityScale) {

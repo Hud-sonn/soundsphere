@@ -64,6 +64,7 @@ import com.metrolist.music.constants.DensityScaleKey
 import com.metrolist.music.constants.DynamicThemeKey
 import com.metrolist.music.constants.EnableDynamicIconKey
 import com.metrolist.music.constants.EnableHighRefreshRateKey
+import com.metrolist.music.constants.EnableLandscapeScalingKey
 import com.metrolist.music.constants.ExperimentalLyricsKey
 import com.metrolist.music.constants.GridItemSize
 import com.metrolist.music.constants.GridItemsSizeKey
@@ -142,6 +143,11 @@ fun AppearanceSettings(
         rememberPreference(
             EnableHighRefreshRateKey,
             defaultValue = true,
+        )
+    val (enableLandscapeScaling, onEnableLandscapeScalingChange) =
+        rememberPreference(
+            EnableLandscapeScalingKey,
+            defaultValue = false,
         )
     val (selectedThemeColorInt) =
         rememberPreference(
@@ -1020,6 +1026,30 @@ fun AppearanceSettings(
                                 )
                             },
                             onClick = { onEnableHighRefreshRateChange(!enableHighRefreshRate) },
+                        ),
+                    )
+                    add(
+                        Material3SettingsItem(
+                            icon = painterResource(R.drawable.fullscreen),
+                            title = { Text(stringResource(R.string.enable_landscape_scaling)) },
+                            description = { Text(stringResource(R.string.enable_landscape_scaling_desc)) },
+                            trailingContent = {
+                                Switch(
+                                    checked = enableLandscapeScaling,
+                                    onCheckedChange = onEnableLandscapeScalingChange,
+                                    thumbContent = {
+                                        Icon(
+                                            painter =
+                                                painterResource(
+                                                    id = if (enableLandscapeScaling) R.drawable.check else R.drawable.close,
+                                                ),
+                                            contentDescription = null,
+                                            modifier = Modifier.size(SwitchDefaults.IconSize),
+                                        )
+                                    },
+                                )
+                            },
+                            onClick = { onEnableLandscapeScalingChange(!enableLandscapeScaling) },
                         ),
                     )
                     // Only show dynamic theme option when using the default/dynamic color

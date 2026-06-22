@@ -766,6 +766,9 @@
     <string name="play_all">Play all</string>
     <string name="enable_high_refresh_rate">Enable high refresh rate</string>
     <string name="enable_high_refresh_rate_desc">Forces the display to run at its highest supported refresh rate (e.g. 120Hz)</string>
+    <string name="enable_landscape_scaling">Landscape Scaling</string>
+    <string name="enable_landscape_scaling_desc">Scale UI in landscape mode for larger screens</string>
+    <string name="dynamic_theme">Dynamic Theme</string>
 
     <!-- Music Recognition -->
     <string name="recognize_music">Recognize music</string>
