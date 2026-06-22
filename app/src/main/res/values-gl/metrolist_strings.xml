@@ -516,7 +516,7 @@
     </plurals>
     <string name="restore_confirm_title">Restaurar copia de seguridade?</string>
     <string name="restore_confirm_message">Isto restablecerá os datos da túa aplicación desde a copia de seguridade</string>
-    <string name="restore_account_warning">Precisarás iniciar sesión de novo após da restauración. Pecharase a sesión da seguinte conta:</string>
+    <string name="restore_account_warning">Restaurarase e conservarase a seguinte información da conta:</string>
     <string name="restore">Restaurar</string>
     <string name="restore_database_incompatible">Non se pode restaurar a copia de seguridade: a versión da base de datos non é compatible. Os teus datos actuais se mantiveron.</string>
     <string name="checking_previous_account">Procurando por unha conta anterior…</string>
@@ -891,4 +891,7 @@
     <string name="alarm_exact_permission_title">Permitir alarmas exactas</string>
     <string name="alarm_exact_permission_desc">Concede permiso para a programación precisa das alarmas, o que mellora a fiabilidade cando a aplicación está en segundo plano</string>
     <string name="error_job_cancelled">O vídeo non está dispoñible para a reprodución. Téntao de novo ou pasa á seguinte canción.</string>
+    <string name="enable_landscape_scaling">Escalado apaisado</string>
+    <string name="enable_landscape_scaling_desc">Escalar a interface de usuario en modo apaisado para pantallas máis grandes</string>
+    <string name="dynamic_theme">Tema dinámico</string>
 </resources>
