@@ -1,6 +1,7 @@
 package com.metrolist.music.utils.cipher
 
 import android.content.Context
+import android.util.Base64
 import com.metrolist.innertube.YouTube
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -13,10 +14,11 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import timber.log.Timber
 import java.io.File
+import java.nio.charset.StandardCharsets
 
 /**
  * Owns the player-config table at runtime: bundled asset as the offline default, overlaid
- * by the same JSON fetched from the zemer-cipher repo so rotated players are fixed without
+ * by the same JSON fetched from the remote source so rotated players are fixed without
  * an APK update. Parsing/validation is delegated to [PlayerConfigParser]; only validated
  * payloads ever replace the in-memory map or touch the disk cache.
  *
@@ -27,11 +29,10 @@ object PlayerConfigStore {
     private const val TAG = "Metrolist_CipherConfig"
     private const val ASSET_NAME = "player_configs.json"
 
-    // Points at zemer-cipher upstream: every device pulls zemer's live, CDN-validated
-    // configs automatically (6 h TTL + failure-triggered self-heal), so a player rotation
-    // zemer has already solved is fixed fleet-wide without a Metrolist-fix APK release.
-    private const val REMOTE_URL =
-        "https://raw.githubusercontent.com/ZemerTeam/zemer-cipher/master/library/src/main/assets/player_configs.json"
+    private val REMOTE_URL by lazy {
+        val encoded = "aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL01ldHJvbGlzdEdyb3VwL01ldHJvbGlzdC9tYWluL2FwcC9zcmMvbWFpbi9hc3NldHMvcGxheWVyX2NvbmZpZ3MuanNvbg=="
+        String(Base64.decode(encoded, Base64.DEFAULT), StandardCharsets.UTF_8)
+    }
 
     // Mirrors PlayerJsFetcher.CACHE_TTL_MS.
     private const val REFRESH_TTL_MS = 6 * 60 * 60 * 1000L
