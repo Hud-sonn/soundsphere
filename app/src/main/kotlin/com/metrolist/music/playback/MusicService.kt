@@ -604,6 +604,15 @@ class MusicService :
 
         playerInitialized.value = false
 
+        // Call startForeground() as early as possible to satisfy the
+        // 5-second timeout imposed by Context.startForegroundService().
+        // On some OEMs (e.g. MIUI), even a DataStore read can be slow
+        // enough to miss the window, so we promote before any I/O.
+        ensureForegroundChannelExists()
+        if (!ensureStartedAsForegroundOrStop()) {
+            return
+        }
+
         // Read ALL startup preferences in one shot so that subsequent code
         // never calls dataStore.get() (which does runBlocking internally).
         // This consolidates ~15 main-thread-blocking DataStore reads into 1.
@@ -613,10 +622,6 @@ class MusicService :
         // handled in createExoPlayer
 
         seedLoudnessCacheFromPrefs()
-
-        if (!ensureStartedAsForegroundOrStop()) {
-            return
-        }
 
         val defaultMediaNotificationProvider =
             DefaultMediaNotificationProvider(
@@ -4126,11 +4131,14 @@ class MusicService :
         flags: Int,
         startId: Int,
     ): Int {
-        val requiresForegroundPromotion =
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
-                (intent?.action == ACTION_ALARM_TRIGGER || !::player.isInitialized)
-        if (requiresForegroundPromotion && !ensureForegroundWithLatestNotificationOrStop()) {
-            return START_NOT_STICKY
+        // On Android O+, every startForegroundService() call requires
+        // Service.startForeground() to be called within a short timeout.
+        // Some OEMs (e.g. MIUI) strictly enforce this even when the
+        // service is already in the foreground, so always promote here.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (!ensureForegroundWithLatestNotificationOrStop()) {
+                return START_NOT_STICKY
+            }
         }
 
         when (intent?.action) {
