@@ -904,4 +904,5 @@
     <string name="stream_source_web_creator_desc">Веб-клиент для авторов.</string>
     <string name="stream_source_android_creator">ANDROID_CREATOR</string>
     <string name="stream_source_android_creator_desc">Android-клиент для авторов. По умолчанию отключен; требуется DroidGuard.</string>
+    <string name="error_job_cancelled">Видео недоступно для воспроизведения. Попробуйте еще раз или перейдите к следующему треку.</string>
 </resources>
