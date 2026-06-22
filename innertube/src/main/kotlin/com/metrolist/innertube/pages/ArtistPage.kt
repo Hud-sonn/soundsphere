@@ -152,8 +152,9 @@ data class ArtistPage(
                 renderer.isSong -> {
                     val subtitleRuns = renderer.subtitle?.runs ?: return null
                     val expandedRuns = subtitleRuns.splitArtistsByConjunction()
-                    val artistRuns = expandedRuns.filter { 
-                        it.text.isNotBlank() && it.text != "&" && it.text != "," 
+                    val artistRuns = expandedRuns.filter { run ->
+                        run.text.isNotBlank() && run.text != "&" && run.text != "," &&
+                        run.navigationEndpoint?.browseEndpoint?.browseId?.startsWith("UC") == true
                     }
                     val subtitleGroups = subtitleRuns.splitBySeparator()
                     SongItem(

@@ -194,9 +194,7 @@ data class HomePage(
                             id = renderer.navigationEndpoint.watchEndpoint?.videoId ?: return null,
                             title = renderer.title.runs?.firstOrNull()?.text ?: return null,
                             artists = subtitleRuns.filter { run ->
-                                run.navigationEndpoint?.browseEndpoint?.browseId?.startsWith("UC") == true ||
-                                (run.navigationEndpoint?.browseEndpoint != null && 
-                                 run.navigationEndpoint.browseEndpoint.browseId.startsWith("MPREb_") != true)
+                                run.navigationEndpoint?.browseEndpoint?.browseId?.startsWith("UC") == true
                             }.map { run ->
                                 Artist(
                                     name = run.text,

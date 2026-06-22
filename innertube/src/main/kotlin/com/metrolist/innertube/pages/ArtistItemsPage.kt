@@ -101,8 +101,9 @@ data class ArtistItemsPage(
                 renderer.isSong -> {
                     val subtitleRuns = renderer.subtitle?.runs ?: return null
                     val expandedRuns = subtitleRuns.splitArtistsByConjunction()
-                    val artistRuns = expandedRuns.filter { 
-                        it.text.isNotBlank() && it.text != "&" && it.text != "," 
+                    val artistRuns = expandedRuns.filter { run ->
+                        run.text.isNotBlank() && run.text != "&" && run.text != "," &&
+                        run.navigationEndpoint?.browseEndpoint?.browseId?.startsWith("UC") == true
                     }
                     SongItem(
                         id = renderer.navigationEndpoint.watchEndpoint?.videoId ?: return null,
