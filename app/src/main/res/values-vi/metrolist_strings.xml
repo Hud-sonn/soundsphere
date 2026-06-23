@@ -471,7 +471,7 @@
     </plurals>
     <string name="restore_confirm_title">Phục hồi sao lưu?</string>
     <string name="restore_confirm_message">Thao tác này sẽ khôi phục dữ liệu ứng dụng từ bản sao lưu đã chọn</string>
-    <string name="restore_account_warning">Bạn sẽ cần đăng nhập lại sau khi khôi phục. Tài khoản sau đây sẽ bị đăng xuất:</string>
+    <string name="restore_account_warning">Thông tin tài khoản sau đây sẽ được khôi phục và lưu lại:</string>
     <string name="restore">Phục hồi</string>
     <string name="checking_previous_account">Kiểm tra tài khoản trước đây…</string>
     <string name="enable_automatic_sleeptimer">Kích hoạt hẹn giờ ngủ tự động</string>
@@ -883,4 +883,8 @@
     <string name="stream_source_web_creator_desc">Ứng dụng web cho nhà sáng tạo</string>
     <string name="stream_source_android_creator">ANDROID_CREATOR</string>
     <string name="stream_source_android_creator_desc">Ứng dụng Android cho Nhà sáng tạo. Mặc định tắt; cần có DroidGuard.</string>
+    <string name="error_job_cancelled">Video không thể phát lúc này. Vui lòng thử lại hoặc chuyển sang bài tiếp theo.</string>
+    <string name="enable_landscape_scaling">Tỷ lệ màn hình ngang</string>
+    <string name="enable_landscape_scaling_desc">Phóng to giao diện khi xoay ngang trên màn hình lớn</string>
+    <string name="dynamic_theme">Chủ đề động</string>
 </resources>
