@@ -101,8 +101,18 @@ data class AlbumPage(
                         id = it.navigationEndpoint?.browseEndpoint?.browseId
                     )
                 }.ifEmpty {
-                    // Fallback to album artists if no artists found in song data
-                    album?.artists ?: emptyList()
+                    // Label-uploaded albums (e.g. "OLAK5uy_…" art tracks) name the performing
+                    // artist as a plain-text run with no artist link, while the album header
+                    // strapline is the record label / distributor channel. Prefer that
+                    // plain-text artist over inheriting the label as the track artist.
+                    renderer.flexColumns.getOrNull(1)
+                        ?.musicResponsiveListItemFlexColumnRenderer?.text?.runs
+                        ?.splitBySeparator()?.firstOrNull()?.oddElements()
+                        ?.map { Artist(name = it.text, id = it.navigationEndpoint?.browseEndpoint?.browseId) }
+                        ?.filter { it.name.isNotBlank() }
+                        ?.takeIf { it.isNotEmpty() }
+                    // Final fallback: inherit the album artist when the row has no artist at all.
+                        ?: album?.artists ?: emptyList()
                 },
                 album = album?.let {
                     Album(it.title, it.browseId)

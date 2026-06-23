@@ -501,17 +501,32 @@ object YouTube {
                                 ?.url!!,
                         explicit = false, // TODO: Extract explicit badge for albums from YouTube response
                     )
+                val albumSongsList =
+                    if (withSongs) {
+                        albumSongs(
+                            playlistId,
+                            albumItem,
+                        ).getOrThrow()
+                    } else {
+                        emptyList()
+                    }
+                // When YouTube credits the album to a label/distributor channel (the header
+                // strapline) but every track names the same performing artist, surface the
+                // performer as the album artist instead of the label.
+                val performer =
+                    albumSongsList.firstOrNull()?.artists?.firstOrNull()?.takeIf { first ->
+                        first.name.isNotBlank() &&
+                            albumSongsList.all { it.artists.firstOrNull()?.name == first.name }
+                    }
+                val resolvedAlbum =
+                    if (performer != null && albumItem.artists?.any { it.name == performer.name } != true) {
+                        albumItem.copy(artists = listOf(performer))
+                    } else {
+                        albumItem
+                    }
                 return@runCatching AlbumPage(
-                    album = albumItem,
-                    songs =
-                        if (withSongs) {
-                            albumSongs(
-                                playlistId,
-                                albumItem,
-                            ).getOrThrow()
-                        } else {
-                            emptyList()
-                        },
+                    album = resolvedAlbum,
+                    songs = albumSongsList,
                     otherVersions =
                         response.contents.twoColumnBrowseResultsRenderer.secondaryContents
                             ?.sectionListRenderer
