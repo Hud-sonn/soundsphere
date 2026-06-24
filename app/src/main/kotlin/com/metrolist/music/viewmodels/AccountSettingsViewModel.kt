@@ -57,6 +57,25 @@ class AccountSettingsViewModel @Inject constructor(
     }
 
     /**
+     * Forget the account FIRST (clearing auth so all background syncs skip),
+     * THEN clear all library data. This prevents sync operations that are
+     * triggered by the database becoming empty from re-adding songs.
+     */
+    suspend fun logoutAndClearLibraryData(context: Context) {
+        Timber.d("[LOGOUT_CLEAR] ViewModel: logoutAndClearLibraryData called")
+        withContext(Dispatchers.IO) {
+            // Forget account first — clears cookie/auth from DataStore.
+            // Once isLoggedIn() returns false, ALL sync operations will skip.
+            App.forgetAccount(context)
+
+            // Now clear the local database. Any sync coroutines that observe
+            // the empty state will check isLoggedIn() and skip silently.
+            syncUtils.clearAllLibraryData()
+        }
+        Timber.d("[LOGOUT_CLEAR] ViewModel: logoutAndClearLibraryData completed")
+    }
+
+    /**
      * Just logout without clearing library data
      */
     suspend fun logoutKeepData(context: Context, onCookieChange: (String) -> Unit) {

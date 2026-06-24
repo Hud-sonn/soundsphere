@@ -412,58 +412,76 @@ class SyncUtils @Inject constructor(
     suspend fun clearAllLibraryData() = withContext(Dispatchers.IO) {
         Timber.d("[LOGOUT_CLEAR] Starting complete library data cleanup")
         try {
-            // Clear podcast data first
-            Timber.d("[LOGOUT_CLEAR] Clearing podcast data")
-            executeClearPodcastData()
+            updateState {
+                copy(
+                    overallStatus = SyncStatus.Syncing,
+                    currentOperation = "Clearing all library data"
+                )
+            }
 
-            // Clear history
-            Timber.d("[LOGOUT_CLEAR] Clearing listen history and search history")
-            database.clearListenHistory()
-            database.clearSearchHistory()
+            // Disable foreign keys so that DELETE statements succeed regardless
+            // of table order. Room's @RawQuery (used in safeDeleteTable) properly
+            // notifies the InvalidationTracker, but FK constraints can still
+            // silently prevent rows from being deleted.
+            Timber.d("[LOGOUT_CLEAR] Disabling foreign keys for cleanup")
+            database.openHelper.writableDatabase.execSQL("PRAGMA foreign_keys = OFF")
+            try {
+                // Clear podcast data first (subscribed podcasts + saved episodes)
+                Timber.d("[LOGOUT_CLEAR] Clearing podcast data")
+                executeClearPodcastData()
 
-            // Get all user tables from the database (auto-detect)
-            val allTables = getAllUserTables()
-            Timber.d("[LOGOUT_CLEAR] Found ${allTables.size} tables: $allTables")
+                // Clear history
+                Timber.d("[LOGOUT_CLEAR] Clearing listen history and search history")
+                database.clearListenHistory()
+                database.clearSearchHistory()
 
-            // Tables to skip (system tables and tables we handle specially)
-            val skipTables = setOf(
-                "android_metadata",
-                "room_master_table",
-                "sqlite_sequence",
-                "search_history",  // Already cleared above
-                "listen_history"   // Already cleared above
-            )
+                // Get all user tables from the database (auto-detect)
+                val allTables = getAllUserTables()
+                Timber.d("[LOGOUT_CLEAR] Found ${allTables.size} tables: $allTables")
 
-            // Tables with foreign key references - delete these first (mapping tables)
-            val mappingTables = listOf(
-                "playlist_song_map",
-                "song_album_map",
-                "song_artist_map",
-                "album_artist_map",
-                "related_song_map"
-            )
+                // Tables to skip (system tables and tables we handle specially)
+                val skipTables = setOf(
+                    "android_metadata",
+                    "room_master_table",
+                    "sqlite_sequence",
+                    "search_history",  // Already cleared above
+                    "listen_history"   // Already cleared above
+                )
 
-            // Delete mapping tables first
-            Timber.d("[LOGOUT_CLEAR] Deleting mapping tables")
-            for (table in mappingTables) {
-                if (table in allTables) {
+                // Tables with foreign key references - delete these first (mapping tables)
+                val mappingTables = listOf(
+                    "playlist_song_map",
+                    "song_album_map",
+                    "song_artist_map",
+                    "album_artist_map",
+                    "related_song_map"
+                )
+
+                // Delete mapping tables first
+                Timber.d("[LOGOUT_CLEAR] Deleting mapping tables")
+                for (table in mappingTables) {
+                    if (table in allTables) {
+                        safeDeleteTable(table)
+                    }
+                }
+
+                // Delete all other tables except song (handled below)
+                Timber.d("[LOGOUT_CLEAR] Deleting remaining tables")
+                for (table in allTables) {
+                    if (table in skipTables || table in mappingTables || table == "song") {
+                        continue
+                    }
                     safeDeleteTable(table)
                 }
-            }
 
-            // Delete all other tables except song (handled specially to keep downloads)
-            Timber.d("[LOGOUT_CLEAR] Deleting remaining tables")
-            for (table in allTables) {
-                if (table in skipTables || table in mappingTables || table == "song") {
-                    continue
+                // Finally, delete ALL songs — including liked songs and library songs.
+                if ("song" in allTables) {
+                    Timber.d("[LOGOUT_CLEAR] Deleting all songs")
+                    safeDeleteTable("song")
                 }
-                safeDeleteTable(table)
-            }
-
-            // Finally, delete songs but keep downloaded ones
-            if ("song" in allTables) {
-                Timber.d("[LOGOUT_CLEAR] Deleting songs (keeping downloaded)")
-                safeRawQuery("DELETE FROM song WHERE dateDownload IS NULL")
+            } finally {
+                database.openHelper.writableDatabase.execSQL("PRAGMA foreign_keys = ON")
+                Timber.d("[LOGOUT_CLEAR] Foreign keys re-enabled")
             }
 
             Timber.d("[LOGOUT_CLEAR] All library data cleared successfully")
@@ -495,15 +513,6 @@ class SyncUtils @Inject constructor(
             Timber.d("[LOGOUT_CLEAR] Cleared table: $tableName")
         } catch (e: Exception) {
             Timber.w("[LOGOUT_CLEAR] Table $tableName error: ${e.message}")
-        }
-    }
-
-    private fun safeRawQuery(query: String) {
-        try {
-            database.raw(androidx.sqlite.db.SimpleSQLiteQuery(query))
-            Timber.d("[LOGOUT_CLEAR] Executed: $query")
-        } catch (e: Exception) {
-            Timber.w("[LOGOUT_CLEAR] Query failed: $query - ${e.message}")
         }
     }
 
@@ -1633,31 +1642,30 @@ class SyncUtils @Inject constructor(
     private suspend fun executeClearPodcastData() = withContext(Dispatchers.IO) {
         Timber.d("[PODCAST_CLEAR] Starting podcast data cleanup")
 
-        updateState { copy(overallStatus = SyncStatus.Syncing, currentOperation = "Clearing podcast data") }
-
         try {
+            // Read data FIRST, outside any transaction. Room Flows must be collected outside
+            // withTransaction to avoid deadlocks (Room's InvalidationTracker may block on
+            // the transaction executor when collecting a DAO Flow inside a transaction).
+            val subscribedPodcasts = database.subscribedPodcasts().first()
+            val allEpisodes = database.podcastEpisodesByCreateDateAsc().first()
+            val savedEpisodes = allEpisodes.filter { it.song.inLibrary != null }
+
+            Timber.d("[PODCAST_CLEAR] Clearing ${subscribedPodcasts.size} subscribed podcasts " +
+                    "and ${savedEpisodes.size} saved episodes")
+
+            // Now perform the writes in a transaction for atomicity
             database.withTransaction {
-                // Clear subscribed podcasts
-                val subscribedPodcasts = database.subscribedPodcasts().first()
-                Timber.d("[PODCAST_CLEAR] Clearing ${subscribedPodcasts.size} subscribed podcasts")
                 subscribedPodcasts.forEach { podcast ->
                     database.update(podcast.copy(bookmarkedAt = null))
                 }
-
-                // Clear episode library status (inLibrary) for episodes
-                val savedEpisodes = database.podcastEpisodesByCreateDateAsc().first()
-                    .filter { it.song.inLibrary != null }
-                Timber.d("[PODCAST_CLEAR] Clearing ${savedEpisodes.size} saved episodes")
                 savedEpisodes.forEach { song ->
                     database.update(song.song.copy(inLibrary = null))
                 }
             }
 
-            updateState { copy(overallStatus = SyncStatus.Completed, currentOperation = "") }
             Timber.d("[PODCAST_CLEAR] Podcast data cleared successfully")
         } catch (e: Exception) {
             Timber.e(e, "[PODCAST_CLEAR] Error during cleanup")
-            updateState { copy(overallStatus = SyncStatus.Error(e.message ?: "Unknown error"), currentOperation = "") }
         }
     }
 
