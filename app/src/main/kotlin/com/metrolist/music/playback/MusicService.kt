@@ -373,7 +373,7 @@ class MusicService :
         player.volume = calculateEffectiveVolume()
     }
 
-    lateinit var sleepTimer: SleepTimer
+    var sleepTimer: SleepTimer? = null
 
     @Inject
     @PlayerCache
@@ -674,7 +674,7 @@ class MusicService :
             SleepTimer(scope, player) { multiplier ->
                 sleepTimerVolumeMultiplier.value = multiplier
             }
-        player.addListener(sleepTimer)
+        player.addListener(sleepTimer!!)
 
         playerInitialized.value = true
         Timber.tag(TAG).d("Player successfully initialized")
@@ -955,16 +955,16 @@ class MusicService :
                 }
 
                 player.removeListener(this)
-                player.removeListener(sleepTimer)
+                sleepTimer?.let { player.removeListener(it) }
                 playerNormalizationProcessors.remove(player)
                 playerSilenceProcessors.remove(player)
                 player.release()
 
                 val newPlayer = createExoPlayer()
                 newPlayer.addListener(this@MusicService)
-                newPlayer.addListener(sleepTimer)
+                sleepTimer?.let { newPlayer.addListener(it) }
 
-                sleepTimer.player = newPlayer
+                sleepTimer?.player = newPlayer
 
                 try {
                     mediaSession?.let { (it as MediaSession).player = newPlayer }
@@ -2567,7 +2567,8 @@ class MusicService :
     ) {
         if (playbackState == Player.STATE_ENDED) {
             // Check sleep timer guard - don't autoplay/repeat if sleep timer will pause
-            if (sleepTimer.isActive && sleepTimer.pauseWhenSongEnd) {
+            val timer = sleepTimer ?: return
+            if (timer.isActive && timer.pauseWhenSongEnd) {
                 return
             }
 
@@ -4059,7 +4060,7 @@ class MusicService :
         mediaLibrarySessionCallback.release()
         mediaSession?.release()
         player.removeListener(this)
-        player.removeListener(sleepTimer)
+        sleepTimer?.let { player.removeListener(it) }
         playerNormalizationProcessors.remove(player)
         playerSilenceProcessors.remove(player)
         controllerFuture?.let { MediaController.releaseFuture(it) }
@@ -4549,7 +4550,8 @@ class MusicService :
         crossfadeTriggerJob =
             scope.launch {
                 delay(delayMs)
-                if (isActive && player.isPlaying && player.currentMediaItem?.mediaId == targetMediaId && !sleepTimer.pauseWhenSongEnd) {
+                val timer = sleepTimer
+                if (isActive && player.isPlaying && player.currentMediaItem?.mediaId == targetMediaId && (timer == null || !timer.pauseWhenSongEnd)) {
                     startCrossfade()
                 }
             }
@@ -4629,7 +4631,7 @@ class MusicService :
         secondaryPlayer = null
 
         fadingPlayer?.removeListener(this)
-        fadingPlayer?.removeListener(sleepTimer)
+        sleepTimer?.let { timer -> fadingPlayer?.removeListener(timer) }
 
         player.addListener(
             object : Player.Listener {
@@ -4649,9 +4651,9 @@ class MusicService :
 
         nextPlayer.removeListener(secondaryPlayerListener)
         nextPlayer.addListener(this)
-        nextPlayer.addListener(sleepTimer)
+        sleepTimer?.let { nextPlayer.addListener(it) }
 
-        sleepTimer.player = player
+        sleepTimer?.player = player
 
         try {
             mediaSession?.let { (it as MediaSession).player = player }
@@ -4719,7 +4721,7 @@ class MusicService :
         fadingPlayer = null
         isCrossfading = false
         applyEffectiveVolume()
-        sleepTimer.notifySongTransition()
+        sleepTimer?.notifySongTransition()
 
         applyCachedAudioNormalizationNow()
 

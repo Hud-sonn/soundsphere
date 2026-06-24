@@ -589,10 +589,10 @@ fun BottomSheetPlayer(
 
     val sleepTimerEnabled =
         remember(
-            playerConnection.service.sleepTimer.triggerTime,
-            playerConnection.service.sleepTimer.pauseWhenSongEnd,
+            playerConnection.service.sleepTimer?.triggerTime,
+            playerConnection.service.sleepTimer?.pauseWhenSongEnd,
         ) {
-            playerConnection.service.sleepTimer.isActive
+            playerConnection.service.sleepTimer?.isActive ?: false
         }
 
     var sleepTimerTimeLeft by remember {
@@ -603,10 +603,10 @@ fun BottomSheetPlayer(
         if (sleepTimerEnabled) {
             while (isActive) {
                 sleepTimerTimeLeft =
-                    if (playerConnection.service.sleepTimer.pauseWhenSongEnd) {
+                    if (playerConnection.service.sleepTimer?.pauseWhenSongEnd == true) {
                         playerConnection.player.duration - playerConnection.player.currentPosition
                     } else {
-                        playerConnection.service.sleepTimer.triggerTime - System.currentTimeMillis()
+                        (playerConnection.service.sleepTimer?.triggerTime ?: 0L) - System.currentTimeMillis()
                     }
                 delay(1000L)
             }
@@ -644,7 +644,7 @@ fun BottomSheetPlayer(
                 TextButton(
                     onClick = {
                         showSleepTimerDialog = false
-                        playerConnection.service.sleepTimer.start(
+                        playerConnection.service.sleepTimer?.start(
                             minute = sleepTimerValue.roundToInt(),
                             stopAfterCurrentSong = sleepTimerStopAfterCurrentSong,
                             fadeOut = sleepTimerFadeOut,
@@ -727,7 +727,7 @@ fun BottomSheetPlayer(
                         OutlinedIconButton(
                             onClick = {
                                 showSleepTimerDialog = false
-                                playerConnection.service.sleepTimer.start(minute = -1)
+                                playerConnection.service.sleepTimer?.start(minute = -1)
                             },
                         ) {
                             Text(stringResource(R.string.end_of_song))

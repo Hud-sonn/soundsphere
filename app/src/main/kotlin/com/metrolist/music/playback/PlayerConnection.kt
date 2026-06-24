@@ -476,7 +476,7 @@ class PlayerConnection(
                 return false
             }
 
-            if (service.sleepTimer.isActive) {
+            if (service.sleepTimer?.isActive == true) {
                 Timber.tag(TAG).d("✗ Sleep Timer already active - skipping")
                 return false
             }
@@ -565,7 +565,7 @@ class PlayerConnection(
 
             if (isTimeInRange) {
                 Timber.tag(TAG).i("AUTO SLEEP TIMER STARTED: $sleepTimerDefaultMinutes minutes")
-                service.sleepTimer.start(sleepTimerDefaultMinutes)
+                service.sleepTimer?.start(sleepTimerDefaultMinutes)
                 return true
             }
 
