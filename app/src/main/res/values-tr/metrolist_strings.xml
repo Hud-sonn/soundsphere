@@ -196,7 +196,6 @@
     <string name="delete_desc">Bu öğeyi kalıcı olarak kaldır</string>
     <string name="advanced_desc">Şarkının temposunu ve perdesini ayarla</string>
     <string name="equalizer_desc">Ses ekolayzırını aç</string>
-    <string name="enable_dynamic_icon">Dinamik simgeyi etkinleştir</string>
     <string name="mini_player">Mini oynatıcı</string>
     <string name="pure_black_mini_player">Saf siyah mini oynatıcı</string>
     <string name="cache_size_warning_title">Bekle!</string>

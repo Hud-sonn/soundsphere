@@ -188,7 +188,6 @@
     <string name="delete_desc">Hapus item ini secara permanen</string>
     <string name="advanced_desc">Sesuaikan tempo dan nada lagu</string>
     <string name="equalizer_desc">Buka ekualiser audio</string>
-    <string name="enable_dynamic_icon">Aktifkan ikon dinamis</string>
     <string name="mini_player">Pemutar mini</string>
     <string name="pure_black_mini_player">Pemutar mini berwarna hitam murni</string>
     <string name="cache_size_warning_title">Tunggu dulu!</string>

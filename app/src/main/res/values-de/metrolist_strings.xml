@@ -209,7 +209,6 @@
     <string name="delete_desc">Diese Playlist dauerhaft entfernen</string>
     <string name="advanced_desc">Passe das Tempo und die Tonhöhe des Songs an</string>
     <string name="equalizer_desc">Audio-Equalizer öffnen</string>
-    <string name="enable_dynamic_icon">Dynamische Symbole aktivieren</string>
     <string name="mini_player">Mini-Player</string>
     <string name="pure_black_mini_player">Rein schwarzer Mini-Player</string>
     <string name="cache_size_warning_title">Warte mal!</string>

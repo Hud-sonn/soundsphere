@@ -200,7 +200,6 @@
     <string name="delete_desc">Remover permanentemente este item</string>
     <string name="advanced_desc">Ajustar o ritmo e tom da música</string>
     <string name="equalizer_desc">Abrir o equalizador de áudio</string>
-    <string name="enable_dynamic_icon">Ativar ícone dinâmico</string>
     <string name="mini_player">Mini-reprodutor</string>
     <string name="pure_black_mini_player">Mini-tocador preto puro</string>
     <string name="cache_size_warning_title">Espere!</string>

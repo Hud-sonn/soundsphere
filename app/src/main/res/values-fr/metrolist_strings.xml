@@ -198,7 +198,6 @@
     <string name="delete_desc">Supprimer définitivement cet élément</string>
     <string name="advanced_desc">Régler le tempo et la hauteur tonale du morceau</string>
     <string name="equalizer_desc">Ouvrez l\'égaliseur audio</string>
-    <string name="enable_dynamic_icon">Activer l\'icône dynamique</string>
     <string name="mini_player">Mini-lecteur</string>
     <string name="pure_black_mini_player">Mini-lecteur noir pur</string>
     <string name="cache_size_warning_title">Attendez !</string>

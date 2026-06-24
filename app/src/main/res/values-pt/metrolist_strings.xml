@@ -248,7 +248,6 @@
     <string name="delete_desc">Remover este item permanentemente</string>
     <string name="advanced_desc">Alterar o tempo e o tom da música</string>
     <string name="equalizer_desc">Ajustar o equalizador de áudio</string>
-    <string name="enable_dynamic_icon">Habilitar o ícone dinâmico</string>
     <string name="mini_player">Mini-reprodutor</string>
     <string name="pure_black_mini_player">Mini-reprodutor preto puro</string>
     <string name="cache_size_warning_title">Aguarde!</string>

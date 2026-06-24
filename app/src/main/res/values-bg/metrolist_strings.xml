@@ -349,7 +349,6 @@
     <string name="play_next_desc">Пусни следващата песен в опашката</string>
     <string name="add_to_queue_desc">Добави в края на опашката</string>
     <string name="add_to_playlist_desc">Добави в плейлист</string>
-    <string name="enable_dynamic_icon">Включи динамитчна икона</string>
     <string name="mini_player">Мини-плейър</string>
     <string name="pure_black_mini_player">Чисто черен мини-плейър</string>
     <string name="mini_player_background_style">Стила на фона на мини-плейъра</string>

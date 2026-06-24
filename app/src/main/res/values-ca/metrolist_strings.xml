@@ -209,7 +209,6 @@
     <string name="delete_desc">Eliminar element de manera permanent</string>
     <string name="advanced_desc">Canviar tempo i to de la cançó</string>
     <string name="equalizer_desc">Ajustar l\'equalitzador d\'àudio</string>
-    <string name="enable_dynamic_icon">Habilitar icona dinàmica</string>
     <string name="mini_player">Mini Reproductor</string>
     <string name="pure_black_mini_player">Mini reproductor negre pur</string>
     <string name="cache_size_warning_title">Espera!</string>

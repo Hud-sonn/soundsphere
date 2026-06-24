@@ -230,7 +230,6 @@
     <string name="delete_profile_desc">刪除設定檔</string>
     <string name="delete_profile_confirmation">確定要刪除 %1$s 嗎？刪除後將無法恢復</string>
     <string name="wavy">波浪</string>
-    <string name="enable_dynamic_icon">啟用動態 icon</string>
     <string name="skip_silence_instant">跳過靜音片段</string>
     <string name="skip_silence_desc">快轉歌曲中的靜音片段</string>
     <string name="skip_silence_instant_desc">在靜音片段時直接跳轉，而非加速快轉</string>

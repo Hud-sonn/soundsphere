@@ -424,7 +424,6 @@
     <string name="scrobble_delay_minutes">Phút chờ Scrobble (phút)</string>
     <string name="hide_youtube_shorts">Ẩn YouTube Shorts</string>
     <string name="start_radio_desc">Bắt đầu phát radio dựa trên mục này</string>
-    <string name="enable_dynamic_icon">Biểu tượng ứng dụng thích ứng</string>
     <string name="mini_player">Trình phát mini</string>
     <string name="pure_black_mini_player">Trình phát mini đen thuần</string>
     <string name="cache_size_warning_title">Khoan đã!</string>

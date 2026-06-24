@@ -198,7 +198,6 @@
     <string name="delete_desc">Rimuovi definitivamente questo elemento</string>
     <string name="advanced_desc">Regola il tempo e l\'intonazione della canzone</string>
     <string name="equalizer_desc">Apri l\'equalizzatore audio</string>
-    <string name="enable_dynamic_icon">Attiva l\'icona dinamica</string>
     <string name="mini_player">Mini lettore</string>
     <string name="pure_black_mini_player">Mini lettore nero puro</string>
     <string name="cache_size_warning_title">Aspetta!</string>
