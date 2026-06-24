@@ -188,13 +188,12 @@ abstract class InternalDatabase : RoomDatabase() {
             }
         }
 
-        fun newInstance(context: Context): MusicDatabase =
-            MusicDatabase(
-                delegate = newInternalDatabaseInstance(context),
-            )
-
-        fun newInternalDatabaseInstance(context: Context, dbName: String = DB_NAME): InternalDatabase =
-            Room
+        fun build(
+            context: Context,
+            dbName: String = DB_NAME,
+            withPragmaCallback: Boolean = true,
+        ): InternalDatabase {
+            val builder = Room
                 .databaseBuilder(context, InternalDatabase::class.java, dbName)
                 .openHelperFactory(BackupBeforeMigrationFactory(context, dbName))
                 .addMigrations(
@@ -210,7 +209,10 @@ abstract class InternalDatabase : RoomDatabase() {
                 ).setQueryExecutor(
                     java.util.concurrent.Executors
                         .newFixedThreadPool(4),
-                ).addCallback(
+                )
+
+            if (withPragmaCallback) {
+                builder.addCallback(
                     object : RoomDatabase.Callback() {
                         override fun onCreate(db: SupportSQLiteDatabase) {
                             super.onCreate(db)
@@ -227,7 +229,17 @@ abstract class InternalDatabase : RoomDatabase() {
                             backupDatabase(context, dbName)
                         }
                     },
-                ).build()
+                )
+            }
+
+            return builder.build()
+        }
+
+        fun newInstance(context: Context): MusicDatabase =
+            MusicDatabase(delegate = build(context))
+
+        fun newInternalDatabaseInstance(context: Context, dbName: String = DB_NAME): InternalDatabase =
+            build(context, dbName)
 
     }
 }
