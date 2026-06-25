@@ -419,22 +419,19 @@ class SyncUtils @Inject constructor(
                 )
             }
 
-            // Disable foreign keys so that DELETE statements succeed regardless
-            // of table order. Room's @RawQuery (used in safeDeleteTable) properly
-            // notifies the InvalidationTracker, but FK constraints can still
-            // silently prevent rows from being deleted.
-            Timber.d("[LOGOUT_CLEAR] Disabling foreign keys for cleanup")
-            database.openHelper.writableDatabase.execSQL("PRAGMA foreign_keys = OFF")
-            try {
-                // Clear podcast data first (subscribed podcasts + saved episodes)
-                Timber.d("[LOGOUT_CLEAR] Clearing podcast data")
-                executeClearPodcastData()
+            // Clear podcast data first (subscribed podcasts + saved episodes)
+            Timber.d("[LOGOUT_CLEAR] Clearing podcast data")
+            executeClearPodcastData()
 
-                // Clear history
-                Timber.d("[LOGOUT_CLEAR] Clearing listen history and search history")
-                database.clearListenHistory()
-                database.clearSearchHistory()
+            // Clear history
+            Timber.d("[LOGOUT_CLEAR] Clearing listen history and search history")
+            database.clearListenHistory()
+            database.clearSearchHistory()
 
+            // Clear all tables using Room's transaction layer to ensure proper
+            // InvalidationTracker notifications and avoid direct SQLite access
+            // that could bypass Room's connection management.
+            database.withTransaction {
                 // Get all user tables from the database (auto-detect)
                 val allTables = getAllUserTables()
                 Timber.d("[LOGOUT_CLEAR] Found ${allTables.size} tables: $allTables")
@@ -465,7 +462,7 @@ class SyncUtils @Inject constructor(
                     }
                 }
 
-                // Delete all other tables except song (handled below)
+                // Delete all other tables except song (handled specially to keep downloads)
                 Timber.d("[LOGOUT_CLEAR] Deleting remaining tables")
                 for (table in allTables) {
                     if (table in skipTables || table in mappingTables || table == "song") {
@@ -474,14 +471,18 @@ class SyncUtils @Inject constructor(
                     safeDeleteTable(table)
                 }
 
-                // Finally, delete ALL songs — including liked songs and library songs.
+                // Finally, delete songs but keep downloaded ones
                 if ("song" in allTables) {
-                    Timber.d("[LOGOUT_CLEAR] Deleting all songs")
-                    safeDeleteTable("song")
+                    Timber.d("[LOGOUT_CLEAR] Deleting songs (keeping downloaded)")
+                    safeRawQuery("DELETE FROM song WHERE dateDownload IS NULL")
                 }
-            } finally {
-                database.openHelper.writableDatabase.execSQL("PRAGMA foreign_keys = ON")
-                Timber.d("[LOGOUT_CLEAR] Foreign keys re-enabled")
+            }
+
+            updateState {
+                copy(
+                    overallStatus = SyncStatus.Idle,
+                    currentOperation = ""
+                )
             }
 
             Timber.d("[LOGOUT_CLEAR] All library data cleared successfully")
@@ -513,6 +514,15 @@ class SyncUtils @Inject constructor(
             Timber.d("[LOGOUT_CLEAR] Cleared table: $tableName")
         } catch (e: Exception) {
             Timber.w("[LOGOUT_CLEAR] Table $tableName error: ${e.message}")
+        }
+    }
+
+    private fun safeRawQuery(query: String) {
+        try {
+            database.raw(androidx.sqlite.db.SimpleSQLiteQuery(query))
+            Timber.d("[LOGOUT_CLEAR] Executed: $query")
+        } catch (e: Exception) {
+            Timber.w("[LOGOUT_CLEAR] Query failed: $query - ${e.message}")
         }
     }
 
