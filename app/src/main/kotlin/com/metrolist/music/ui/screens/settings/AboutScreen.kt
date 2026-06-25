@@ -161,7 +161,7 @@ private fun ContributorAvatar(
     contentDescription: String? = null,
     onClick: (() -> Unit)? = null
 ) {
-    val fallback = painterResource(R.drawable.small_icon)
+    val fallback = painterResource(R.drawable.about_icon)
     Surface(
         onClick = onClick ?: {},
         enabled = onClick != null,
@@ -263,7 +263,7 @@ fun AboutScreen(
                         modifier = Modifier.size(84.dp)
                     )
                     Image(
-                        painter = painterResource(R.drawable.small_icon),
+                        painter = painterResource(R.drawable.about_icon),
                         contentDescription = stringResource(R.string.metrolist),
                         colorFilter = ColorFilter.tint(
                             color = MaterialTheme.colorScheme.onPrimary,
