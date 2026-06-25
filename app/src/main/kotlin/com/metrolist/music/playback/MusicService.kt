@@ -25,6 +25,7 @@ import android.media.AudioFocusRequest
 import android.media.AudioManager
 import android.media.audiofx.AudioEffect
 import com.metrolist.music.playback.audio.VolumeNormalizationAudioProcessor
+import com.metrolist.music.utils.safeDataStoreEdit
 import android.net.ConnectivityManager
 import android.os.Binder
 import android.os.Build
@@ -37,7 +38,6 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.core.app.ServiceCompat
 import androidx.core.content.getSystemService
 import androidx.core.net.toUri
-import androidx.datastore.preferences.core.edit
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
@@ -848,7 +848,7 @@ class MusicService :
         }
 
         playerVolume.debounce(1000).collect(scope) { volume ->
-            dataStore.edit { settings ->
+            safeDataStoreEdit { settings ->
                 settings[PlayerVolumeKey] = volume
             }
         }
@@ -2723,7 +2723,7 @@ class MusicService :
 
         if (dataStore.get(RememberShuffleAndRepeatKey, true)) {
             scope.launch {
-                dataStore.edit { settings ->
+                safeDataStoreEdit { settings ->
                     settings[ShuffleModeKey] = shuffleModeEnabled
                 }
             }
@@ -2737,7 +2737,7 @@ class MusicService :
     override fun onRepeatModeChanged(repeatMode: Int) {
         updateNotification()
         scope.launch {
-            dataStore.edit { settings ->
+            safeDataStoreEdit { settings ->
                 settings[RepeatModeKey] = repeatMode
             }
         }

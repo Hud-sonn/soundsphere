@@ -183,6 +183,7 @@ import com.metrolist.music.utils.dataStore
 import com.metrolist.music.utils.makeTimeString
 import com.metrolist.music.utils.rememberEnumPreference
 import com.metrolist.music.utils.rememberPreference
+import com.metrolist.music.utils.safeDataStoreEdit
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -194,8 +195,6 @@ import kotlin.math.max
 import kotlin.math.roundToInt
 import com.metrolist.music.ui.component.Icon as MIcon
 import com.metrolist.music.constants.SleepTimerDefaultKey
-import com.metrolist.music.utils.dataStore
-import androidx.datastore.preferences.core.edit
 import com.metrolist.music.constants.SleepTimerFadeOutKey
 import com.metrolist.music.constants.SleepTimerStopAfterCurrentSongKey
 
@@ -688,7 +687,7 @@ fun BottomSheetPlayer(
                             FilledIconButton(
                                 onClick = {
                                     scope.launch {
-                                        context.dataStore.edit { settings ->
+                                        context.safeDataStoreEdit { settings ->
                                             settings[SleepTimerDefaultKey] = sleepTimerValue
                                         }
                                     }
@@ -709,7 +708,7 @@ fun BottomSheetPlayer(
                             OutlinedIconButton(
                                 onClick = {
                                     scope.launch {
-                                        context.dataStore.edit { settings ->
+                                        context.safeDataStoreEdit { settings ->
                                             settings[SleepTimerDefaultKey] = sleepTimerValue
                                         }
                                     }

@@ -19,7 +19,6 @@ import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.getSystemService
-import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
@@ -35,6 +34,7 @@ import com.metrolist.music.constants.ListenTogetherUserIdKey
 import com.metrolist.music.utils.NetworkConnectivityObserver
 import com.metrolist.music.utils.dataStore
 import com.metrolist.music.utils.get
+import com.metrolist.music.utils.safeDataStoreEdit
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -481,7 +481,7 @@ class ListenTogetherClient
         private suspend fun saveBlockedUsernames() {
             try {
                 val blockedJson = json.encodeToString(_blockedUsernames.value.toList())
-                context.dataStore.edit { preferences ->
+                context.safeDataStoreEdit { preferences ->
                     preferences[com.metrolist.music.constants.ListenTogetherBlockedUsersKey] = blockedJson
                 }
             } catch (e: Exception) {
@@ -500,7 +500,7 @@ class ListenTogetherClient
                 if (normalizedUrl != configuredUrl) {
                     log(LogLevel.INFO, "Migrating server URL", "Old: $configuredUrl -> New: $normalizedUrl")
                     scope.launch {
-                        context.dataStore.edit { preferences ->
+                        context.safeDataStoreEdit { preferences ->
                             preferences[ListenTogetherServerUrlKey] = normalizedUrl
                         }
                     }
@@ -516,7 +516,7 @@ class ListenTogetherClient
         private fun savePersistedSession() {
             try {
                 scope.launch {
-                    context.dataStore.edit { preferences ->
+                    context.safeDataStoreEdit { preferences ->
                         if (sessionToken != null) {
                             preferences[ListenTogetherSessionTokenKey] = sessionToken!!
                             preferences[ListenTogetherRoomCodeKey] = storedRoomCode ?: ""
@@ -537,7 +537,7 @@ class ListenTogetherClient
         private fun clearPersistedSession() {
             try {
                 scope.launch {
-                    context.dataStore.edit { preferences ->
+                    context.safeDataStoreEdit { preferences ->
                         preferences.remove(ListenTogetherSessionTokenKey)
                         preferences.remove(ListenTogetherRoomCodeKey)
                         preferences.remove(ListenTogetherUserIdKey)

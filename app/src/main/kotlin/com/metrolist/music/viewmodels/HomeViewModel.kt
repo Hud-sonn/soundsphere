@@ -6,7 +6,6 @@
 package com.metrolist.music.viewmodels
 
 import android.content.Context
-import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.metrolist.innertube.YouTube
@@ -45,6 +44,7 @@ import com.metrolist.music.ui.screens.wrapped.WrappedAudioService
 import com.metrolist.music.ui.screens.wrapped.WrappedManager
 import com.metrolist.music.utils.SyncUtils
 import com.metrolist.music.utils.dataStore
+import com.metrolist.music.utils.safeDataStoreEdit
 import com.metrolist.music.utils.get
 import com.metrolist.music.utils.reportException
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -279,7 +279,7 @@ class HomeViewModel @Inject constructor(
 
     fun markWrappedAsSeen() {
         viewModelScope.launch(Dispatchers.IO) {
-            context.dataStore.edit {
+            context.safeDataStoreEdit {
                 it[WrappedSeenKey] = true
             }
         }

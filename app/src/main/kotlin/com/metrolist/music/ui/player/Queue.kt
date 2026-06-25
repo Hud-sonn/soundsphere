@@ -125,6 +125,7 @@ import com.metrolist.music.ui.utils.ShowMediaInfo
 import com.metrolist.music.utils.dataStore
 import com.metrolist.music.utils.makeTimeString
 import com.metrolist.music.utils.rememberPreference
+import com.metrolist.music.utils.safeDataStoreEdit
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -133,8 +134,6 @@ import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 import kotlin.math.roundToInt
 import com.metrolist.music.constants.SleepTimerDefaultKey
-import com.metrolist.music.utils.dataStore
-import androidx.datastore.preferences.core.edit
 import android.widget.Toast
 import androidx.compose.runtime.derivedStateOf
 import com.metrolist.music.constants.SleepTimerFadeOutKey
@@ -601,7 +600,7 @@ fun Queue(
                                     Button(
                                         onClick = {
                                             coroutineScope.launch {
-                                                context.dataStore.edit { settings ->
+                                                context.safeDataStoreEdit { settings ->
                                                     settings[SleepTimerDefaultKey] = sleepTimerValue
                                                 }
                                             }
@@ -622,7 +621,7 @@ fun Queue(
                                     OutlinedButton(
                                         onClick = {
                                             coroutineScope.launch {
-                                                context.dataStore.edit { settings ->
+                                                context.safeDataStoreEdit { settings ->
                                                     settings[SleepTimerDefaultKey] = sleepTimerValue
                                                 }
                                             }

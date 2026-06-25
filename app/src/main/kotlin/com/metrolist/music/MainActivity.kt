@@ -106,7 +106,6 @@ import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.core.util.Consumer
 import androidx.core.view.WindowCompat
-import androidx.datastore.preferences.core.edit
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.coroutineScope
@@ -195,6 +194,7 @@ import com.metrolist.music.utils.SearchRoutes
 import com.metrolist.music.utils.SyncUtils
 import com.metrolist.music.utils.Updater
 import com.metrolist.music.utils.dataStore
+import com.metrolist.music.utils.safeDataStoreEdit
 import com.metrolist.music.utils.get
 import com.metrolist.music.utils.rememberEnumPreference
 import com.metrolist.music.utils.rememberPreference
@@ -414,7 +414,7 @@ class MainActivity : ComponentActivity() {
 
             // SimpMusic Removal Migration
             if (preferences[SimpMusicMigrationDoneKey] != true) {
-                dataStore.edit { settings ->
+                safeDataStoreEdit { settings ->
                     val currentOrder = settings[LyricsProviderOrderKey] ?: ""
                     if (currentOrder.contains("SimpMusic")) {
                         val orderList =
@@ -439,7 +439,7 @@ class MainActivity : ComponentActivity() {
         }
 
         lifecycleScope.launch(Dispatchers.IO) {
-            dataStore.edit { settings ->
+            safeDataStoreEdit { settings ->
                 settings[LastSeenVersionKey] = BuildConfig.VERSION_NAME
             }
         }

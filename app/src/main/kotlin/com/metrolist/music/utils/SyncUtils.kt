@@ -7,7 +7,6 @@
 package com.metrolist.music.utils
 
 import android.content.Context
-import androidx.datastore.preferences.core.edit
 import com.metrolist.innertube.YouTube
 import com.metrolist.innertube.models.AlbumItem
 import com.metrolist.innertube.models.ArtistItem
@@ -121,6 +120,7 @@ class SyncUtils @Inject constructor(
     val syncState: StateFlow<SyncState> = _syncState.asStateFlow()
 
     private var lastfmSendLikes = false
+    @Volatile private var cachedLastSyncEpoch: Long = 0L
     private val playlistsBeingModified = ConcurrentHashMap<String, AtomicInteger>()
     // Tracks songs currently being added to YouTube — browseId → set of songIds
     private val pendingYouTubeAdds = ConcurrentHashMap<String, MutableSet<String>>()
@@ -151,6 +151,11 @@ class SyncUtils @Inject constructor(
             .collectLatest(syncScope) {
                 lastfmSendLikes = it
             }
+
+        syncScope.launch {
+            val loaded = context.dataStore.get(LastFullSyncKey, 0L)
+            cachedLastSyncEpoch = maxOf(cachedLastSyncEpoch, loaded)
+        }
 
         startProcessingQueue()
     }
@@ -260,15 +265,18 @@ class SyncUtils @Inject constructor(
             }
 
             val lastSync = context.dataStore.get(LastFullSyncKey, 0L)
+            val effectiveLastSync = maxOf(lastSync, cachedLastSyncEpoch)
             val currentTime = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)
-            if (lastSync > 0 && (currentTime - lastSync) < SYNC_COOLDOWN) {
+            if (effectiveLastSync > 0 && (currentTime - effectiveLastSync) < SYNC_COOLDOWN) {
                 return@launch
             }
 
             syncChannel.send(SyncOperation.FullSync)
 
-            context.dataStore.edit { settings ->
-                settings[LastFullSyncKey] = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)
+            val now = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)
+            cachedLastSyncEpoch = now
+            context.safeDataStoreEdit { settings ->
+                settings[LastFullSyncKey] = now
             }
         }
     }
@@ -1637,8 +1645,10 @@ class SyncUtils @Inject constructor(
             }
 
             // Reset sync timestamp
-            context.dataStore.edit { settings ->
-                settings[LastFullSyncKey] = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)
+            val now = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)
+            cachedLastSyncEpoch = now
+            context.safeDataStoreEdit { settings ->
+                settings[LastFullSyncKey] = now
             }
 
             updateState { copy(overallStatus = SyncStatus.Completed, currentOperation = "") }
