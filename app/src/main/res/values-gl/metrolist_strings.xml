@@ -893,4 +893,6 @@
     <string name="enable_landscape_scaling">Escalado apaisado</string>
     <string name="enable_landscape_scaling_desc">Escalar a interface de usuario en modo apaisado para pantallas máis grandes</string>
     <string name="dynamic_theme">Tema dinámico</string>
+    <string name="enable_dynamic_icon">Cores dinámicas das iconas</string>
+    <string name="enable_dynamic_icon_desc">Empregar cores dinámicas do tema para a icona da aplicación. Cando está desactivado, a icona utiliza cores sólidas.</string>
 </resources>
