@@ -900,4 +900,6 @@
     <string name="enable_landscape_scaling">Mise à l\'échelle en paysage</string>
     <string name="enable_landscape_scaling_desc">Adapter l\'interface utilisateur au mode paysage pour les écrans plus grands</string>
     <string name="dynamic_theme">Thème dynamique</string>
+    <string name="enable_dynamic_icon">Couleurs dynamiques des icônes</string>
+    <string name="enable_dynamic_icon_desc">Utilisez les couleurs dynamiques du thème pour l\'icône de l\'application. Lorsque cette option est désactivée, l\'icône affiche des couleurs unies.</string>
 </resources>
