@@ -397,7 +397,7 @@ fun LyricsImageCard(
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(22.dp)
+                            .size(44.dp)
                             .clip(RoundedCornerShape(50))
                             .background(secondaryColor),
                         contentAlignment = Alignment.Center
@@ -406,7 +406,7 @@ fun LyricsImageCard(
                             painter = painterResource(id = R.drawable.small_icon),
                             contentDescription = null,
                             modifier = Modifier
-                                .size(16.dp)
+                                .size(38.dp)
                         )
                     }
 

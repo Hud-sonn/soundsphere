@@ -169,6 +169,8 @@ val StreamSourceIOSKey = booleanPreferencesKey("streamSourceIOS")
 val StreamSourceWebCreatorKey = booleanPreferencesKey("streamSourceWebCreator")
 val StreamSourceAndroidCreatorKey = booleanPreferencesKey("streamSourceAndroidCreator")
 
+val EnableDynamicIconKey = booleanPreferencesKey("enableDynamicIcon")
+
 val EnableDiscordRPCKey = booleanPreferencesKey("discordRPCEnable")
 val DiscordInfoDismissedKey = booleanPreferencesKey("discordInfoDismissed")
 val DiscordUsernameKey = stringPreferencesKey("discordUsername")
