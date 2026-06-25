@@ -904,4 +904,9 @@
     <string name="stream_source_android_creator">ANDROID_CREATOR</string>
     <string name="stream_source_android_creator_desc">Klient tvůrce pro Android. Ve výchozím nastavení vypnuté; vyžaduje DroidGuard.</string>
     <string name="error_job_cancelled">Video není k dispozici k přehrání. Zkuste to znovu nebo přeskočte na další skladbu.</string>
+    <string name="enable_landscape_scaling">Škálování na šířku</string>
+    <string name="enable_landscape_scaling_desc">Nastavit rozhraní do režimu na šířku pro větší obrazovky</string>
+    <string name="dynamic_theme">Dynamický motiv</string>
+    <string name="enable_dynamic_icon">Dynamické barvy ikon</string>
+    <string name="enable_dynamic_icon_desc">Použít barvy dynamického motivu pro ikonu aplikace. Pokud je vypnuto, budou použity jednobarevné odstíny.</string>
 </resources>
