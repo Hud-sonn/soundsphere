@@ -886,4 +886,6 @@
     <string name="enable_landscape_scaling_desc">在横屏模式下缩放界面以适应更大的屏幕</string>
     <string name="enable_landscape_scaling">横屏缩放</string>
     <string name="dynamic_theme">动态主题</string>
+    <string name="enable_dynamic_icon">动态图标颜色</string>
+    <string name="enable_dynamic_icon_desc">为应用图标使用动态主题颜色。禁用后，图标将使用纯色。</string>
 </resources>
