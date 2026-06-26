@@ -882,4 +882,10 @@
     <string name="stream_source_web_creator_desc">Klien web kreator.</string>
     <string name="stream_source_android_creator">ANDROID_CREATOR</string>
     <string name="stream_source_android_creator_desc">Klien kreator Android. Nonaktif secara default; memerlukan DroidGuard.</string>
+    <string name="error_job_cancelled">Vidio tidak tersedia untuk diputar. Coba lagi atau lewati ke lagu berikutnya.</string>
+    <string name="enable_landscape_scaling_desc">Ukuran tampilan mode landscape untuk layar lebih besar</string>
+    <string name="enable_dynamic_icon_desc">Gunakan tema dinamis untuk ikon app. Saat dimatikan, ikon menggunakan warna konkrit</string>
+    <string name="enable_landscape_scaling">Pengukuran landscape</string>
+    <string name="dynamic_theme">Tema Dinamis</string>
+    <string name="enable_dynamic_icon">Warna ikon dinamis</string>
 </resources>
