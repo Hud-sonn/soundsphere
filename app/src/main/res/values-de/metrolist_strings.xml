@@ -891,4 +891,7 @@
     <string name="stream_source_android_creator_desc">Android-Ersteller-Client. Standardmäßig deaktiviert; erfordert DroidGuard.</string>
     <string name="error_job_cancelled">Das Video kann nicht abgespielt werden. Versuchen Sie es erneut oder springen Sie zum nächsten Titel.</string>
     <string name="dynamic_theme">Dynamisches Design</string>
+    <string name="enable_landscape_scaling_desc">Benutzeroberfläche im Querformat für größere Bildschirme skalieren</string>
+    <string name="enable_dynamic_icon">Dynamische Symbolfarben</string>
+    <string name="enable_dynamic_icon_desc">Verwenden Sie dynamische Designfarben für das App-Symbol. Wenn diese Option deaktiviert ist, wird das Symbol in Volltonfarben angezeigt.</string>
 </resources>
