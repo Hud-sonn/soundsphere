@@ -894,4 +894,5 @@
     <string name="enable_landscape_scaling_desc">Benutzeroberfläche im Querformat für größere Bildschirme skalieren</string>
     <string name="enable_dynamic_icon">Dynamische Symbolfarben</string>
     <string name="enable_dynamic_icon_desc">Verwenden Sie dynamische Designfarben für das App-Symbol. Wenn diese Option deaktiviert ist, wird das Symbol in Volltonfarben angezeigt.</string>
+    <string name="enable_landscape_scaling">Skalierung im Querformat</string>
 </resources>
