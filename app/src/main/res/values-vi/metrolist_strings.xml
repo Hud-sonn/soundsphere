@@ -886,4 +886,6 @@
     <string name="enable_landscape_scaling">Tỷ lệ màn hình ngang</string>
     <string name="enable_landscape_scaling_desc">Phóng to giao diện khi xoay ngang trên màn hình lớn</string>
     <string name="dynamic_theme">Chủ đề động</string>
+    <string name="enable_dynamic_icon">Biểu tượng theo chủ đề</string>
+    <string name="enable_dynamic_icon_desc">Sử dụng biểu tượng theo chủ đề. Khi tắt, biểu tượng sẽ sử dụng màu đơn sắc.</string>
 </resources>
