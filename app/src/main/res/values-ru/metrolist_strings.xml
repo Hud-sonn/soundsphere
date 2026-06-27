@@ -907,4 +907,6 @@
     <string name="enable_landscape_scaling">Масштабирование в альбомной ориентации</string>
     <string name="enable_landscape_scaling_desc">Масштабировать интерфейс в альбомной ориентации на больших экранах</string>
     <string name="dynamic_theme">Динамическая тема</string>
+    <string name="enable_dynamic_icon">Динамические цвета значка</string>
+    <string name="enable_dynamic_icon_desc">Использовать динамические цвета темы для значка приложения. Если отключено, используются сплошные цвета.</string>
 </resources>
