@@ -848,4 +848,19 @@
     <string name="widget_playlists">Playlists</string>
     <string name="widget_playlists_description">Atalhos para a playlist com controles do mini reprodutor</string>
     <string name="choose_something_below">Escolha algo abaixo</string>
+    <string name="error_job_cancelled">O vídeo não está disponível para reprodução. Tente novamente ou pule para a próxima música.</string>
+    <string name="discord_status_connecting">Conectando ao Discord…</string>
+    <string name="discord_status_connected">Conectado</string>
+    <string name="discord_status_authorizing">Autorizando…</string>
+    <string name="discord_status_authorized">Autorizado</string>
+    <string name="discord_status_not_initialized">Não inicializado</string>
+    <string name="discord_error_loopback_timeout">Discord não respondeu a tempo. Tente novamente.</string>
+    <string name="discord_error_loopback_unbound">Não foi possível abrir uma porta local de callback. Libere uma porta e tente novamente.</string>
+    <string name="discord_error_no_browser">Nenhum navegador foi encontrado para concluir a autorização do Discord.</string>
+    <string name="discord_error_token_refresh_failed">A sessão do Discord expirou. Reconecte-se.</string>
+    <string name="discord_error_invalid_scope">Discord recusou a conexão. Conecte-se novamente e conceda a permissão necessária.</string>
+    <string name="discord_error_banner_title">Erro do Discord</string>
+    <string name="discord_integration">Integração com Discord</string>
+    <string name="not_applicable">N/A</string>
+    <string name="enable_dynamic_icon_desc">Usa cores dinâmicas do tema no ícone do app. Quando desabilitado, o ícone usa cores sólidas.</string>
 </resources>
