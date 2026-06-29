@@ -49,7 +49,7 @@
     <string name="sync_disabled">Sincronización desactivada</string>
     <string name="allows_for_sync_witch_youtube">Nota: Esto permite sincronizarse con YouTube Music. NO se puede cambiar después</string>
     <string name="generating_image">Generando imagen…</string>
-    <string name="please_wait">Por favor espera</string>
+    <string name="please_wait">Por favor, espera</string>
     <string name="cancel">Cancelar</string>
     <string name="my_top">Mi Top</string>
     <plurals name="n_time">
@@ -73,7 +73,7 @@
     <string name="dislike_all">Dar no me gusta a todo</string>
     <string name="sort_by_last_updated">Fecha actualizada</string>
     <string name="lyrics">Letras</string>
-    <string name="already_in_playlist">Actualmente en la lista de reproducción:</string>
+    <string name="already_in_playlist">Ya está en la lista de reproducción:</string>
     <string name="similar_content">Contenido similar</string>
     <string name="player_background_style">Estilo del reproductor de fondo</string>
     <string name="follow_theme">Seguir tema</string>
