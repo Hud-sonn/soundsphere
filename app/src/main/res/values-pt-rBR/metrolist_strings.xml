@@ -863,4 +863,5 @@
     <string name="discord_integration">Integração com Discord</string>
     <string name="not_applicable">N/A</string>
     <string name="enable_dynamic_icon_desc">Usa cores dinâmicas do tema no ícone do app. Quando desabilitado, o ícone usa cores sólidas.</string>
+    <string name="dynamic_theme">Tema Dinâmico</string>
 </resources>
