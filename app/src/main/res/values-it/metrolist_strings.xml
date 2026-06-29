@@ -629,7 +629,7 @@
     </plurals>
     <string name="restore_confirm_title">Vuoi ripristinare il backup?</string>
     <string name="restore_confirm_message">Questo ripristinerà i dati dell\'app dal backup</string>
-    <string name="restore_account_warning">Sarà necessario accedere nuovamente dopo il ripristino. Verrà disconnesso il seguente account:</string>
+    <string name="restore_account_warning">Le seguenti informazioni sull\'account verranno ripristinate e conservate:</string>
     <string name="restore">Ripristina</string>
     <string name="checking_previous_account">Verifica account precedente…</string>
     <string name="no_account_found">Nessun account trovato</string>
@@ -897,4 +897,9 @@
     <string name="discord_placeholder_album">Titolo album</string>
     <string name="restore_database_incompatible">Impossibile ripristinare il backup: versione del database incompatibile. I tuoi dati attuali sono stati conservati.</string>
     <string name="stream_client">Client streaming</string>
+    <string name="enable_landscape_scaling">Ridimensionamento Paesaggio</string>
+    <string name="enable_landscape_scaling_desc">Ridimensiona l\'interfaccia utente in modalità orizzontale per schermi più grandi</string>
+    <string name="dynamic_theme">Tema Dinamico</string>
+    <string name="enable_dynamic_icon">Colori dinamici delle icone</string>
+    <string name="enable_dynamic_icon_desc">Utilizza i colori del tema dinamico per l\'icona dell\'app. Quando disabilitata, l\'icona utilizza colori solidi.</string>
 </resources>
