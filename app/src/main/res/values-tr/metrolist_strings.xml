@@ -893,4 +893,6 @@
     <string name="enable_landscape_scaling">Yatay Ölçekleme</string>
     <string name="enable_landscape_scaling_desc">Büyük ekranlarda yatay mod için arayüzü ölçeklendir</string>
     <string name="dynamic_theme">Dinamik Tema</string>
+    <string name="enable_dynamic_icon">Dinamik ikon renkleri</string>
+    <string name="enable_dynamic_icon_desc">Uygulama ikonu için dinamik tema renklerini kullan. Eğer kapatılırsa, ikon sabit renkleri kullanır.</string>
 </resources>
