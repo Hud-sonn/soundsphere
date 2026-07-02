@@ -280,6 +280,10 @@
       <td align="center"><a href="https://github.com/aleksey-saenko/MusicRecognizer"><strong>MusicRecognizer</strong></a></td>
       <td>Music recognition feature & Shazam API integration</td>
     </tr>
+    <tr>
+      <td align="center"><a href="https://github.com/ZemerTeam/zemer-cipher"><strong>zemer-cipher</strong></a></td>
+      <td>YouTube cipher deobfuscation and PoToken generation</td>
+    </tr>
   </tbody>
 </table>
 
