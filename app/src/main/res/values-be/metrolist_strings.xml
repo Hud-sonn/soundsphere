@@ -14,7 +14,7 @@
     <string name="sync_playlist">Сінхранізаваць плей-ліст</string>
     <string name="sync_disabled">Сінхранізацыя адключана</string>
     <string name="allows_for_sync_witch_youtube">ЗАЎВАГА: Гэта опцыя ўключае сінхранізацыю з YouTube Music. Гэта НЕЛЬГА змяніць пазней.</string>
-    <string name="generating_image">Генерацыя відарыса</string>
+    <string name="generating_image">Генерацыя відарыса…</string>
     <string name="please_wait">Пачакайце, калі ласка</string>
     <string name="cancel">Скасаваць</string>
     <string name="share_lyrics">Падзяліцца тэкстам песні</string>
@@ -313,4 +313,10 @@
     <string name="disable_load_more_when_repeat_all">Адключыць аўтазагрузку ў рэжыме паўтору ўсіх трэкаў</string>
     <string name="disable_load_more_when_repeat_all_desc">Адключыць аўтаматычную падгрузку трэкаў ці падобнага кантэнту, калі ўключаны паўтор усяго</string>
     <string name="pause_music_when_media_is_muted">Спыняць прайграванне пры адключэнні гуку</string>
+    <string name="tertiary_color_style">Трацічны колер</string>
+    <string name="lyrics_click_change">Змяняць тэкст песні па націску</string>
+    <string name="show_interval_indicator">Паказваць індыкатар паўз</string>
+    <string name="respect_agent_positioning">Улічваць пазіцыянаванне артыста</string>
+    <string name="enable_lrclib_desc">База сінхранізаваных тэкстаў песень, якая падтрымліваецца супольнасцю</string>
+    <string name="advanced_login">Уваход па токену</string>
 </resources>
