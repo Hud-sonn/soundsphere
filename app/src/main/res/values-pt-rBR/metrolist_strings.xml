@@ -864,4 +864,9 @@
     <string name="not_applicable">N/A</string>
     <string name="enable_dynamic_icon_desc">Usa cores dinâmicas do tema no ícone do app. Quando desabilitado, o ícone usa cores sólidas.</string>
     <string name="dynamic_theme">Tema Dinâmico</string>
+    <string name="enable_landscape_scaling">Escala No Modo Paisagem</string>
+    <string name="enable_landscape_scaling_desc">Escala a interface no modo paisagem para telas maiores</string>
+    <string name="enable_discord_rpc">Habilitar Rich Presence</string>
+    <string name="discord_state">Estado</string>
+    <string name="format_cipher_support_added">Suporte a criptografia adicionado</string>
 </resources>
