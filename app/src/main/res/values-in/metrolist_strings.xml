@@ -724,7 +724,7 @@
     <string name="time_transfer_source_song">Sumber lagu</string>
     <string name="time_transfer_target_song">Target lagu</string>
     <string name="time_transfer_listen_time_label">Waktu mendengarkan:</string>
-    <string name="time_transfer_convert">Mengubah</string>
+    <string name="time_transfer_convert">Ubah</string>
     <string name="song_dropdown_more_results">Terus mengetik untuk mempersempit hasil (%d lebih banyak)</string>
     <string name="alarm">Alarm</string>
     <string name="alarm_enabled">Menyalakan alarm</string>
@@ -794,7 +794,7 @@
     <string name="varispeed">Aktifkan varispeed</string>
     <string name="varispeed_description">Kaitkan nada dengan kecepatan pemutaran, menghasilkan efek percepatan dan perlambatan ala kaset</string>
     <string name="autoplay">Putar otomatis</string>
-    <string name="autoplay_desc">Secara otomatis memutar lagu berikutnya ketika lagu saat ini selesai</string>
+    <string name="autoplay_desc">Otomatis memutar lagu berikutnya ketika lagu saat ini selesai</string>
     <string name="back">Kembali</string>
     <string name="clear_search">Hapus pencarian</string>
     <string name="close_chip">Tutup</string>
@@ -884,7 +884,7 @@
     <string name="stream_source_android_creator_desc">Klien kreator Android. Nonaktif secara default; memerlukan DroidGuard.</string>
     <string name="error_job_cancelled">Vidio tidak tersedia untuk diputar. Coba lagi atau lewati ke lagu berikutnya.</string>
     <string name="enable_landscape_scaling_desc">Ukuran tampilan mode landscape untuk layar lebih besar</string>
-    <string name="enable_dynamic_icon_desc">Gunakan tema dinamis untuk ikon app. Saat dimatikan, ikon menggunakan warna konkrit</string>
+    <string name="enable_dynamic_icon_desc">Gunakan tema dinamis untuk ikon app. Saat dimatikan, ikon menggunakan warna polos.</string>
     <string name="enable_landscape_scaling">Pengukuran landscape</string>
     <string name="dynamic_theme">Tema Dinamis</string>
     <string name="enable_dynamic_icon">Warna ikon dinamis</string>
