@@ -858,7 +858,7 @@
     <string name="discord_placeholder_song">Nama lagu</string>
     <string name="discord_placeholder_artist">Nama artis</string>
     <string name="discord_placeholder_album">Nama album</string>
-    <string name="restore_database_incompatible">Tidak dapat memulihkan cadangan: versi database tidak kompatibel. Data Anda saat ini tetap dipertahankan.</string>
+    <string name="restore_database_incompatible">Tidak dapat memulihkan cadangan: versi database tidak cocok. Data Anda saat ini tetap dipertahankan.</string>
     <string name="stream_client">Klien stream</string>
     <string name="format_player_hash">Hash pemutar</string>
     <string name="format_cipher_support_added">Dukungan cipher ditambahkan</string>
