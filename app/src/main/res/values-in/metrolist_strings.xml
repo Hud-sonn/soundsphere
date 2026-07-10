@@ -648,9 +648,9 @@
     <string name="new_episodes">Episode baru</string>
     <string name="episodes_for_later">Episode untuk nanti</string>
     <string name="save_episode_for_later">Simpan untuk nanti</string>
-    <string name="save_episode_for_later_desc">Tambahkan ke playlist Episode untuk nanti Anda</string>
-    <string name="remove_episode_from_saved">Hapus dari tersimpan</string>
-    <string name="subscribe_to_podcast">Simpan podcast ke perpustakaan</string>
+    <string name="save_episode_for_later_desc">Tambahkan ke Episode Anda untuk nanti</string>
+    <string name="remove_episode_from_saved">Hapus dari daftar tersimpan</string>
+    <string name="subscribe_to_podcast">Simpan podcast ke pustaka</string>
     <plurals name="n_episode">
         <item quantity="other">%d episode</item>
     </plurals>
@@ -666,7 +666,7 @@
     </plurals>
     <string name="restore_confirm_title">Pulihkan cadangan?</string>
     <string name="restore_confirm_message">Ini akan memulihkan data aplikasi Anda dari cadangan yang dipilih</string>
-    <string name="restore_account_warning">Anda perlu masuk kembali setelah memulihkan. Akun berikut akan keluar:</string>
+    <string name="restore_account_warning">Informasi akun berikut akan dipulihkan dan dipertahankan:</string>
     <string name="restore">Pulihkan</string>
     <string name="checking_previous_account">Memeriksa akun sebelumnya…</string>
     <string name="no_account_found">Tidak ada akun yang ditemukan</string>
