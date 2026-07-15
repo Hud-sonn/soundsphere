@@ -14,12 +14,10 @@ import com.metrolist.innertube.models.PlaylistItem
 import com.metrolist.innertube.models.PodcastItem
 import com.metrolist.innertube.models.SongItem
 import com.metrolist.innertube.models.YTItem
-import com.metrolist.innertube.models.clean
 import com.metrolist.innertube.models.filterExplicit
 import com.metrolist.innertube.models.filterVideoSongs
 import com.metrolist.innertube.models.filterYoutubeShorts
 import com.metrolist.innertube.models.oddElements
-import com.metrolist.innertube.models.splitArtistsByConjunction
 import com.metrolist.innertube.models.splitBySeparator
 import com.metrolist.innertube.utils.parseTime
 
@@ -242,7 +240,10 @@ data class SearchSummaryPage(
             }
         }
 
-        fun fromMusicResponsiveListItemRenderer(renderer: MusicResponsiveListItemRenderer): YTItem? {
+        fun fromMusicResponsiveListItemRenderer(
+            renderer: MusicResponsiveListItemRenderer,
+            fallbackArtists: List<Artist> = emptyList(),
+        ): YTItem? {
             val secondaryLine =
                 renderer.flexColumns
                     .getOrNull(1)
@@ -324,19 +325,11 @@ data class SearchSummaryPage(
                 renderer.isSong -> {
                     // Extract library tokens using the new method that properly handles multiple toggle items
                     val libraryTokens = PageHelper.extractLibraryTokensFromMenuItems(renderer.menu?.menuRenderer?.items)
-                    val thirdLine =
-                        renderer.flexColumns
-                            .getOrNull(2)
-                            ?.musicResponsiveListItemFlexColumnRenderer
-                            ?.text
-                            ?.runs
-                            ?.splitBySeparator()
-                            ?: emptyList()
-                    val listRun = (secondaryLine + thirdLine).clean()
-
-                    // Split artist runs by conjunction to handle "Artist1 & Artist2" cases
-                    val artistRuns = listRun.getOrNull(0)?.splitArtistsByConjunction()
-                        ?.filter { it.text.isNotBlank() && it.text != "&" && it.text != "," }
+                    val metadataRuns = renderer.flexColumns
+                        .drop(1)
+                        .flatMap { it.musicResponsiveListItemFlexColumnRenderer.text?.runs.orEmpty() }
+                    val artists = PageHelper.extractArtists(metadataRuns).ifEmpty { fallbackArtists }
+                    val albumRun = PageHelper.extractRuns(renderer.flexColumns, "MUSIC_PAGE_TYPE_ALBUM").firstOrNull()
 
                     SongItem(
                         id = renderer.playlistItemData?.videoId
@@ -357,24 +350,14 @@ data class SearchSummaryPage(
                                 ?.runs
                                 ?.firstOrNull()
                                 ?.text ?: return null,
-                        artists = artistRuns?.map { run ->
-                            Artist(
-                                name = run.text.trim(),
-                                id = run.navigationEndpoint?.browseEndpoint?.browseId
-                            )
-                        } ?: return null,
-                        album = listRun.getOrNull(1)?.firstOrNull()?.takeIf { it.navigationEndpoint?.browseEndpoint != null }?.let {
+                        artists = artists.ifEmpty { return null },
+                        album = albumRun?.let {
                             Album(
                                 name = it.text,
-                                id = it.navigationEndpoint?.browseEndpoint?.browseId!!
+                                id = it.navigationEndpoint?.browseEndpoint?.browseId ?: return@let null,
                             )
                         },
-                        duration =
-                            secondaryLine
-                                .lastOrNull()
-                                ?.firstOrNull()
-                                ?.text
-                                ?.parseTime(),
+                        duration = PageHelper.extractDuration(metadataRuns),
                         musicVideoType = renderer.musicVideoType,
                         thumbnail = renderer.thumbnail?.musicThumbnailRenderer?.getThumbnailUrl() ?: return null,
                         explicit =

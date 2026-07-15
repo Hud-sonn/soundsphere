@@ -176,12 +176,24 @@ object YouTube {
                 ?.forEach { section ->
                     if (section.musicCardShelfRenderer != null) {
                         // Top result card - keep as single section
+                        val cardRenderer = section.musicCardShelfRenderer
+                        val cardArtists = if (cardRenderer.onTap.browseEndpoint?.isArtistEndpoint == true) {
+                            listOfNotNull(
+                                cardRenderer.title.runs?.firstOrNull()?.text?.let { name ->
+                                    Artist(name, cardRenderer.onTap.browseEndpoint.browseId)
+                                },
+                            )
+                        } else {
+                            PageHelper.extractArtists(cardRenderer.subtitle.runs)
+                        }
                         val items =
-                            listOfNotNull(SearchSummaryPage.fromMusicCardShelfRenderer(section.musicCardShelfRenderer))
+                            listOfNotNull(SearchSummaryPage.fromMusicCardShelfRenderer(cardRenderer))
                                 .plus(
-                                    section.musicCardShelfRenderer.contents
+                                    cardRenderer.contents
                                         ?.mapNotNull { it.musicResponsiveListItemRenderer }
-                                        ?.mapNotNull(SearchSummaryPage.Companion::fromMusicResponsiveListItemRenderer)
+                                        ?.mapNotNull { renderer ->
+                                            SearchSummaryPage.fromMusicResponsiveListItemRenderer(renderer, cardArtists)
+                                        }
                                         .orEmpty(),
                                 ).distinctBy { it.id }
 
@@ -189,7 +201,7 @@ object YouTube {
                             allSummaries.add(
                                 SearchSummary(
                                     title =
-                                        section.musicCardShelfRenderer.header
+                                        cardRenderer.header
                                             ?.musicCardShelfHeaderBasicRenderer
                                             ?.title
                                             ?.runs
@@ -1820,46 +1832,67 @@ object YouTube {
                         setLogin = true,
                     ).body<BrowseResponse>()
 
-            val tabs = response.contents?.singleColumnBrowseResultsRenderer?.tabs
-            val contents =
-                if (tabs != null && tabs.size > tabIndex) {
-                    tabs[tabIndex]
-                        .tabRenderer.content
-                        ?.sectionListRenderer
-                        ?.contents
-                        ?.firstOrNull()
-                } else {
-                    null
+            val tab = response.contents?.singleColumnBrowseResultsRenderer?.tabs?.getOrNull(tabIndex)
+                ?: response.contents?.twoColumnBrowseResultsRenderer?.tabs?.getOrNull(tabIndex)
+            val contents = tab
+                ?.tabRenderer
+                ?.content
+                ?.sectionListRenderer
+                ?.contents
+                ?.firstOrNull {
+                    it.gridRenderer != null ||
+                        it.musicShelfRenderer != null ||
+                        it.musicPlaylistShelfRenderer != null ||
+                        it.itemSectionRenderer?.contents.orEmpty().any { child ->
+                            child.gridRenderer != null ||
+                                child.musicShelfRenderer != null ||
+                                child.musicPlaylistShelfRenderer != null
+                        }
                 }
+            val nestedContents = contents?.itemSectionRenderer?.contents.orEmpty()
+            val gridRenderer = contents?.gridRenderer
+                ?: nestedContents.firstNotNullOfOrNull { it.gridRenderer }
+            val playlistShelfRenderer = contents?.musicPlaylistShelfRenderer
+                ?: nestedContents.firstNotNullOfOrNull { it.musicPlaylistShelfRenderer }
+            val musicShelfRenderer = contents?.musicShelfRenderer
+                ?: nestedContents.firstNotNullOfOrNull { it.musicShelfRenderer }
 
             when {
-                contents?.gridRenderer != null -> {
-                    val gridItems = contents.gridRenderer.items
+                gridRenderer != null -> {
+                    val gridItems = gridRenderer.items
                     val parsedItems =
                         gridItems
                             .mapNotNull(GridRenderer.Item::musicTwoRowItemRenderer)
                             .mapNotNull { LibraryPage.fromMusicTwoRowItemRenderer(it) }
                     LibraryPage(
                         items = parsedItems,
-                        continuation = contents.gridRenderer.continuations?.getContinuation(),
+                        continuation = gridRenderer.continuations?.getContinuation(),
                     )
                 }
 
-                else -> {
-                    val shelfContents = contents?.musicShelfRenderer?.contents
-                    if (shelfContents == null) {
-                        throw IllegalStateException("No content found for browseId=$browseId")
-                    }
-                    val listItemRenderers = shelfContents.mapNotNull(MusicShelfRenderer.Content::musicResponsiveListItemRenderer)
+                playlistShelfRenderer != null -> {
+                    LibraryPage(
+                        items = playlistShelfRenderer.contents
+                            .getItems()
+                            .mapNotNull(LibraryPage.Companion::fromMusicResponsiveListItemRenderer),
+                        continuation = playlistShelfRenderer.continuations?.getContinuation(),
+                    )
+                }
+
+                musicShelfRenderer != null -> {
+                    val listItemRenderers = musicShelfRenderer.contents.orEmpty()
+                        .mapNotNull(MusicShelfRenderer.Content::musicResponsiveListItemRenderer)
                     val parsedItems =
                         listItemRenderers.mapNotNull { renderer ->
                             LibraryPage.fromMusicResponsiveListItemRenderer(renderer)
                         }
                     LibraryPage(
                         items = parsedItems,
-                        continuation = contents.musicShelfRenderer.continuations?.getContinuation(),
+                        continuation = musicShelfRenderer.continuations?.getContinuation(),
                     )
                 }
+
+                else -> LibraryPage(items = emptyList(), continuation = null)
             }
         }
 

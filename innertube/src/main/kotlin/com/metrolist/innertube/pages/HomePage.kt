@@ -195,11 +195,7 @@ data class HomePage(
                         }
                         val title = renderer.title.runs?.firstOrNull()?.text ?: return null
                         val videoId = renderer.navigationEndpoint.watchEndpoint?.videoId ?: return null
-                        val artists = PageHelper.extractArtists(artistRuns).ifEmpty {
-                            subtitleRuns.firstOrNull()?.let { run ->
-                                listOf(Artist(name = run.text, id = null))
-                            } ?: emptyList()
-                        }
+                        val artists = PageHelper.extractArtists(artistRuns)
 
                         SongItem(
                             id = videoId,

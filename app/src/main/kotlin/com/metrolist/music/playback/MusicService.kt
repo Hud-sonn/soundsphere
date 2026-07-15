@@ -92,6 +92,7 @@ import androidx.media3.session.SessionToken
 import com.google.common.collect.ImmutableList
 import com.google.common.util.concurrent.MoreExecutors
 import com.metrolist.innertube.YouTube
+import com.metrolist.innertube.strategy.ContentHints
 import com.metrolist.innertube.models.SongItem
 import com.metrolist.innertube.models.WatchEndpoint
 import com.metrolist.lastfm.LastFM
@@ -105,9 +106,7 @@ import com.metrolist.music.constants.AudioTrackPlaybackParamsKey
 import com.metrolist.music.constants.AutoDownloadOnLikeKey
 import com.metrolist.music.constants.AutoLoadMoreKey
 import com.metrolist.music.constants.AutoSkipNextOnErrorKey
-import com.metrolist.music.constants.StreamSourceAndroidCreatorKey
 import com.metrolist.music.constants.StreamSourceAndroidVRKey
-import com.metrolist.music.constants.StreamSourceIOSKey
 import com.metrolist.music.constants.StreamSourceTVHTML5Key
 import com.metrolist.music.constants.StreamSourceVisionOSKey
 import com.metrolist.music.constants.StreamSourceWebCreatorKey
@@ -1181,13 +1180,8 @@ class MusicService :
                         if (prefs[StreamSourceWebRemixKey] == false) add("WEB_REMIX")
                         if (prefs[StreamSourceTVHTML5Key] == false) add("TVHTML5")
                         if (prefs[StreamSourceAndroidVRKey] == false) add("ANDROID_VR")
-                        // The IOS toggle covers both the iOS and iPadOS clients (they share clientName
-                        // "IOS"); ANDROID_CREATOR needs DroidGuard — these default OFF (`!= true`: unset
-                        // or false both disable; only an explicit toggle enables them).
-                        if (prefs[StreamSourceIOSKey] != true) add("IOS")
                         if (prefs[StreamSourceVisionOSKey] == false) add("VISIONOS")
                         if (prefs[StreamSourceWebCreatorKey] == false) add("WEB_CREATOR")
-                        if (prefs[StreamSourceAndroidCreatorKey] != true) add("ANDROID_CREATOR")
                     }
                 }
                 .distinctUntilChanged()
@@ -3687,10 +3681,15 @@ class MusicService :
             Timber.tag(TAG).i("FETCHING STREAM: $mediaId | quality=$audioQuality")
             val playbackData =
                 runBlocking(Dispatchers.IO) {
+                    val song = database.songEntity(mediaId)
                     YTPlayerUtils.playerResponseForPlayback(
                         mediaId,
                         audioQuality = audioQuality,
                         connectivityManager = connectivityManager,
+                        contentHints = ContentHints(
+                            isExplicit = song?.explicit,
+                            isUploaded = song?.isUploaded,
+                        ),
                     )
                 }.getOrElse { throwable ->
                     when (throwable) {
@@ -4545,12 +4544,17 @@ class MusicService :
     suspend fun getStreamUrl(mediaId: String): String? =
         withContext(Dispatchers.IO) {
             try {
+                val song = database.songEntity(mediaId)
                 val playbackData =
                     YTPlayerUtils
                         .playerResponseForPlayback(
                             videoId = mediaId,
                             audioQuality = audioQuality,
                             connectivityManager = connectivityManager,
+                            contentHints = ContentHints(
+                                isExplicit = song?.explicit,
+                                isUploaded = song?.isUploaded,
+                            ),
                         ).getOrNull()
                 playbackData?.streamUrl
             } catch (e: Exception) {
