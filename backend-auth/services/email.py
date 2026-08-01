@@ -43,7 +43,7 @@ def send_otp_email(to_email: str, otp: str, purpose: str = "verify"):
     """
     msg.attach(MIMEText(html, "html"))
 
-    with smtplib.SMTP("smtp.gmail.com", 587) as server:
+    with smtplib.SMTP("smtp.gmail.com", 587, timeout=15) as server:
         server.starttls()
         server.login(user, app_pw)
         server.sendmail(msg["From"], to_email, msg.as_string())
