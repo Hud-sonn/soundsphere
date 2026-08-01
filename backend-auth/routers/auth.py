@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, HTTPException, Request
@@ -72,7 +73,7 @@ async def register(body: RegisterRequest, request: Request = None):
         }
     ).execute()
     try:
-        send_otp_email(body.email, otp, "verify")
+        await asyncio.to_thread(send_otp_email, body.email, otp, "verify")
     except Exception as e:
         # Log the error but don't fail the request - OTP is still stored in DB
         # In production, you'd want to use proper logging
@@ -141,7 +142,7 @@ async def resend_otp(body: ResendOtpRequest, request: Request = None):
         }
     ).execute()
     try:
-        send_otp_email(body.email, otp, "resend")
+        await asyncio.to_thread(send_otp_email, body.email, otp, "resend")
     except Exception as e:
         # Log the error but don't fail the request - OTP is still stored in DB
         print(f"Failed to send OTP email: {e}")
@@ -201,7 +202,7 @@ async def forgot_password(body: ForgotPasswordRequest, request: Request = None):
         }
     ).execute()
     try:
-        send_otp_email(body.email, otp, "reset")
+        await asyncio.to_thread(send_otp_email, body.email, otp, "reset")
     except Exception as e:
         # Log the error but don't fail the request - OTP is still stored in DB
         print(f"Failed to send OTP email: {e}")
