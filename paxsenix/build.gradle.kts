@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "com.metrolist.paxsenix"
+    namespace = "com.soundsphere.paxsenix"
     compileSdk = 37
 
     defaultConfig {

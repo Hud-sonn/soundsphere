@@ -24,7 +24,7 @@ dependencyResolutionManagement {
 //     id("org.gradle.toolchains.foojay-resolver-convention") version("1.0.0")
 // }
 
-rootProject.name = "Metrolist"
+rootProject.name = "Soundsphere"
 include(":app")
 include(":innertube")
 include(":kugou")
@@ -36,7 +36,7 @@ include(":shazamkit")
 include(":paxsenix")
 
 // Use a local copy of NewPipe Extractor by uncommenting the lines below.
-// We assume, that Metrolist and NewPipe Extractor have the same parent directory.
+// We assume, that Soundsphere and NewPipe Extractor have the same parent directory.
 // If this is not the case, please change the path in includeBuild().
 //
 // For this to work you also need to change the implementation in innertube/build.gradle.kts

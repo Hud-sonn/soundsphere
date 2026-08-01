@@ -1,6 +1,6 @@
 ---v13.6.1
-# THE FUTURE OF METROLIST
-The new Kotlin Multiplatform version of Metrolist is now in a good state, and we are aiming to release it within the next month. Until then, the current app will remain in maintenance mode and receive bug fixes and minor improvements.
+# THE FUTURE OF SOUNDSPHERE
+The new Kotlin Multiplatform version of Soundsphere is now in a good state, and we are aiming to release it within the next month. Until then, the current app will remain in maintenance mode and receive bug fixes and minor improvements.
 
 # Major changes
 - Improved playback reliability and recovery from YouTube player failures (@alltechdev @JASK625 @kairosci @mostafaalagamy @nyxiereal)
@@ -26,7 +26,7 @@ The new Kotlin Multiplatform version of Metrolist is now in a good state, and we
 
 ---v13.5.0
 # MAINTENANCE MODE
-Metrolist is currently in maintenance mode. This means we will only be fixing bugs and making minor improvements. Please do not submit PRs for new features or major changes, as they will not be accepted.
+Soundsphere is currently in maintenance mode. This means we will only be fixing bugs and making minor improvements. Please do not submit PRs for new features or major changes, as they will not be accepted.
 
 # Major changes
 - Rewrote the Discord RPC integration again (@adrielGGmotion @nyxiereal)
@@ -53,7 +53,7 @@ Metrolist is currently in maintenance mode. This means we will only be fixing bu
 
 ---v13.4.3
 # MAINTENANCE MODE
-Metrolist is currently in maintenance mode. This means we will only be fixing bugs and making minor improvements. Please do not submit PRs for new features or major changes, as they will not be accepted.
+Soundsphere is currently in maintenance mode. This means we will only be fixing bugs and making minor improvements. Please do not submit PRs for new features or major changes, as they will not be accepted.
 
 # Major changes
 - Rewrote the Discord RPC integration (@adrielGGmotion)
@@ -79,7 +79,7 @@ Metrolist is currently in maintenance mode. This means we will only be fixing bu
 
 ---v13.4.2
 # MAINTENANCE MODE
-Metrolist is currently in maintenance mode. This means we will only be fixing bugs and making minor improvements. Please do not submit PRs for new features or major changes, as they will not be accepted.
+Soundsphere is currently in maintenance mode. This means we will only be fixing bugs and making minor improvements. Please do not submit PRs for new features or major changes, as they will not be accepted.
 
 # Major changes
 - Fixed random crashes and some memory leaks (@nyxiereal)
@@ -107,7 +107,7 @@ Metrolist is currently in maintenance mode. This means we will only be fixing bu
 
 ---v13.4.1
 # MAINTENANCE MODE
-Metrolist is currently in maintenance mode. This means we will only be fixing bugs and making minor improvements. Please do not submit PRs for new features or major changes, as they will not be accepted.
+Soundsphere is currently in maintenance mode. This means we will only be fixing bugs and making minor improvements. Please do not submit PRs for new features or major changes, as they will not be accepted.
 
 # Major changes
 - Fixed cached songs showing up in the downloads playlist (@nyxiereal)
@@ -147,11 +147,11 @@ Metrolist is currently in maintenance mode. This means we will only be fixing bu
 **Full Changelog**: https://github.com/MetrolistGroup/Metrolist/compare/v13.4.0...v13.4.1
 ---v13.4.0
 # MAINTENANCE MODE
-Metrolist is currently in maintenance mode. This means we will only be fixing bugs and making minor improvements. Please do not submit PRs for new features or major changes, as they will not be accepted.
+Soundsphere is currently in maintenance mode. This means we will only be fixing bugs and making minor improvements. Please do not submit PRs for new features or major changes, as they will not be accepted.
 
 No, this is not an April Fools joke, even though this update is being released on April 1st.
 
-We are working on something big for the future of Metrolist - this is not the end of the project.
+We are working on something big for the future of Soundsphere - this is not the end of the project.
 
 # Major changes
 - Multiple playback fixes and reliability improvements (@alltechdev)

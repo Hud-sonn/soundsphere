@@ -1,6 +1,6 @@
-# Metrolist Dev Guide
+# Soundsphere Dev Guide
 
-This file outlines the process of setting up a local dev environment for Metrolist.
+This file outlines the process of setting up a local dev environment for Soundsphere.
 
 ## Prerequisites
 
@@ -13,8 +13,8 @@ This file outlines the process of setting up a local dev environment for Metroli
 This has been tested on Linux, but should work on other platforms with some adjustments.
 
 ```bash
-git clone https://github.com/MetrolistGroup/Metrolist
-cd Metrolist
+git clone https://github.com/Hud-sonn/soundsphere.git
+cd Soundsphere
 git submodule update --init --recursive
 cd app
 bash generate_proto.sh
