@@ -19,13 +19,13 @@ if (localPropertiesFile.exists()) {
     localProperties.load(localPropertiesFile.inputStream())
 }
 
-val baseApplicationId = "com.metrolist.music"
-val applicationIdOverride = System.getenv("METROLIST_APPLICATION_ID")?.takeIf { it.isNotBlank() }
-val appNameOverride = System.getenv("METROLIST_APP_NAME")?.takeIf { it.isNotBlank() }
-val debugKeystorePathOverride = System.getenv("METROLIST_DEBUG_KEYSTORE_PATH")?.takeIf { it.isNotBlank() }
-val debugKeystorePassword = System.getenv("METROLIST_DEBUG_KEYSTORE_PASSWORD")?.takeIf { it.isNotBlank() } ?: "android"
-val debugKeyAlias = System.getenv("METROLIST_DEBUG_KEY_ALIAS")?.takeIf { it.isNotBlank() } ?: "androiddebugkey"
-val debugKeyPassword = System.getenv("METROLIST_DEBUG_KEY_PASSWORD")?.takeIf { it.isNotBlank() } ?: "android"
+val baseApplicationId = "com.soundsphere.music"
+val applicationIdOverride = System.getenv("SOUNDSPHERE_APPLICATION_ID")?.takeIf { it.isNotBlank() }
+val appNameOverride = System.getenv("SOUNDSPHERE_APP_NAME")?.takeIf { it.isNotBlank() }
+val debugKeystorePathOverride = System.getenv("SOUNDSPHERE_DEBUG_KEYSTORE_PATH")?.takeIf { it.isNotBlank() }
+val debugKeystorePassword = System.getenv("SOUNDSPHERE_DEBUG_KEYSTORE_PASSWORD")?.takeIf { it.isNotBlank() } ?: "android"
+val debugKeyAlias = System.getenv("SOUNDSPHERE_DEBUG_KEY_ALIAS")?.takeIf { it.isNotBlank() } ?: "androiddebugkey"
+val debugKeyPassword = System.getenv("SOUNDSPHERE_DEBUG_KEY_PASSWORD")?.takeIf { it.isNotBlank() } ?: "android"
 val persistentDebugKeystoreFile = file("persistent-debug.keystore")
 val workflowDebugKeystoreFile = debugKeystorePathOverride?.let(::file)
 
@@ -52,6 +52,9 @@ abstract class GenerateProtoTask : DefaultTask() {
 
     @get:Inject
     abstract val execOperations: ExecOperations
+
+    @get:Inject
+    abstract val layout: ProjectLayout
 
     @TaskAction
     fun generate() {
@@ -80,13 +83,28 @@ abstract class GenerateProtoTask : DefaultTask() {
         }
 
         logger.lifecycle("Generating protobuf files in $outputDir")
+
+        // The upstream metroproto submodule declares the upstream java_package;
+        // rewrite it so generated classes use the Soundsphere package.
+        val patchedDir = layout.buildDirectory.dir("generated/proto-patched").get().asFile
+        patchedDir.mkdirs()
+        val patchedFile = File(patchedDir, protoFile.name)
+        patchedFile.writeText(
+            protoFile
+                .readText()
+                .replace(
+                    "com.metrolist.music.listentogether.proto",
+                    "com.soundsphere.music.listentogether.proto",
+                ),
+        )
+
         execOperations.exec {
             executable = protocFile.absolutePath
             args(
                 "--java_out=lite:$outputDir",
                 "--kotlin_out=$outputDir",
-                "-I=${protoFile.parentFile}",
-                protoFile.absolutePath,
+                "-I=$patchedDir",
+                patchedFile.absolutePath,
             )
         }
         logger.lifecycle("Protobuf files generated successfully")
@@ -94,7 +112,7 @@ abstract class GenerateProtoTask : DefaultTask() {
 }
 
 android {
-    namespace = "com.metrolist.music"
+    namespace = "com.soundsphere.music"
     compileSdk = 37
 
     defaultConfig {
@@ -103,7 +121,7 @@ android {
         targetSdk = 36
         versionCode = 150
         versionName = "13.6.1"
-        resValue("string", "app_name", appNameOverride ?: "Metrolist")
+        resValue("string", "app_name", appNameOverride ?: "Soundsphere")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
@@ -191,7 +209,7 @@ android {
             }
             isDebuggable = true
             if (appNameOverride == null) {
-                resValue("string", "app_name", "Metrolist Debug")
+                resValue("string", "app_name", "Soundsphere Debug")
             }
             signingConfig =
                 if (workflowDebugKeystoreFile != null) {
