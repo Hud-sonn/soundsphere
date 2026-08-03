@@ -45,6 +45,24 @@ sealed class Screens(
         route = "library"
     )
 
+    object Splash : Screens(
+        titleId = R.string.app_name,
+        iconIdInactive = R.drawable.soundsphere_foreground_mark,
+        iconIdActive = R.drawable.soundsphere_foreground_mark,
+        route = "splash"
+    )
+
+    /**
+     * SoundSphere account gate (register/login/OTP). Kept distinct from the
+     * YouTube Music WebView login route so the two account systems never collide.
+     */
+    object Auth : Screens(
+        titleId = R.string.auth_account_title,
+        iconIdInactive = R.drawable.soundsphere_foreground_mark,
+        iconIdActive = R.drawable.soundsphere_foreground_mark,
+        route = "auth"
+    )
+
     companion object {
         val MainScreens = listOf(Home, Search, ListenTogether, Library)
     }

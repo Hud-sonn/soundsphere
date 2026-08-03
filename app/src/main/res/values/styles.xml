@@ -6,7 +6,7 @@
         <item name="android:windowMinWidthMinor">100%</item>
         <item name="android:windowMinWidthMajor">100%</item>
         <item name="android:windowNoTitle">true</item>
-        <item name="android:windowBackground">#ffffff</item>
+        <item name="android:windowBackground">#0a0908</item>
         <item name="android:enforceNavigationBarContrast" tools:ignore="NewApi">false</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
@@ -16,6 +16,9 @@
     <style name="Theme.Widget.Soundsphere" parent="@android:style/Theme.DeviceDefault.DayNight">
         <item name="android:colorBackground">#E6E1E5</item>
     </style>
+
+    <!-- Launch theme; on Android 12+ values-v31 overrides this with splash screen attributes -->
+    <style name="Theme.Soundsphere.Starting" parent="Theme.Soundsphere" />
 
     <!-- Transparent theme for Music Recognizer Tile Service -->
     <style name="Theme.Soundsphere.Transparent" parent="@android:style/Theme.Translucent.NoTitleBar">

@@ -253,14 +253,9 @@ fun AboutScreen(
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Image(
-                        painter = painterResource(R.drawable.ic_logo_oval),
-                        contentDescription = null,
-                        modifier = Modifier.size(84.dp)
-                    )
-                    Image(
-                        painter = painterResource(R.drawable.about_icon),
+                        painter = painterResource(R.drawable.soundsphere_foreground_mark),
                         contentDescription = stringResource(R.string.soundsphere),
-                        modifier = Modifier.size(64.dp)
+                        modifier = Modifier.size(84.dp)
                     )
                 }
         

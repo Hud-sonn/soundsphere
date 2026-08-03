@@ -14,6 +14,7 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -163,8 +164,8 @@ fun WrappedIntro(onNext: () -> Unit) {
                 visible = visible,
                 enter = fadeIn(animationSpec = tween(FADE_IN_DURATION, delayMillis = ICON_DELAY)) + slideInVertically(animationSpec = tween(SLIDE_IN_DURATION, delayMillis = ICON_DELAY))
             ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.app_logo),
+                Image(
+                    painter = painterResource(id = R.drawable.soundsphere_foreground_mark),
                     contentDescription = stringResource(id = R.string.wrapped_logo_content_description),
                     modifier = Modifier.size(100.dp)
                 )
