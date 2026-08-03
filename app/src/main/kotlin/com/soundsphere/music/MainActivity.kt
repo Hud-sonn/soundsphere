@@ -27,6 +27,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
@@ -90,6 +91,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalWindowInfo
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
@@ -184,6 +186,7 @@ import com.soundsphere.music.ui.screens.navigationBuilder
 import com.soundsphere.music.ui.screens.settings.ChangelogScreen
 import com.soundsphere.music.ui.screens.settings.DarkMode
 import com.soundsphere.music.ui.screens.settings.NavigationTab
+import com.soundsphere.music.ui.screens.auth.AuthFlowScreen
 import com.soundsphere.music.ui.theme.ColorSaver
 import com.soundsphere.music.ui.theme.DefaultThemeColor
 import com.soundsphere.music.ui.theme.SoundsphereTheme
@@ -201,6 +204,7 @@ import com.soundsphere.music.utils.rememberPreference
 import com.soundsphere.music.utils.reportException
 import com.soundsphere.music.utils.setAppLocale
 import com.soundsphere.music.viewmodels.HomeViewModel
+import com.soundsphere.music.viewmodels.AuthViewModel
 import com.soundsphere.music.widget.PlaylistWidgetReceiver
 import com.valentinilk.shimmer.LocalShimmerTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -634,6 +638,14 @@ class MainActivity : ComponentActivity() {
             pureBlack = pureBlack,
             themeColor = themeColor,
         ) {
+            val authViewModel: AuthViewModel = hiltViewModel()
+            val isLoggedIn by authViewModel.isLoggedIn.collectAsStateWithLifecycle()
+
+            if (!isLoggedIn) {
+                AuthFlowScreen(authViewModel = authViewModel)
+                return@SoundsphereTheme
+            }
+
             val currentDensity = LocalDensity.current
             val windowInfo = LocalWindowInfo.current
             val containerSize = windowInfo.containerDpSize
@@ -1007,10 +1019,21 @@ class MainActivity : ComponentActivity() {
                                 Row {
                                     TopAppBar(
                                         title = {
-                                            Text(
-                                                text = currentTitleRes?.let { stringResource(it) } ?: "",
-                                                style = MaterialTheme.typography.titleLarge,
-                                            )
+                                            if (navBackStackEntry?.destination?.route == Screens.Home.route) {
+                                                Image(
+                                                    painter = painterResource(R.drawable.soundsphere_foreground_mark),
+                                                    contentDescription = stringResource(R.string.app_name),
+                                                    modifier =
+                                                        Modifier
+                                                            .height(dimenResource(R.dimen.logo_size_top_bar))
+                                                            .padding(end = 4.dp),
+                                                )
+                                            } else {
+                                                Text(
+                                                    text = currentTitleRes?.let { stringResource(it) } ?: "",
+                                                    style = MaterialTheme.typography.titleLarge,
+                                                )
+                                            }
                                         },
                                         actions = {
                                             if (showHistoryButton) {

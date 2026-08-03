@@ -138,6 +138,7 @@ android {
         buildConfigField("String", "LASTFM_SECRET", "\"$lastFmSecret\"")
         buildConfigField("String", "ARCHITECTURE", "\"universal\"")
         buildConfigField("Long", "DISCORD_APP_ID", "1447278780795064401L")
+        buildConfigField("String", "API_BASE_URL", "\"https://soundsphere-auth.onrender.com\"")
     }
 
     flavorDimensions += listOf("variant")
@@ -358,6 +359,7 @@ dependencies {
     implementation(libs.activity)
     implementation(libs.hilt.navigation)
     implementation(libs.datastore)
+    implementation(libs.security.crypto)
 
     implementation(libs.compose.runtime)
     implementation(libs.compose.foundation)
@@ -376,6 +378,7 @@ dependencies {
     implementation(libs.materialKolor)
 
     implementation(libs.appcompat)
+    implementation(libs.splashscreen)
 
     implementation(libs.coil)
     implementation(libs.coil.network.okhttp)

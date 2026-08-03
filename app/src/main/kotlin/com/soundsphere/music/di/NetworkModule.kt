@@ -6,6 +6,7 @@
 package com.soundsphere.music.di
 
 import android.content.Context
+import com.soundsphere.music.data.AuthRepository
 import com.soundsphere.music.utils.NetworkConnectivityObserver
 import dagger.Module
 import dagger.Provides
@@ -22,5 +23,11 @@ object NetworkModule {
     @Singleton
     fun provideNetworkConnectivityObserver(@ApplicationContext context: Context): NetworkConnectivityObserver {
         return NetworkConnectivityObserver(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideAuthRepository(@ApplicationContext context: Context): AuthRepository {
+        return AuthRepository(context)
     }
 }

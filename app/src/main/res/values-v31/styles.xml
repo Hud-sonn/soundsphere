@@ -3,6 +3,13 @@
     <!-- Widget Theme for Android 12+ with Dynamic Colors -->
     <style name="Theme.Widget.Soundsphere" parent="@android:style/Theme.DeviceDefault.DayNight" />
 
+    <!-- Android 12+ system splash: dark background + S mark, no white flash -->
+    <style name="Theme.Soundsphere.Starting" parent="Theme.Soundsphere">
+        <item name="android:windowSplashScreenBackground">#0a0908</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/soundsphere_foreground_mark</item>
+        <item name="android:windowSplashScreenAnimationDuration">500</item>
+    </style>
+
     <style name="Theme.Soundsphere.Transparent" parent="@android:style/Theme.Translucent.NoTitleBar">
         <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:windowIsTranslucent">true</item>

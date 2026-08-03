@@ -74,6 +74,7 @@ import com.soundsphere.music.ui.component.TextFieldDialog
 import com.soundsphere.music.utils.Updater
 import com.soundsphere.music.utils.rememberPreference
 import com.soundsphere.music.viewmodels.AccountSettingsViewModel
+import com.soundsphere.music.viewmodels.AuthViewModel
 import com.soundsphere.music.viewmodels.HomeViewModel
 
 @Composable
@@ -100,6 +101,7 @@ fun AccountSettings(
 
     val homeViewModel: HomeViewModel = hiltViewModel()
     val accountSettingsViewModel: AccountSettingsViewModel = hiltViewModel()
+    val authViewModel: AuthViewModel = hiltViewModel()
     val accountName by homeViewModel.accountName.collectAsStateWithLifecycle()
     val accountImageUrl by homeViewModel.accountImageUrl.collectAsStateWithLifecycle()
 
@@ -298,6 +300,35 @@ fun AccountSettings(
                             navController.navigate("login")
                         }
                     }
+                )
+            ),
+            useLowContrast = true
+        )
+
+        Spacer(Modifier.height(8.dp))
+
+        Material3SettingsGroup(
+            items = listOf(
+                Material3SettingsItem(
+                    title = {
+                        Text(stringResource(R.string.auth_account_title))
+                    },
+                    trailingContent = {
+                        OutlinedButton(
+                            onClick = {
+                                Timber.d("[AUTH_LOGOUT] User clicked Soundsphere logout")
+                                authViewModel.logout()
+                                onClose()
+                            },
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                                contentColor = MaterialTheme.colorScheme.onSurface
+                            )
+                        ) {
+                            Text(stringResource(R.string.action_logout))
+                        }
+                    },
+                    onClick = {}
                 )
             ),
             useLowContrast = true

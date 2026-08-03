@@ -1016,4 +1016,40 @@
     <string name="stream_source_web_creator_desc">Creator web client.</string>
     <string name="stream_source_android_creator">ANDROID_CREATOR</string>
     <string name="stream_source_android_creator_desc">Android creator client. Off by default; needs DroidGuard.</string>
+
+    <!-- Auth -->
+    <string name="auth_welcome_back">Welcome Back</string>
+    <string name="auth_welcome_back_subtitle">The music missed you.</string>
+    <string name="auth_start_listening">Start Listening</string>
+    <string name="auth_start_listening_subtitle">Your sound journey begins here.</string>
+    <string name="auth_email">EMAIL ADDRESS</string>
+    <string name="auth_email_placeholder">your@email.com</string>
+    <string name="auth_username">USERNAME</string>
+    <string name="auth_username_placeholder">Choose a name</string>
+    <string name="auth_password">PASSWORD</string>
+    <string name="auth_password_placeholder">••••••••</string>
+    <string name="auth_new_password_placeholder">Create a password</string>
+    <string name="auth_forgot_password">Forgot Password?</string>
+    <string name="auth_login">LOG IN</string>
+    <string name="auth_create_account">CREATE ACCOUNT</string>
+    <string name="auth_new_here">New here?</string>
+    <string name="auth_create_account_link">Create Account</string>
+    <string name="auth_already_have_account">Already have an account?</string>
+    <string name="auth_login_link">Log In</string>
+    <string name="auth_verification_note">A verification code will be sent to your email.</string>
+    <string name="auth_check_your_email">Check Your Email</string>
+    <string name="auth_otp_sent_to">We sent a 6-digit code to %1$s</string>
+    <string name="auth_verify">VERIFY</string>
+    <string name="auth_resend">Didn\'t get it? Resend</string>
+    <string name="auth_back">← Back</string>
+    <string name="auth_forgot_password_title">Forgot Password?</string>
+    <string name="auth_forgot_password_subtitle">Enter your email and we\'ll send you a reset code.</string>
+    <string name="auth_send_code">SEND CODE</string>
+    <string name="auth_back_to_login">← Back to Log In</string>
+    <string name="auth_reset_password_title">Reset Password</string>
+    <string name="auth_reset_password_subtitle">Enter the code sent to %1$s and your new password.</string>
+    <string name="auth_new_password">NEW PASSWORD</string>
+    <string name="auth_reset_password">RESET PASSWORD</string>
+    <string name="auth_reset_code_placeholder">------</string>
+    <string name="auth_account_title">Soundsphere account</string>
 </resources>

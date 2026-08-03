@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Soundsphere brand logo dimensions -->
+    <dimen name="logo_size_launcher">108dp</dimen>
+    <dimen name="logo_size_top_bar">30dp</dimen>
+    <dimen name="logo_size_splash">96dp</dimen>
+    <dimen name="logo_size_splash_mark">64dp</dimen>
+    <dimen name="logo_size_auth">64dp</dimen>
+    <dimen name="logo_size_auth_mark">40dp</dimen>
+    <dimen name="logo_size_about">84dp</dimen>
+    <dimen name="logo_size_about_mark">64dp</dimen>
+    <dimen name="logo_size_wrapped">100dp</dimen>
+    <dimen name="logo_size_notification">24dp</dimen>
+</resources>
