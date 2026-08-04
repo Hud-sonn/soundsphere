@@ -20,6 +20,7 @@ import android.view.View
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
@@ -106,6 +107,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.util.Consumer
 import androidx.core.view.WindowCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -186,7 +188,7 @@ import com.soundsphere.music.ui.screens.navigationBuilder
 import com.soundsphere.music.ui.screens.settings.ChangelogScreen
 import com.soundsphere.music.ui.screens.settings.DarkMode
 import com.soundsphere.music.ui.screens.settings.NavigationTab
-import com.soundsphere.music.ui.screens.auth.AuthFlowScreen
+import com.soundsphere.music.ui.screens.auth.SoundsphereSplashLogo
 import com.soundsphere.music.ui.theme.ColorSaver
 import com.soundsphere.music.ui.theme.DefaultThemeColor
 import com.soundsphere.music.ui.theme.SoundsphereTheme
@@ -209,6 +211,7 @@ import com.soundsphere.music.widget.PlaylistWidgetReceiver
 import com.valentinilk.shimmer.LocalShimmerTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
@@ -247,6 +250,12 @@ class MainActivity : ComponentActivity() {
     private lateinit var navController: NavHostController
     private var pendingIntent: Intent? = null
     private var latestVersionName by mutableStateOf(BuildConfig.VERSION_NAME)
+
+    /**
+     * Activity-scoped auth state holder. Shared by the native splash (keep-on-screen
+     * condition), the auth gate navigation and the AuthFlowScreen route.
+     */
+    private val authViewModel: AuthViewModel by viewModels()
 
     // Keep PlayerConnection as regular property - NOT mutableStateOf to prevent UI recomposition
     // when it becomes null during onStop. Only update the snapshot for Compose when needed.
@@ -379,6 +388,9 @@ class MainActivity : ComponentActivity() {
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Hold the native splash (logo on dark background) until the stored auth token
+        // has been read, so the gate never flashes an auth/home screen before routing.
+        installSplashScreen().setKeepOnScreenCondition { !authViewModel.authChecked.value }
         super.onCreate(savedInstanceState)
         window.decorView.layoutDirection = View.LAYOUT_DIRECTION_LTR
         WindowCompat.setDecorFitsSystemWindows(window, false)
@@ -638,13 +650,8 @@ class MainActivity : ComponentActivity() {
             pureBlack = pureBlack,
             themeColor = themeColor,
         ) {
-            val authViewModel: AuthViewModel = hiltViewModel()
             val isLoggedIn by authViewModel.isLoggedIn.collectAsStateWithLifecycle()
-
-            if (!isLoggedIn) {
-                AuthFlowScreen(authViewModel = authViewModel)
-                return@SoundsphereTheme
-            }
+            val authChecked by authViewModel.authChecked.collectAsStateWithLifecycle()
 
             val currentDensity = LocalDensity.current
             val windowInfo = LocalWindowInfo.current
@@ -696,6 +703,36 @@ class MainActivity : ComponentActivity() {
 
                 val homeViewModel: HomeViewModel = hiltViewModel()
                 val accountImageUrl by homeViewModel.accountImageUrl.collectAsStateWithLifecycle()
+                val homeIsLoading by homeViewModel.isLoading.collectAsStateWithLifecycle()
+
+                // Brief branded overlay shown right after login while the home screen
+                // performs its initial sync; fades out once the home load completes.
+                var wasLoggedIn by remember { mutableStateOf(isLoggedIn) }
+                var showPostLoginSplash by remember { mutableStateOf(false) }
+                var homeLoadingSeen by remember { mutableStateOf(false) }
+
+                LaunchedEffect(isLoggedIn) {
+                    if (isLoggedIn && !wasLoggedIn) {
+                        showPostLoginSplash = true
+                    }
+                    wasLoggedIn = isLoggedIn
+                }
+
+                LaunchedEffect(homeIsLoading) {
+                    if (homeIsLoading) homeLoadingSeen = true
+                    if (showPostLoginSplash && homeLoadingSeen && !homeIsLoading) {
+                        delay(400)
+                        showPostLoginSplash = false
+                    }
+                }
+
+                LaunchedEffect(showPostLoginSplash) {
+                    if (showPostLoginSplash) {
+                        delay(8000)
+                        showPostLoginSplash = false
+                    }
+                }
+
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val (previousTab, setPreviousTab) = rememberSaveable { mutableStateOf("home") }
 
@@ -729,6 +766,35 @@ class MainActivity : ComponentActivity() {
                             else -> null
                         }
                     }
+
+                val authGateRoutes = listOf(Screens.Splash.route, Screens.Auth.route)
+
+                // Keep the current destination in line with the auth state: hold the splash
+                // while the token check runs, show the account gate when logged out, and
+                // jump into the default tab once logged in (covers login, logout and 401).
+                LaunchedEffect(authChecked, isLoggedIn) {
+                    if (!authChecked) return@LaunchedEffect
+                    val currentRoute = navController.currentDestination?.route
+                    val homeRoute =
+                        when (tabOpenedFromShortcut ?: defaultOpenTab) {
+                            NavigationTab.HOME -> Screens.Home.route
+                            NavigationTab.LIBRARY -> Screens.Library.route
+                            else -> Screens.Home.route
+                        }
+                    if (isLoggedIn) {
+                        if (currentRoute in authGateRoutes && currentRoute != homeRoute) {
+                            navController.navigate(homeRoute) {
+                                popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                                launchSingleTop = true
+                            }
+                        }
+                    } else if (currentRoute !in authGateRoutes) {
+                        navController.navigate(Screens.Auth.route) {
+                            popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
+                }
 
                 val topLevelScreens =
                     remember {
@@ -945,7 +1011,8 @@ class MainActivity : ComponentActivity() {
                 }
                 val snackbarHostState = remember { SnackbarHostState() }
 
-                LaunchedEffect(Unit) {
+                LaunchedEffect(isLoggedIn) {
+                    if (!isLoggedIn) return@LaunchedEffect
                     if (pendingIntent != null) {
                         handleWidgetTargetIntent(pendingIntent!!, navController)
                         handleRecognitionIntent(pendingIntent!!, navController)
@@ -958,7 +1025,8 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
-                DisposableEffect(Unit) {
+                DisposableEffect(isLoggedIn) {
+                    if (!isLoggedIn) return@DisposableEffect onDispose { }
                     val listener =
                         Consumer<Intent> { intent ->
                             handleWidgetTargetIntent(intent, navController)
@@ -1004,7 +1072,7 @@ class MainActivity : ComponentActivity() {
                     LocalListenTogetherManager provides listenTogetherManager,
                     LocalChangelogState provides showChangelog,
                 ) {
-                    if (showChangelog.value) {
+                    if (showChangelog.value && isLoggedIn) {
                         ChangelogScreen(onDismiss = { showChangelog.value = false })
                     }
 
@@ -1170,7 +1238,7 @@ class MainActivity : ComponentActivity() {
                             // Pre-calculate values for graphicsLayer to avoid reading state during composition
                             val navBarTotalHeight = bottomInset + NavigationBarHeight
 
-                            if (!showRail && currentRoute != "wrapped") {
+                            if (!showRail && currentRoute != "wrapped" && currentRoute !in authGateRoutes) {
                                 Box {
                                     if (activePlayerConnection != null) {
                                         BottomSheetPlayer(
@@ -1296,7 +1364,7 @@ class MainActivity : ComponentActivity() {
                                     }
                                 }
 
-                            if (showRail && currentRoute != "wrapped") {
+                            if (showRail && currentRoute != "wrapped" && currentRoute !in authGateRoutes) {
                                 AppNavigationRail(
                                     navigationItems = navigationItems,
                                     currentRoute = currentRoute,
@@ -1310,11 +1378,16 @@ class MainActivity : ComponentActivity() {
                                 NavHost(
                                     navController = navController,
                                     startDestination =
-                                        when (tabOpenedFromShortcut ?: defaultOpenTab) {
-                                            NavigationTab.HOME -> Screens.Home
-                                            NavigationTab.LIBRARY -> Screens.Library
-                                            else -> Screens.Home
-                                        }.route,
+                                        when {
+                                            !authChecked -> Screens.Splash.route
+                                            !isLoggedIn -> Screens.Auth.route
+                                            else ->
+                                                when (tabOpenedFromShortcut ?: defaultOpenTab) {
+                                                    NavigationTab.HOME -> Screens.Home
+                                                    NavigationTab.LIBRARY -> Screens.Library
+                                                    else -> Screens.Home
+                                                }.route
+                                        },
                                     enterTransition = {
                                         val currentRouteIndex = routeIndexMap[targetState.destination.route] ?: -1
                                         val previousRouteIndex = routeIndexMap[initialState.destination.route] ?: -1
@@ -1363,6 +1436,7 @@ class MainActivity : ComponentActivity() {
                                         latestVersionName = latestVersionName,
                                         activity = this@MainActivity,
                                         snackbarHostState = snackbarHostState,
+                                        authViewModel = authViewModel,
                                     )
                                 }
                             }
@@ -1412,6 +1486,14 @@ class MainActivity : ComponentActivity() {
                                 }
                             }
                         }
+                    }
+
+                    AnimatedVisibility(
+                        visible = showPostLoginSplash,
+                        enter = fadeIn(animationSpec = tween(250)),
+                        exit = fadeOut(animationSpec = tween(500)),
+                    ) {
+                        SoundsphereSplashLogo()
                     }
                 }
             }

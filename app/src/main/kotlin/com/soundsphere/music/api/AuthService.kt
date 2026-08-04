@@ -31,6 +31,12 @@ data class AuthToken(
     val user: AuthUser,
 )
 
+/**
+ * Thrown when the backend rejects the stored session token (HTTP 401).
+ * The app reacts by clearing the token and returning to the account gate.
+ */
+class UnauthorizedException(message: String) : Exception(message)
+
 object AuthService {
     private val client =
         OkHttpClient
@@ -222,6 +228,48 @@ object AuthService {
                 Result.failure(e)
             }
         }
+
+    suspend fun me(token: String): Result<AuthUser> =
+        withContext(Dispatchers.IO) {
+            try {
+                val request =
+                    Request
+                        .Builder()
+                        .url("$BASE_URL/auth/me")
+                        .header("Authorization", "Bearer $token")
+                        .get()
+                        .build()
+                client.newCall(request).execute().use { response ->
+                    val body = response.body?.string()
+                    if (response.isSuccessful) {
+                        Result.success(parseUser(body))
+                    } else {
+                        val message = errorMessage(body, response.code)
+                        if (response.code == 401) {
+                            Result.failure(UnauthorizedException(message))
+                        } else {
+                            Result.failure(Exception(message))
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
+
+    private fun parseUser(body: String?): AuthUser {
+        val json = JSONObject(body ?: throw Exception("Empty response"))
+        return AuthUser(
+            id = json.optString("id"),
+            email = json.optString("email"),
+            username = json.optString("username"),
+            avatarUrl = json.optString("avatar_url").ifBlank { null },
+            authProvider = json.optString("auth_provider"),
+            isVerified = json.optBoolean("is_verified"),
+            role = json.optString("role", "user"),
+            createdAt = json.optString("created_at"),
+        )
+    }
 
     private fun parseToken(body: String?): AuthToken {
         val json = JSONObject(body ?: throw Exception("Empty response"))
