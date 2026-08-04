@@ -499,6 +499,7 @@ fun ExperimentalLyrics(
         val maxHeightPx = constraints.maxHeight.toFloat()
         val anchorY = maxHeightPx * LYRICS_ANCHOR_RATIO
         val lineHeightPx = with(density) { LYRICS_ITEM_FALLBACK_HEIGHT_DP.toPx() }
+        val lyricsLineStepPx = with(density) { (LYRICS_ITEM_FALLBACK_HEIGHT_DP + LYRICS_ITEM_GAP_DP).toPx() }
         val indicatorHeightPx = with(density) { 72.dp.toPx() }
         
         // Use a more permissive fallback for constraints to prevent "locks" if items are not measured yet
@@ -734,14 +735,24 @@ fun ExperimentalLyrics(
                         val distance = abs(listIndex - activeListIndex)
                         val targetOffset = anchorY + positions.getOrDefault(listIndex, (listIndex - activeListIndex) * lineHeightPx)
                         val frozenOffset = remember { mutableFloatStateOf(targetOffset) }
+                        val previousTarget = remember { mutableFloatStateOf(targetOffset) }
                         LaunchedEffect(isAutoScrollEnabled, targetOffset, isInitialLayout) {
+                            previousTarget.floatValue = targetOffset
                             if (isAutoScrollEnabled || isInitialLayout) frozenOffset.floatValue = targetOffset
                         }
+                        // Scale the scroll animation duration with the distance each line travels so
+                        // single-line steps stay snappy while long seeks glide smoothly instead of tearing.
+                        val travelPx = abs(targetOffset - previousTarget.floatValue)
+                        val travelDurationMs = (750f * (travelPx / lyricsLineStepPx)).coerceIn(250f, 1100f).toInt()
                         val animatedOffset by animateFloatAsState(
                             targetValue = if (isAutoScrollEnabled) targetOffset else frozenOffset.floatValue,
-                            animationSpec = if (isInitialLayout || !isAutoScrollEnabled) snap() 
+                            animationSpec = if (isInitialLayout || !isAutoScrollEnabled) snap()
                                             else {
-                                                tween(750, (distance * LYRICS_STAGGER_DELAY_PER_DISTANCE).coerceAtMost(LYRICS_STAGGER_DELAY_MAX_MS), FastOutSlowInEasing)
+                                                tween(
+                                                    durationMillis = travelDurationMs,
+                                                    delayMillis = (distance * LYRICS_STAGGER_DELAY_PER_DISTANCE).coerceAtMost(LYRICS_STAGGER_DELAY_MAX_MS),
+                                                    easing = FastOutSlowInEasing,
+                                                )
                                             },
                             label = "lyricStaggeredOffset_$listIndex"
                         )
