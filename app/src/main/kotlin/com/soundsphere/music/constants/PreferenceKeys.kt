@@ -171,25 +171,6 @@ val StreamSourceAndroidCreatorKey = booleanPreferencesKey("streamSourceAndroidCr
 
 val EnableDynamicIconKey = booleanPreferencesKey("enableDynamicIcon")
 
-val EnableDiscordRPCKey = booleanPreferencesKey("discordRPCEnable")
-val DiscordInfoDismissedKey = booleanPreferencesKey("discordInfoDismissed")
-val DiscordUsernameKey = stringPreferencesKey("discordUsername")
-val DiscordNameKey = stringPreferencesKey("discordName")
-val DiscordAvatarKey = stringPreferencesKey("discordAvatar")
-
-val DiscordAdvancedModeKey = booleanPreferencesKey("discordAdvancedMode")
-val DiscordActivityTypeKey = stringPreferencesKey("discordActivityType")
-val DiscordActivityNameKey = stringPreferencesKey("discordActivityName")
-val DiscordStateTemplateKey = stringPreferencesKey("discordStateTemplate")
-val DiscordDetailsTemplateKey = stringPreferencesKey("discordDetailsTemplate")
-val DiscordButton1EnabledKey = booleanPreferencesKey("discordButton1Enabled")
-val DiscordButton1LabelKey = stringPreferencesKey("discordButton1Label")
-val DiscordButton1UrlKey = stringPreferencesKey("discordButton1Url")
-val DiscordButton2EnabledKey = booleanPreferencesKey("discordButton2Enabled")
-val DiscordButton2LabelKey = stringPreferencesKey("discordButton2Label")
-val DiscordButton2UrlKey = stringPreferencesKey("discordButton2Url")
-val DiscordUserStatusKey = stringPreferencesKey("discordUserStatus")
-
 // Google Cast
 val EnableGoogleCastKey = booleanPreferencesKey("enableGoogleCast")
 

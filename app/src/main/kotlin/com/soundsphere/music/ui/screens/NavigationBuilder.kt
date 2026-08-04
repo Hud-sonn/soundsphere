@@ -29,6 +29,8 @@ import com.soundsphere.music.ui.screens.artist.ArtistAlbumsScreen
 import com.soundsphere.music.ui.screens.artist.ArtistItemsScreen
 import com.soundsphere.music.ui.screens.artist.ArtistScreen
 import com.soundsphere.music.ui.screens.artist.ArtistSongsScreen
+import com.soundsphere.music.ui.screens.auth.AuthFlowScreen
+import com.soundsphere.music.ui.screens.auth.SoundsphereSplashLogo
 import com.soundsphere.music.ui.screens.equalizer.EqScreen
 import com.soundsphere.music.ui.screens.equalizer.wizard.WizardScreen
 import com.soundsphere.music.ui.screens.library.LibraryScreen
@@ -57,7 +59,6 @@ import com.soundsphere.music.ui.screens.settings.StorageSettings
 import com.soundsphere.music.ui.screens.settings.StreamSourcesSettings
 import com.soundsphere.music.ui.screens.settings.ThemeScreen
 import com.soundsphere.music.ui.screens.settings.UpdaterScreen
-import com.soundsphere.music.ui.screens.settings.integrations.DiscordSettings
 import com.soundsphere.music.ui.screens.settings.integrations.IntegrationScreen
 import com.soundsphere.music.ui.screens.settings.integrations.LastFMSettings
 import com.soundsphere.music.ui.screens.settings.integrations.ListenTogetherSettings
@@ -65,6 +66,7 @@ import com.soundsphere.music.ui.screens.settings.integrations.ListenTogetherSett
 import com.soundsphere.music.ui.screens.wrapped.WrappedScreen
 import com.soundsphere.music.utils.rememberEnumPreference
 import com.soundsphere.music.utils.rememberPreference
+import com.soundsphere.music.viewmodels.AuthViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 fun NavGraphBuilder.navigationBuilder(
@@ -73,7 +75,19 @@ fun NavGraphBuilder.navigationBuilder(
     latestVersionName: String,
     activity: Activity,
     snackbarHostState: SnackbarHostState,
+    authViewModel: AuthViewModel,
 ) {
+    // Account gate routes: Splash holds while the stored token is read, Auth shows
+    // the Soundsphere account flow (register/login/OTP). Kept distinct from the
+    // YouTube Music WebView login route ("login").
+    composable(Screens.Splash.route) {
+        SoundsphereSplashLogo()
+    }
+
+    composable(Screens.Auth.route) {
+        AuthFlowScreen(authViewModel = authViewModel)
+    }
+
     composable(Screens.Home.route) {
         HomeScreen(snackbarHostState = snackbarHostState)
     }
@@ -391,10 +405,6 @@ fun NavGraphBuilder.navigationBuilder(
 
     composable("settings/integrations") {
         IntegrationScreen(navController)
-    }
-
-    composable("settings/integrations/discord") {
-        DiscordSettings(navController)
     }
 
     composable("settings/integrations/lastfm") {

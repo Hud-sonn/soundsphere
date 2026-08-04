@@ -1,13 +1,13 @@
 import asyncio
 import logging
 from datetime import datetime, timedelta, timezone
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from db.supabase import get_supabase
 from services.limiter import limiter
 from auth.password import hash_password, verify_password, hash_otp, verify_otp
 
 logger = logging.getLogger("solus-rift")
-from auth.jwt import create_token
+from auth.jwt import create_token, get_current_user_info
 from models.schemas import (
     RegisterRequest,
     VerifyOtpRequest,
@@ -90,8 +90,20 @@ async def verify(body: VerifyOtpRequest, request: Request = None):
         raise HTTPException(status_code=400, detail="Invalid verification code")
     user = user.data[0]
     if user["is_verified"]:
-        token = create_token(user["id"], role=user.get("role", "user"))
-        return TokenResponse(token=token, user=_user_to_response(user))
+    token = create_token(user["id"], role=user.get("role", "user"))
+    return TokenResponse(token=token, user=_user_to_response(user))
+
+
+@router.get("/me")
+async def me(user_info: dict = Depends(get_current_user_info)):
+    """Validates the Bearer token and returns the current user. 401 if the
+    token is missing, invalid, expired, or the user no longer exists."""
+    db = get_supabase()
+    user = db.table("users").select("*").eq("id", user_info["user_id"]).execute()
+    if not user.data:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+    user = user.data[0]
+    return _user_to_response(user)
     otp_records = (
         db.table("otp_codes")
         .select("*")

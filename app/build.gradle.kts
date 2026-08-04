@@ -137,7 +137,9 @@ android {
         buildConfigField("String", "LASTFM_API_KEY", "\"$lastFmKey\"")
         buildConfigField("String", "LASTFM_SECRET", "\"$lastFmSecret\"")
         buildConfigField("String", "ARCHITECTURE", "\"universal\"")
-        buildConfigField("Long", "DISCORD_APP_ID", "1447278780795064401L")
+        // SoundSphere auth API. Debug builds can target a local dev server via
+        // local.properties (AUTH_DEV_BASE_URL) or the AUTH_DEV_BASE_URL env var;
+        // they fall back to production when unset so nothing breaks.
         buildConfigField("String", "API_BASE_URL", "\"https://soundsphere-auth.onrender.com\"")
     }
 
@@ -199,12 +201,18 @@ android {
             isShrinkResources = true
             isCrunchPngs = false
             isDebuggable = false
+            buildConfigField("String", "API_BASE_URL", "\"https://soundsphere-auth.onrender.com\"")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
         }
         debug {
+            val devAuthBaseUrl =
+                localProperties.getProperty("AUTH_DEV_BASE_URL")
+                    ?: System.getenv("AUTH_DEV_BASE_URL")
+                    ?: "https://soundsphere-auth.onrender.com"
+            buildConfigField("String", "API_BASE_URL", "\"$devAuthBaseUrl\"")
             if (applicationIdOverride == null) {
                 applicationIdSuffix = ".debug"
             }

@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.soundsphere.music.api.AuthService
 import com.soundsphere.music.api.AuthToken
+import com.soundsphere.music.api.UnauthorizedException
 import com.soundsphere.music.data.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -36,9 +37,38 @@ class AuthViewModel @Inject constructor(
     private val _isLoggedIn = MutableStateFlow(repository.isLoggedIn())
     val isLoggedIn: StateFlow<Boolean> = _isLoggedIn.asStateFlow()
 
+    /**
+     * Whether the initial auth check (reading the stored token) has completed.
+     * The native splash stays visible until this flips true.
+     */
+    private val _authChecked = MutableStateFlow(false)
+    val authChecked: StateFlow<Boolean> = _authChecked.asStateFlow()
+
     init {
         // Keep the login state in sync with the repository (e.g. token cleared on 401)
         _isLoggedIn.value = repository.isLoggedIn()
+        _authChecked.value = true
+        if (_isLoggedIn.value) {
+            validateStoredSession()
+        }
+    }
+
+    /**
+     * Confirms the stored token is still accepted by the backend. If it was
+     * revoked or expired (401), the session is cleared and the account gate
+     * reappears — the MainActivity navigation effect reacts to isLoggedIn.
+     */
+    private fun validateStoredSession() {
+        val token = repository.getToken() ?: return
+        viewModelScope.launch {
+            AuthService.me(token).onFailure { error ->
+                if (error is UnauthorizedException) {
+                    repository.clearToken()
+                    _isLoggedIn.value = false
+                    _uiState.value = AuthUiState()
+                }
+            }
+        }
     }
 
     fun register(

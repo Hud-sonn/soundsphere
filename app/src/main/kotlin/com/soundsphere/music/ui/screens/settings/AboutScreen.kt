@@ -117,7 +117,6 @@ private val collaborators = listOf(
 )
 
 private val communityLinks = listOf(
-    CommunityLink(R.string.credits_discord, R.drawable.discord, "https://discord.com/invite/zrdbeRG2Mt"),
     CommunityLink(R.string.credits_view_repo, R.drawable.github, "https://github.com/Hud-sonn/soundsphere"),
     CommunityLink(R.string.credits_license_name, R.drawable.info, "https://github.com/Hud-sonn/soundsphere/blob/main/LICENSE")
 )
