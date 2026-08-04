@@ -92,7 +92,6 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalWindowInfo
-import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
@@ -199,6 +198,7 @@ import com.soundsphere.music.utils.SearchRoutes
 import com.soundsphere.music.utils.SyncUtils
 import com.soundsphere.music.utils.Updater
 import com.soundsphere.music.utils.dataStore
+import com.soundsphere.music.utils.dimenResource
 import com.soundsphere.music.utils.safeDataStoreEdit
 import com.soundsphere.music.utils.get
 import com.soundsphere.music.utils.rememberEnumPreference
