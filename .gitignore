@@ -120,3 +120,7 @@ app/src/main/cpp/coverart/
 FORK_SETUP.md
 stitch_earthy_tones_ui_redesign/
 stitch_earthy_tones_ui_redesign.zip
+
+# Python
+__pycache__/
+*.pyc
