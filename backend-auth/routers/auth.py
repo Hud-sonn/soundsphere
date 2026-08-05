@@ -1,10 +1,10 @@
 import asyncio
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, Request
 from db.supabase import get_supabase
 from services.limiter import limiter
-from auth.password import hash_password, verify_password, hash_otp, verify_otp
+from auth.password import hash_password, verify_password
 
 logger = logging.getLogger("solus-rift")
 from auth.jwt import create_token, get_current_user_info
@@ -18,7 +18,13 @@ from models.schemas import (
     TokenResponse,
     UserResponse,
 )
-from services.email import generate_otp, send_otp_email
+from services.email import (
+    _create_auth_user,
+    _delete_auth_user,
+    send_otp_email,
+    send_reset_code_email,
+    verify_otp_code,
+)
 
 router = APIRouter(prefix="/auth")
 
@@ -47,7 +53,13 @@ async def register(body: RegisterRequest, request: Request = None):
     # Idempotent re-registration: clear any previous unfinished attempt for
     # this email so the address is never blocked by partial state.
     db.table("pending_registrations").delete().eq("email", email).execute()
-    db.table("otp_codes").delete().eq("email", email).eq("purpose", "verify").execute()
+    try:
+        _create_auth_user(email)
+    except Exception as e:
+        print(f"Failed to prepare auth account: {e}")
+        raise HTTPException(
+            status_code=500, detail="Could not send verification code. Please try again."
+        )
     pw_hash = hash_password(body.password)
     db.table("pending_registrations").insert(
         {
@@ -56,25 +68,14 @@ async def register(body: RegisterRequest, request: Request = None):
             "password_hash": pw_hash,
         }
     ).execute()
-    otp = generate_otp()
-    otp_hash = hash_otp(otp)
-    db.table("otp_codes").insert(
-        {
-            "email": email,
-            "otp_hash": otp_hash,
-            "purpose": "verify",
-            "expires_at": (
-                datetime.now(timezone.utc) + timedelta(minutes=10)
-            ).isoformat(),
-        }
-    ).execute()
     try:
-        await asyncio.to_thread(send_otp_email, email, otp, "verify")
+        await asyncio.to_thread(send_otp_email, email)
     except Exception as e:
         # Nothing is recorded until the code is actually delivered: roll back
-        # the pending registration so the email stays free for a retry.
-        db.table("otp_codes").delete().eq("email", email).eq("purpose", "verify").execute()
+        # the pending registration and the auth account so the email stays
+        # free for a retry.
         db.table("pending_registrations").delete().eq("email", email).execute()
+        _delete_auth_user(email)
         print(f"Failed to send OTP email: {e}")
         raise HTTPException(
             status_code=500, detail="Could not send verification code. Please try again."
@@ -87,37 +88,12 @@ async def register(body: RegisterRequest, request: Request = None):
 async def verify(body: VerifyOtpRequest, request: Request = None):
     db = get_supabase()
     email = body.email.strip().lower()
-    otp_records = (
-        db.table("otp_codes")
-        .select("*")
-        .eq("email", email)
-        .eq("purpose", "verify")
-        .order("created_at", desc=True)
-        .limit(1)
-        .execute()
-    )
-    if not otp_records.data:
-        raise HTTPException(status_code=400, detail="No verification code found. Request a new one.")
-    record = otp_records.data[0]
-    if datetime.fromisoformat(
-        record["expires_at"].replace("Z", "+00:00")
-    ) < datetime.now(timezone.utc):
-        db.table("otp_codes").delete().eq("id", record["id"]).execute()
-        raise HTTPException(status_code=400, detail="Verification code expired")
-    if not verify_otp(body.otp, record["otp_hash"]):
+    if not await asyncio.to_thread(verify_otp_code, email, body.otp, "verify"):
         raise HTTPException(status_code=400, detail="Invalid verification code")
-    db.table("otp_codes").delete().eq("id", record["id"]).execute()
     # The account is created only now that the email address is proven.
     pending = db.table("pending_registrations").select("*").eq("email", email).execute()
     if not pending.data:
-        # No pending registration: fall back to an existing user row (e.g. an
-        # account created before deferred registration was introduced).
-        user = db.table("users").select("*").eq("email", email).execute()
-        if not user.data or not user.data[0]["is_verified"]:
-            raise HTTPException(status_code=400, detail="No pending registration found. Register again.")
-        user = user.data[0]
-        token = create_token(user["id"], role=user.get("role", "user"))
-        return TokenResponse(token=token, user=_user_to_response(user))
+        raise HTTPException(status_code=400, detail="No pending registration found. Register again.")
     pending_row = pending.data[0]
     created = (
         db.table("users")
@@ -163,23 +139,9 @@ async def resend_otp(body: ResendOtpRequest, request: Request = None):
     pending = db.table("pending_registrations").select("*").eq("email", email).execute()
     if not pending.data:
         return {"message": "If that email is registered, a new code was sent"}
-    db.table("otp_codes").delete().eq("email", email).eq("purpose", "verify").execute()
-    otp = generate_otp()
-    otp_hash = hash_otp(otp)
-    db.table("otp_codes").insert(
-        {
-            "email": email,
-            "otp_hash": otp_hash,
-            "purpose": "verify",
-            "expires_at": (
-                datetime.now(timezone.utc) + timedelta(minutes=10)
-            ).isoformat(),
-        }
-    ).execute()
     try:
-        await asyncio.to_thread(send_otp_email, email, otp, "resend")
+        await asyncio.to_thread(send_otp_email, email)
     except Exception as e:
-        db.table("otp_codes").delete().eq("email", email).eq("purpose", "verify").execute()
         print(f"Failed to send OTP email: {e}")
         raise HTTPException(
             status_code=500, detail="Could not send a new code. Please try again."
@@ -223,27 +185,12 @@ async def forgot_password(body: ForgotPasswordRequest, request: Request = None):
     user = db.table("users").select("*").eq("email", body.email).execute()
     if not user.data:
         return {"message": "If that email is registered, a reset code was sent"}
-    user = user.data[0]
-    db.table("otp_codes").delete().eq("user_id", user["id"]).eq(
-        "purpose", "reset"
-    ).execute()
-    otp = generate_otp()
-    otp_hash = hash_otp(otp)
-    db.table("otp_codes").insert(
-        {
-            "user_id": user["id"],
-            "otp_hash": otp_hash,
-            "purpose": "reset",
-            "expires_at": (
-                datetime.now(timezone.utc) + timedelta(minutes=10)
-            ).isoformat(),
-        }
-    ).execute()
     try:
-        await asyncio.to_thread(send_otp_email, body.email, otp, "reset")
+        await asyncio.to_thread(send_reset_code_email, body.email)
     except Exception as e:
-        # Log the error but don't fail the request - OTP is still stored in DB
-        print(f"Failed to send OTP email: {e}")
+        # Log the error but don't fail the request - the reset code is issued
+        # by Supabase Auth, which keeps its own state for this flow.
+        print(f"Failed to send reset email: {e}")
     return {"message": "If that email is registered, a reset code was sent"}
 
 
@@ -255,26 +202,8 @@ async def reset_password(body: ResetPasswordRequest, request: Request = None):
     if not user.data:
         return {"message": "If that email is registered, the password has been reset"}
     user = user.data[0]
-    otp_records = (
-        db.table("otp_codes")
-        .select("*")
-        .eq("user_id", user["id"])
-        .eq("purpose", "reset")
-        .order("created_at", desc=True)
-        .limit(1)
-        .execute()
-    )
-    if not otp_records.data:
-        raise HTTPException(status_code=400, detail="No reset code found")
-    record = otp_records.data[0]
-    if datetime.fromisoformat(
-        record["expires_at"].replace("Z", "+00:00")
-    ) < datetime.now(timezone.utc):
-        db.table("otp_codes").delete().eq("id", record["id"]).execute()
-        raise HTTPException(status_code=400, detail="Reset code expired")
-    if not verify_otp(body.otp, record["otp_hash"]):
+    if not await asyncio.to_thread(verify_otp_code, body.email, body.otp, "reset"):
         raise HTTPException(status_code=400, detail="Invalid reset code")
-    db.table("otp_codes").delete().eq("id", record["id"]).execute()
     new_hash = hash_password(body.new_password)
     db.table("users").update({"password_hash": new_hash}).eq("id", user["id"]).execute()
     return {"message": "Password reset successfully"}
