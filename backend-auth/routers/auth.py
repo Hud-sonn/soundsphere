@@ -40,31 +40,27 @@ def _user_to_response(user: dict) -> UserResponse:
 @limiter.limit("5/hour")
 async def register(body: RegisterRequest, request: Request = None):
     db = get_supabase()
-    existing = db.table("users").select("*").eq("email", body.email).execute()
+    email = body.email.strip().lower()
+    existing = db.table("users").select("id").eq("email", email).execute()
     if existing.data:
         raise HTTPException(status_code=409, detail="Email already registered")
+    # Idempotent re-registration: clear any previous unfinished attempt for
+    # this email so the address is never blocked by partial state.
+    db.table("pending_registrations").delete().eq("email", email).execute()
+    db.table("otp_codes").delete().eq("email", email).eq("purpose", "verify").execute()
     pw_hash = hash_password(body.password)
-    user = (
-        db.table("users")
-        .insert(
-            {
-                "email": body.email,
-                "username": body.username,
-                "password_hash": pw_hash,
-                "auth_provider": "email",
-                "is_verified": False,
-            }
-        )
-        .execute()
-    )
-    if not user.data:
-        raise HTTPException(status_code=500, detail="Failed to create user")
-    user_id = user.data[0]["id"]
+    db.table("pending_registrations").insert(
+        {
+            "email": email,
+            "username": body.username,
+            "password_hash": pw_hash,
+        }
+    ).execute()
     otp = generate_otp()
     otp_hash = hash_otp(otp)
     db.table("otp_codes").insert(
         {
-            "user_id": user_id,
+            "email": email,
             "otp_hash": otp_hash,
             "purpose": "verify",
             "expires_at": (
@@ -73,11 +69,16 @@ async def register(body: RegisterRequest, request: Request = None):
         }
     ).execute()
     try:
-        await asyncio.to_thread(send_otp_email, body.email, otp, "verify")
+        await asyncio.to_thread(send_otp_email, email, otp, "verify")
     except Exception as e:
-        # Log the error but don't fail the request - OTP is still stored in DB
-        # In production, you'd want to use proper logging
+        # Nothing is recorded until the code is actually delivered: roll back
+        # the pending registration so the email stays free for a retry.
+        db.table("otp_codes").delete().eq("email", email).eq("purpose", "verify").execute()
+        db.table("pending_registrations").delete().eq("email", email).execute()
         print(f"Failed to send OTP email: {e}")
+        raise HTTPException(
+            status_code=500, detail="Could not send verification code. Please try again."
+        )
     return {"message": "Verification code sent to email"}
 
 
@@ -85,11 +86,56 @@ async def register(body: RegisterRequest, request: Request = None):
 @limiter.limit("10/hour")
 async def verify(body: VerifyOtpRequest, request: Request = None):
     db = get_supabase()
-    user = db.table("users").select("*").eq("email", body.email).execute()
-    if not user.data:
+    email = body.email.strip().lower()
+    otp_records = (
+        db.table("otp_codes")
+        .select("*")
+        .eq("email", email)
+        .eq("purpose", "verify")
+        .order("created_at", desc=True)
+        .limit(1)
+        .execute()
+    )
+    if not otp_records.data:
+        raise HTTPException(status_code=400, detail="No verification code found. Request a new one.")
+    record = otp_records.data[0]
+    if datetime.fromisoformat(
+        record["expires_at"].replace("Z", "+00:00")
+    ) < datetime.now(timezone.utc):
+        db.table("otp_codes").delete().eq("id", record["id"]).execute()
+        raise HTTPException(status_code=400, detail="Verification code expired")
+    if not verify_otp(body.otp, record["otp_hash"]):
         raise HTTPException(status_code=400, detail="Invalid verification code")
-    user = user.data[0]
-    if user["is_verified"]:
+    db.table("otp_codes").delete().eq("id", record["id"]).execute()
+    # The account is created only now that the email address is proven.
+    pending = db.table("pending_registrations").select("*").eq("email", email).execute()
+    if not pending.data:
+        # No pending registration: fall back to an existing user row (e.g. an
+        # account created before deferred registration was introduced).
+        user = db.table("users").select("*").eq("email", email).execute()
+        if not user.data or not user.data[0]["is_verified"]:
+            raise HTTPException(status_code=400, detail="No pending registration found. Register again.")
+        user = user.data[0]
+        token = create_token(user["id"], role=user.get("role", "user"))
+        return TokenResponse(token=token, user=_user_to_response(user))
+    pending_row = pending.data[0]
+    created = (
+        db.table("users")
+        .insert(
+            {
+                "email": email,
+                "username": pending_row["username"],
+                "password_hash": pending_row["password_hash"],
+                "auth_provider": "email",
+                "is_verified": True,
+            }
+        )
+        .execute()
+    )
+    if not created.data:
+        raise HTTPException(status_code=500, detail="Failed to create account")
+    db.table("pending_registrations").delete().eq("email", email).execute()
+    user = created.data[0]
     token = create_token(user["id"], role=user.get("role", "user"))
     return TokenResponse(token=token, user=_user_to_response(user))
 
@@ -104,48 +150,25 @@ async def me(user_info: dict = Depends(get_current_user_info)):
         raise HTTPException(status_code=401, detail="Invalid or expired token")
     user = user.data[0]
     return _user_to_response(user)
-    otp_records = (
-        db.table("otp_codes")
-        .select("*")
-        .eq("user_id", user["id"])
-        .eq("purpose", "verify")
-        .order("created_at", desc=True)
-        .limit(1)
-        .execute()
-    )
-    if not otp_records.data:
-        raise HTTPException(status_code=400, detail="No OTP found. Request a new one.")
-    record = otp_records.data[0]
-    if datetime.fromisoformat(
-        record["expires_at"].replace("Z", "+00:00")
-    ) < datetime.now(timezone.utc):
-        db.table("otp_codes").delete().eq("id", record["id"]).execute()
-        raise HTTPException(status_code=400, detail="OTP expired")
-    if not verify_otp(body.otp, record["otp_hash"]):
-        raise HTTPException(status_code=400, detail="Invalid OTP")
-    db.table("otp_codes").delete().eq("id", record["id"]).execute()
-    db.table("users").update({"is_verified": True}).eq("id", user["id"]).execute()
-    user["is_verified"] = True
-    token = create_token(user["id"], role=user.get("role", "user"))
-    return TokenResponse(token=token, user=_user_to_response(user))
 
 
 @router.post("/resend-otp")
 @limiter.limit("3/hour")
 async def resend_otp(body: ResendOtpRequest, request: Request = None):
     db = get_supabase()
-    user = db.table("users").select("*").eq("email", body.email).execute()
-    if not user.data or user.data[0]["is_verified"]:
+    email = body.email.strip().lower()
+    existing = db.table("users").select("id").eq("email", email).execute()
+    if existing.data:
         return {"message": "If that email is registered, a new code was sent"}
-    user = user.data[0]
-    db.table("otp_codes").delete().eq("user_id", user["id"]).eq(
-        "purpose", "verify"
-    ).execute()
+    pending = db.table("pending_registrations").select("*").eq("email", email).execute()
+    if not pending.data:
+        return {"message": "If that email is registered, a new code was sent"}
+    db.table("otp_codes").delete().eq("email", email).eq("purpose", "verify").execute()
     otp = generate_otp()
     otp_hash = hash_otp(otp)
     db.table("otp_codes").insert(
         {
-            "user_id": user["id"],
+            "email": email,
             "otp_hash": otp_hash,
             "purpose": "verify",
             "expires_at": (
@@ -154,10 +177,13 @@ async def resend_otp(body: ResendOtpRequest, request: Request = None):
         }
     ).execute()
     try:
-        await asyncio.to_thread(send_otp_email, body.email, otp, "resend")
+        await asyncio.to_thread(send_otp_email, email, otp, "resend")
     except Exception as e:
-        # Log the error but don't fail the request - OTP is still stored in DB
+        db.table("otp_codes").delete().eq("email", email).eq("purpose", "verify").execute()
         print(f"Failed to send OTP email: {e}")
+        raise HTTPException(
+            status_code=500, detail="Could not send a new code. Please try again."
+        )
     return {"message": "New code sent"}
 
 

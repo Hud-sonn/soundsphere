@@ -1,12 +1,38 @@
 import os
 import secrets
 import smtplib
+import socket
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 
 def generate_otp() -> str:
     return f"{secrets.randbelow(900000) + 100000}"
+
+
+def _smtp_connect(host: str, port: int, timeout: int = 15) -> smtplib.SMTP:
+    """Connect to an SMTP server over IPv4 only.
+
+    smtplib prefers IPv6 addresses when the resolver returns them, and
+    Render free instances have no IPv6 route, which surfaces as
+    `[Errno 101] Network is unreachable`. Resolving explicitly to IPv4
+    addresses sidesteps that entirely.
+    """
+    last_error: Exception | None = None
+    for addr in socket.getaddrinfo(host, port, socket.AF_INET, socket.SOCK_STREAM):
+        server = None
+        try:
+            server = smtplib.SMTP(timeout=timeout)
+            server.connect(addr[4][0], port)
+            return server
+        except (OSError, smtplib.SMTPException) as e:
+            last_error = e
+            if server is not None:
+                try:
+                    server.close()
+                except Exception:
+                    pass
+    raise OSError(f"Could not connect to {host}:{port}") from last_error
 
 
 def send_otp_email(to_email: str, otp: str, purpose: str = "verify"):
@@ -43,7 +69,7 @@ def send_otp_email(to_email: str, otp: str, purpose: str = "verify"):
     """
     msg.attach(MIMEText(html, "html"))
 
-    with smtplib.SMTP("smtp.gmail.com", 587, timeout=15) as server:
+    with _smtp_connect("smtp.gmail.com", 587) as server:
         server.starttls()
         server.login(user, app_pw)
         server.sendmail(msg["From"], to_email, msg.as_string())
