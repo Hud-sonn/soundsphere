@@ -15,10 +15,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -27,8 +24,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.dimensionResource
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -38,6 +33,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.soundsphere.music.R
+import com.soundsphere.music.utils.dimenResource
 import com.soundsphere.music.ui.theme.hankenGrotesk
 
 @Composable
@@ -60,17 +56,11 @@ fun AuthRegisterScreen(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 32.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Box(
-                modifier = Modifier.size(dimensionResource(R.dimen.logo_size_auth)).background(c.surface, RoundedCornerShape(16.dp)),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_launcher_foreground),
-                    contentDescription = stringResource(R.string.wrapped_logo_content_description),
-                    tint = c.primaryText,
-                    modifier = Modifier.size(dimensionResource(R.dimen.logo_size_auth_mark)),
-                )
-            }
+            SplashLogoMark(
+                boxSize = dimenResource(R.dimen.logo_size_auth),
+                markSize = dimenResource(R.dimen.logo_size_auth_mark),
+                containerColor = c.surface,
+            )
 
             Spacer(Modifier.height(32.dp))
 

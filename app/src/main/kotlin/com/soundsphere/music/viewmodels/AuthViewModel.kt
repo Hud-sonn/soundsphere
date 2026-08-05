@@ -24,6 +24,8 @@ data class AuthUiState(
     val successMessage: String? = null,
     val isAuthenticated: Boolean = false,
     val emailPendingVerification: String? = null,
+    val emailPendingReset: String? = null,
+    val passwordResetComplete: Boolean = false,
 )
 
 @HiltViewModel
@@ -146,6 +148,7 @@ class AuthViewModel @Inject constructor(
                     _uiState.value.copy(
                         isLoading = false,
                         successMessage = "If that email is registered, a reset code was sent",
+                        emailPendingReset = email,
                     )
             }.onFailure {
                 _uiState.value =
@@ -167,6 +170,7 @@ class AuthViewModel @Inject constructor(
                     _uiState.value.copy(
                         isLoading = false,
                         successMessage = "Password reset successfully. You can log in now.",
+                        passwordResetComplete = true,
                     )
             }.onFailure {
                 _uiState.value =

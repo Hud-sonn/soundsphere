@@ -12,6 +12,7 @@ import androidx.security.crypto.MasterKey
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -46,16 +47,26 @@ class AuthRepository @Inject constructor(
         const val PREFS_NAME = "soundsphere_auth"
 
         fun createEncryptedPrefs(context: Context): SharedPreferences {
-            val masterKey = MasterKey.Builder(context)
-                .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
-                .build()
-            return EncryptedSharedPreferences.create(
-                context,
-                PREFS_NAME,
-                masterKey,
-                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
-            )
+            return try {
+                val masterKey = MasterKey.Builder(context)
+                    .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+                    .build()
+                EncryptedSharedPreferences.create(
+                    context,
+                    PREFS_NAME,
+                    masterKey,
+                    EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                    EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
+                )
+            } catch (e: Exception) {
+                // Android Keystore initialization can fail on some OEM devices
+                // (e.g. certain Tecno family devices). A plain prefs fallback keeps
+                // the app usable — degraded security on that one device beats a
+                // permanently bricked cold start. Log it so the fallback is visible
+                // if it ever triggers for a real user.
+                Timber.w(e, "EncryptedSharedPreferences unavailable; falling back to plain SharedPreferences")
+                context.getSharedPreferences("${PREFS_NAME}_fallback", Context.MODE_PRIVATE)
+            }
         }
     }
 }
