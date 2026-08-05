@@ -1,3 +1,22 @@
+---v1.1
+# Soundsphere v1.1
+First release under the Soundsphere project. Forked from Metrolist with a fresh brand, a new account system, and a batch of stability fixes.
+
+# Major changes
+- New Soundsphere account system: register, email verification, login, and password reset, with an encrypted local session (replaces Discord-based auth)
+- Splash and onboarding screens rebuilt around the Soundsphere brand
+- Fixed a startup crash on Android 11 and below caused by the launcher icon being loaded as a splash bitmap; splash now uses a dedicated vector logo
+- Graceful fallback to plain SharedPreferences when EncryptedSharedPreferences is unavailable, so login no longer breaks on devices without a Keystore
+- Forgot-password flow now navigates to the reset screen only after the reset email is actually sent
+
+## Other improvements
+- Smoothed lyrics auto-scroll centering by scaling the scroll animation to the travel distance
+- Faster home screen load after login
+
+## Downloads
+- FOSS: `Soundsphere.apk` (universal) and `app-<arch>-release.apk`
+- With Google Cast (GMS): `Soundsphere-with-Google-Cast.apk` (universal) and `app-<arch>-with-Google-Cast.apk`
+
 ---v13.6.1
 # THE FUTURE OF SOUNDSPHERE
 The new Kotlin Multiplatform version of Soundsphere is now in a good state, and we are aiming to release it within the next month. Until then, the current app will remain in maintenance mode and receive bug fixes and minor improvements.
