@@ -10,7 +10,7 @@ class RegisterRequest(BaseModel):
 
 class VerifyOtpRequest(BaseModel):
     email: EmailStr
-    otp: str = Field(min_length=6, max_length=6)
+    otp: str = Field(min_length=6, max_length=8)
 
 
 class LoginRequest(BaseModel):
@@ -24,7 +24,7 @@ class ForgotPasswordRequest(BaseModel):
 
 class ResetPasswordRequest(BaseModel):
     email: EmailStr
-    otp: str = Field(min_length=6, max_length=6)
+    otp: str = Field(min_length=6, max_length=8)
     new_password: str = Field(min_length=8)
 
 
