@@ -38,9 +38,16 @@ fun AuthFlowScreen(authViewModel: AuthViewModel) {
         uiState.emailPendingVerification?.let { email -> route = AuthRoute.Otp(email) }
     }
 
-    // Reset success -> back to login
-    LaunchedEffect(uiState.successMessage) {
-        if (route is AuthRoute.Reset && uiState.successMessage != null) {
+    // Forgot-password success -> reset screen for that email (mirrors the
+    // emailPendingVerification pattern: navigate only on confirmed success,
+    // never optimistically from the button click).
+    LaunchedEffect(uiState.emailPendingReset) {
+        uiState.emailPendingReset?.let { email -> route = AuthRoute.Reset(email) }
+    }
+
+    // Reset-password success -> back to login
+    LaunchedEffect(uiState.passwordResetComplete) {
+        if (route is AuthRoute.Reset && uiState.passwordResetComplete) {
             route = AuthRoute.Login
         }
     }
@@ -84,10 +91,7 @@ fun AuthFlowScreen(authViewModel: AuthViewModel) {
             AuthForgotPasswordScreen(
                 isLoading = uiState.isLoading,
                 error = uiState.error,
-                onSend = { email ->
-                    authViewModel.forgotPassword(email)
-                    route = AuthRoute.Reset(email)
-                },
+                onSend = { email -> authViewModel.forgotPassword(email) },
                 onBack = { route = AuthRoute.Login },
             )
 
