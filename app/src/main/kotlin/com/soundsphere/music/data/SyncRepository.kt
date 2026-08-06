@@ -36,7 +36,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Background account-data sync with the Soundsphere backend (/user/* API).
+ * Background account-data sync with the Soundsphere backend (/user endpoints).
  *
  * This is intentionally decoupled from the YouTube/Metrolist sync pipeline
  * (`SyncUtils`): it only touches its own DataStore key and the backend JWT,
@@ -134,11 +134,11 @@ class SyncRepository @Inject constructor(
         val now = LocalDateTime.now()
         for (entry in result.getOrThrow()) {
             val remote = entry.track
-            val local = database.dao.songEntity(remote.id)
+            val local = database.songEntity(remote.id)
             if (local == null) {
-                database.dao.insert(remote.toSongEntity(liked = true, likedDate = now))
+                database.insert(remote.toSongEntity(liked = true, likedDate = now))
             } else if (!local.liked) {
-                database.dao.update(local.copy(liked = true, likedDate = local.likedDate ?: now))
+                database.update(local.copy(liked = true, likedDate = local.likedDate ?: now))
             }
         }
     }
@@ -150,7 +150,7 @@ class SyncRepository @Inject constructor(
             reportError("Pull playlists failed", result.exceptionOrNull())
             return
         }
-        val localPlaylists = database.dao.playlistEntitiesByNameAsc()
+        val localPlaylists = database.playlistEntitiesByNameAsc()
         for (server in result.getOrThrow()) {
             val existing = server.id.let { mapped -> _serverPlaylistIds.value[mapped] }
                 ?.let { localId -> localPlaylists.firstOrNull { it.id == localId } }
@@ -158,23 +158,23 @@ class SyncRepository @Inject constructor(
             val local: PlaylistEntity
             if (existing == null) {
                 local = PlaylistEntity(name = server.name, isLocal = true)
-                database.dao.insert(local)
+                database.insert(local)
             } else {
                 local = existing
                 if (local.name != server.name) {
-                    database.dao.update(local.copy(name = server.name, lastUpdateTime = LocalDateTime.now()))
+                    database.update(local.copy(name = server.name, lastUpdateTime = LocalDateTime.now()))
                 }
             }
             savePlaylistMapping(local.id, server.id)
 
-            val existingSongIds = database.dao.playlistSongIds(local.id).toSet()
+            val existingSongIds = database.playlistSongIds(local.id).toSet()
             for (playlistTrack in server.tracks) {
                 val remote = playlistTrack.track
-                if (database.dao.songEntity(remote.id) == null) {
-                    database.dao.insert(remote.toSongEntity(liked = false, likedDate = null))
+                if (database.songEntity(remote.id) == null) {
+                    database.insert(remote.toSongEntity(liked = false, likedDate = null))
                 }
                 if (remote.id !in existingSongIds) {
-                    database.dao.insertPlaylistSongMap(
+                    database.insert(
                         PlaylistSongMap(
                             playlistId = local.id,
                             songId = remote.id,
@@ -197,10 +197,10 @@ class SyncRepository @Inject constructor(
         for (entry in result.getOrThrow()) {
             val remote = entry.track
             if (remote.id in existingSongIds) continue
-            if (database.dao.songEntity(remote.id) == null) {
-                database.dao.insert(remote.toSongEntity(liked = false, likedDate = null))
+            if (database.songEntity(remote.id) == null) {
+                database.insert(remote.toSongEntity(liked = false, likedDate = null))
             }
-            database.dao.insert(
+            database.insert(
                 Event(
                     songId = remote.id,
                     timestamp = parseTimestamp(entry.playedAt) ?: LocalDateTime.now(),
@@ -230,7 +230,7 @@ class SyncRepository @Inject constructor(
 
     private suspend fun pushHistory(songId: String) {
         val token = authRepository.getToken() ?: return
-        val song = database.dao.songEntity(songId) ?: return
+        val song = database.songEntity(songId) ?: return
         val result =
             retryNetwork {
                 SyncService.addHistory(token, song.toSyncTrack(), LocalDateTime.now().toString())
@@ -263,9 +263,9 @@ class SyncRepository @Inject constructor(
     }
 
     private suspend fun pushPlaylistSongs(token: String, localId: String, serverId: String) {
-        val songIds = database.dao.playlistSongIds(localId)
+        val songIds = database.playlistSongIds(localId)
         for (songId in songIds) {
-            val song = database.dao.songEntity(songId) ?: continue
+            val song = database.songEntity(songId) ?: continue
             val result =
                 retryNetwork {
                     SyncService.addPlaylistTrack(token, serverId, song.toSyncTrack())
@@ -280,7 +280,7 @@ class SyncRepository @Inject constructor(
     private suspend fun pushPlaylistTrackAdded(playlistId: String, songId: String) {
         val token = authRepository.getToken() ?: return
         val serverId = _serverPlaylistIds.value[playlistId] ?: return
-        val song = database.dao.songEntity(songId) ?: return
+        val song = database.songEntity(songId) ?: return
         val result =
             retryNetwork {
                 SyncService.addPlaylistTrack(token, serverId, song.toSyncTrack())

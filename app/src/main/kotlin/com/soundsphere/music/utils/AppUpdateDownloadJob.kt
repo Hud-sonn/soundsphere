@@ -176,9 +176,9 @@ class AppUpdateDownloadJob(
     }
 
     private fun postReadyToInstallNotification(file: File, versionName: String) {
-        stopForeground()
         // Remove the downloading notification; the ready-to-install
-        // notification takes over with its own ID.
+        // notification takes over with its own ID. The foreground service
+        // stops automatically when the worker finishes.
         NotificationManagerCompat.from(context).cancel(DOWNLOAD_NOTIFICATION_ID)
 
         val installPending =
@@ -217,7 +217,6 @@ class AppUpdateDownloadJob(
     }
 
     private fun postFailureNotification(downloadUrl: String, versionName: String) {
-        stopForeground()
         NotificationManagerCompat.from(context).cancel(DOWNLOAD_NOTIFICATION_ID)
         val intent =
             Intent(context, AppUpdateDownloadReceiver::class.java).apply {
@@ -260,7 +259,7 @@ class AppUpdateDownloadJob(
     companion object {
         private const val UPDATES_CHANNEL_ID = "updates"
         private const val DOWNLOAD_NOTIFICATION_ID = 1002
-        private const val READY_NOTIFICATION_ID = 1003
+        const val READY_NOTIFICATION_ID = 1003
         private const val INSTALL_REQUEST_CODE = 1002
         private const val RETRY_REQUEST_CODE = 1003
         private const val CHANGELOG_REQUEST_CODE = 1004
@@ -291,8 +290,8 @@ object AppUpdateDownloader {
     fun enqueue(context: Context, downloadUrl: String, versionName: String = "") {
         // Once the download starts, the "update available" and any stale
         // "ready to install" notifications are no longer relevant.
-        NotificationManagerCompat.from(context).cancel(UPDATE_AVAILABLE_NOTIFICATION_ID)
-        NotificationManagerCompat.from(context).cancel(READY_NOTIFICATION_ID)
+        NotificationManagerCompat.from(context).cancel(AppUpdateDownloadJob.UPDATE_AVAILABLE_NOTIFICATION_ID)
+        NotificationManagerCompat.from(context).cancel(AppUpdateDownloadJob.READY_NOTIFICATION_ID)
         val request =
             OneTimeWorkRequestBuilder<AppUpdateDownloadJob>()
                 .setInputData(
