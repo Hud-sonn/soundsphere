@@ -29,6 +29,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import com.soundsphere.innertube.YouTube
 import com.soundsphere.music.LocalDatabase
+import com.soundsphere.music.LocalSyncRepository
 import com.soundsphere.music.R
 import com.soundsphere.music.constants.InnerTubeCookieKey
 import com.soundsphere.music.db.entities.PlaylistEntity
@@ -48,6 +49,7 @@ fun CreatePlaylistDialog(
     onPlaylistCreated: ((String) -> Unit)? = null,
 ) {
     val database = LocalDatabase.current
+    val syncRepository = LocalSyncRepository.current
     val coroutineScope = rememberCoroutineScope()
     var syncedPlaylist by remember { mutableStateOf(false) }
     val context = LocalContext.current
@@ -86,6 +88,7 @@ fun CreatePlaylistDialog(
                 database.query {
                     insert(playlistEntity)
                 }
+                syncRepository.playlistCreated(playlistEntity)
 
                 withContext(Dispatchers.Main) {
                     onPlaylistCreated?.invoke(playlistEntity.id)

@@ -66,7 +66,7 @@ fun AuthOtpScreen(
             Spacer(Modifier.height(10.dp))
 
             Text(
-                text = "We sent a 6-digit code to $email",
+                text = "We sent a $OTP_LENGTH-digit code to $email",
                 color = c.secondaryText,
                 fontFamily = hankenGrotesk,
                 fontSize = 14.sp,
@@ -77,14 +77,14 @@ fun AuthOtpScreen(
 
             OutlinedTextField(
                 value = otp,
-                onValueChange = { otp = it.filter(Char::isDigit).take(6) },
+                onValueChange = { otp = it.filter(Char::isDigit).take(OTP_LENGTH) },
                 singleLine = true,
                 shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp),
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Number,
                     imeAction = ImeAction.Done,
                 ),
-                placeholder = { Text("------", color = c.secondaryText.copy(alpha = 0.4f)) },
+                placeholder = { Text("-".repeat(OTP_LENGTH), color = c.secondaryText.copy(alpha = 0.4f)) },
                 textStyle = androidx.compose.ui.text.TextStyle(
                     fontFamily = hankenGrotesk,
                     fontSize = 24.sp,

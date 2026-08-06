@@ -111,6 +111,7 @@ import com.soundsphere.music.LocalDownloadUtil
 import com.soundsphere.music.LocalNavController
 import com.soundsphere.music.LocalPlayerAwareWindowInsets
 import com.soundsphere.music.LocalPlayerConnection
+import com.soundsphere.music.LocalSyncRepository
 import com.soundsphere.music.LocalSyncUtils
 import com.soundsphere.music.R
 import com.soundsphere.music.constants.DarkModeKey
@@ -169,6 +170,7 @@ fun LocalPlaylistScreen(
     val context = LocalContext.current
     val menuState = LocalMenuState.current
     val database = LocalDatabase.current
+    val syncRepository = LocalSyncRepository.current
     val haptic = LocalHapticFeedback.current
     val playerConnection = LocalPlayerConnection.current ?: return
     val isPlaying by playerConnection.isEffectivelyPlaying.collectAsStateWithLifecycle()
@@ -309,14 +311,15 @@ fun LocalPlaylistScreen(
                         TextRange(playlistEntity.name.length),
                     ),
                 onDone = { name ->
-                    database.query {
-                        update(
-                            playlistEntity.copy(
-                                name = name,
-                                lastUpdateTime = LocalDateTime.now(),
-                            ),
+                    val renamed =
+                        playlistEntity.copy(
+                            name = name,
+                            lastUpdateTime = LocalDateTime.now(),
                         )
+                    database.query {
+                        update(renamed)
                     }
+                    syncRepository.playlistRenamed(renamed)
                     viewModel.viewModelScope.launch(Dispatchers.IO) {
                         playlistEntity.browseId?.let { YouTube.renamePlaylist(it, name) }
                     }
@@ -405,6 +408,7 @@ fun LocalPlaylistScreen(
                         database.query {
                             playlist?.let { delete(it.playlist) }
                         }
+                        syncRepository.playlistDeleted(playlist?.playlist!!)
                         viewModel.viewModelScope.launch(Dispatchers.IO) {
                             playlist?.playlist?.browseId?.let { YouTube.deletePlaylist(it) }
                         }
@@ -582,6 +586,7 @@ fun LocalPlaylistScreen(
                                 setVideoId
                             }
                         }
+                        syncRepository.playlistTrackRemoved(playlistId, songId)
                     }
 
                     val swipeRemoveEnabled by rememberPreference(SwipeToRemoveSongKey, defaultValue = false)

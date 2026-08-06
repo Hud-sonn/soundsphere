@@ -76,14 +76,14 @@ fun AuthResetPasswordScreen(
 
             OutlinedTextField(
                 value = otp,
-                onValueChange = { otp = it.filter(Char::isDigit).take(6) },
+                onValueChange = { otp = it.filter(Char::isDigit).take(OTP_LENGTH) },
                 singleLine = true,
                 shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp),
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Number,
                     imeAction = ImeAction.Next,
                 ),
-                placeholder = { Text("------", color = c.secondaryText.copy(alpha = 0.4f)) },
+                placeholder = { Text("-".repeat(OTP_LENGTH), color = c.secondaryText.copy(alpha = 0.4f)) },
                 textStyle = androidx.compose.ui.text.TextStyle(
                     fontFamily = hankenGrotesk,
                     fontSize = 20.sp,

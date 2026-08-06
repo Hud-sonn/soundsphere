@@ -11,6 +11,7 @@ import com.soundsphere.music.api.AuthService
 import com.soundsphere.music.api.AuthToken
 import com.soundsphere.music.api.UnauthorizedException
 import com.soundsphere.music.data.AuthRepository
+import com.soundsphere.music.data.SyncRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -31,6 +32,7 @@ data class AuthUiState(
 @HiltViewModel
 class AuthViewModel @Inject constructor(
     private val repository: AuthRepository,
+    private val syncRepository: SyncRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AuthUiState())
@@ -200,6 +202,9 @@ class AuthViewModel @Inject constructor(
                 AuthUiState(
                     isAuthenticated = true,
                 )
+            // Pull the account data (liked tracks, playlists, history) from
+            // the backend in the background.
+            syncRepository.onLoggedIn()
         }.onFailure {
             _uiState.value =
                 _uiState.value.copy(
