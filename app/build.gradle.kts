@@ -182,7 +182,8 @@ android {
             keyPassword = debugKeyPassword
         }
         create("release") {
-            storeFile = file("keystore/release.keystore")
+            val releaseKeystorePath = System.getenv("RELEASE_KEYSTORE_PATH")?.takeIf { it.isNotBlank() }
+            storeFile = releaseKeystorePath?.let(::file) ?: file("keystore/release.keystore")
             storePassword = System.getenv("STORE_PASSWORD")
             keyAlias = System.getenv("KEY_ALIAS")
             keyPassword = System.getenv("KEY_PASSWORD")
@@ -206,6 +207,16 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
+            // Sign with the release keystore when the credentials are present
+            // (local releases). CI keeps its own post-build signing step, so
+            // leave the config untouched when the env vars are not set.
+            if (
+                !System.getenv("STORE_PASSWORD").isNullOrEmpty() &&
+                !System.getenv("KEY_ALIAS").isNullOrEmpty() &&
+                !System.getenv("KEY_PASSWORD").isNullOrEmpty()
+            ) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
         debug {
             val devAuthBaseUrl =
@@ -387,6 +398,7 @@ dependencies {
 
     implementation(libs.appcompat)
     implementation(libs.splashscreen)
+    implementation(libs.work.runtime)
 
     implementation(libs.coil)
     implementation(libs.coil.network.okhttp)

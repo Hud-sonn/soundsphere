@@ -386,6 +386,17 @@
     <string name="update_available_title">Update available</string>
     <string name="update_channel_name">App updates</string>
     <string name="update_channel_desc">Notifications about new app versions</string>
+    <string name="download_update">Download update</string>
+    <string name="update_downloading_title">Downloading update</string>
+    <string name="update_download_progress">%1$d%%</string>
+    <string name="update_download_ready_title">Update ready to install</string>
+    <string name="update_download_ready_desc">Soundsphere %1$s — tap to install</string>
+    <string name="update_download_failed_title">Update download failed</string>
+    <string name="update_download_failed_desc">Tap to try again</string>
+    <string name="update_available_desc">Tap to see what changed in %1$s</string>
+    <string name="whats_new">What\'s new</string>
+    <string name="install_now">Install now</string>
+    <string name="update_changelog_unavailable">Couldn\'t load the release notes.</string>
 
     <!-- Offload -->
     <string name="audio_offload">Enable audio offload</string>

@@ -44,7 +44,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -70,7 +69,10 @@ import com.soundsphere.music.ui.component.InfoLabel
 import com.soundsphere.music.ui.component.Material3SettingsGroup
 import com.soundsphere.music.ui.component.Material3SettingsItem
 import com.soundsphere.music.ui.component.PreferenceEntry
-import com.soundsphere.music.ui.component.TextFieldDialog
+import com.soundsphere.music.ui.component.UpdateChangelogSheet
+import com.soundsphere.music.ui.component.UpdateSheetMode
+import com.soundsphere.music.ui.utils.backToMain
+import com.soundsphere.music.utils.AppUpdateDownloader
 import com.soundsphere.music.utils.Updater
 import com.soundsphere.music.utils.rememberPreference
 import com.soundsphere.music.viewmodels.AccountSettingsViewModel
@@ -84,7 +86,7 @@ fun AccountSettings(
     latestVersionName: String
 ) {
     val context = LocalContext.current
-    val uriHandler = LocalUriHandler.current
+    var showUpdateChangelog by remember { mutableStateOf(false) }
 
     val (accountNamePref, onAccountNameChange) = rememberPreference(AccountNameKey, "")
     val (accountEmail, onAccountEmailChange) = rememberPreference(AccountEmailKey, "")
@@ -464,12 +466,26 @@ fun AccountSettings(
                                 Icon(painterResource(R.drawable.update), null)
                             }
                         },
-                        onClick = {
-                            uriHandler.openUri(downloadUrl)
-                        }
+                        onClick = { showUpdateChangelog = true }
                     )
                 }
             }
         }
+    }
+
+    if (showUpdateChangelog) {
+        val releaseInfo = Updater.getCachedLatestRelease()
+        val downloadUrl =
+            releaseInfo?.let { Updater.getDownloadUrlForCurrentVariant(it) }
+        UpdateChangelogSheet(
+            mode = UpdateSheetMode.AVAILABLE,
+            release = releaseInfo,
+            onDownload = {
+                downloadUrl?.let { AppUpdateDownloader.enqueue(context, it, latestVersionName) }
+                showUpdateChangelog = false
+            },
+            onInstall = {},
+            onDismiss = { showUpdateChangelog = false },
+        )
     }
 }

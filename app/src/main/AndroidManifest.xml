@@ -246,6 +246,15 @@
             android:name=".listentogether.ListenTogetherActionReceiver"
             android:exported="false" />
 
+        <!-- Receivers for the in-app update download flow -->
+        <receiver
+            android:name=".utils.AppUpdateDownloadReceiver"
+            android:exported="false" />
+
+        <receiver
+            android:name=".utils.AppUpdateInstallReceiver"
+            android:exported="false" />
+
         <receiver
             android:name=".playback.alarm.MusicAlarmReceiver"
             android:enabled="true"

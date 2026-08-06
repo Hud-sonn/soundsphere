@@ -25,6 +25,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
@@ -36,6 +37,11 @@ import com.soundsphere.music.utils.ReleaseInfo
 import com.soundsphere.music.utils.Updater
 
 private val markdownLinkRegex = Regex("(@[a-zA-Z0-9_-]+)|(https?://[\\w-]+(\\.[\\w-]+)+[\\w.,@?^=%&:/~+#-]*[\\w@?^=%&/~+#-])")
+
+// Matches inline markdown tokens: **bold**, *italic*, _italic_, then links.
+// Links come last so underscores inside URLs are consumed by the URL pattern.
+private val markdownInlineRegex =
+    Regex("""(\*\*[^*]+\*\*|\*[^*]+\*|_[^_]+_|@[a-zA-Z0-9_-]+|https?://[\w-]+(\.[\w-]+)+[\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])""")
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -193,11 +199,17 @@ fun ReleaseItem(release: ReleaseInfo) {
 
 @Suppress("DEPRECATION")
 @Composable
-fun MarkdownText(text: String) {
+fun MarkdownText(
+    text: String,
+    modifier: Modifier = Modifier,
+) {
     val lines = text.split("\n")
     val uriHandler = LocalUriHandler.current
 
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
         lines.filter { it.isNotBlank() }.forEach { line ->
             val trimmedLine = line.trim()
 
@@ -226,21 +238,46 @@ fun MarkdownText(text: String) {
 
                 val annotatedString = buildAnnotatedString {
                     var lastIndex = 0
-                    markdownLinkRegex.findAll(contentText).forEach { result ->
+                    markdownInlineRegex.findAll(contentText).forEach { result ->
                         append(contentText.substring(lastIndex, result.range.first))
-                        
+
                         val match = result.value
-                        val link = if (match.startsWith("@")) "https://github.com/${match.substring(1)}" else match
-                        
-                        pushStringAnnotation(tag = "URL", annotation = link)
-                        withStyle(style = SpanStyle(
-                            color = MaterialTheme.colorScheme.primary, 
-                            fontWeight = if (match.startsWith("@")) FontWeight.Bold else FontWeight.Normal,
-                            textDecoration = if (match.startsWith("@")) TextDecoration.None else TextDecoration.Underline
-                        )) {
-                            append(match)
+                        when {
+                            match.startsWith("**") && match.endsWith("**") && match.length > 4 -> {
+                                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                                    append(match.substring(2, match.length - 2))
+                                }
+                            }
+                            match.startsWith("*") && match.endsWith("*") && match.length > 2 -> {
+                                withStyle(style = SpanStyle(fontStyle = FontStyle.Italic)) {
+                                    append(match.substring(1, match.length - 1))
+                                }
+                            }
+                            match.startsWith("_") && match.endsWith("_") && match.length > 2 -> {
+                                withStyle(style = SpanStyle(fontStyle = FontStyle.Italic)) {
+                                    append(match.substring(1, match.length - 1))
+                                }
+                            }
+                            else -> {
+                                val link =
+                                    if (match.startsWith("@")) "https://github.com/${match.substring(1)}" else match
+
+                                pushStringAnnotation(tag = "URL", annotation = link)
+                                withStyle(
+                                    style =
+                                        SpanStyle(
+                                            color = MaterialTheme.colorScheme.primary,
+                                            fontWeight =
+                                                if (match.startsWith("@")) FontWeight.Bold else FontWeight.Normal,
+                                            textDecoration =
+                                                if (match.startsWith("@")) TextDecoration.None else TextDecoration.Underline,
+                                        ),
+                                ) {
+                                    append(match)
+                                }
+                                pop()
+                            }
                         }
-                        pop()
                         lastIndex = result.range.last + 1
                     }
                     append(contentText.substring(lastIndex))

@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.soundsphere.music.R
+import com.soundsphere.music.ui.screens.settings.MarkdownText
 import com.soundsphere.music.utils.Updater
 
 @Composable
@@ -43,9 +44,8 @@ fun ReleaseNotesCard() {
                 style = MaterialTheme.typography.titleLarge
             )
             Spacer(modifier = Modifier.height(8.dp))
-            Text(
+            MarkdownText(
                 text = releaseInfo.description,
-                style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(vertical = 2.dp)
             )
         }
