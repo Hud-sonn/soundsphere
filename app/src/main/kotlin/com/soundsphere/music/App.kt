@@ -31,6 +31,7 @@ import com.soundsphere.music.di.ApplicationScope
 import com.soundsphere.music.extensions.toEnum
 import com.soundsphere.music.extensions.toInetSocketAddress
 import com.soundsphere.music.utils.CrashHandler
+import com.soundsphere.music.utils.RenderKeepAliveWorker
 import com.soundsphere.music.utils.YTPlayerUtils
 import com.soundsphere.music.utils.cipher.CipherDeobfuscator
 import com.soundsphere.music.utils.dataStore
@@ -69,6 +70,11 @@ class App :
 
         // Install crash handler first
         CrashHandler.install(this)
+
+        // Keep the Render-hosted backend awake so first login/sync isn't slow.
+        applicationScope.launch(Dispatchers.IO) {
+            RenderKeepAliveWorker.schedule(this@App)
+        }
 
         // preferencesDataStore uses filesDir/datastore; proactive mkdir reduces failures on odd ROM states
         try {
