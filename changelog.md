@@ -1,3 +1,15 @@
+---v1.1.2
+# Soundsphere v1.1.2
+Bug-fix release. Tapping the update notification now hands the downloaded APK to the installer from the foreground, where Android allows it — previously the tap was silently swallowed on Android 10+.
+
+# Major changes
+- Fixed "ready to install" notification doing nothing: the installer now launches through the app itself, so the update actually installs after downloading
+- Added a background keep-alive worker that pings the backend health endpoint every 15 minutes, so the free Render service never spins down and first login stays fast
+
+## Downloads
+- FOSS: `Soundsphere.apk` (universal) and `app-<arch>-release.apk`
+- With Google Cast (GMS): `Soundsphere-with-Google-Cast.apk` (universal) and `app-<arch>-with-Google-Cast.apk`
+
 ---v1.1.1
 # Soundsphere v1.1.1
 Bug-fix release. The in-app update download previously crashed on launch, so updates never arrived; that flow is repaired and the splash now closes with a branded animation.
