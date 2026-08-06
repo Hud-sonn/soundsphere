@@ -98,6 +98,7 @@ import com.soundsphere.lastfm.LastFM
 import com.soundsphere.music.MainActivity
 import com.soundsphere.music.R
 import com.soundsphere.music.constants.AndroidAutoTargetPlaylistKey
+import com.soundsphere.music.data.SyncRepository
 import com.soundsphere.music.constants.AudioNormalizationKey
 import com.soundsphere.music.constants.AudioOffload
 import com.soundsphere.music.constants.AudioQualityKey
@@ -256,6 +257,9 @@ class MusicService :
 
     @Inject
     lateinit var syncUtils: SyncUtils
+
+    @Inject
+    lateinit var syncRepository: SyncRepository
 
     @Inject
     lateinit var mediaLibrarySessionCallback: MediaLibrarySessionCallback
@@ -3446,6 +3450,7 @@ class MusicService :
                     )
                 } catch (_: SQLException) {
                 }
+                syncRepository.historyAdded(mediaItem.mediaId)
             }
         }
 

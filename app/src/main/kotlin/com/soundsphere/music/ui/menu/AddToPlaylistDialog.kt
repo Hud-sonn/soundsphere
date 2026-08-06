@@ -73,6 +73,7 @@ import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.material3.FilterChip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.material3.FilterChipDefaults
+import com.soundsphere.music.LocalSyncRepository
 import com.soundsphere.music.LocalSyncUtils
 
 @Composable
@@ -87,6 +88,7 @@ fun AddToPlaylistDialog(
 ) {
     val database = LocalDatabase.current
     val syncUtils = LocalSyncUtils.current
+    val syncRepository = LocalSyncRepository.current
     val coroutineScope = rememberCoroutineScope()
     val (sortType, onSortTypeChange) = rememberEnumPreference(
         AddToPlaylistSortTypeKey,
@@ -127,6 +129,8 @@ fun AddToPlaylistDialog(
             ids.forEach { songId ->
                 syncUtils.addToPlaylist(plist, targetPlaylist.id, songId)
             }
+        } ?: ids.forEach { songId ->
+            syncRepository.playlistTrackAdded(targetPlaylist.playlist.id, songId)
         }
     }
 

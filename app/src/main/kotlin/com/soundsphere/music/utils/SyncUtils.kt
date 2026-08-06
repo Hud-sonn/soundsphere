@@ -20,6 +20,7 @@ import com.soundsphere.music.constants.InnerTubeCookieKey
 import com.soundsphere.music.constants.LastFMUseSendLikes
 import com.soundsphere.music.constants.LastFullSyncKey
 import com.soundsphere.music.constants.SYNC_COOLDOWN
+import com.soundsphere.music.data.SyncRepository
 import com.soundsphere.music.db.MusicDatabase
 import com.soundsphere.music.db.entities.ArtistEntity
 import com.soundsphere.music.db.entities.PlaylistEntity
@@ -105,6 +106,7 @@ data class SyncState(
 class SyncUtils @Inject constructor(
     @ApplicationContext private val context: Context,
     private val database: MusicDatabase,
+    private val syncRepository: SyncRepository,
 ) {
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
         if (throwable !is CancellationException) {
@@ -365,6 +367,9 @@ class SyncUtils @Inject constructor(
 
     fun likeSong(s: SongEntity) {
         enqueue(SyncOperation.LikeSong(s))
+        // Account-data sync (Soundsphere backend) follows the same toggle;
+        // this is the single funnel used by every like path in the app.
+        syncRepository.likeChanged(s)
     }
 
     fun subscribeChannel(channelId: String, subscribe: Boolean) {
