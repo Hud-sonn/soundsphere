@@ -76,12 +76,13 @@ fun NavGraphBuilder.navigationBuilder(
     activity: Activity,
     snackbarHostState: SnackbarHostState,
     authViewModel: AuthViewModel,
+    splashExiting: Boolean = false,
 ) {
     // Account gate routes: Splash holds while the stored token is read, Auth shows
     // the Soundsphere account flow (register/login/OTP). Kept distinct from the
     // YouTube Music WebView login route ("login").
     composable(Screens.Splash.route) {
-        SoundsphereSplashLogo()
+        SoundsphereSplashLogo(exiting = splashExiting)
     }
 
     composable(Screens.Auth.route) {

@@ -5,6 +5,9 @@
 
 package com.soundsphere.music.ui.screens.auth
 
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,10 +18,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
@@ -59,19 +64,36 @@ fun SplashLogoMark(
 }
 
 /**
+ * Duration of the logo fade + zoom + exit sequence played right before the
+ * splash dismisses into the main app. Callers that delay navigation to let
+ * the animation finish must use this same value.
+ */
+const val SplashExitAnimationMillis = 650
+
+/**
  * Static brand splash visual (logo centered on the Soundsphere dark background).
  * Used as the nav Splash route while the initial auth check runs and as the
  * brief overlay after login while the home screen completes its initial sync.
+ * When [exiting] flips true the logo fades out while zooming, ready for the
+ * splash to dismiss into the app.
  */
 @Composable
 fun SoundsphereSplashLogo(
     modifier: Modifier = Modifier,
+    exiting: Boolean = false,
 ) {
+    val exitProgress by animateFloatAsState(
+        targetValue = if (exiting) 1f else 0f,
+        animationSpec = tween(durationMillis = SplashExitAnimationMillis, easing = FastOutSlowInEasing),
+        label = "splashExitProgress",
+    )
+
     Column(
         modifier =
             Modifier
                 .fillMaxSize()
-                .background(EarthyAuthColors.background),
+                .background(EarthyAuthColors.background)
+                .then(modifier),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
@@ -79,6 +101,13 @@ fun SoundsphereSplashLogo(
             boxSize = dimenResource(R.dimen.logo_size_splash),
             markSize = dimenResource(R.dimen.logo_size_splash_mark),
             cornerRadius = 24.dp,
+            modifier =
+                Modifier.graphicsLayer {
+                    alpha = 1f - exitProgress
+                    val zoom = 1f + 0.2f * exitProgress
+                    scaleX = zoom
+                    scaleY = zoom
+                },
         )
     }
 }

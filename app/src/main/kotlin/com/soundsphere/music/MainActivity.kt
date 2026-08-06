@@ -22,10 +22,12 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.Image
@@ -191,6 +193,7 @@ import com.soundsphere.music.ui.screens.navigationBuilder
 import com.soundsphere.music.ui.screens.settings.ChangelogScreen
 import com.soundsphere.music.ui.screens.settings.DarkMode
 import com.soundsphere.music.ui.screens.settings.NavigationTab
+import com.soundsphere.music.ui.screens.auth.SplashExitAnimationMillis
 import com.soundsphere.music.ui.screens.auth.SoundsphereSplashLogo
 import com.soundsphere.music.ui.theme.ColorSaver
 import com.soundsphere.music.ui.theme.DefaultThemeColor
@@ -834,6 +837,10 @@ class MainActivity : ComponentActivity() {
 
                 val authGateRoutes = listOf(Screens.Splash.route, Screens.Auth.route)
 
+                // When true, the splash logo plays its fade + zoom + exit before
+                // the navigation below leaves the Splash route.
+                var splashExiting by remember { mutableStateOf(false) }
+
                 // Keep the current destination in line with the auth state: hold the splash
                 // while the token check runs, show the account gate when logged out, and
                 // jump into the default tab once logged in (covers login, logout and 401).
@@ -848,12 +855,20 @@ class MainActivity : ComponentActivity() {
                         }
                     if (isLoggedIn) {
                         if (currentRoute in authGateRoutes && currentRoute != homeRoute) {
+                            if (currentRoute == Screens.Splash.route && !splashExiting) {
+                                splashExiting = true
+                                delay(SplashExitAnimationMillis.toLong())
+                            }
                             navController.navigate(homeRoute) {
                                 popUpTo(navController.graph.startDestinationId) { inclusive = true }
                                 launchSingleTop = true
                             }
                         }
                     } else if (currentRoute !in authGateRoutes) {
+                        if (currentRoute == Screens.Splash.route && !splashExiting) {
+                            splashExiting = true
+                            delay(SplashExitAnimationMillis.toLong())
+                        }
                         navController.navigate(Screens.Auth.route) {
                             popUpTo(navController.graph.startDestinationId) { inclusive = true }
                             launchSingleTop = true
@@ -1543,6 +1558,7 @@ class MainActivity : ComponentActivity() {
                                         activity = this@MainActivity,
                                         snackbarHostState = snackbarHostState,
                                         authViewModel = authViewModel,
+                                        splashExiting = splashExiting,
                                     )
                                 }
                             }
@@ -1597,7 +1613,12 @@ class MainActivity : ComponentActivity() {
                     AnimatedVisibility(
                         visible = showPostLoginSplash,
                         enter = fadeIn(animationSpec = tween(250)),
-                        exit = fadeOut(animationSpec = tween(500)),
+                        exit =
+                            fadeOut(animationSpec = tween(SplashExitAnimationMillis)) +
+                                scaleOut(
+                                    targetScale = 1.2f,
+                                    animationSpec = tween(SplashExitAnimationMillis, easing = FastOutSlowInEasing),
+                                ),
                     ) {
                         SoundsphereSplashLogo()
                     }
