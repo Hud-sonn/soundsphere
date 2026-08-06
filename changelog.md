@@ -1,3 +1,20 @@
+---v1.1.1
+# Soundsphere v1.1.1
+Bug-fix release. The in-app update download previously crashed on launch, so updates never arrived; that flow is repaired and the splash now closes with a branded animation.
+
+# Major changes
+- Fixed the in-app update download crashing at start ("foregroundServiceType" mismatch) on Android 11+, so downloads now complete with a progress notification and a "ready to install" prompt
+- Splash screen now fades, zooms, and exits when the app opens — on both signed-in and signed-out launches
+- About screen rebranded to Hudson Dev: updated social links, portfolio, credits, and a GPL attribution to the original Metrolist project
+
+## Other improvements
+- Update progress notifications no longer crash on Android 13+ when notification permission is missing
+- CI now generates a debug keystore on the runner when the repository secret is absent, unblocking debug builds
+
+## Downloads
+- FOSS: `Soundsphere.apk` (universal) and `app-<arch>-release.apk`
+- With Google Cast (GMS): `Soundsphere-with-Google-Cast.apk` (universal) and `app-<arch>-with-Google-Cast.apk`
+
 ---v1.1
 # Soundsphere v1.1
 First release under the Soundsphere project. Forked from Metrolist with a fresh brand, a new account system, and a batch of stability fixes.
