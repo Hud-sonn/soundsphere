@@ -56,8 +56,8 @@ import com.soundsphere.music.ui.component.UpdateChangelogSheet
 import com.soundsphere.music.ui.component.UpdateSheetMode
 import com.soundsphere.music.utils.AppUpdateDownloadJob
 import com.soundsphere.music.utils.AppUpdateDownloader
-import com.soundsphere.music.utils.AppUpdateInstallReceiver
 import com.soundsphere.music.utils.Updater
+import com.soundsphere.music.utils.installUpdateApk
 import com.soundsphere.music.utils.rememberPreference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -289,7 +289,7 @@ fun UpdaterScreen(
                         onClick = {
                             downloadedRelease.outputData
                                 .getString(AppUpdateDownloadJob.KEY_OUTPUT_FILE_PATH)
-                                ?.let { AppUpdateInstallReceiver.installApk(context, it) }
+                                ?.let { installUpdateApk(context, it) }
                         },
                         modifier =
                             Modifier
