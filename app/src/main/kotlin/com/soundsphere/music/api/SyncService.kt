@@ -56,7 +56,7 @@ data class SyncHistoryEntry(
 )
 
 /**
- * Client for the /user/* account-sync API. Every call requires the Bearer
+ * Client for the /user/ account-sync API. Every call requires the Bearer
  * token stored by [AuthRepository]. HTTP 401 surfaces as
  * [UnauthorizedException] so the caller can drop the session; all other
  * failures come back as plain [Exception] with a readable message.
