@@ -366,6 +366,16 @@
             android:exported="false"
             android:foregroundServiceType="microphone" />
 
+        <!-- WorkManager's foreground service hosts the update-download
+             notification. The library manifest declares no foregroundServiceType,
+             so startForeground(DATA_SYNC) crashes with
+             "foregroundServiceType 0x1 is not a subset of 0x0" unless this
+             attribute is merged in here. -->
+        <service
+            android:name="androidx.work.impl.foreground.SystemForegroundService"
+            android:foregroundServiceType="dataSync"
+            tools:node="merge" />
+
         <!-- Music Recognizer Quick Settings Tile -->
         <service
             android:name=".quicksettings.MusicRecognizerTileService"

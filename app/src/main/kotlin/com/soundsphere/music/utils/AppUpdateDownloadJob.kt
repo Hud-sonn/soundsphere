@@ -137,7 +137,7 @@ class AppUpdateDownloadJob(
 
     private suspend fun reportProgress(percent: Int, versionName: String) {
         setProgress(workDataOf(KEY_PROGRESS to percent))
-        NotificationManagerCompat.from(context).notify(
+        postNotification(
             DOWNLOAD_NOTIFICATION_ID,
             buildDownloadNotification(percent, versionName),
         )
