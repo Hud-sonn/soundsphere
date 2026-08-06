@@ -113,6 +113,8 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.coroutineScope
 import androidx.lifecycle.lifecycleScope
+import androidx.work.WorkInfo
+import androidx.work.WorkManager
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.navigation.NavController
@@ -178,6 +180,8 @@ import com.soundsphere.music.ui.component.BottomSheetMenu
 import com.soundsphere.music.ui.component.BottomSheetPage
 import com.soundsphere.music.ui.component.LocalBottomSheetPageState
 import com.soundsphere.music.ui.component.LocalMenuState
+import com.soundsphere.music.ui.component.UpdateChangelogSheet
+import com.soundsphere.music.ui.component.UpdateSheetMode
 import com.soundsphere.music.ui.component.rememberBottomSheetState
 import com.soundsphere.music.ui.component.shimmer.ShimmerTheme
 import com.soundsphere.music.ui.menu.YouTubeSongMenu
@@ -194,6 +198,9 @@ import com.soundsphere.music.ui.theme.SoundsphereTheme
 import com.soundsphere.music.ui.theme.extractThemeColor
 import com.soundsphere.music.ui.utils.appBarScrollBehavior
 import com.soundsphere.music.ui.utils.resetHeightOffset
+import com.soundsphere.music.utils.AppUpdateDownloadJob
+import com.soundsphere.music.utils.AppUpdateDownloader
+import com.soundsphere.music.utils.AppUpdateInstallReceiver
 import com.soundsphere.music.utils.SearchRoutes
 import com.soundsphere.music.utils.SyncUtils
 import com.soundsphere.music.utils.Updater
@@ -205,6 +212,7 @@ import com.soundsphere.music.utils.rememberEnumPreference
 import com.soundsphere.music.utils.rememberPreference
 import com.soundsphere.music.utils.reportException
 import com.soundsphere.music.utils.setAppLocale
+import com.soundsphere.music.data.SyncRepository
 import com.soundsphere.music.viewmodels.HomeViewModel
 import com.soundsphere.music.viewmodels.AuthViewModel
 import com.soundsphere.music.widget.PlaylistWidgetReceiver
@@ -245,11 +253,16 @@ class MainActivity : ComponentActivity() {
     lateinit var syncUtils: SyncUtils
 
     @Inject
+    lateinit var syncRepository: SyncRepository
+
+    @Inject
     lateinit var listenTogetherManager: com.soundsphere.music.listentogether.ListenTogetherManager
 
     private lateinit var navController: NavHostController
     private var pendingIntent: Intent? = null
     private var latestVersionName by mutableStateOf(BuildConfig.VERSION_NAME)
+    private var showUpdateChangelogSheet by mutableStateOf(false)
+    private var updateChangelogMode by mutableStateOf(UpdateSheetMode.AVAILABLE)
 
     /**
      * Activity-scoped auth state holder. Shared by the native splash (keep-on-screen
@@ -377,11 +390,28 @@ class MainActivity : ComponentActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+        handleUpdateChangelogIntent(intent)
         if (::navController.isInitialized) {
             handleWidgetTargetIntent(intent, navController)
             handleDeepLinkIntent(intent, navController)
         } else {
             pendingIntent = intent
+        }
+    }
+
+    /**
+     * Opens the "what's new" sheet when the user taps the update-related
+     * notifications (either before downloading or before installing).
+     */
+    private fun handleUpdateChangelogIntent(intent: Intent) {
+        if (intent.action == AppUpdateDownloadJob.ACTION_SHOW_UPDATE_CHANGELOG) {
+            updateChangelogMode =
+                if (intent.getBooleanExtra(AppUpdateDownloadJob.EXTRA_UPDATE_SHEET_MODE_READY, false)) {
+                    UpdateSheetMode.READY_TO_INSTALL
+                } else {
+                    UpdateSheetMode.AVAILABLE
+                }
+            showUpdateChangelogSheet = true
         }
     }
 
@@ -397,6 +427,8 @@ class MainActivity : ComponentActivity() {
 
         // Initialize Listen Together manager
         listenTogetherManager.initialize()
+
+        handleUpdateChangelogIntent(intent)
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
             val locale =
@@ -499,19 +531,47 @@ class MainActivity : ComponentActivity() {
                                 if (hasUpdate && notifEnabled) {
                                     val downloadUrl = Updater.getDownloadUrlForCurrentVariant(releaseInfo)
                                     if (downloadUrl != null) {
-                                        val intent = Intent(Intent.ACTION_VIEW, downloadUrl.toUri())
+                                        // Don't nag with an "update available" notification
+                                        // while a download is already in flight.
+                                        val downloading =
+                                            runCatching {
+                                                WorkManager
+                                                    .getInstance(this@MainActivity)
+                                                    .getWorkInfosForUniqueWork(AppUpdateDownloadJob.WORK_NAME)
+                                                    .get()
+                                                    .any {
+                                                        it.state == WorkInfo.State.RUNNING ||
+                                                            it.state == WorkInfo.State.ENQUEUED
+                                                    }
+                                            }.getOrDefault(false)
+                                        if (downloading) return@onSuccess
 
-                                        val flags =
-                                            PendingIntent.FLAG_UPDATE_CURRENT or
-                                                (PendingIntent.FLAG_IMMUTABLE)
-                                        val pending = PendingIntent.getActivity(this@MainActivity, 1001, intent, flags)
+                                        // Tapping opens the "what's new" sheet; the user
+                                        // decides whether to start the download.
+                                        val intent =
+                                            Intent(this@MainActivity, MainActivity::class.java).apply {
+                                                action = AppUpdateDownloadJob.ACTION_SHOW_UPDATE_CHANGELOG
+                                            }
+                                        val pending =
+                                            PendingIntent.getActivity(
+                                                this@MainActivity,
+                                                AppUpdateDownloadJob.UPDATE_AVAILABLE_NOTIFICATION_ID,
+                                                intent,
+                                                PendingIntent.FLAG_UPDATE_CURRENT or
+                                                    PendingIntent.FLAG_IMMUTABLE,
+                                            )
 
                                         val notif =
                                             NotificationCompat
                                                 .Builder(this@MainActivity, "updates")
                                                 .setSmallIcon(R.drawable.update)
                                                 .setContentTitle(getString(R.string.update_available_title))
-                                                .setContentText(releaseInfo.versionName)
+                                                .setContentText(
+                                                    getString(
+                                                        R.string.update_available_desc,
+                                                        releaseInfo.versionName,
+                                                    ),
+                                                )
                                                 .setContentIntent(pending)
                                                 .setAutoCancel(true)
                                                 .build()
@@ -520,7 +580,12 @@ class MainActivity : ComponentActivity() {
                                             ContextCompat.checkSelfPermission(this@MainActivity, Manifest.permission.POST_NOTIFICATIONS) ==
                                             PackageManager.PERMISSION_GRANTED
                                         ) {
-                                            NotificationManagerCompat.from(this@MainActivity).notify(1001, notif)
+                                            NotificationManagerCompat
+                                                .from(this@MainActivity)
+                                                .notify(
+                                                    AppUpdateDownloadJob.UPDATE_AVAILABLE_NOTIFICATION_ID,
+                                                    notif,
+                                                )
                                         }
                                     }
                                 }
@@ -1069,11 +1134,52 @@ class MainActivity : ComponentActivity() {
                     LocalDownloadUtil provides downloadUtil,
                     LocalShimmerTheme provides ShimmerTheme,
                     LocalSyncUtils provides syncUtils,
+                    LocalSyncRepository provides syncRepository,
                     LocalListenTogetherManager provides listenTogetherManager,
                     LocalChangelogState provides showChangelog,
                 ) {
                     if (showChangelog.value && isLoggedIn) {
                         ChangelogScreen(onDismiss = { showChangelog.value = false })
+                    }
+
+                    if (showUpdateChangelogSheet) {
+                        UpdateChangelogSheet(
+                            mode = updateChangelogMode,
+                            release = Updater.getCachedLatestRelease(),
+                            onDownload = {
+                                val downloadUrl =
+                                    Updater.getCachedLatestRelease()?.let {
+                                        Updater.getDownloadUrlForCurrentVariant(it)
+                                    }
+                                if (downloadUrl != null) {
+                                    AppUpdateDownloader.enqueue(
+                                        this@MainActivity,
+                                        downloadUrl,
+                                        latestVersionName,
+                                    )
+                                }
+                                showUpdateChangelogSheet = false
+                            },
+                            onInstall = {
+                                showUpdateChangelogSheet = false
+                                lifecycleScope.launch(Dispatchers.IO) {
+                                    val filePath =
+                                        runCatching {
+                                            WorkManager
+                                                .getInstance(this@MainActivity)
+                                                .getWorkInfosForUniqueWork(AppUpdateDownloadJob.WORK_NAME)
+                                                .get()
+                                                .firstOrNull { it.state == WorkInfo.State.SUCCEEDED }
+                                                ?.outputData
+                                                ?.getString(AppUpdateDownloadJob.KEY_OUTPUT_FILE_PATH)
+                                        }.getOrNull()
+                                    if (filePath != null) {
+                                        AppUpdateInstallReceiver.installApk(this@MainActivity, filePath)
+                                    }
+                                }
+                            },
+                            onDismiss = { showUpdateChangelogSheet = false },
+                        )
                     }
 
                     Scaffold(
@@ -1692,6 +1798,7 @@ val LocalPlayerConnection = staticCompositionLocalOf<PlayerConnection?> { error(
 val LocalPlayerAwareWindowInsets = compositionLocalOf<WindowInsets> { error("No WindowInsets provided") }
 val LocalDownloadUtil = staticCompositionLocalOf<DownloadUtil> { error("No DownloadUtil provided") }
 val LocalSyncUtils = staticCompositionLocalOf<SyncUtils> { error("No SyncUtils provided") }
+val LocalSyncRepository = staticCompositionLocalOf<SyncRepository> { error("No SyncRepository provided") }
 val LocalListenTogetherManager = staticCompositionLocalOf<com.soundsphere.music.listentogether.ListenTogetherManager?> { null }
 val LocalChangelogState = staticCompositionLocalOf<MutableState<Boolean>> { error("No LocalChangelogState provided") }
 val LocalIsPlayerExpanded = compositionLocalOf { false }

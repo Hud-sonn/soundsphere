@@ -21,9 +21,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -36,9 +39,11 @@ import com.soundsphere.music.ui.component.IconButton
 import com.soundsphere.music.ui.component.Material3SettingsGroup
 import com.soundsphere.music.ui.component.Material3SettingsItem
 import com.soundsphere.music.ui.component.ReleaseNotesCard
+import com.soundsphere.music.ui.component.UpdateChangelogSheet
+import com.soundsphere.music.ui.component.UpdateSheetMode
 import com.soundsphere.music.ui.utils.backToMain
+import com.soundsphere.music.utils.AppUpdateDownloader
 import com.soundsphere.music.utils.Updater
-import androidx.compose.runtime.remember
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -46,9 +51,9 @@ fun SettingsScreen(
     navController: NavController,
     latestVersionName: String,
 ) {
-    val uriHandler = LocalUriHandler.current
     val context = LocalContext.current
     val isAndroid12OrLater = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+    var showUpdateChangelog by remember { mutableStateOf(false) }
     val hasAndroidAuto = remember {
         try {
             context.packageManager.getPackageInfo(
@@ -259,7 +264,7 @@ fun SettingsScreen(
                                     )
                                 },
                                 showBadge = true,
-                                onClick = { uriHandler.openUri(downloadUrl) }
+                                onClick = { showUpdateChangelog = true }
                             )
                         )
                     }
@@ -272,6 +277,22 @@ fun SettingsScreen(
         }
 
         Spacer(modifier = Modifier.height(16.dp))
+    }
+
+    if (showUpdateChangelog) {
+        val releaseInfo = Updater.getCachedLatestRelease()
+        val downloadUrl =
+            releaseInfo?.let { Updater.getDownloadUrlForCurrentVariant(it) }
+        UpdateChangelogSheet(
+            mode = UpdateSheetMode.AVAILABLE,
+            release = releaseInfo,
+            onDownload = {
+                downloadUrl?.let { AppUpdateDownloader.enqueue(context, it, latestVersionName) }
+                showUpdateChangelog = false
+            },
+            onInstall = {},
+            onDismiss = { showUpdateChangelog = false },
+        )
     }
 
     TopAppBar(
