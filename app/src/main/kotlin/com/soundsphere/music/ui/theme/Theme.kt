@@ -29,12 +29,19 @@ import com.materialkolor.dynamiccolor.ColorSpec
 import com.materialkolor.rememberDynamicColorScheme
 import com.materialkolor.score.Score
 
-val DefaultThemeColor = Color(0xFFED5564)
+// The auth-screen accent (warm earthy brown). Doubles as the sentinel that
+// selects the fixed Earthy palettes instead of dynamic colors.
+val DefaultThemeColor = Color(0xFF5E503F)
+
+// The previous default (crimson) that existing installs may still have
+// stored; keep mapping it to the Earthy palettes so upgrading doesn't
+// silently switch the theme to dynamic colors.
+val LegacyDefaultThemeColor = Color(0xFFED5564)
 
 // Earthy Tones design system (dark) — from stitch_earthy_tones_ui_redesign
 val EarthyDarkColorScheme = ColorScheme(
-    primary = Color(0xFFFFFEFF),
-    onPrimary = Color(0xFF353028),
+    primary = Color(0xFF5E503F),
+    onPrimary = Color(0xFFEAE0D5),
     primaryContainer = Color(0xFFEAE0D5),
     onPrimaryContainer = Color(0xFF6A635A),
     inversePrimary = Color(0xFF645D55),
@@ -153,8 +160,11 @@ fun SoundsphereTheme(
 ) {
     val context = LocalContext.current
     // When the default theme color is selected, use the fixed Earthy Tones
-    // design system palette instead of system dynamic colors.
-    val useEarthyPalette = themeColor == DefaultThemeColor
+    // design system palette instead of system dynamic colors. The legacy
+    // default is still honored so existing installs keep the Earthy palette.
+    val useEarthyPalette =
+        themeColor == DefaultThemeColor ||
+            themeColor == LegacyDefaultThemeColor
 
     // Select the appropriate color scheme generation method
     val baseColorScheme = if (useEarthyPalette) {
