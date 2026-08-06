@@ -21,6 +21,7 @@ from models.schemas import (
     AddPlaylistTrackRequest,
     FollowAddRequest,
     HistoryAddRequest,
+    LikeTrackRequest,
     PlaylistCreateRequest,
     PlaylistUpdateRequest,
     ProfileUpdateRequest,
@@ -142,8 +143,8 @@ async def update_profile(
     if not updates:
         raise HTTPException(status_code=400, detail="Nothing to update")
     updated = (
-        db.table("users").update(updates).eq("id", user_id).select("*").execute()
-    )
+        db.table("users").update(updates, returning="representation").eq("id", user_id)
+    ).execute()
     user = updated.data[0]
     return {
         "id": user["id"],
@@ -198,15 +199,14 @@ async def get_liked_tracks(request: Request, user_id: str = Depends(get_current_
 @limiter.limit(_WRITE_LIMIT)
 async def like_track(
     track_id: str,
-    body: TrackPayload,
+    body: LikeTrackRequest,
     request: Request,
     user_id: str = Depends(get_current_user),
 ):
     db = get_supabase()
     _require_user(db, user_id)
-    if body.id != track_id:
-        raise HTTPException(status_code=422, detail="Track id mismatch")
-    _upsert_track(db, body)
+    track = body.model_copy(update={"id": track_id})
+    _upsert_track(db, track)
     db.table("liked_tracks").upsert(
         {"user_id": user_id, "track_id": track_id},
         on_conflict="user_id,track_id",
@@ -276,9 +276,9 @@ async def create_playlist(
                 "user_id": user_id,
                 "name": body.name,
                 "cover_url": body.cover_url,
-            }
+            },
+            returning="representation",
         )
-        .select("*")
         .execute()
     )
     playlist = created.data[0]
@@ -303,14 +303,8 @@ async def update_playlist(
         updates["name"] = body.name
     if body.cover_url is not None:
         updates["cover_url"] = body.cover_url
-    updated = (
-        db.table("playlists")
-        .update(updates)
-        .eq("id", playlist_id)
-        .select("*, playlist_tracks(track_id, position, added_at, tracks(*))")
-        .execute()
-    )
-    return _playlist_response(updated.data[0])
+    db.table("playlists").update(updates).eq("id", playlist_id).execute()
+    return _playlist_response(_get_owned_playlist(db, user_id, playlist_id))
 
 
 @router.delete("/playlists/{playlist_id}")

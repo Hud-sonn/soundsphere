@@ -1,0 +1,9 @@
+Soundsphere - your code
+
+Hi {{ .Email }},
+
+Enter this code in the app:
+
+{{ .Token }}
+
+It expires after a short time. If you didn't request this, ignore this email.

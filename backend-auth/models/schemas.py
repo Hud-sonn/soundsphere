@@ -65,6 +65,10 @@ class TrackPayload(BaseModel):
     year: Optional[int] = None
 
 
+class LikeTrackRequest(TrackPayload):
+    id: str | None = None
+
+
 class PlaylistCreateRequest(BaseModel):
     name: str = Field(min_length=1, max_length=256)
     cover_url: Optional[str] = Field(default=None, max_length=2048)
