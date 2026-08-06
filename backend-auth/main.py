@@ -14,6 +14,7 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from services.limiter import limiter
 from routers.auth import router as auth_router
+from routers.user import router as user_router
 
 REQUIRED = [
     "SUPABASE_URL",
@@ -77,6 +78,7 @@ app.add_middleware(
 )
 
 app.include_router(auth_router)
+app.include_router(user_router)
 
 
 @app.get("/health")
