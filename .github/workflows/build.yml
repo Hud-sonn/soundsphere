@@ -122,7 +122,15 @@ jobs:
 
       - name: Restore Persistent Keystore
         run: |
-          echo "${{ secrets.DEBUG_KEYSTORE }}" | base64 -d > ./app/persistent-debug.keystore
+          if [ -n "${{ secrets.DEBUG_KEYSTORE }}" ]; then
+            echo "${{ secrets.DEBUG_KEYSTORE }}" | base64 -d > ./app/persistent-debug.keystore
+          else
+            keytool -genkeypair -v \
+              -keystore ./app/persistent-debug.keystore \
+              -storepass android -keypass android \
+              -alias androiddebugkey -keyalg RSA -keysize 2048 -validity 10000 \
+              -dname "CN=Soundsphere Debug, OU=Soundsphere, O=Soundsphere, C=US"
+          fi
 
       - name: Build Debug APK and Run Lint
         run: ./gradlew --console=plain assemble${{ matrix.variantName }}Debug :app:lint${{ matrix.variantName }}Debug --warning-mode summary
