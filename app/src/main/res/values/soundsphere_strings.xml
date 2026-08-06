@@ -852,6 +852,8 @@
     <string name="app_version_info">%1$s • %2$s</string>
     <string name="like_what_i_do">Like what I do?</string>
     <string name="buy_mo_a_coffee">Buy me a coffee!</string>
+    <string name="about_tagline">Built alone. Still going.</string>
+    <string name="about_based_on_metrolist">Based on Metrolist, originally created by Mo Agamy</string>
     <string name="community_and_info">Community &amp; Info</string>
     <string name="soundsphere">SOUNDSPHERE</string>
     <string name="wanna_play_favorite_song">Want to play their favorite song?</string>

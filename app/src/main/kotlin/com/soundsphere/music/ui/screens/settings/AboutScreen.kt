@@ -7,6 +7,7 @@ package com.soundsphere.music.ui.screens.settings
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -103,18 +104,14 @@ private data class CommunityLink(
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 private val leadDeveloper = Contributor(
-    name = "Mo Agamy",
+    name = "Hudson",
     roleRes = R.string.credits_lead_developer,
-    githubHandle = "mostafaalagamy",
+    githubHandle = "Hud-sonn",
     polygon = MaterialShapes.Cookie9Sided,
-    favoriteSongVideoId = "Mh2JWGWvy_Y"
+    favoriteSongVideoId = null
 )
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
-private val collaborators = listOf(
-    Contributor(name = "Adriel O'Connel", roleRes = R.string.credits_collaborator, githubHandle = "adrielGGmotion", sponsorUrl = "https://github.com/sponsors/adrielGGmotion", polygon = MaterialShapes.Cookie4Sided, favoriteSongVideoId = "m2zUrruKjDQ"),
-    Contributor(name = "Nyx", roleRes = R.string.credits_collaborator, githubHandle = "nyxiereal", sponsorUrl = "https://github.com/sponsors/nyxiereal", polygon = MaterialShapes.Cookie12Sided, favoriteSongVideoId = "zselaN6zPXw"),
-)
+private val collaborators = emptyList<Contributor>()
 
 private val communityLinks = listOf(
     CommunityLink(R.string.credits_view_repo, R.drawable.github, "https://github.com/Hud-sonn/soundsphere"),
@@ -159,7 +156,7 @@ private fun ContributorAvatar(
     contentDescription: String? = null,
     onClick: (() -> Unit)? = null
 ) {
-    val fallback = painterResource(R.drawable.about_icon)
+    val fallback = painterResource(R.drawable.soundsphere_foreground_mark)
     Surface(
         onClick = onClick ?: {},
         enabled = onClick != null,
@@ -189,22 +186,22 @@ private fun DeveloperSocials(
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         FilledTonalButton(
-            onClick = { uriHandler.openUri("https://github.com/Hud-sonn/soundsphere") },
-            modifier = Modifier.weight(1f).height(48.dp)
-        ) {
-            Icon(painterResource(R.drawable.language), contentDescription = null)
-        }
-        FilledTonalButton(
-            onClick = { uriHandler.openUri("https://github.com/mostafaalagamy") },
+            onClick = { uriHandler.openUri("https://github.com/Hud-sonn") },
             modifier = Modifier.weight(1f).height(48.dp)
         ) {
             Icon(painterResource(R.drawable.github), contentDescription = null)
         }
         FilledTonalButton(
-            onClick = { uriHandler.openUri("https://www.instagram.com/mostafaalagamy") },
+            onClick = { uriHandler.openUri("https://www.instagram.com/hudson_dev") },
             modifier = Modifier.weight(1f).height(48.dp)
         ) {
             Icon(painterResource(R.drawable.instagram), contentDescription = null)
+        }
+        FilledTonalButton(
+            onClick = { uriHandler.openUri("https://hudson-portfolio-pi.vercel.app") },
+            modifier = Modifier.weight(1f).height(48.dp)
+        ) {
+            Icon(painterResource(R.drawable.link), contentDescription = null)
         }
     }
 }
@@ -320,8 +317,30 @@ fun AboutScreen(
                         }
                     }
                 }
+
+                Spacer(Modifier.weight(1f))
+
+                IconButton(
+                    onClick = { navController.navigate("settings") },
+                    onLongClick = { navController.navigate("settings") },
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.account),
+                        contentDescription = stringResource(R.string.account),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
         }
+
+        Spacer(Modifier.height(24.dp))
+
+        Text(
+            text = stringResource(R.string.about_tagline),
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.Medium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
 
         Spacer(Modifier.height(24.dp))
 
@@ -382,89 +401,75 @@ fun AboutScreen(
                 Spacer(Modifier.height(24.dp))
                 
                 DeveloperSocials(uriHandler)
-                
-                Spacer(Modifier.height(16.dp))
-                
-                Button(
-                    onClick = { uriHandler.openUri("https://buymeacoffee.com/mostafaalagamy") },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = CircleShape,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary
-                    )
-                ) {
-                    Icon(painterResource(R.drawable.buymeacoffee), contentDescription = null, modifier = Modifier.size(20.dp))
-                    Spacer(Modifier.width(12.dp))
-                    Text(stringResource(R.string.buy_mo_a_coffee), fontWeight = FontWeight.ExtraBold, fontSize = 16.sp)
-                }
             }
         }
 
-        Spacer(Modifier.height(32.dp))
-        
-        // Collaborators section - back to Material3SettingsGroup
-        Material3SettingsGroup(
-            title = stringResource(R.string.credits_collaborators_section),
-            items = collaborators.map { contributor ->
-                Material3SettingsItem(
-                    leadingContent = {
-                        var clickCount by remember(contributor.name) { mutableIntStateOf(0) }
-                        ContributorAvatar(
-                            avatarUrl = contributor.avatarUrl,
-                            sizeDp = 48,
-                            shape = contributor.polygon?.toShape() ?: CircleShape,
-                            contentDescription = contributor.name,
-                            onClick = {
-                                handleEasterEggClick(
-                                    clickCount = clickCount,
-                                    favoriteSongVideoId = contributor.favoriteSongVideoId,
-                                    coroutineScope = coroutineScope,
-                                    snackbarHostState = snackbarHostState,
-                                    playerConnection = playerConnection,
-                                    wannaPlayStr = wannaPlayStr,
-                                    yeahStr = yeahStr,
-                                    onCountUpdate = { clickCount = it }
-                                )
-                            }
-                        )
-                    },
-                    title = { Text(text = contributor.name, fontWeight = FontWeight.SemiBold) },
-                    description = { Text(stringResource(contributor.roleRes)) },
-                    trailingContent = {
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            if (contributor.sponsorUrl != null) {
-                                Surface(
-                                    onClick = { uriHandler.openUri(contributor.sponsorUrl) },
-                                    shape = CircleShape,
-                                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-                                    modifier = Modifier.size(36.dp)
-                                ) {
-                                    Box(contentAlignment = Alignment.Center) {
-                                        Icon(
-                                            painter = painterResource(R.drawable.buymeacoffee),
-                                            contentDescription = null,
-                                            modifier = Modifier.size(20.dp),
-                                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
+        if (collaborators.isNotEmpty()) {
+            Spacer(Modifier.height(32.dp))
+
+            // Collaborators section - back to Material3SettingsGroup
+            Material3SettingsGroup(
+                title = stringResource(R.string.credits_collaborators_section),
+                items = collaborators.map { contributor ->
+                    Material3SettingsItem(
+                        leadingContent = {
+                            var clickCount by remember(contributor.name) { mutableIntStateOf(0) }
+                            ContributorAvatar(
+                                avatarUrl = contributor.avatarUrl,
+                                sizeDp = 48,
+                                shape = contributor.polygon?.toShape() ?: CircleShape,
+                                contentDescription = contributor.name,
+                                onClick = {
+                                    handleEasterEggClick(
+                                        clickCount = clickCount,
+                                        favoriteSongVideoId = contributor.favoriteSongVideoId,
+                                        coroutineScope = coroutineScope,
+                                        snackbarHostState = snackbarHostState,
+                                        playerConnection = playerConnection,
+                                        wannaPlayStr = wannaPlayStr,
+                                        yeahStr = yeahStr,
+                                        onCountUpdate = { clickCount = it }
+                                    )
+                                }
+                            )
+                        },
+                        title = { Text(text = contributor.name, fontWeight = FontWeight.SemiBold) },
+                        description = { Text(stringResource(contributor.roleRes)) },
+                        trailingContent = {
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                if (contributor.sponsorUrl != null) {
+                                    Surface(
+                                        onClick = { uriHandler.openUri(contributor.sponsorUrl) },
+                                        shape = CircleShape,
+                                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                                        modifier = Modifier.size(36.dp)
+                                    ) {
+                                        Box(contentAlignment = Alignment.Center) {
+                                            Icon(
+                                                painter = painterResource(R.drawable.buymeacoffee),
+                                                contentDescription = null,
+                                                modifier = Modifier.size(20.dp),
+                                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
                                     }
                                 }
+                                Icon(
+                                    painter = painterResource(R.drawable.github),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(24.dp),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
                             }
-                            Icon(
-                                painter = painterResource(R.drawable.github),
-                                contentDescription = null,
-                                modifier = Modifier.size(24.dp),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    },
-                    onClick = { uriHandler.openUri(contributor.githubUrl) }
-                )
-            }
-        )
+                        },
+                        onClick = { uriHandler.openUri(contributor.githubUrl) }
+                    )
+                }
+            )
+        }
 
         Spacer(Modifier.height(32.dp))
 
@@ -484,7 +489,19 @@ fun AboutScreen(
         )
 
         Spacer(Modifier.height(48.dp))
-        
+
+        Text(
+            text = stringResource(R.string.about_based_on_metrolist),
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+            modifier = Modifier
+                .clip(RoundedCornerShape(8.dp))
+                .clickable { uriHandler.openUri("https://github.com/mostafaalagamy/Metrolist") }
+                .padding(4.dp),
+        )
+
+        Spacer(Modifier.height(16.dp))
+
         Text(
             text = stringResource(R.string.stands_with_palestine),
             style = MaterialTheme.typography.labelLarge,
