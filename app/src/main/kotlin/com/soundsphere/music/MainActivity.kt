@@ -203,12 +203,12 @@ import com.soundsphere.music.ui.utils.appBarScrollBehavior
 import com.soundsphere.music.ui.utils.resetHeightOffset
 import com.soundsphere.music.utils.AppUpdateDownloadJob
 import com.soundsphere.music.utils.AppUpdateDownloader
-import com.soundsphere.music.utils.AppUpdateInstallReceiver
 import com.soundsphere.music.utils.SearchRoutes
 import com.soundsphere.music.utils.SyncUtils
 import com.soundsphere.music.utils.Updater
 import com.soundsphere.music.utils.dataStore
 import com.soundsphere.music.utils.dimenResource
+import com.soundsphere.music.utils.installUpdateApk
 import com.soundsphere.music.utils.safeDataStoreEdit
 import com.soundsphere.music.utils.get
 import com.soundsphere.music.utils.rememberEnumPreference
@@ -404,17 +404,26 @@ class MainActivity : ComponentActivity() {
 
     /**
      * Opens the "what's new" sheet when the user taps the update-related
-     * notifications (either before downloading or before installing).
+     * notifications (either before downloading or before installing), and
+     * starts the package installer for a downloaded update.
      */
     private fun handleUpdateChangelogIntent(intent: Intent) {
-        if (intent.action == AppUpdateDownloadJob.ACTION_SHOW_UPDATE_CHANGELOG) {
-            updateChangelogMode =
-                if (intent.getBooleanExtra(AppUpdateDownloadJob.EXTRA_UPDATE_SHEET_MODE_READY, false)) {
-                    UpdateSheetMode.READY_TO_INSTALL
-                } else {
-                    UpdateSheetMode.AVAILABLE
-                }
-            showUpdateChangelogSheet = true
+        when (intent.action) {
+            AppUpdateDownloadJob.ACTION_SHOW_UPDATE_CHANGELOG -> {
+                updateChangelogMode =
+                    if (intent.getBooleanExtra(AppUpdateDownloadJob.EXTRA_UPDATE_SHEET_MODE_READY, false)) {
+                        UpdateSheetMode.READY_TO_INSTALL
+                    } else {
+                        UpdateSheetMode.AVAILABLE
+                    }
+                showUpdateChangelogSheet = true
+            }
+            AppUpdateDownloadJob.ACTION_INSTALL_UPDATE -> {
+                installUpdateApk(
+                    this,
+                    intent.getStringExtra(AppUpdateDownloadJob.EXTRA_FILE_PATH).orEmpty(),
+                )
+            }
         }
     }
 
@@ -1189,7 +1198,7 @@ class MainActivity : ComponentActivity() {
                                                 ?.getString(AppUpdateDownloadJob.KEY_OUTPUT_FILE_PATH)
                                         }.getOrNull()
                                     if (filePath != null) {
-                                        AppUpdateInstallReceiver.installApk(this@MainActivity, filePath)
+                                        installUpdateApk(this@MainActivity, filePath)
                                     }
                                 }
                             },

@@ -181,13 +181,17 @@ class AppUpdateDownloadJob(
         // stops automatically when the worker finishes.
         NotificationManagerCompat.from(context).cancel(DOWNLOAD_NOTIFICATION_ID)
 
+        // The install action opens MainActivity (foreground) instead of a
+        // receiver: Android 10+ blocks starting the package installer from a
+        // background broadcast, which silently swallowed the install tap.
         val installPending =
-            PendingIntent.getBroadcast(
+            PendingIntent.getActivity(
                 context,
                 INSTALL_REQUEST_CODE,
-                Intent(context, AppUpdateInstallReceiver::class.java).apply {
-                    action = AppUpdateInstallReceiver.ACTION_INSTALL
-                    putExtra(AppUpdateInstallReceiver.EXTRA_FILE_PATH, file.absolutePath)
+                Intent(context, com.soundsphere.music.MainActivity::class.java).apply {
+                    action = ACTION_INSTALL_UPDATE
+                    putExtra(EXTRA_FILE_PATH, file.absolutePath)
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 },
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
             )
@@ -278,6 +282,10 @@ class AppUpdateDownloadJob(
         /** Opens the "what's new" sheet from a notification tap. */
         const val ACTION_SHOW_UPDATE_CHANGELOG = "com.soundsphere.music.action.SHOW_UPDATE_CHANGELOG"
         const val EXTRA_UPDATE_SHEET_MODE_READY = "update_sheet_mode_ready"
+
+        /** Starts the package installer for the downloaded update. */
+        const val ACTION_INSTALL_UPDATE = "com.soundsphere.music.action.INSTALL_UPDATE"
+        const val EXTRA_FILE_PATH = "file_path"
     }
 }
 
@@ -333,39 +341,26 @@ class AppUpdateDownloadReceiver : BroadcastReceiver() {
 }
 
 /**
- * Launches the APK install via the FileProvider when the user taps the
- * "ready to install" notification. The download itself never auto-installs;
- * this only hands the APK to Android's own installer.
+ * Launches the APK install via the FileProvider. Called from MainActivity
+ * when the user taps the "ready to install" notification, so the installer
+ * always starts from the foreground (background starts are blocked on
+ * Android 10+). The download itself never auto-installs; this only hands the
+ * APK to Android's own installer.
  */
-class AppUpdateInstallReceiver : BroadcastReceiver() {
+fun installUpdateApk(context: Context, filePath: String) {
+    val file = File(filePath)
+    if (!file.exists()) return
 
-    override fun onReceive(context: Context, intent: Intent) {
-        if (intent.action != ACTION_INSTALL) return
-        val filePath = intent.getStringExtra(EXTRA_FILE_PATH) ?: return
-        installApk(context, filePath)
-    }
-
-    companion object {
-        const val ACTION_INSTALL = "com.soundsphere.music.action.INSTALL_UPDATE"
-        const val EXTRA_FILE_PATH = "file_path"
-
-        /** Launches the system package installer for the given APK path. */
-        fun installApk(context: Context, filePath: String) {
-            val file = File(filePath)
-            if (!file.exists()) return
-
-            val uri =
-                androidx.core.content.FileProvider.getUriForFile(
-                    context,
-                    "${context.packageName}.FileProvider",
-                    file,
-                )
-            val installIntent =
-                Intent(Intent.ACTION_VIEW).apply {
-                    setDataAndType(uri, "application/vnd.android.package-archive")
-                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
-                }
-            context.startActivity(installIntent)
+    val uri =
+        androidx.core.content.FileProvider.getUriForFile(
+            context,
+            "${context.packageName}.FileProvider",
+            file,
+        )
+    val installIntent =
+        Intent(Intent.ACTION_VIEW).apply {
+            setDataAndType(uri, "application/vnd.android.package-archive")
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
         }
-    }
+    context.startActivity(installIntent)
 }
