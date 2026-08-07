@@ -203,6 +203,18 @@ private fun DeveloperSocials(
         ) {
             Icon(painterResource(R.drawable.link), contentDescription = null)
         }
+        FilledTonalButton(
+            onClick = { uriHandler.openUri("https://wa.me/2347071051564") },
+            modifier = Modifier.weight(1f).height(48.dp)
+        ) {
+            Icon(painterResource(R.drawable.whatsapp), contentDescription = null)
+        }
+        FilledTonalButton(
+            onClick = { uriHandler.openUri("mailto:hirohudson107@gmail.com") },
+            modifier = Modifier.weight(1f).height(48.dp)
+        ) {
+            Icon(painterResource(R.drawable.email), contentDescription = null)
+        }
     }
 }
 
@@ -281,6 +293,19 @@ fun AboutScreen(
                         ) {
                             Text(
                                 text = BuildConfig.VERSION_NAME,
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                            )
+                        }
+
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                        ) {
+                            Text(
+                                text = stringResource(R.string.about_license_badge),
                                 style = MaterialTheme.typography.labelMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.primary,
@@ -488,6 +513,34 @@ fun AboutScreen(
             }
         )
 
+        Spacer(Modifier.height(32.dp))
+
+        // Contact / bug reports - dedicated support channel, separate from the
+        // general social links above.
+        Text(
+            text = stringResource(R.string.report_an_issue_description),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 4.dp, vertical = 8.dp),
+        )
+        Material3SettingsGroup(
+            title = stringResource(R.string.report_an_issue),
+            items = listOf(
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.whatsapp),
+                    title = { Text(stringResource(R.string.contact_whatsapp), fontWeight = FontWeight.SemiBold) },
+                    onClick = { uriHandler.openUri("https://wa.me/2347071051564") }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.email),
+                    title = { Text(stringResource(R.string.contact_email), fontWeight = FontWeight.SemiBold) },
+                    onClick = { uriHandler.openUri("mailto:hirohudson107@gmail.com") }
+                ),
+            )
+        )
+
         Spacer(Modifier.height(48.dp))
 
         Text(
@@ -503,7 +556,7 @@ fun AboutScreen(
         Spacer(Modifier.height(16.dp))
 
         Text(
-            text = stringResource(R.string.stands_with_palestine),
+            text = stringResource(R.string.made_in_nigeria),
             style = MaterialTheme.typography.labelLarge,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
