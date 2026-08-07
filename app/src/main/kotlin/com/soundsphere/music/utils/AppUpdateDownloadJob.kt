@@ -57,7 +57,12 @@ class AppUpdateDownloadJob(
         return try {
             val file = downloadApk(downloadUrl, versionName)
             postReadyToInstallNotification(file, versionName)
-            Result.success(workDataOf(KEY_OUTPUT_FILE_PATH to file.absolutePath))
+            Result.success(
+                workDataOf(
+                    KEY_OUTPUT_FILE_PATH to file.absolutePath,
+                    KEY_VERSION_NAME to versionName,
+                ),
+            )
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {

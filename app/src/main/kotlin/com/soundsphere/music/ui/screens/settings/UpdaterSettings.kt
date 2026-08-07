@@ -59,6 +59,7 @@ import com.soundsphere.music.utils.AppUpdateDownloader
 import com.soundsphere.music.utils.Updater
 import com.soundsphere.music.utils.installUpdateApk
 import com.soundsphere.music.utils.rememberPreference
+import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -91,7 +92,18 @@ fun UpdaterScreen(
     val activeDownload = updateWorkInfos.firstOrNull {
         it.state == WorkInfo.State.ENQUEUED || it.state == WorkInfo.State.RUNNING
     }
-    val downloadedRelease = updateWorkInfos.firstOrNull { it.state == WorkInfo.State.SUCCEEDED }
+    // A completed download is only installable if the APK is still on disk and
+    // matches the release currently offered. Otherwise the stale SUCCEEDED work
+    // (e.g. cache file evicted, or a newer release dropped) would take over the
+    // "Install now" branch and leave the "Download update" branch unreachable.
+    val downloadedRelease = updateWorkInfos.firstOrNull {
+        it.state == WorkInfo.State.SUCCEEDED &&
+            it.outputData.getString(AppUpdateDownloadJob.KEY_VERSION_NAME) == latestVersion &&
+            it.outputData
+                .getString(AppUpdateDownloadJob.KEY_OUTPUT_FILE_PATH)
+                ?.let(::File)
+                ?.exists() == true
+    }
 
     fun performManualCheck() {
         coroutineScope.launch {
