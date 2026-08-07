@@ -119,8 +119,8 @@ android {
         applicationId = applicationIdOverride ?: baseApplicationId
         minSdk = 26
         targetSdk = 36
-        versionCode = 4
-        versionName = "1.1.2"
+        versionCode = 5
+        versionName = "1.1.3"
         resValue("string", "app_name", appNameOverride ?: "Soundsphere")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"

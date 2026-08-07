@@ -1,3 +1,17 @@
+---v1.1.3
+# Soundsphere v1.1.3
+Polish release. The splash now holds until Home is fully loaded, playback stops when you sign out, and the About screen reflects where Soundsphere is really from.
+
+# Major changes
+- Splash screen now stays on screen through Home's initial load (signed-in launches), so the app opens straight into content instead of a blank flash
+- Playback now stops and the queue is cleared when you log out, so music doesn't keep playing after the session ends
+- Tapping "ready to install" no longer leaves the installer behind: the install prompt keeps focus after the app moves to the background
+- About screen updated: "Proudly built in Nigeria" instead of the upstream Palestine banner, a GPL-3.0 license badge next to the version, WhatsApp and email contact buttons, and a new "Report an Issue" section for direct support
+
+## Downloads
+- FOSS: `Soundsphere.apk` (universal) and `app-<arch>-release.apk`
+- With Google Cast (GMS): `Soundsphere-with-Google-Cast.apk` (universal) and `app-<arch>-with-Google-Cast.apk`
+
 ---v1.1.2
 # Soundsphere v1.1.2
 Bug-fix release. Tapping the update notification now hands the downloaded APK to the installer from the foreground, where Android allows it — previously the tap was silently swallowed on Android 10+.
