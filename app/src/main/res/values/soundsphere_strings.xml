@@ -855,10 +855,15 @@
     <string name="about_tagline">Built alone. Still going.</string>
     <string name="about_based_on_metrolist">Based on Metrolist, originally created by Mo Agamy</string>
     <string name="community_and_info">Community &amp; Info</string>
+    <string name="about_license_badge">GPL-3.0</string>
+    <string name="report_an_issue">Report an Issue</string>
+    <string name="report_an_issue_description">Found a bug or have a suggestion? Reach out directly.</string>
+    <string name="contact_whatsapp">WhatsApp</string>
+    <string name="contact_email">Email</string>
     <string name="soundsphere">SOUNDSPHERE</string>
     <string name="wanna_play_favorite_song">Want to play their favorite song?</string>
     <string name="yeah">Yeah!</string>
-    <string name="stands_with_palestine">This project stands with Palestine 🇵🇸</string>
+    <string name="made_in_nigeria">Proudly built in Nigeria 🇳🇬</string>
 
     <!-- Podcasts -->
     <string name="filter_podcasts">Podcasts</string>

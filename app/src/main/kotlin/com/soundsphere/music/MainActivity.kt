@@ -16,6 +16,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
+import android.os.SystemClock
 import android.view.View
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
@@ -273,6 +274,14 @@ class MainActivity : ComponentActivity() {
      */
     private val authViewModel: AuthViewModel by viewModels()
 
+    // Native-splash hold state: while logged in the splash stays on screen until
+    // Home's initial load (network home page included) completes, so no blank
+    // frame appears between the splash and the first home sections. A deadline
+    // bounds the hold so the splash can never get stuck (e.g. Home is not the
+    // default tab and never composes).
+    private var homeLoadCompleted by mutableStateOf(false)
+    private var splashHoldDeadline by mutableStateOf(0L)
+
     // Keep PlayerConnection as regular property - NOT mutableStateOf to prevent UI recomposition
     // when it becomes null during onStop. Only update the snapshot for Compose when needed.
     private var playerConnection: PlayerConnection? = null
@@ -432,7 +441,16 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         // Hold the native splash (logo on dark background) until the stored auth token
         // has been read, so the gate never flashes an auth/home screen before routing.
-        installSplashScreen().setKeepOnScreenCondition { !authViewModel.authChecked.value }
+        // While logged in, additionally hold until Home's initial load finishes so the
+        // splash transitions straight into fully loaded content (bounded by a deadline).
+        installSplashScreen().setKeepOnScreenCondition {
+            if (!authViewModel.authChecked.value) return@setKeepOnScreenCondition true
+            if (!authViewModel.isLoggedIn.value) return@setKeepOnScreenCondition false
+            val deadline = splashHoldDeadline
+            if (deadline == 0L) return@setKeepOnScreenCondition true
+            if (SystemClock.uptimeMillis() >= deadline) return@setKeepOnScreenCondition false
+            !homeLoadCompleted
+        }
         super.onCreate(savedInstanceState)
         window.decorView.layoutDirection = View.LAYOUT_DIRECTION_LTR
         WindowCompat.setDecorFitsSystemWindows(window, false)
@@ -781,6 +799,18 @@ class MainActivity : ComponentActivity() {
                 val homeViewModel: HomeViewModel = hiltViewModel()
                 val accountImageUrl by homeViewModel.accountImageUrl.collectAsStateWithLifecycle()
                 val homeIsLoading by homeViewModel.isLoading.collectAsStateWithLifecycle()
+                val isHomePageLoading by homeViewModel.isHomePageLoading.collectAsStateWithLifecycle()
+
+                // Releases the native-splash hold once Home's initial load has
+                // completed, so the splash dismisses straight into loaded content.
+                var homeLoadingStarted by remember { mutableStateOf(false) }
+                LaunchedEffect(isHomePageLoading) {
+                    if (isHomePageLoading) {
+                        homeLoadingStarted = true
+                    } else if (homeLoadingStarted) {
+                        homeLoadCompleted = true
+                    }
+                }
 
                 // Brief branded overlay shown right after login while the home screen
                 // performs its initial sync; fades out once the home load completes.
@@ -863,6 +893,11 @@ class MainActivity : ComponentActivity() {
                             else -> Screens.Home.route
                         }
                     if (isLoggedIn) {
+                        // Arm the native-splash hold deadline once, so the splash is
+                        // released even if Home's initial load never runs.
+                        if (splashHoldDeadline == 0L) {
+                            splashHoldDeadline = SystemClock.uptimeMillis() + 5_000L
+                        }
                         if (currentRoute in authGateRoutes && currentRoute != homeRoute) {
                             if (currentRoute == Screens.Splash.route && !splashExiting) {
                                 splashExiting = true
@@ -877,6 +912,14 @@ class MainActivity : ComponentActivity() {
                         if (currentRoute == Screens.Splash.route && !splashExiting) {
                             splashExiting = true
                             delay(SplashExitAnimationMillis.toLong())
+                        }
+                        // Stop playback and clear the queue on logout so the music
+                        // doesn't keep playing after the session ends (mirrors the
+                        // full-screen player's dismiss behaviour).
+                        playerConnectionSnapshot?.let {
+                            it.service.clearAutomix()
+                            it.player.stop()
+                            it.player.clearMediaItems()
                         }
                         navController.navigate(Screens.Auth.route) {
                             popUpTo(navController.graph.startDestinationId) { inclusive = true }
