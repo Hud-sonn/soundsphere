@@ -1,3 +1,16 @@
+---v1.1.4
+# Soundsphere v1.1.4
+Update-check polish. Checking for updates no longer shows a cryptic error when GitHub's API is unavailable — it degrades gracefully and says when you're up to date.
+
+# Major changes
+- "No value for tag name" error gone: GitHub API errors (rate limits, no releases) are now handled properly instead of surfacing raw parse exceptions
+- The updater now shows "You're up to date" when no newer version exists
+- Changelog loading is leaner: it stops fetching releases once it passes your current version, cutting unauthenticated GitHub API calls from up to ten to one
+
+## Downloads
+- FOSS: `Soundsphere.apk` (universal) and `app-<arch>-release.apk`
+- With Google Cast (GMS): `Soundsphere-with-Google-Cast.apk` (universal) and `app-<arch>-with-Google-Cast.apk`
+
 ---v1.1.3
 # Soundsphere v1.1.3
 Polish release. The splash now holds until Home is fully loaded, playback stops when you sign out, and the About screen reflects where Soundsphere is really from.
