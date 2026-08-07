@@ -118,9 +118,23 @@ object Updater {
     }
 
     /**
-     * Fetch latest release from GitHub API
+     * Returns a concise GitHub API error message when the response body is an
+     * error payload (those carry a "message" field but no release data), or
+     * null when the payload looks like a real release.
      */
-    suspend fun getLatestRelease(forceRefresh: Boolean = false): Result<ReleaseInfo> =
+    private fun JSONObject.githubErrorMessage(): String? {
+        if (has("message") && !has("tag_name")) {
+            val message = optString("message")
+            return if (message.isBlank()) null else message
+        }
+        return null
+    }
+
+    /**
+     * Fetch latest release from GitHub API.
+     * Returns null when the repo has no published release yet.
+     */
+    suspend fun getLatestRelease(forceRefresh: Boolean = false): Result<ReleaseInfo?> =
         withContext(Dispatchers.IO) {
             runCatching {
                 // Return cached if available and not forcing refresh
@@ -131,7 +145,24 @@ object Updater {
                 val response = client.get("$GITHUB_API_BASE/releases/latest")
                     .bodyAsText()
                 val json = JSONObject(response)
-                
+
+                // GitHub API errors (rate limit, "Not Found", ...) never contain
+                // release fields — surface a readable reason instead of the raw
+                // JSONException. "Not Found" simply means no release exists yet,
+                // which maps to "no update available".
+                json.githubErrorMessage()?.let { message ->
+                    if (message == "Not Found") {
+                        return@runCatching null
+                    }
+                    throw IllegalStateException(
+                        if (message.contains("rate limit", ignoreCase = true)) {
+                            "GitHub API rate limit reached. Try again in about an hour."
+                        } else {
+                            "GitHub API error: $message"
+                        }
+                    )
+                }
+
                 val releaseInfo = ReleaseInfo(
                     tagName = json.getString("tag_name"),
                     versionName = json.getString("name"),
@@ -147,7 +178,10 @@ object Updater {
         }
 
     /**
-     * Fetch all releases from GitHub API (paginated)
+     * Fetch all releases from GitHub API (paginated).
+     * Stops paginating once a release older than the current app version is
+     * reached, since the changelog only ever shows releases up to the current
+     * one — this keeps the unauthenticated API budget intact.
      */
     suspend fun getAllReleases(forceRefresh: Boolean = false): Result<List<ReleaseInfo>> =
         withContext(Dispatchers.IO) {
@@ -163,7 +197,24 @@ object Updater {
                 while (hasMore && page <= 10) { // Limit to 10 pages
                     val response = client.get("$GITHUB_API_BASE/releases?page=$page&per_page=30")
                         .bodyAsText()
-                    val json = JSONArray(response)
+                    val json =
+                        try {
+                            JSONArray(response)
+                        } catch (e: Exception) {
+                            // GitHub API error responses are JSON objects, not arrays.
+                            val message =
+                                JSONObject(response)
+                                    .githubErrorMessage()
+                                    ?.let {
+                                        if (it.contains("rate limit", ignoreCase = true)) {
+                                            "GitHub API rate limit reached. Try again in about an hour."
+                                        } else {
+                                            "GitHub API error: $it"
+                                        }
+                                    }
+                                    ?: "GitHub API error"
+                            throw IllegalStateException(message, e)
+                        }
                     
                     if (json.length() == 0) {
                         hasMore = false
@@ -179,6 +230,12 @@ object Updater {
                             releaseDate = releaseObj.getString("published_at"),
                             assets = parseAssets(releaseObj.getJSONArray("assets"))
                         ))
+                    }
+                    
+                    // Releases are sorted newest-first; once we've seen one older
+                    // than the current version, all remaining pages are too.
+                    if (releases.any { compareVersions(BuildConfig.VERSION_NAME, it.tagName) > 0 }) {
+                        break
                     }
                     
                     page++
@@ -227,11 +284,10 @@ object Updater {
                 
                 val result = getLatestRelease(forceRefresh = true)
                 if (result.isSuccess) {
-                    val releaseInfo = result.getOrThrow()
-                    val hasUpdate = isUpdateAvailable(
-                        BuildConfig.VERSION_NAME,
-                        releaseInfo.versionName
-                    )
+                    val releaseInfo = result.getOrNull()
+                    val hasUpdate =
+                        releaseInfo != null &&
+                            isUpdateAvailable(BuildConfig.VERSION_NAME, releaseInfo.versionName)
                     releaseInfo to hasUpdate
                 } else {
                     throw result.exceptionOrNull() ?: Exception("Unknown error")
