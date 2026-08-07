@@ -237,6 +237,16 @@ fun UpdaterScreen(
             )
         }
 
+        if (latestVersion != null && !updateAvailable) {
+            Spacer(Modifier.height(12.dp))
+            Text(
+                text = stringResource(R.string.update_up_to_date),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(horizontal = 16.dp),
+            )
+        }
+
         if (updateAvailable && latestVersion != null) {
             Spacer(Modifier.height(16.dp))
             Button(

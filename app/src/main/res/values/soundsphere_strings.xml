@@ -253,6 +253,7 @@
     <string name="hide_changelog">Hide changelog</string>
     <string name="view_changelog">View changelog</string>
     <string name="failed_to_check_updates">Failed to check for updates: %s</string>
+    <string name="update_up_to_date">You\'re up to date</string>
 
     <string name="all_time">All time</string>
     <string name="past_24_hours">Past 24 hours</string>
