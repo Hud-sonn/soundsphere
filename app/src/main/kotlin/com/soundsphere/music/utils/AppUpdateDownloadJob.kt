@@ -92,6 +92,8 @@ class AppUpdateDownloadJob(
         val request = Request.Builder().url(downloadUrl).build()
         var lastProgressUpdate = 0L
         var lastReportedPercent = -1
+        var contentLength = -1L
+        var totalRead = 0L
 
         val client = OkHttpClient.Builder()
             .connectTimeout(30, TimeUnit.SECONDS)
@@ -102,12 +104,11 @@ class AppUpdateDownloadJob(
             if (!response.isSuccessful) {
                 throw IOException("HTTP ${response.code} while downloading update")
             }
-            val contentLength = response.body?.contentLength() ?: -1L
+            contentLength = response.body?.contentLength() ?: -1L
             response.body?.byteStream()?.use { input ->
                 FileOutputStream(targetFile).use { output ->
                     val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
                     var bytesRead: Int
-                    var totalRead = 0L
                     while (input.read(buffer).also { bytesRead = it } != -1) {
                         if (isStopped) throw CancellationException("Worker stopped")
                         output.write(buffer, 0, bytesRead)
@@ -131,7 +132,12 @@ class AppUpdateDownloadJob(
         }
 
         if (targetFile.length() == 0L) {
+            targetFile.delete()
             throw IOException("Downloaded update is empty")
+        }
+        if (contentLength > 0 && totalRead != contentLength) {
+            targetFile.delete()
+            throw IOException("Downloaded update is incomplete: got $totalRead of $contentLength bytes")
         }
         // Make sure the final progress tick is visible.
         if (lastReportedPercent != 100) {
@@ -354,7 +360,7 @@ class AppUpdateDownloadReceiver : BroadcastReceiver() {
  */
 fun installUpdateApk(context: Context, filePath: String) {
     val file = File(filePath)
-    if (!file.exists()) return
+    if (!file.exists() || file.length() == 0L) return
 
     val uri =
         androidx.core.content.FileProvider.getUriForFile(
