@@ -389,7 +389,8 @@ fun SongMenu(
                         Modifier
                             .height(ListItemHeight)
                             .clickable {
-                                navController.navigate("artist/${artist.id}")
+                                // Guard against null ids producing a bogus "artist/null" route
+                                artist.id?.let { navController.navigate("artist/$it") }
                                 showSelectArtistDialog = false
                                 onDismiss()
                             }.padding(horizontal = 12.dp),

@@ -284,9 +284,14 @@ fun QueueMenu(
                         text = stringResource(R.string.start_radio),
                         onClick = {
                             onDismiss()
-                            val currentMediaId = playerConnection.player.currentMediaItemIndex.let {
-                                playerConnection.player.getMediaItemAt(it).mediaId
-                            }
+                            // Guard against a cleared queue (current index unset)
+                            val currentIndex = playerConnection.player.currentMediaItemIndex
+                            val currentMediaId =
+                                if (currentIndex in 0 until playerConnection.player.mediaItemCount) {
+                                    playerConnection.player.getMediaItemAt(currentIndex).mediaId
+                                } else {
+                                    null
+                                }
                             if (mediaMetadata.id == currentMediaId) {
                                 playerConnection.startRadioSeamlessly()
                             } else {

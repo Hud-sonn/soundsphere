@@ -1798,11 +1798,14 @@ fun HomeScreen(
                                             val song by database
                                                 .song(originalSong.id)
                                                 .collectAsStateWithLifecycle(initialValue = originalSong)
+                                            // Room emits null when the row is deleted; fall back
+                                            // to the original snapshot instead of crashing
+                                            val safeSong = song ?: originalSong
 
                                             SongListItem(
-                                                song = song!!,
+                                                song = safeSong,
                                                 showInLibraryIcon = true,
-                                                isActive = song!!.id == mediaMetadata?.id,
+                                                isActive = safeSong.id == mediaMetadata?.id,
                                                 isPlaying = isPlaying,
                                                 isSwipeable = false,
                                                 trailingContent = {
@@ -1810,7 +1813,7 @@ fun HomeScreen(
                                                         onClick = {
                                                             menuState.show {
                                                                 SongMenu(
-                                                                    originalSong = song!!,
+                                                                    originalSong = safeSong,
                                                                     onDismiss = menuState::dismiss,
                                                                 )
                                                             }
@@ -1828,18 +1831,18 @@ fun HomeScreen(
                                                         .combinedClickable(
                                                             onClick = {
                                                                 if (!isListenTogetherGuest) {
-                                                                    if (song!!.id == mediaMetadata?.id) {
+                                                                    if (safeSong.id == mediaMetadata?.id) {
                                                                         playerConnection.togglePlayPause()
                                                                     } else {
                                                                         playerConnection.playQueue(
                                                                             if (autoRadioQueue) {
                                                                                 YouTubeQueue.radio(
-                                                                                    song!!.toMediaMetadata(),
+                                                                                    safeSong.toMediaMetadata(),
                                                                                 )
                                                                             } else {
                                                                                 ListQueue(
-                                                                                    title = song!!.title,
-                                                                                    items = listOf(song!!.toMediaItem())
+                                                                                    title = safeSong.title,
+                                                                                    items = listOf(safeSong.toMediaItem())
                                                                                 )
                                                                             }
                                                                         )
@@ -1850,7 +1853,7 @@ fun HomeScreen(
                                                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                                                 menuState.show {
                                                                     SongMenu(
-                                                                        originalSong = song!!,
+                                                                        originalSong = safeSong,
                                                                         onDismiss = menuState::dismiss,
                                                                     )
                                                                 }
@@ -2120,11 +2123,14 @@ fun HomeScreen(
                                             val song by database
                                                 .song(originalSong.id)
                                                 .collectAsStateWithLifecycle(initialValue = originalSong)
+                                            // Room emits null when the row is deleted; fall back
+                                            // to the original snapshot instead of crashing
+                                            val safeSong = song ?: originalSong
 
                                             SongListItem(
-                                                song = song!!,
+                                                song = safeSong,
                                                 showInLibraryIcon = true,
-                                                isActive = song!!.id == mediaMetadata?.id,
+                                                isActive = safeSong.id == mediaMetadata?.id,
                                                 isPlaying = isPlaying,
                                                 isSwipeable = false,
                                                 trailingContent = {
@@ -2133,7 +2139,7 @@ fun HomeScreen(
                                                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                                             menuState.show {
                                                                 SongMenu(
-                                                                    originalSong = song!!,
+                                                                    originalSong = safeSong,
                                                                     onDismiss = menuState::dismiss,
                                                                 )
                                                             }
@@ -2151,18 +2157,18 @@ fun HomeScreen(
                                                         .combinedClickable(
                                                             onClick = {
                                                                 if (!isListenTogetherGuest) {
-                                                                    if (song!!.id == mediaMetadata?.id) {
+                                                                    if (safeSong.id == mediaMetadata?.id) {
                                                                         playerConnection.togglePlayPause()
                                                                     } else {
                                                                         playerConnection.playQueue(
                                                                             if (autoRadioQueue) {
                                                                                 YouTubeQueue.radio(
-                                                                                    song!!.toMediaMetadata(),
+                                                                                    safeSong.toMediaMetadata(),
                                                                                 )
                                                                             } else {
                                                                                 ListQueue(
-                                                                                    title = song!!.title,
-                                                                                    items = listOf(song!!.toMediaItem())
+                                                                                    title = safeSong.title,
+                                                                                    items = listOf(safeSong.toMediaItem())
                                                                                 )
                                                                             }
                                                                         )
@@ -2173,7 +2179,7 @@ fun HomeScreen(
                                                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                                                 menuState.show {
                                                                     SongMenu(
-                                                                        originalSong = song!!,
+                                                                        originalSong = safeSong,
                                                                         onDismiss = menuState::dismiss,
                                                                     )
                                                                 }
