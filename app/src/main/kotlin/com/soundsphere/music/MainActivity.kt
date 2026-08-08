@@ -165,6 +165,7 @@ import com.soundsphere.music.constants.SlimNavBarHeight
 import com.soundsphere.music.constants.SlimNavBarKey
 import com.soundsphere.music.constants.StopMusicOnTaskClearKey
 import com.soundsphere.music.constants.UpdateNotificationsEnabledKey
+import com.soundsphere.music.constants.LastNotifiedUpdateVersionKey
 import com.soundsphere.music.constants.UseNewMiniPlayerDesignKey
 import com.soundsphere.music.db.MusicDatabase
 import com.soundsphere.music.db.entities.SearchHistory
@@ -576,6 +577,11 @@ class MainActivity : ComponentActivity() {
                                             }.getOrDefault(false)
                                         if (downloading) return@onSuccess
 
+                                        // Don't re-post the same notification every cold
+                                        // start: only notify once per version
+                                        val lastNotified = dataStore.get(LastNotifiedUpdateVersionKey)
+                                        if (lastNotified == releaseInfo.versionName) return@onSuccess
+
                                         // Tapping opens the "what's new" sheet; the user
                                         // decides whether to start the download.
                                         val intent =
@@ -616,6 +622,9 @@ class MainActivity : ComponentActivity() {
                                                     AppUpdateDownloadJob.UPDATE_AVAILABLE_NOTIFICATION_ID,
                                                     notif,
                                                 )
+                                            safeDataStoreEdit {
+                                                it[LastNotifiedUpdateVersionKey] = releaseInfo.versionName
+                                            }
                                         }
                                     }
                                 }
