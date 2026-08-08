@@ -119,17 +119,13 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           TAG="${GITHUB_REF_NAME}"
-          ASSET_ARGS=()
-          for apk in "$RUNNER_TEMP"/assets/*.apk; do
-            ASSET_ARGS+=(--asset "$apk")
-          done
           # Delete existing release if present (force-pushed tag may leave a
           # stale release behind whose assets can't be replaced via edit).
           gh release delete "$TAG" --yes --cleanup-tag 2>/dev/null || true
           gh release create "$TAG" \
             --title "$TAG" \
             --notes-file "$RUNNER_TEMP/release_notes.md" \
-            "${ASSET_ARGS[@]}"
+            "$RUNNER_TEMP"/assets/*.apk
           echo "Release URL: https://github.com/${{ github.repository }}/releases/tag/$TAG"
 
       - name: Clean up signing keystore
