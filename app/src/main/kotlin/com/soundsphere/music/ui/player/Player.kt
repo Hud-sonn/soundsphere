@@ -401,8 +401,14 @@ fun BottomSheetPlayer(
     }
     val gradientColorsCache = remember { mutableMapOf<String, List<Color>>() }
 
-    if (!canSkipNext && automix.isNotEmpty()) {
-        playerConnection.service.addToQueueAutomix(automix[0], 0)
+    // When the queue would otherwise end, pull one automix suggestion into the queue.
+    // Runs in a LaunchedEffect keyed on the suggestion id so it fires exactly once per
+    // new suggestion, instead of running during every recomposition.
+    val nextAutomixTrack = if (!canSkipNext) automix.firstOrNull() else null
+    LaunchedEffect(nextAutomixTrack?.mediaId) {
+        if (nextAutomixTrack != null) {
+            playerConnection.service.addToQueueAutomix(nextAutomixTrack, 0)
+        }
     }
 
     val defaultGradientColors = listOf(MaterialTheme.colorScheme.surface, MaterialTheme.colorScheme.surfaceVariant)

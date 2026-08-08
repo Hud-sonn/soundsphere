@@ -12,6 +12,7 @@ import com.soundsphere.music.db.entities.AlbumWithSongs
 import com.soundsphere.music.extensions.toMediaItem
 import com.soundsphere.music.models.MediaMetadata
 import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
 
 class LocalAlbumRadio(
@@ -29,6 +30,9 @@ class LocalAlbumRadio(
     private var continuation: String? = null
     private var firstTimeLoaded: Boolean = false
 
+    // Serializes nextPage() so rapid auto-load-more calls can't append the same page twice
+    private val nextPageLock = Mutex()
+
     override suspend fun getInitialStatus(): Queue.Status = withContext(IO) {
         Queue.Status(
             title = albumWithSongs.album.title,
@@ -40,18 +44,26 @@ class LocalAlbumRadio(
     override fun hasNextPage(): Boolean = !firstTimeLoaded || continuation != null
 
     override suspend fun nextPage(): List<MediaItem> = withContext(IO) {
-        if (!firstTimeLoaded) {
-            playlistId = YouTube.album(albumWithSongs.album.id).getOrThrow().album.playlistId
+        if (!nextPageLock.tryLock()) return@withContext emptyList()
+        try {
+            if (!firstTimeLoaded) {
+                playlistId = YouTube.album(albumWithSongs.album.id).getOrThrow().album.playlistId
+                val nextResult = YouTube.next(endpoint, continuation).getOrThrow()
+                continuation = nextResult.continuation
+                firstTimeLoaded = true
+                // Guard against the continuation overlapping (or being shorter than)
+                // the already-loaded local album
+                val from = albumWithSongs.songs.size.coerceAtMost(nextResult.items.size)
+                return@withContext nextResult.items.subList(
+                    from,
+                    nextResult.items.size
+                ).map { it.toMediaItem() }
+            }
             val nextResult = YouTube.next(endpoint, continuation).getOrThrow()
             continuation = nextResult.continuation
-            firstTimeLoaded = true
-            return@withContext nextResult.items.subList(
-                albumWithSongs.songs.size,
-                nextResult.items.size
-            ).map { it.toMediaItem() }
+            nextResult.items.map { it.toMediaItem() }
+        } finally {
+            nextPageLock.unlock()
         }
-        val nextResult = YouTube.next(endpoint, continuation).getOrThrow()
-        continuation = nextResult.continuation
-        nextResult.items.map { it.toMediaItem() }
     }
 }

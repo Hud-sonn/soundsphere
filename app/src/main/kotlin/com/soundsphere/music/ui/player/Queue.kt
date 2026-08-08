@@ -660,7 +660,7 @@ fun Queue(
         val mutableQueueWindows = remember { mutableStateListOf<Timeline.Window>() }
         val queueLength =
             remember(queueWindows) {
-                queueWindows.sumOf { it.mediaItem.metadata!!.duration }
+                queueWindows.sumOf { it.mediaItem.metadata?.duration ?: 0 }
             }
 
         val coroutineScope = rememberCoroutineScope()
@@ -779,6 +779,16 @@ fun Queue(
                     ) {
                         val currentItem by rememberUpdatedState(window)
                         val isActive = window.uid == currentPlayingUid
+                        // Fallback keeps the row functional if a queue item is missing
+                        // metadata (defensive; timeline items normally always carry it)
+                        val mediaMetadata =
+                            window.mediaItem.metadata
+                                ?: MediaMetadata(
+                                    id = window.mediaItem.mediaId,
+                                    title = window.mediaItem.mediaId,
+                                    artists = emptyList(),
+                                    duration = 0,
+                                )
                         val dismissBoxState =
                             rememberSwipeToDismissBoxState(
                                 positionalThreshold = { totalDistance -> totalDistance },
@@ -834,7 +844,7 @@ fun Queue(
                                 modifier = Modifier.animateItem(),
                             ) {
                                 MediaMetadataListItem(
-                                    mediaMetadata = window.mediaItem.metadata!!,
+                                    mediaMetadata = mediaMetadata,
                                     isSelected = false,
                                     isActive = isActive,
                                     isPlaying = isPlaying && isActive,
@@ -850,7 +860,7 @@ fun Queue(
                                                     onClick = {
                                                         menuState.show {
                                                             QueueMenu(
-                                                                mediaMetadata = window.mediaItem.metadata!!,
+                                                                mediaMetadata = mediaMetadata,
                                                                 playerBottomSheetState = playerBottomSheetState,
                                                                 onShowDetailsDialog = {
                                                                     window.mediaItem.mediaId.let {
@@ -962,11 +972,19 @@ fun Queue(
                         items = automix,
                         key = { _, it -> it.mediaId },
                     ) { index, item ->
+                        val mediaMetadata =
+                            item.metadata
+                                ?: MediaMetadata(
+                                    id = item.mediaId,
+                                    title = item.mediaId,
+                                    artists = emptyList(),
+                                    duration = 0,
+                                )
                         Row(
                             horizontalArrangement = Arrangement.Center,
                         ) {
                             MediaMetadataListItem(
-                                mediaMetadata = item.metadata!!,
+                                mediaMetadata = mediaMetadata,
                                 trailingContent = {
                                     if (!isListenTogetherGuest) {
                                         IconButton(
@@ -1005,7 +1023,7 @@ fun Queue(
                                             onLongClick = {
                                                 menuState.show {
                                                     QueueMenu(
-                                                        mediaMetadata = item.metadata!!,
+                                                        mediaMetadata = mediaMetadata,
                                                         playerBottomSheetState = playerBottomSheetState,
                                                         onShowDetailsDialog = {
                                                             item.mediaId.let {
