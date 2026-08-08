@@ -226,12 +226,6 @@ fun UpdaterScreen(
                                     modifier = Modifier.padding(end = 16.dp),
                                     strokeWidth = 2.dp,
                                 )
-                            } else if (updateAvailable) {
-                                Icon(
-                                    painter = painterResource(R.drawable.download),
-                                    contentDescription = stringResource(R.string.update_available_title),
-                                    tint = MaterialTheme.colorScheme.primary,
-                                )
                             }
                         },
                         onClick = { if (!isChecking) performManualCheck() },
