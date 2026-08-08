@@ -1301,7 +1301,7 @@ class MainActivity : ComponentActivity() {
                                             }
                                             IconButton(onClick = { showAccountDialog = true }) {
                                                 BadgedBox(badge = {
-                                                    if (latestVersionName != BuildConfig.VERSION_NAME) {
+                                                    if (Updater.isUpdateAvailable(BuildConfig.VERSION_NAME, latestVersionName)) {
                                                         Badge()
                                                     }
                                                 }) {
