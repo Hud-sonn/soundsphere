@@ -119,14 +119,18 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           TAG="${GITHUB_REF_NAME}"
+          ASSET_ARGS=()
+          for apk in "$RUNNER_TEMP"/assets/*.apk; do
+            ASSET_ARGS+=(--asset "$apk")
+          done
           if ! gh release create "$TAG" \
             --title "$TAG" \
             --notes-file "$RUNNER_TEMP/release_notes.md" \
-            "$RUNNER_TEMP"/assets/*.apk; then
+            "${ASSET_ARGS[@]}"; then
             echo "Release already exists, updating it..."
             gh release edit "$TAG" \
               --notes-file "$RUNNER_TEMP/release_notes.md" \
-              "$RUNNER_TEMP"/assets/*.apk
+              "${ASSET_ARGS[@]}"
           fi
           echo "Release URL: https://github.com/${{ github.repository }}/releases/tag/$TAG"
 
