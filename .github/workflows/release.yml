@@ -123,15 +123,13 @@ jobs:
           for apk in "$RUNNER_TEMP"/assets/*.apk; do
             ASSET_ARGS+=(--asset "$apk")
           done
-          if ! gh release create "$TAG" \
+          # Delete existing release if present (force-pushed tag may leave a
+          # stale release behind whose assets can't be replaced via edit).
+          gh release delete "$TAG" --yes --cleanup-tag 2>/dev/null || true
+          gh release create "$TAG" \
             --title "$TAG" \
             --notes-file "$RUNNER_TEMP/release_notes.md" \
-            "${ASSET_ARGS[@]}"; then
-            echo "Release already exists, updating it..."
-            gh release edit "$TAG" \
-              --notes-file "$RUNNER_TEMP/release_notes.md" \
-              "${ASSET_ARGS[@]}"
-          fi
+            "${ASSET_ARGS[@]}"
           echo "Release URL: https://github.com/${{ github.repository }}/releases/tag/$TAG"
 
       - name: Clean up signing keystore
