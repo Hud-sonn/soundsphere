@@ -49,7 +49,14 @@ class AuthViewModel @Inject constructor(
     val authChecked: StateFlow<Boolean> = _authChecked.asStateFlow()
 
     init {
-        // Keep the login state in sync with the repository (e.g. token cleared on 401)
+        // Keep the login state in sync with the repository so a token cleared on
+        // HTTP 401 (e.g. from SyncRepository.handleFailure) also flips the UI back
+        // to the account gate, instead of silently leaving a dead session behind
+        viewModelScope.launch {
+            repository.isLoggedIn.collect { loggedIn ->
+                _isLoggedIn.value = loggedIn
+            }
+        }
         _isLoggedIn.value = repository.isLoggedIn()
         _authChecked.value = true
         if (_isLoggedIn.value) {

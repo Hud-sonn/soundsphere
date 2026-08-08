@@ -29,6 +29,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
 import org.json.JSONObject
 import timber.log.Timber
 import java.time.LocalDateTime
@@ -58,6 +59,10 @@ class SyncRepository @Inject constructor(
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
+    // Serializes full pulls so concurrent triggers (like toggles, periodic sync)
+    // can't interleave or leave isSyncing stuck mid-flight.
+    private val pullMutex = Mutex()
+
     private val _isSyncing = MutableStateFlow(false)
     val isSyncing: StateFlow<Boolean> = _isSyncing.asStateFlow()
 
@@ -66,10 +71,19 @@ class SyncRepository @Inject constructor(
 
     private val _serverPlaylistIds = MutableStateFlow<Map<String, String>>(emptyMap())
 
+    // Songs whose like/unlike state failed to reach the server. Pulls skip these so
+    // an offline like/unlike is never silently reverted by stale server data; they
+    // are re-pushed on the next full sync (see retryPendingLikes).
+    private val _pendingLikePushes = MutableStateFlow<Set<String>>(emptySet())
+
     init {
         scope.launch {
             val json = context.dataStore.data.first()[PLAYLIST_MAP_KEY]
             _serverPlaylistIds.value = parsePlaylistMap(json)
+        }
+        scope.launch {
+            val json = context.dataStore.data.first()[PENDING_LIKES_KEY]
+            _pendingLikePushes.value = parseIdSet(json)
         }
     }
 
@@ -113,14 +127,37 @@ class SyncRepository @Inject constructor(
     // ===== Pull (server -> local, union merge) =====
 
     private suspend fun pullAll() {
-        val token = authRepository.getToken() ?: return
-        _isSyncing.value = true
+        if (!pullMutex.tryLock()) return
         try {
+            _isSyncing.value = true
+            val token = authRepository.getToken() ?: return
             pullLikes(token)
             pullPlaylists(token)
             pullHistory(token)
+            retryPendingLikes(token)
         } finally {
             _isSyncing.value = false
+            pullMutex.unlock()
+        }
+    }
+
+    /** Re-pushes like/unlike changes that failed while offline. */
+    private suspend fun retryPendingLikes(token: String) {
+        for (songId in _pendingLikePushes.value) {
+            val song = database.songEntity(songId) ?: continue
+            val result =
+                retryNetwork {
+                    if (song.liked) {
+                        SyncService.likeTrack(token, song.toSyncTrack())
+                    } else {
+                        SyncService.unlikeTrack(token, song.id)
+                    }
+                }
+            if (result.isSuccess) {
+                clearPendingLike(songId)
+            } else {
+                handleFailure(result.exceptionOrNull())
+            }
         }
     }
 
@@ -132,8 +169,11 @@ class SyncRepository @Inject constructor(
             return
         }
         val now = LocalDateTime.now()
+        val pendingLikes = _pendingLikePushes.value
         for (entry in result.getOrThrow()) {
             val remote = entry.track
+            // Local offline intent wins until it reaches the server
+            if (remote.id in pendingLikes) continue
             val local = database.songEntity(remote.id)
             if (local == null) {
                 database.insert(remote.toSongEntity(liked = true, likedDate = now))
@@ -224,7 +264,10 @@ class SyncRepository @Inject constructor(
             }
         if (result.isFailure) {
             if (handleFailure(result.exceptionOrNull())) return
+            markPendingLike(song.id)
             reportError("Push like failed for ${song.id}", result.exceptionOrNull())
+        } else {
+            clearPendingLike(song.id)
         }
     }
 
@@ -330,6 +373,18 @@ class SyncRepository @Inject constructor(
         context.safeDataStoreEdit { it[PLAYLIST_MAP_KEY] = mapToJson(updated) }
     }
 
+    private suspend fun markPendingLike(songId: String) {
+        val updated = _pendingLikePushes.value + songId
+        _pendingLikePushes.value = updated
+        context.safeDataStoreEdit { it[PENDING_LIKES_KEY] = setIdToJson(updated) }
+    }
+
+    private suspend fun clearPendingLike(songId: String) {
+        val updated = _pendingLikePushes.value - songId
+        _pendingLikePushes.value = updated
+        context.safeDataStoreEdit { it[PENDING_LIKES_KEY] = setIdToJson(updated) }
+    }
+
     // ===== Helpers =====
 
     private suspend fun <T> retryNetwork(block: suspend () -> Result<T>): Result<T> {
@@ -337,6 +392,9 @@ class SyncRepository @Inject constructor(
         while (true) {
             val result = block()
             if (result.isSuccess || attempt >= MAX_RETRIES) return result
+            // A 401 will never succeed by retrying; fail fast and let handleFailure
+            // clear the session instead of waiting out the backoff
+            if (result.exceptionOrNull() is UnauthorizedException) return result
             attempt++
             delay(RETRY_DELAY_MS * attempt)
         }
@@ -413,9 +471,27 @@ class SyncRepository @Inject constructor(
         }
     }
 
+    private fun setIdToJson(ids: Set<String>): String {
+        val array = org.json.JSONArray()
+        ids.forEach { array.put(it) }
+        return array.toString()
+    }
+
+    private fun parseIdSet(json: String?): Set<String> {
+        if (json.isNullOrBlank()) return emptySet()
+        return try {
+            val array = org.json.JSONArray(json)
+            buildSet { for (i in 0 until array.length()) add(array.getString(i)) }
+        } catch (e: Exception) {
+            Timber.w(e, "Failed to parse pending like set")
+            emptySet()
+        }
+    }
+
     private companion object {
         const val MAX_RETRIES = 3
         const val RETRY_DELAY_MS = 1_000L
         val PLAYLIST_MAP_KEY = stringPreferencesKey("sync_playlist_map")
+        val PENDING_LIKES_KEY = stringPreferencesKey("sync_pending_like_pushes")
     }
 }
