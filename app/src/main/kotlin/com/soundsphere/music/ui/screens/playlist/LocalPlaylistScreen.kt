@@ -340,7 +340,7 @@ fun LocalPlaylistScreen(
                     text =
                         stringResource(
                             R.string.remove_download_playlist_confirm,
-                            playlist?.playlist!!.name,
+                            playlist?.playlist?.name.orEmpty(),
                         ),
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.padding(horizontal = 18.dp),
@@ -388,7 +388,7 @@ fun LocalPlaylistScreen(
                     text =
                         stringResource(
                             R.string.delete_playlist_confirm,
-                            playlist?.playlist!!.name,
+                            playlist?.playlist?.name.orEmpty(),
                         ),
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.padding(horizontal = 18.dp),
@@ -408,7 +408,7 @@ fun LocalPlaylistScreen(
                         database.query {
                             playlist?.let { delete(it.playlist) }
                         }
-                        syncRepository.playlistDeleted(playlist?.playlist!!)
+                        syncRepository.playlistDeleted(playlist?.playlist ?: return@TextButton)
                         viewModel.viewModelScope.launch(Dispatchers.IO) {
                             playlist?.playlist?.browseId?.let { YouTube.deletePlaylist(it) }
                         }
@@ -674,7 +674,7 @@ fun LocalPlaylistScreen(
                                             } else {
                                                 playerConnection.playQueue(
                                                     ListQueue(
-                                                        title = playlist!!.playlist.name,
+                                                        title = playlist?.playlist?.name.orEmpty(),
                                                         items = songs.map { it.song.toMediaItem() },
                                                         startIndex = songs.indexOfFirst { it.map.id == song.map.id },
                                                     ),
@@ -980,10 +980,14 @@ fun LocalPlaylistHeader(
 
                 else -> {
                     val bytes = uriToByteArray(context, uri)
+                    if (bytes == null) {
+                        android.util.Log.w("LocalPlaylistScreen", "Failed to read selected thumbnail")
+                        return@withContext
+                    }
                     YouTube
                         .uploadCustomThumbnailLink(
                             playlist.playlist.browseId,
-                            bytes!!,
+                            bytes,
                         ).onSuccess { newThumbnailUrl ->
                             overrideThumbnail.value = newThumbnailUrl
                             isCustomThumbnail = true
@@ -1517,6 +1521,10 @@ fun uriToByteArray(
 ): ByteArray? =
     try {
         context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
-    } catch (_: SecurityException) {
-        null
+    } catch (e: Exception) {
+        if (e is SecurityException || e is java.io.IOException) {
+            null
+        } else {
+            throw e
+        }
     }

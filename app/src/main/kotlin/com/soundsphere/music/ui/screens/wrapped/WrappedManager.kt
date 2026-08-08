@@ -107,8 +107,8 @@ class WrappedManager(
         withContext(Dispatchers.IO) {
             val playlistMap = mutableMapOf<WrappedScreenType, String>()
 
-            // Intro Part: Random song from top 6-30
-            val introSongPool = topSongs.subList(5, topSongs.size)
+            // Intro Part: Random song from top 6-30 (drop() never throws on short lists)
+            val introSongPool = topSongs.drop(5)
             val introSong = introSongPool.randomOrNull()?.id ?: topSongs.last().id
             playlistMap[WrappedScreenType.Welcome] = introSong
             playlistMap[WrappedScreenType.MinutesTease] = introSong
@@ -161,9 +161,9 @@ class WrappedManager(
             playlistMap[WrappedScreenType.TopArtistReveal] = artistSong
             playlistMap[WrappedScreenType.Top5Artists] = artistSong
 
-            // End Part
-            val endSongPool = topSongs.subList(2, 5)
-            val endSong = endSongPool.randomOrNull()?.id ?: topSongs[2].id
+            // End Part: Random song from the 3rd-5th top songs when available
+            val endSongPool = topSongs.drop(2).take(3)
+            val endSong = endSongPool.randomOrNull()?.id ?: topSongs.last().id
             playlistMap[WrappedScreenType.Playlist] = endSong
             playlistMap[WrappedScreenType.Conclusion] = "2-p9DM2Xvsc"
 
@@ -221,7 +221,14 @@ class WrappedManager(
             }
         }
 
-        generatePlaylistMap()
+        try {
+            generatePlaylistMap()
+        } catch (e: Exception) {
+            // Never let a Wrapped data failure crash the app; the UI degrades gracefully
+            // with an empty track map (screens render, audio just stays silent)
+            Timber.tag("WrappedManager").e(e, "Error generating wrapped playlist map")
+            _state.update { it.copy(trackMap = emptyMap()) }
+        }
         _state.update { it.copy(isDataReady = true) }
         Timber.tag("WrappedManager").d("Wrapped data preparation finished")
     }
