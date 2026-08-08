@@ -104,6 +104,9 @@ val YtmSyncKey = booleanPreferencesKey("ytmSync")
 val SelectedYtmPlaylistsKey = stringPreferencesKey("selectedYtmPlaylists")
 val CheckForUpdatesKey = booleanPreferencesKey("checkForUpdates")
 val UpdateNotificationsEnabledKey = booleanPreferencesKey("updateNotifications")
+// Version for which an "update available" notification was already shown, so it
+// is not re-posted on every cold start or activity recreation
+val LastNotifiedUpdateVersionKey = stringPreferencesKey("lastNotifiedUpdateVersion")
 val LastUpdateCheckTimeKey = longPreferencesKey("lastUpdateCheckTime")
 
 val AudioQualityKey = stringPreferencesKey("audioQuality")
