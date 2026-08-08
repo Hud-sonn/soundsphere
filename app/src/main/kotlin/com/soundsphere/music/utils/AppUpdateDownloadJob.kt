@@ -362,6 +362,19 @@ fun installUpdateApk(context: Context, filePath: String) {
     val file = File(filePath)
     if (!file.exists() || file.length() == 0L) return
 
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        val pm = context.packageManager
+        if (!pm.canRequestPackageInstalls()) {
+            val settingsIntent =
+                Intent(android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
+                    data = android.net.Uri.parse("package:${context.packageName}")
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+            context.startActivity(settingsIntent)
+            return
+        }
+    }
+
     val uri =
         androidx.core.content.FileProvider.getUriForFile(
             context,
