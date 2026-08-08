@@ -309,12 +309,16 @@ class MusicService :
             get() = this@MusicService
     }
 
+    // Read from ExoPlayer loader threads, written on the main thread
+    @Volatile
     private lateinit var connectivityManager: ConnectivityManager
     lateinit var connectivityObserver: NetworkConnectivityObserver
     val waitingForNetworkConnection = MutableStateFlow(false)
     private val isNetworkConnected = MutableStateFlow(false)
     val currentStreamClient = MutableStateFlow<String?>(null)
 
+    // Read from ExoPlayer loader threads, written on the main thread
+    @Volatile
     private lateinit var audioQuality: com.soundsphere.music.constants.AudioQuality
 
     private var currentQueue: Queue = EmptyQueue
@@ -432,6 +436,12 @@ class MusicService :
     // autoplay content instead of being appended after it.
     private var userQueueSize: Int = 0
 
+    // Monotonically increasing id for queue-replacing operations. In-flight operations
+    // capture it before suspending and bail out afterwards if it changed, so a newer
+    // play/radio request supersedes a slower in-flight one instead of producing a
+    // mixed ("Frankenstein") timeline
+    private var queueGeneration = 0L
+
     private var consecutivePlaybackErr = 0
     private var retryJob: Job? = null
     private var retryCount = 0
@@ -501,8 +511,10 @@ class MusicService :
         }
     )
 
-    // Flag to bypass cache when quality changes - forces fresh stream fetch
-    private val bypassCacheForQualityChange = mutableSetOf<String>()
+    // Flag to bypass cache when quality changes - forces fresh stream fetch.
+    // Written on the main thread (quality collector), read/removed from ExoPlayer
+    // loader threads, so it must be thread-safe
+    private val bypassCacheForQualityChange = Collections.synchronizedSet(mutableSetOf<String>())
 
     private var currentMediaIdRetryCount = mutableMapOf<String, Int>()
     private val MAX_RETRY_PER_SONG = 3
@@ -1611,6 +1623,9 @@ class MusicService :
 
         currentQueue = queue
         queueTitle = null
+        // Supersede any in-flight queue-replacing operation still loading
+        queueGeneration++
+        val generation = queueGeneration
         val persistShuffleAcrossQueues = dataStore.get(PersistentShuffleAcrossQueuesKey, false)
         val previousShuffleEnabled = player.shuffleModeEnabled
         if (!persistShuffleAcrossQueues) {
@@ -1632,6 +1647,8 @@ class MusicService :
                         .filterVideoSongs(dataStore.get(HideVideoSongsKey, false))
                 }
             if (queue.preloadItem != null && player.playbackState == STATE_IDLE) return@launch
+            // A newer play/radio request superseded this one while we were fetching
+            if (generation != queueGeneration) return@launch
             if (initialStatus.title != null) {
                 queueTitle = initialStatus.title
             }
@@ -1685,6 +1702,10 @@ class MusicService :
         val currentIndex = player.currentMediaItemIndex
         val currentMediaId = currentMediaMetadata.id
 
+        // Supersede any in-flight queue-replacing operation while radio loads
+        queueGeneration++
+        val generation = queueGeneration
+
         scope.launch(SilentHandler) {
             // Use simple videoId to let YouTube personalize recommendations
             val radioQueue =
@@ -1706,6 +1727,12 @@ class MusicService :
 
                 if (initialStatus.title != null) {
                     queueTitle = initialStatus.title
+                }
+
+                // Bail if the queue was replaced or the user moved to another track
+                // while radio was loading: currentIndex would be stale
+                if (generation != queueGeneration || player.currentMediaItem?.mediaId != currentMediaId) {
+                    return@launch
                 }
 
                 val radioItems =
@@ -1743,6 +1770,9 @@ class MusicService :
                             withContext(Dispatchers.IO) {
                                 YouTube.related(relatedEndpoint).getOrNull()
                             }
+                        if (generation != queueGeneration || player.currentMediaItem?.mediaId != currentMediaId) {
+                            return@launch
+                        }
                         relatedPage?.songs?.let { songs ->
                             val radioItems =
                                 songs
@@ -1855,10 +1885,11 @@ class MusicService :
         item: MediaItem,
         position: Int,
     ) {
-        automixItems.value =
-            automixItems.value.toMutableList().apply {
-                removeAt(position)
-            }
+        // Guard against stale UI snapshots: the automix list may have been replaced
+        // or cleared between recomposition and this call
+        val current = automixItems.value
+        if (position !in current.indices || current[position].mediaId != item.mediaId) return
+        automixItems.value = current.toMutableList().apply { removeAt(position) }
         addToQueue(listOf(item))
     }
 
@@ -1866,10 +1897,9 @@ class MusicService :
         item: MediaItem,
         position: Int,
     ) {
-        automixItems.value =
-            automixItems.value.toMutableList().apply {
-                removeAt(position)
-            }
+        val current = automixItems.value
+        if (position !in current.indices || current[position].mediaId != item.mediaId) return
+        automixItems.value = current.toMutableList().apply { removeAt(position) }
         playNext(listOf(item))
     }
 
@@ -2024,60 +2054,64 @@ class MusicService :
     fun toggleLibrary() {
         scope.launch {
             val songToToggle = currentSong.first()
-            songToToggle?.let {
-                val isInLibrary = it.song.inLibrary != null
-                val token = if (isInLibrary) it.song.libraryRemoveToken else it.song.libraryAddToken
+            val songId = songToToggle?.song?.id ?: return@launch
+
+            // Re-read inside the query block so a rapid double-tap toggles from the
+            // latest persisted state instead of a stale flow snapshot
+            database.query {
+                val freshSong = getSongByIdBlocking(songId)?.song ?: return@query
+                val isInLibrary = freshSong.inLibrary != null
+                val token = if (isInLibrary) freshSong.libraryRemoveToken else freshSong.libraryAddToken
 
                 token?.let { feedbackToken ->
-                    YouTube.feedback(listOf(feedbackToken))
+                    scope.launch(SilentHandler) { YouTube.feedback(listOf(feedbackToken)) }
                 }
 
-                database.query {
-                    update(it.song.toggleLibrary())
-                }
-                currentMediaMetadata.value = player.currentMetadata
+                update(freshSong.toggleLibrary())
             }
+            currentMediaMetadata.value = player.currentMetadata
         }
     }
 
     fun toggleLike() {
         scope.launch {
             val songToToggle = currentSong.first()
-            songToToggle?.let { librarySong ->
-                val songEntity = librarySong.song
+            val songEntity = songToToggle?.song ?: return@launch
 
-                // For podcast episodes, toggle save for later instead of like
-                if (songEntity.isEpisode) {
-                    toggleEpisodeSaveForLater(songEntity)
-                    return@let
-                }
+            // For podcast episodes, toggle save for later instead of like
+            if (songEntity.isEpisode) {
+                toggleEpisodeSaveForLater(songEntity)
+                return@launch
+            }
 
-                val song = songEntity.toggleLike()
+            // Re-read inside the query block so a rapid double-tap toggles from the
+            // latest persisted state instead of a stale flow snapshot
+            database.query {
+                val freshSong = getSongByIdBlocking(songEntity.id)?.song ?: return@query
+                val song = freshSong.toggleLike()
 
                 updateNotification(isLiked = song.liked)
                 updateWidgetUI(player.isPlaying, isLiked = song.liked)
 
-                database.query {
-                    update(song)
-                    syncUtils.likeSong(song)
+                update(song)
+                syncUtils.likeSong(song)
 
-                    if (dataStore.get(AutoDownloadOnLikeKey, false) && song.liked) {
-                        val downloadRequest =
-                            androidx.media3.exoplayer.offline.DownloadRequest
-                                .Builder(song.id, song.id.toUri())
-                                .setCustomCacheKey(song.id)
-                                .setData(song.title.toByteArray())
-                                .build()
-                        androidx.media3.exoplayer.offline.DownloadService.sendAddDownload(
-                            this@MusicService,
-                            ExoDownloadService::class.java,
-                            downloadRequest,
-                            false,
-                        )
-                    }
+                if (dataStore.get(AutoDownloadOnLikeKey, false) && song.liked) {
+                    val downloadRequest =
+                        androidx.media3.exoplayer.offline.DownloadRequest
+                            .Builder(song.id, song.id.toUri())
+                            .setCustomCacheKey(song.id)
+                            .setData(song.title.toByteArray())
+                            .build()
+                    androidx.media3.exoplayer.offline.DownloadService.sendAddDownload(
+                        this@MusicService,
+                        ExoDownloadService::class.java,
+                        downloadRequest,
+                        false,
+                    )
                 }
-                currentMediaMetadata.value = player.currentMetadata
             }
+            currentMediaMetadata.value = player.currentMetadata
         }
     }
 
@@ -2412,14 +2446,21 @@ class MusicService :
             currentQueue.hasNextPage() &&
             !(cachedDisableLoadMoreWhenRepeatAll && player.repeatMode == REPEAT_MODE_ALL)
         ) {
+            // Capture the queue instance and generation: if the user starts a new queue
+            // while the next page is loading, the stale page must not be appended to it
+            val queueAtStart = currentQueue
+            val generationAtStart = queueGeneration
             scope.launch(SilentHandler) {
                 val mediaItems =
                     withContext(Dispatchers.IO) {
-                        currentQueue
+                        queueAtStart
                             .nextPage()
                             .filterExplicit(cachedHideExplicit)
                             .filterVideoSongs(cachedHideVideoSongs)
                     }
+                if (queueAtStart !== currentQueue || generationAtStart != queueGeneration) {
+                    return@launch
+                }
                 if (player.playbackState != STATE_IDLE && mediaItems.isNotEmpty()) {
                     player.addMediaItems(mediaItems)
                     if (player.shuffleModeEnabled) {
@@ -2489,6 +2530,12 @@ class MusicService :
 
         if (playbackState == Player.STATE_IDLE || playbackState == Player.STATE_ENDED) {
             scrobbleManager?.onSongStop()
+            // Drop any pending crossfade trigger: it is only valid while this item
+            // keeps playing to its end (it also self-cancels on skip via mediaId check)
+            if (playbackState == Player.STATE_IDLE) {
+                crossfadeMessage?.cancel()
+                crossfadeMessage = null
+            }
         }
     }
 
@@ -3715,6 +3762,12 @@ class MusicService :
         sleepTimer?.let { player.removeListener(it) }
         playerNormalizationProcessors.remove(player)
         playerSilenceProcessors.remove(player)
+        crossfadeMessage?.cancel()
+        crossfadeMessage = null
+        secondaryPlayer?.release()
+        secondaryPlayer = null
+        fadingPlayer?.release()
+        fadingPlayer = null
         controllerFuture?.let { MediaController.releaseFuture(it) }
         controllerFuture = null
         player.release()
@@ -3933,13 +3986,6 @@ class MusicService :
     }
 
     private fun handleAlarmTrigger(intent: Intent) {
-        scope.launch(Dispatchers.IO) {
-            try {
-                MusicAlarmScheduler.scheduleFromPreferences(this@MusicService)
-            } catch (t: Throwable) {
-                Timber.tag(TAG).e(t, "Failed to reschedule alarms after trigger")
-            }
-        }
         val playlistId = intent.getStringExtra(EXTRA_ALARM_PLAYLIST_ID).orEmpty()
         val alarmId = intent.getStringExtra(EXTRA_ALARM_ID).orEmpty()
         if (playlistId.isBlank()) {

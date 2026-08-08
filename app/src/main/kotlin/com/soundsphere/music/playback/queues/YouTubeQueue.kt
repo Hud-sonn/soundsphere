@@ -11,6 +11,7 @@ import com.soundsphere.innertube.models.WatchEndpoint
 import com.soundsphere.music.extensions.toMediaItem
 import com.soundsphere.music.models.MediaMetadata
 import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
 
 class YouTubeQueue(
@@ -20,6 +21,10 @@ class YouTubeQueue(
     private var continuation: String? = null
     private var retryCount = 0
     private val maxRetries = 3
+
+    // Serializes nextPage() so two rapid auto-load-more calls can't fetch the same
+    // continuation twice (which appended duplicate tracks to the queue)
+    private val nextPageLock = Mutex()
 
     private class EmptyRadioQueueException : IllegalStateException()
 
@@ -85,24 +90,31 @@ class YouTubeQueue(
 
     override suspend fun nextPage(): List<MediaItem> {
         return withContext(IO) {
-            var lastException: Throwable? = null
+            // A page fetch is already in flight (rapid skips near the queue end);
+            // bail out instead of fetching the same continuation twice
+            if (!nextPageLock.tryLock()) return@withContext emptyList()
+            try {
+                var lastException: Throwable? = null
 
-            for (attempt in 0..maxRetries) {
-                try {
-                    val nextResult = YouTube.next(endpoint, continuation).getOrThrow()
-                    endpoint = nextResult.endpoint
-                    continuation = nextResult.continuation
-                    retryCount = 0
-                    return@withContext nextResult.items.map { it.toMediaItem() }
-                } catch (e: Exception) {
-                    lastException = e
-                    retryCount++
-                    if (retryCount >= maxRetries) {
-                        continuation = null // Stop trying to load more
+                for (attempt in 0..maxRetries) {
+                    try {
+                        val nextResult = YouTube.next(endpoint, continuation).getOrThrow()
+                        endpoint = nextResult.endpoint
+                        continuation = nextResult.continuation
+                        retryCount = 0
+                        return@withContext nextResult.items.map { it.toMediaItem() }
+                    } catch (e: Exception) {
+                        lastException = e
+                        retryCount++
+                        if (retryCount >= maxRetries) {
+                            continuation = null // Stop trying to load more
+                        }
                     }
                 }
+                throw lastException ?: Exception("Failed to get next page")
+            } finally {
+                nextPageLock.unlock()
             }
-            throw lastException ?: Exception("Failed to get next page")
         }
     }
 
