@@ -426,6 +426,12 @@ class MusicService :
     // Tracks the original queue size to distinguish original items from auto-added ones
     private var originalQueueSize: Int = 0
 
+    // Number of timeline items that are user-original or explicitly user-queued.
+    // Everything at or beyond this index is auto-added (radio continuation, load-more).
+    // Explicit "Add to queue" items are inserted at this boundary so they play ahead of
+    // autoplay content instead of being appended after it.
+    private var userQueueSize: Int = 0
+
     private var consecutivePlaybackErr = 0
     private var retryJob: Job? = null
     private var retryCount = 0
@@ -1611,6 +1617,7 @@ class MusicService :
             player.shuffleModeEnabled = false
         }
         originalQueueSize = 0
+        userQueueSize = 0
         if (queue.preloadItem != null) {
             player.setMediaItem(queue.preloadItem!!.toMediaItem())
             player.prepare()
@@ -1631,6 +1638,8 @@ class MusicService :
             if (initialStatus.items.isEmpty()) return@launch
             // Track original queue size for shuffle playlist first feature
             originalQueueSize = initialStatus.items.size
+            // Everything in the initial page is user-original content
+            userQueueSize = initialStatus.items.size
             if (queue.preloadItem != null) {
                 player.addMediaItems(
                     0,
@@ -1712,6 +1721,10 @@ class MusicService :
                     }
 
                     player.addMediaItems(currentIndex + 1, radioItems)
+                    // The freshly generated radio batch replaces the auto segment and is
+                    // treated as user-accepted content, so later "Add to queue" items play
+                    // after it
+                    userQueueSize = (currentIndex + 1 + radioItems.size).coerceAtMost(player.mediaItemCount)
                     if (player.shuffleModeEnabled) {
                         val shufflePlaylistFirst = dataStore.get(ShufflePlaylistFirstKey, false)
                         applyShuffleOrder(player.currentMediaItemIndex, player.mediaItemCount, shufflePlaylistFirst)
@@ -1744,6 +1757,8 @@ class MusicService :
                                     player.removeMediaItems(currentIndex + 1, itemCount)
                                 }
                                 player.addMediaItems(currentIndex + 1, radioItems)
+                                userQueueSize =
+                                    (currentIndex + 1 + radioItems.size).coerceAtMost(player.mediaItemCount)
                                 if (player.shuffleModeEnabled) {
                                     applyShuffleOrder(
                                         player.currentMediaItemIndex,
@@ -1867,6 +1882,7 @@ class MusicService :
         if (player.mediaItemCount == 0 || player.playbackState == STATE_IDLE) {
             player.setMediaItems(items)
             player.prepare()
+            userQueueSize = items.size
             if (castConnectionHandler?.isCasting?.value != true) {
                 player.play()
             }
@@ -1896,6 +1912,12 @@ class MusicService :
         // Insert items immediately after the current item in the window/index space
         player.addMediaItems(insertIndex, items)
         player.prepare()
+
+        // A "play next" item is explicitly user-queued: when it lands in the
+        // auto-continuation segment, extend the user segment to cover it
+        if (insertIndex >= userQueueSize) {
+            userQueueSize = (insertIndex + items.size).coerceAtMost(player.mediaItemCount)
+        }
 
         if (shuffleEnabled) {
             // Rebuild shuffle order so that newly inserted items are played next
@@ -1973,7 +1995,25 @@ class MusicService :
             }
         }
 
-        player.addMediaItems(items)
+        // Self-heal the user segment boundary: removals (duplicate pre-pass, user swipes,
+        // queue clear) may have shrunk the timeline without updating the counter
+        userQueueSize = userQueueSize.coerceAtMost(player.mediaItemCount)
+
+        // If queue is empty or player is idle, just load the items as the new queue
+        if (player.mediaItemCount == 0 || player.playbackState == STATE_IDLE) {
+            player.setMediaItems(items)
+            player.prepare()
+            userQueueSize = items.size
+            return
+        }
+
+        // Insert at the end of the user segment so explicit "Add to queue" items play
+        // ahead of auto-continuation tracks, but never before the next track
+        val currentIndex = player.currentMediaItemIndex
+        val insertIndex =
+            (currentIndex + 1).coerceAtLeast(userQueueSize).coerceAtMost(player.mediaItemCount)
+        player.addMediaItems(insertIndex, items)
+        userQueueSize = (insertIndex + items.size).coerceAtMost(player.mediaItemCount)
         if (player.shuffleModeEnabled) {
             val shufflePlaylistFirst = dataStore.get(ShufflePlaylistFirstKey, false)
             applyShuffleOrder(player.currentMediaItemIndex, player.mediaItemCount, shufflePlaylistFirst)
