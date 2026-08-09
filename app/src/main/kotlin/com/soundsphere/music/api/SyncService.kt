@@ -283,4 +283,65 @@ object SyncService {
         val response = execute(token, authRequest(token, "POST", "/user/history", body))
         return response.map { Unit }
     }
+
+    // ===== Followed artists =====
+
+    data class SyncFollowedArtist(
+        val id: String,
+        val name: String,
+        val followedAt: String?,
+    )
+
+    suspend fun getFollowedArtists(token: String): Result<List<SyncFollowedArtist>> {
+        val response = execute(token, authRequest(token, "GET", "/user/follows"))
+        return response.mapCatching { body ->
+            val arr = JSONObject(body).optJSONArray("artists") ?: return@mapCatching emptyList()
+            buildList {
+                for (i in 0 until arr.length()) {
+                    val item = arr.optJSONObject(i) ?: continue
+                    add(
+                        SyncFollowedArtist(
+                            id = item.optString("id"),
+                            name = item.optString("name"),
+                            followedAt = item.optString("followed_at").ifBlank { null },
+                        ),
+                    )
+                }
+            }
+        }
+    }
+
+    suspend fun followArtist(token: String, artistId: String, artistName: String): Result<Unit> {
+        val body = JSONObject().put("artist_name", artistName)
+        val response = execute(token, authRequest(token, "POST", "/user/follows/$artistId", body))
+        return response.map { Unit }
+    }
+
+    suspend fun unfollowArtist(token: String, artistId: String): Result<Unit> {
+        val response = execute(token, authRequest(token, "DELETE", "/user/follows/$artistId"))
+        return response.map { Unit }
+    }
+
+    // ===== Settings =====
+
+    suspend fun getSettings(token: String): Result<Map<String, Any?>> {
+        val response = execute(token, authRequest(token, "GET", "/user/settings"))
+        return response.mapCatching { body ->
+            val obj = JSONObject(body).optJSONObject("settings") ?: return@mapCatching emptyMap()
+            obj.keys().asSequence().associateWith { key ->
+                when {
+                    obj.isNull(key) -> null
+                    else -> obj.get(key)
+                }
+            }
+        }
+    }
+
+    suspend fun updateSettings(token: String, settings: Map<String, Any?>): Result<Unit> {
+        val jsonBody = JSONObject()
+        settings.forEach { (k, v) -> jsonBody.put(k, v ?: JSONObject.NULL) }
+        val body = JSONObject().put("settings", jsonBody)
+        val response = execute(token, authRequest(token, "PUT", "/user/settings", body))
+        return response.map { Unit }
+    }
 }

@@ -96,3 +96,7 @@ class FollowAddRequest(BaseModel):
 class ProfileUpdateRequest(BaseModel):
     username: Optional[str] = Field(default=None, min_length=3, max_length=64)
     avatar_url: Optional[str] = Field(default=None, max_length=2048)
+
+
+class SettingsUpdateRequest(BaseModel):
+    settings: dict = Field(default_factory=dict)

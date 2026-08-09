@@ -134,6 +134,7 @@ class SyncRepository @Inject constructor(
             pullLikes(token)
             pullPlaylists(token)
             pullHistory(token)
+            pullFollowedArtists(token)
             retryPendingLikes(token)
         } finally {
             _isSyncing.value = false
@@ -458,6 +459,78 @@ class SyncRepository @Inject constructor(
         val obj = JSONObject()
         map.forEach { (k, v) -> obj.put(k, v) }
         return obj.toString()
+    }
+
+    // ===== Followed artists =====
+
+    fun artistFollowChanged(artistId: String, artistName: String, isFollowed: Boolean) {
+        scope.launch { pushArtistFollow(artistId, artistName, isFollowed) }
+    }
+
+    private suspend fun pullFollowedArtists(token: String) {
+        val result = retryNetwork { SyncService.getFollowedArtists(token) }
+        if (result.isFailure) {
+            if (handleFailure(result.exceptionOrNull())) return
+            reportError("Pull followed artists failed", result.exceptionOrNull())
+            return
+        }
+        for (remote in result.getOrThrow()) {
+            val local = database.artistEntity(remote.id)
+            if (local == null) {
+                database.insert(
+                    com.soundsphere.music.db.entities.ArtistEntity(
+                        id = remote.id,
+                        name = remote.name,
+                        bookmarkedAt = parseTimestamp(remote.followedAt) ?: LocalDateTime.now(),
+                    ),
+                )
+            } else if (local.bookmarkedAt == null) {
+                database.update(local.copy(bookmarkedAt = parseTimestamp(remote.followedAt) ?: LocalDateTime.now()))
+            }
+        }
+    }
+
+    private suspend fun pushArtistFollow(artistId: String, artistName: String, isFollowed: Boolean) {
+        val token = authRepository.getToken() ?: return
+        val result = retryNetwork {
+            if (isFollowed) {
+                SyncService.followArtist(token, artistId, artistName)
+            } else {
+                SyncService.unfollowArtist(token, artistId)
+            }
+        }
+        if (result.isFailure) {
+            if (handleFailure(result.exceptionOrNull())) return
+            reportError("Push artist follow failed for $artistId", result.exceptionOrNull())
+        }
+    }
+
+    // ===== Settings =====
+
+    fun settingsChanged(settings: Map<String, Any?>) {
+        scope.launch { pushSettings(settings) }
+    }
+
+    private suspend fun pullSettings(token: String) {
+        val result = retryNetwork { SyncService.getSettings(token) }
+        if (result.isFailure) {
+            if (handleFailure(result.exceptionOrNull())) return
+            reportError("Pull settings failed", result.exceptionOrNull())
+            return
+        }
+        val remoteSettings = result.getOrThrow()
+        if (remoteSettings.isEmpty()) return
+        // Remote settings are read-only for now; local settings take precedence.
+        // Full merge logic can be added later when settings sync is wired to the UI.
+    }
+
+    private suspend fun pushSettings(settings: Map<String, Any?>) {
+        val token = authRepository.getToken() ?: return
+        val result = retryNetwork { SyncService.updateSettings(token, settings) }
+        if (result.isFailure) {
+            if (handleFailure(result.exceptionOrNull())) return
+            reportError("Push settings failed", result.exceptionOrNull())
+        }
     }
 
     private fun parsePlaylistMap(json: String?): Map<String, String> {
