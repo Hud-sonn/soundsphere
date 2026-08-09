@@ -25,6 +25,7 @@ from models.schemas import (
     PlaylistCreateRequest,
     PlaylistUpdateRequest,
     ProfileUpdateRequest,
+    SettingsUpdateRequest,
     TrackPayload,
 )
 from services.limiter import limiter
