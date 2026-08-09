@@ -121,6 +121,9 @@ import com.soundsphere.music.ui.utils.fadingEdge
 import com.soundsphere.music.utils.ComposeToImage
 import com.soundsphere.music.utils.rememberEnumPreference
 import com.soundsphere.music.utils.rememberPreference
+import com.soundsphere.music.constants.LyricsTextSizeKey
+import com.soundsphere.music.constants.LyricsLineSpacingKey
+import com.soundsphere.music.constants.LyricsScrollKey
 import com.soundsphere.music.viewmodels.LyricsViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
@@ -167,6 +170,9 @@ fun ExperimentalLyrics(
     val romanizeCyrillicByLine by rememberPreference(LyricsRomanizeCyrillicByLineKey, false)
     val respectAgentPositioning by rememberPreference(RespectAgentPositioningKey, true)
     val showIntervalIndicator by rememberPreference(ShowIntervalIndicatorKey, true)
+    val lyricsTextSize by rememberPreference(LyricsTextSizeKey, 24f)
+    val lyricsLineSpacing by rememberPreference(LyricsLineSpacingKey, 1.3f)
+    val scrollLyrics by rememberPreference(LyricsScrollKey, true)
     
     // AI Translation Preferences
     val openRouterApiKey by rememberPreference(OpenRouterApiKey, "")
@@ -453,8 +459,8 @@ fun ExperimentalLyrics(
         }
     }
 
-    LaunchedEffect(scrollTargetIndex, isAutoScrollEnabled) {
-        if (scrollTargetIndex != -1 && isAutoScrollEnabled) {
+    LaunchedEffect(scrollTargetIndex, isAutoScrollEnabled, scrollLyrics) {
+        if (scrollTargetIndex != -1 && isAutoScrollEnabled && scrollLyrics) {
             deferredCurrentLineIndex = scrollTargetIndex
         }
     }
@@ -505,7 +511,9 @@ fun ExperimentalLyrics(
         // Use a more permissive fallback for constraints to prevent "locks" if items are not measured yet
         val constraintLineHeightPx = with(density) { 120.dp.toPx() }
 
-        val positions = remember(itemHeights.toMap(), activeListIndex, mergedLyricsList) {
+        val itemHeightsSnapshot = remember { derivedStateOf { itemHeights.toMap() } }
+
+        val positions = remember(itemHeightsSnapshot.value, activeListIndex, mergedLyricsList) {
             val map = mutableMapOf<Int, Float>()
             if (activeListIndex == -1 || mergedLyricsList.isEmpty()) return@remember map
             
@@ -530,7 +538,7 @@ fun ExperimentalLyrics(
             map
         }
 
-        val minOffset = remember(itemHeights.toMap(), mergedLyricsList, activeListIndex, anchorY) {
+        val minOffset = remember(itemHeightsSnapshot.value, mergedLyricsList, activeListIndex, anchorY) {
             if (mergedLyricsList.isEmpty() || activeListIndex == -1) return@remember 0f
             val totalBelow = (activeListIndex until mergedLyricsList.size - 1).sumOf { i ->
                 val currentItem = mergedLyricsList[i]
@@ -544,7 +552,7 @@ fun ExperimentalLyrics(
             with(density) { 100.dp.toPx() } - anchorY - totalBelow - lastHeight
         }
 
-        val maxOffset = remember(itemHeights.toMap(), mergedLyricsList, activeListIndex, maxHeightPx, anchorY) {
+        val maxOffset = remember(itemHeightsSnapshot.value, mergedLyricsList, activeListIndex, maxHeightPx, anchorY) {
             if (mergedLyricsList.isEmpty() || activeListIndex == -1) return@remember 0f
             val totalAbove = (0 until activeListIndex).sumOf { i ->
                 val item = mergedLyricsList[i]
@@ -778,10 +786,10 @@ fun ExperimentalLyrics(
                                     val isActiveLine = activeLineIndices.contains(index)
                                     val pairedMainLineIndex = if (item.isBackground) (index - 1 downTo 0).firstOrNull { lines.getOrNull(it)?.isBackground == false } ?: -1 else -1
                                     
-                                    val isInGapWithMain = if (item.isBackground && pairedMainLineIndex != -1) {
-                                        val pairedMainLine = lines[pairedMainLineIndex]
-                                        currentEffectivePosition >= pairedMainLine.time && currentEffectivePosition <= item.time
-                                    } else false
+                                     val isInGapWithMain = if (item.isBackground && pairedMainLineIndex != -1) {
+                                         val pairedMainLine = lines.getOrNull(pairedMainLineIndex) ?: null
+                                         pairedMainLine != null && currentEffectivePosition >= pairedMainLine.time && currentEffectivePosition <= item.time
+                                     } else false
                                     
                                     val bgVisible = item.isBackground && (activeLineIndices.contains(pairedMainLineIndex) || activeLineIndices.contains(index) || isInGapWithMain)
                                     
@@ -791,7 +799,7 @@ fun ExperimentalLyrics(
                                         bgVisible = bgVisible, isSelected = selectedIndices.contains(index),
                                         isSelectionModeActive = isSelectionModeActive, currentPositionState = currentPositionState,
                                         lyricsOffset = (currentSong?.song?.lyricsOffset ?: 0).toLong(),
-                                        playerConnection = playerConnection, lyricsTextSize = 36f, lyricsLineSpacing = 1.3f,
+                                        playerConnection = playerConnection, lyricsTextSize = lyricsTextSize, lyricsLineSpacing = lyricsLineSpacing,
                                         expressiveAccent = expressiveAccent, lyricsTextPosition = lyricsTextPosition,
                                         respectAgentPositioning = respectAgentPositioning, isAutoScrollEnabled = isAutoScrollEnabled,
                                         displayedCurrentLineIndex = deferredCurrentLineIndex, romanizeAsMain = romanizeAsMain,
@@ -856,7 +864,8 @@ fun ExperimentalLyrics(
     }
 
     if (showShareDialog && shareDialogData != null) {
-        val (txt, title, arts) = shareDialogData!!
+        val data = shareDialogData ?: return
+        val (txt, title, arts) = data
         LyricsShareDialog(
             txt = txt, title = title, arts = arts, songId = mediaMetadata?.id ?: "",
             onDismiss = { showShareDialog = false },
@@ -868,7 +877,8 @@ fun ExperimentalLyrics(
     }
 
     if (showColorPickerDialog && shareDialogData != null) {
-        val (txt, title, arts) = shareDialogData!!
+        val data = shareDialogData ?: return
+        val (txt, title, arts) = data
         LyricsColorPickerDialog(
             txt = txt, title = title, arts = arts, thumbnailUrl = mediaMetadata?.thumbnailUrl,
             lyricsTextPosition = lyricsTextPosition,
