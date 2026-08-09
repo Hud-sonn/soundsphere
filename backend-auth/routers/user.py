@@ -468,3 +468,68 @@ async def unfollow_artist(
         "artist_id", artist_id
     ).execute()
     return {"status": "ok"}
+
+
+@router.get("/follows")
+@limiter.limit(_READ_LIMIT)
+async def get_followed_artists(
+    request: Request,
+    user_id: str = Depends(get_current_user),
+):
+    db = get_supabase()
+    _require_user(db, user_id)
+    rows = (
+        db.table("followed_artists")
+        .select("artist_id, artist_name, followed_at")
+        .eq("user_id", user_id)
+        .order("followed_at", desc=True)
+        .execute()
+    )
+    return {
+        "artists": [
+            {
+                "id": row["artist_id"],
+                "name": row.get("artist_name", ""),
+                "followed_at": row.get("followed_at"),
+            }
+            for row in rows.data
+        ]
+    }
+
+
+# ===== Settings =====
+
+
+@router.get("/settings")
+@limiter.limit(_READ_LIMIT)
+async def get_settings(
+    request: Request,
+    user_id: str = Depends(get_current_user),
+):
+    db = get_supabase()
+    _require_user(db, user_id)
+    row = db.table("user_settings").select("settings").eq("user_id", user_id).execute()
+    if not row.data:
+        return {"settings": {}}
+    return {"settings": row.data[0].get("settings", {})}
+
+
+@router.put("/settings")
+@limiter.limit(_WRITE_LIMIT)
+async def update_settings(
+    body: SettingsUpdateRequest,
+    request: Request,
+    user_id: str = Depends(get_current_user),
+):
+    db = get_supabase()
+    _require_user(db, user_id)
+    from datetime import datetime, timezone
+    db.table("user_settings").upsert(
+        {
+            "user_id": user_id,
+            "settings": body.settings,
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+        },
+        on_conflict="user_id",
+    ).execute()
+    return {"status": "ok"}
