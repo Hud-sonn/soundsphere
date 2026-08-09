@@ -144,7 +144,6 @@ import com.soundsphere.music.constants.DisableScreenshotKey
 import com.soundsphere.music.constants.DynamicThemeKey
 import com.soundsphere.music.constants.EnableHighRefreshRateKey
 import com.soundsphere.music.constants.EnableLandscapeScalingKey
-import com.soundsphere.music.constants.ExperimentalLyricsKey
 import com.soundsphere.music.constants.LastSeenVersionKey
 import com.soundsphere.music.constants.ListenTogetherInTopBarKey
 import com.soundsphere.music.constants.ListenTogetherUsernameKey

@@ -58,9 +58,10 @@ class AuthViewModel @Inject constructor(
             }
         }
         _isLoggedIn.value = repository.isLoggedIn()
-        _authChecked.value = true
         if (_isLoggedIn.value) {
             validateStoredSession()
+        } else {
+            _authChecked.value = true
         }
     }
 
@@ -72,13 +73,18 @@ class AuthViewModel @Inject constructor(
     private fun validateStoredSession() {
         val token = repository.getToken() ?: return
         viewModelScope.launch {
-            AuthService.me(token).onFailure { error ->
-                if (error is UnauthorizedException) {
-                    repository.clearToken()
-                    _isLoggedIn.value = false
-                    _uiState.value = AuthUiState()
+            AuthService.me(token)
+                .onSuccess {
+                    _authChecked.value = true
                 }
-            }
+                .onFailure { error ->
+                    if (error is UnauthorizedException) {
+                        repository.clearToken()
+                        _isLoggedIn.value = false
+                        _uiState.value = AuthUiState()
+                    }
+                    _authChecked.value = true
+                }
         }
     }
 

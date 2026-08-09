@@ -2090,9 +2090,6 @@ class MusicService :
                 val freshSong = getSongByIdBlocking(songEntity.id)?.song ?: return@query
                 val song = freshSong.toggleLike()
 
-                updateNotification(isLiked = song.liked)
-                updateWidgetUI(player.isPlaying, isLiked = song.liked)
-
                 update(song)
                 syncUtils.likeSong(song)
 
@@ -2109,6 +2106,13 @@ class MusicService :
                         downloadRequest,
                         false,
                     )
+                }
+
+                // Dispatch notification/widget update to main thread —
+                // updateNotification() accesses ExoPlayer which must be on main thread
+                Handler(Looper.getMainLooper()).post {
+                    updateNotification(isLiked = song.liked)
+                    updateWidgetUI(player.isPlaying, isLiked = song.liked)
                 }
             }
             currentMediaMetadata.value = player.currentMetadata
@@ -4274,9 +4278,8 @@ class MusicService :
 
 
         // Preserve player state before creating the secondary player
-        // Use runBlocking to ensure we get the correct state from DataStore
-        val savedRepeatMode = runBlocking { dataStore.get(RepeatModeKey, REPEAT_MODE_OFF) }
-        val savedShuffleEnabled = runBlocking { dataStore.get(ShuffleModeKey, false) }
+        val savedRepeatMode = player.repeatMode
+        val savedShuffleEnabled = player.shuffleModeEnabled
 
         // For repeat-one, crossfade back into the same track
         val targetIndex =
@@ -4352,9 +4355,11 @@ class MusicService :
                 override fun onIsPlayingChanged(isPlaying: Boolean) {
                     if (isCrossfading && fadingPlayer != null) {
                         if (isPlaying) {
-                            fadingPlayer?.play()
-                        } else {
-                            fadingPlayer?.pause()
+                            // New player started playing — fadingPlayer continues
+                            // playing at its current volume; the crossfade coroutine
+                            // handles the gradual volume ramp-down. Do NOT pause
+                            // fadingPlayer on transient isPlaying=false (buffering),
+                            // as that silences the only audible source.
                         }
                     } else {
                         player.removeListener(this)
@@ -4436,7 +4441,10 @@ class MusicService :
         fadingPlayer = null
         isCrossfading = false
         applyEffectiveVolume()
-        sleepTimer?.notifySongTransition()
+
+        // Do NOT call sleepTimer.notifySongTransition() here — the sleep timer
+        // is already a listener on the new player and receives onMediaItemTransition
+        // naturally. Calling it again would double-count and could pause playback.
 
         applyCachedAudioNormalizationNow()
 
