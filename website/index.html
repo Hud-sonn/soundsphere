@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SoundSphere — Built alone. Still going.</title>
+<meta name="robots" content="noindex, nofollow">
+<style>
+  @font-face {
+    font-family: 'Space Grotesk';
+    src: local('Space Grotesk');
+  }
+
+  :root {
+    --black: #0a0908;
+    --jet: #22333b;
+    --cream: #eae0d5;
+    --khaki: #c6ac8f;
+    --stone: #5e503f;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--black);
+    color: var(--cream);
+    font-family: 'Space Grotesk', 'Helvetica Neue', Arial, sans-serif;
+    overflow-x: hidden;
+    min-height: 100vh;
+  }
+
+  .grain {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.04;
+    z-index: 100;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  a { color: inherit; text-decoration: none; }
+
+  .serif {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-style: italic;
+    font-weight: 500;
+  }
+
+  /* ---------- NAV ---------- */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 28px clamp(24px, 6vw, 72px);
+    mix-blend-mode: difference;
+  }
+
+  .nav-mark {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 15px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+
+  .nav-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--khaki);
+  }
+
+  .nav-links { display: flex; gap: 36px; font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; }
+  .nav-links a { opacity: 0.7; transition: opacity 0.3s; }
+  .nav-links a:hover { opacity: 1; }
+  .nav-links { display: none; }
+  @media (min-width: 720px) { .nav-links { display: flex; } }
+
+  /* ---------- HERO ---------- */
+  .hero {
+    position: relative;
+    min-height: 100svh;
+    display: flex;
+    align-items: center;
+    padding: 140px clamp(24px, 6vw, 72px) 80px;
+  }
+
+  .hero-inner {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 64px;
+    width: 100%;
+    max-width: 1240px;
+    margin: 0 auto;
+    align-items: center;
+  }
+  @media (min-width: 960px) {
+    .hero-inner { grid-template-columns: 1.05fr 0.95fr; gap: 40px; }
+  }
+
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--khaki);
+    margin-bottom: 28px;
+  }
+  .eyebrow::before {
+    content: '';
+    width: 24px; height: 1px;
+    background: var(--stone);
+  }
+
+  .hero h1 {
+    font-size: clamp(48px, 8vw, 92px);
+    line-height: 0.98;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--cream);
+  }
+  .hero h1 em {
+    font-style: italic;
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-weight: 500;
+    color: var(--khaki);
+  }
+
+  .hero-sub {
+    margin-top: 28px;
+    font-size: clamp(17px, 2vw, 20px);
+    line-height: 1.6;
+    color: var(--khaki);
+    max-width: 46ch;
+  }
+
+  .hero-cta {
+    margin-top: 44px;
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    flex-wrap: wrap;
+  }
+
+  .btn-download {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    padding: 18px 34px;
+    background: var(--stone);
+    color: var(--cream);
+    border-radius: 999px;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: transform 0.35s cubic-bezier(.16,1,.3,1), background 0.3s;
+    overflow: hidden;
+  }
+  .btn-download:hover { transform: translateY(-2px); background: #6f5e49; }
+  .btn-download:active { transform: translateY(0); }
+  .btn-download svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+  .version-tag {
+    font-size: 13px;
+    color: var(--khaki);
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    line-height: 1.4;
+  }
+  .version-tag .v-num { color: var(--cream); font-weight: 600; }
+  .version-tag .v-meta { opacity: 0.65; font-size: 12px; }
+
+  .install-note {
+    margin-top: 20px;
+    font-size: 13px;
+    color: var(--khaki);
+    opacity: 0.75;
+    max-width: 44ch;
+    line-height: 1.6;
+  }
+
+  /* ---------- DISC / SIGNATURE ELEMENT ---------- */
+  .disc-stage {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: clamp(280px, 40vw, 460px);
+  }
+
+  .disc {
+    position: relative;
+    width: clamp(220px, 32vw, 380px);
+    height: clamp(220px, 32vw, 380px);
+    border-radius: 50%;
+    background:
+      repeating-radial-gradient(circle at center,
+        #14100d 0px, #14100d 2px,
+        #1c1611 2px, #1c1611 4px);
+    box-shadow:
+      0 40px 80px -20px rgba(0,0,0,0.7),
+      inset 0 0 0 1px rgba(198,172,143,0.15);
+  }
+  .disc::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg, transparent 0%, rgba(234,224,213,0.06) 8%, transparent 16%, transparent 50%, rgba(234,224,213,0.04) 58%, transparent 66%);
+  }
+  .disc-label {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 34%;
+    height: 34%;
+    border-radius: 50%;
+    background: var(--stone);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: inset 0 0 0 1px rgba(234,224,213,0.2);
+  }
+  .disc-label::after {
+    content: '';
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: var(--black);
+  }
+
+  .tonearm {
+    position: absolute;
+    top: 6%;
+    right: 2%;
+    width: clamp(90px, 12vw, 140px);
+    height: clamp(90px, 12vw, 140px);
+    transform-origin: 85% 15%;
+    z-index: 5;
+  }
+  .tonearm svg { width: 100%; height: 100%; }
+
+  /* ---------- MARQUEE ---------- */
+  .marquee-wrap {
+    border-top: 1px solid rgba(198,172,143,0.15);
+    border-bottom: 1px solid rgba(198,172,143,0.15);
+    padding: 22px 0;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  .marquee-track {
+    display: inline-flex;
+    gap: 48px;
+    font-size: 14px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--khaki);
+    opacity: 0.55;
+  }
+  .marquee-track span { display: inline-flex; align-items: center; gap: 48px; }
+  .marquee-track .sep { color: var(--stone); }
+
+  /* ---------- ABOUT SECTION ---------- */
+  .section {
+    padding: 140px clamp(24px, 6vw, 72px);
+    max-width: 1240px;
+    margin: 0 auto;
+  }
+
+  .about-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 56px;
+  }
+  @media (min-width: 900px) {
+    .about-grid { grid-template-columns: 0.9fr 1.1fr; gap: 80px; align-items: start; }
+  }
+
+  .section-eyebrow {
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--khaki);
+    margin-bottom: 20px;
+  }
+
+  .about-grid h2 {
+    font-size: clamp(32px, 4vw, 48px);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    max-width: 12ch;
+  }
+
+  .about-body p {
+    font-size: 17px;
+    line-height: 1.75;
+    color: var(--khaki);
+    margin-bottom: 22px;
+    max-width: 56ch;
+  }
+  .about-body p:last-child { margin-bottom: 0; }
+  .about-body strong { color: var(--cream); font-weight: 600; }
+
+  /* ---------- FEATURES ---------- */
+  .feature-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1px;
+    background: rgba(198,172,143,0.15);
+    border-top: 1px solid rgba(198,172,143,0.15);
+    border-bottom: 1px solid rgba(198,172,143,0.15);
+  }
+  @media (min-width: 720px) { .feature-list { grid-template-columns: repeat(3, 1fr); } }
+
+  .feature-item {
+    background: var(--black);
+    padding: 40px 32px;
+  }
+  .feature-item .f-mark {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    border: 1px solid var(--stone);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 24px;
+  }
+  .feature-item .f-mark svg { width: 15px; height: 15px; }
+  .feature-item h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+  .feature-item p {
+    font-size: 14.5px;
+    line-height: 1.65;
+    color: var(--khaki);
+  }
+
+  /* ---------- SCREENSHOT / PHONE ---------- */
+  .showcase {
+    padding: 140px clamp(24px, 6vw, 72px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    position: relative;
+  }
+  .showcase-heading {
+    font-size: clamp(30px, 4vw, 44px);
+    font-weight: 700;
+    max-width: 16ch;
+    margin-bottom: 16px;
+  }
+  .showcase-sub {
+    color: var(--khaki);
+    font-size: 16px;
+    max-width: 44ch;
+    margin-bottom: 64px;
+  }
+
+  .phone {
+    position: relative;
+    width: min(280px, 72vw);
+    aspect-ratio: 9 / 19.5;
+    border-radius: 44px;
+    background: #060504;
+    padding: 12px;
+    box-shadow:
+      0 60px 100px -30px rgba(0,0,0,0.8),
+      inset 0 0 0 1px rgba(198,172,143,0.18);
+    transform: rotate(-3deg);
+  }
+  .phone-screen {
+    width: 100%;
+    height: 100%;
+    border-radius: 32px;
+    overflow: hidden;
+    position: relative;
+  }
+  .phone-screen img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top center;
+  }
+  .phone-notch {
+    position: absolute;
+    top: 12px; left: 50%;
+    transform: translateX(-50%);
+    width: 70px; height: 18px;
+    background: #060504;
+    border-radius: 12px;
+    z-index: 2;
+  }
+
+  /* ---------- CREATOR ---------- */
+  .creator {
+    padding: 140px clamp(24px, 6vw, 72px);
+    max-width: 1240px;
+    margin: 0 auto;
+    border-top: 1px solid rgba(198,172,143,0.15);
+  }
+  .creator-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 40px;
+    align-items: center;
+  }
+  @media (min-width: 900px) {
+    .creator-grid { grid-template-columns: auto 1fr; gap: 64px; }
+  }
+
+  .creator-mark {
+    width: 96px; height: 96px;
+    border-radius: 50%;
+    background: var(--jet);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 34px;
+    font-weight: 700;
+    color: var(--cream);
+    border: 1px solid rgba(198,172,143,0.25);
+    flex-shrink: 0;
+  }
+
+  .creator-text .serif {
+    font-size: clamp(24px, 3vw, 32px);
+    color: var(--cream);
+    display: block;
+    margin-bottom: 18px;
+    line-height: 1.4;
+  }
+  .creator-text p {
+    color: var(--khaki);
+    font-size: 15.5px;
+    line-height: 1.7;
+    margin-bottom: 24px;
+    max-width: 58ch;
+  }
+
+  .creator-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--stone);
+    transition: border-color 0.3s, color 0.3s;
+  }
+  .creator-link:hover { border-color: var(--khaki); color: var(--khaki); }
+  .creator-link svg { width: 13px; height: 13px; transition: transform 0.3s; }
+  .creator-link:hover svg { transform: translate(2px, -2px); }
+
+  /* ---------- FOOTER ---------- */
+  footer {
+    padding: 48px clamp(24px, 6vw, 72px) 40px;
+    border-top: 1px solid rgba(198,172,143,0.15);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  @media (min-width: 720px) {
+    footer { flex-direction: row; align-items: center; justify-content: space-between; }
+  }
+  .footer-note {
+    font-size: 12.5px;
+    color: var(--khaki);
+    opacity: 0.6;
+    line-height: 1.6;
+    max-width: 52ch;
+  }
+  .footer-links {
+    display: flex;
+    gap: 24px;
+    font-size: 12.5px;
+    letter-spacing: 0.04em;
+  }
+  .footer-links a { color: var(--khaki); opacity: 0.75; transition: opacity 0.3s; }
+  .footer-links a:hover { opacity: 1; }
+
+  [data-reveal] { opacity: 0; }
+</style>
+</head>
+<body>
+
+<div class="grain"></div>
+
+<nav>
+  <div class="nav-mark"><span class="nav-dot"></span> SoundSphere</div>
+  <div class="nav-links">
+    <a href="#about">About</a>
+    <a href="#features">Features</a>
+    <a href="#creator">Creator</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-inner">
+    <div>
+      <div class="eyebrow" data-reveal>Now in beta</div>
+      <h1 data-reveal>Your music,<br><em>on your terms.</em></h1>
+      <p class="hero-sub" data-reveal>A music player built alone, for the people who wanted something better than what's already out there. Create an account, and everything you play, like, and queue up follows you — no ads waiting to happen, no algorithm deciding what you hear next unless you ask it to.</p>
+
+      <div class="hero-cta" data-reveal>
+        <button class="btn-download" id="downloadBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <span id="downloadLabel">Download for Android</span>
+        </button>
+        <div class="version-tag" id="versionTag">
+          <span class="v-num">Checking latest version…</span>
+          <span class="v-meta">&nbsp;</span>
+        </div>
+      </div>
+
+      <p class="install-note" data-reveal>Android may warn you this isn't from the Play Store — that's expected for an independent app. Tap install anyway, then create an account to get started.</p>
+    </div>
+
+    <div class="disc-stage" data-reveal>
+      <div class="disc" id="disc">
+        <div class="disc-label"></div>
+      </div>
+      <div class="tonearm" id="tonearm">
+        <svg viewBox="0 0 140 140" fill="none">
+          <circle cx="119" cy="21" r="10" fill="#5e503f" stroke="#c6ac8f" stroke-width="1.5"/>
+          <line x1="119" y1="21" x2="38" y2="112" stroke="#c6ac8f" stroke-width="3" stroke-linecap="round"/>
+          <circle cx="38" cy="112" r="5" fill="#eae0d5"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee-wrap">
+  <div class="marquee-track" id="marquee">
+    <span>Built alone. Still going. <span class="sep">/</span> No ads <span class="sep">/</span> Free account, synced everywhere <span class="sep">/</span> Open source <span class="sep">/</span></span>
+    <span>Built alone. Still going. <span class="sep">/</span> No ads <span class="sep">/</span> Free account, synced everywhere <span class="sep">/</span> Open source <span class="sep">/</span></span>
+  </div>
+</div>
+
+<!-- ABOUT -->
+<section class="section" id="about">
+  <div class="about-grid">
+    <div>
+      <div class="section-eyebrow" data-reveal>About the app</div>
+      <h2 data-reveal>What SoundSphere<br>actually is.</h2>
+    </div>
+    <div class="about-body" data-reveal>
+      <p>SoundSphere is a music player for Android. Search for a song, hit play, and it's there — no waiting for someone else's algorithm to decide it's worth recommending, no paywall standing between you and the next track.</p>
+      <p>It started as a personal project, built to work the way <strong>I</strong> actually wanted a music app to work — fast, honest, and free of the friction bigger apps add once they need to monetize. It's still that, just shared now.</p>
+      <p>You'll need a free account to get in — that's what keeps your playlists, likes, and listening history the same no matter which device you're on. Set it up once, and the app is yours from there.</p>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="section" id="features" style="padding-top: 0;">
+  <div class="feature-list">
+    <div class="feature-item" data-reveal>
+      <div class="f-mark"><svg viewBox="0 0 24 24" fill="none" stroke="#eae0d5" stroke-width="1.6"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div>
+      <h3>Search &amp; play, instantly</h3>
+      <p>Find a track and it starts — no forced previews, no fifteen-second wait before the real song kicks in.</p>
+    </div>
+    <div class="feature-item" data-reveal>
+      <div class="f-mark"><svg viewBox="0 0 24 24" fill="none" stroke="#eae0d5" stroke-width="1.6"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg></div>
+      <h3>Synced from the start</h3>
+      <p>Your account keeps liked songs, playlists, and history the same everywhere — pick up on a new phone without missing a beat.</p>
+    </div>
+    <div class="feature-item" data-reveal>
+      <div class="f-mark"><svg viewBox="0 0 24 24" fill="none" stroke="#eae0d5" stroke-width="1.6"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>
+      <h3>Updates that find you</h3>
+      <p>New versions download and install right from inside the app. No separate site to remember, no manual reinstalls.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SCREENSHOT -->
+<section class="showcase">
+  <div class="showcase-heading" data-reveal>See it in your hand.</div>
+  <p class="showcase-sub" data-reveal>Quick picks, speed dial, and everything you're listening to — right where you left it.</p>
+  <div class="phone" data-reveal>
+    <div class="phone-notch"></div>
+    <div class="phone-screen">
+      <img src="app-screenshot.jpg" alt="SoundSphere home screen showing quick picks and speed dial">
+    </div>
+  </div>
+</section>
+
+<!-- CREATOR -->
+<section class="creator" id="creator">
+  <div class="creator-grid">
+    <div class="creator-mark" data-reveal>H</div>
+    <div class="creator-text" data-reveal>
+      <span class="serif">"Built alone. Still going."</span>
+      <p>SoundSphere is made by <strong style="color:var(--cream); font-weight:600;">Hudson</strong> — a self-taught developer building under Hudson Dev, teaching others to code along the way, and shipping things solo when nobody else is going to. This is one of those things.</p>
+      <a class="creator-link" href="https://hudson-portfolio-pi.vercel.app" target="_blank" rel="noopener">
+        See more of the work
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+      </a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-note">SoundSphere is an independent project, not affiliated with YouTube, Google, or any streaming service. Based on Metrolist, licensed under GPL-3.0.</div>
+  <div class="footer-links">
+    <a href="https://wa.me/2347071051564">WhatsApp</a>
+    <a href="mailto:hirohudson107@gmail.com">Email</a>
+    <a href="https://github.com/Hud-sonn/soundsphere">Source</a>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script>
+gsap.registerPlugin(ScrollTrigger);
+
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- Disc ambient spin ---------- */
+if (!reduceMotion) {
+  gsap.to('#disc', { rotate: 360, duration: 14, ease: 'none', repeat: -1 });
+}
+
+/* ---------- Tonearm drop on load ---------- */
+gsap.set('#tonearm', { rotate: -22, transformOrigin: '85% 15%' });
+
+/* ---------- Marquee ---------- */
+if (!reduceMotion) {
+  gsap.to('#marquee', { xPercent: -50, duration: 22, ease: 'none', repeat: -1 });
+}
+
+/* ---------- Hero load sequence ---------- */
+const heroTl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+heroTl
+  .to('.eyebrow', { opacity: 1, y: 0, duration: 0.6 }, 0.1)
+  .fromTo('.hero h1', { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.9 }, 0.15)
+  .fromTo('.hero-sub', { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.8 }, 0.4)
+  .fromTo('.hero-cta', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.7 }, 0.55)
+  .fromTo('.install-note', { opacity: 0 }, { opacity: 0.75, duration: 0.6 }, 0.7)
+  .fromTo('.disc-stage', { opacity: 0, scale: 0.85, rotate: -8 }, { opacity: 1, scale: 1, rotate: 0, duration: 1.1, ease: 'power3.out' }, 0.25)
+  .to('#tonearm', { rotate: 0, duration: 0.9, ease: 'power2.out' }, 1.1);
+
+/* ---------- Scroll reveals ---------- */
+document.querySelectorAll('[data-reveal]').forEach((el) => {
+  if (el.closest('.hero')) return; // hero handled by its own timeline
+  gsap.fromTo(el,
+    { opacity: 0, y: 28 },
+    {
+      opacity: 1, y: 0, duration: 0.8, ease: 'power3.out',
+      scrollTrigger: { trigger: el, start: 'top 88%', once: true }
+    }
+  );
+});
+
+/* ---------- Feature items stagger ---------- */
+gsap.fromTo('.feature-item',
+  { opacity: 0, y: 24 },
+  {
+    opacity: 1, y: 0, duration: 0.7, stagger: 0.12, ease: 'power3.out',
+    scrollTrigger: { trigger: '.feature-list', start: 'top 85%', once: true }
+  }
+);
+
+/* ---------- Phone parallax tilt on scroll ---------- */
+gsap.to('.phone', {
+  rotate: 0,
+  scrollTrigger: { trigger: '.showcase', start: 'top 70%', end: 'top 20%', scrub: 1 }
+});
+
+/* ---------- GitHub release fetch ---------- */
+const REPO = 'Hud-sonn/soundsphere';
+const downloadBtn = document.getElementById('downloadBtn');
+const downloadLabel = document.getElementById('downloadLabel');
+const versionTag = document.getElementById('versionTag');
+
+async function loadLatestRelease() {
+  try {
+    const res = await fetch(`https://api.github.com/repos/${REPO}/releases/latest`);
+    if (!res.ok) throw new Error('no release');
+    const data = await res.json();
+
+    const tag = data.tag_name || '';
+    const versionName = tag.replace(/^v/, '');
+    const assets = data.assets || [];
+
+    // Prefer the universal FOSS apk, matching Updater.kt's naming convention
+    const preferredNames = ['Soundsphere.apk', 'soundsphere.apk'];
+    let apk = assets.find(a => preferredNames.includes(a.name));
+    if (!apk) apk = assets.find(a => a.name.toLowerCase().endsWith('.apk'));
+
+    if (apk) {
+      downloadBtn.onclick = () => window.location.href = apk.browser_download_url;
+      const sizeMb = (apk.size / (1024 * 1024)).toFixed(1);
+      versionTag.innerHTML = `<span class="v-num">Version ${versionName || 'latest'}</span><span class="v-meta">${sizeMb} MB · Android</span>`;
+    } else {
+      downloadBtn.onclick = () => window.location.href = `https://github.com/${REPO}/releases/latest`;
+      versionTag.innerHTML = `<span class="v-num">Version ${versionName || 'latest'}</span><span class="v-meta">via GitHub Releases</span>`;
+    }
+  } catch (e) {
+    downloadLabel.textContent = 'Get it on GitHub';
+    downloadBtn.onclick = () => window.location.href = `https://github.com/${REPO}/releases/latest`;
+    versionTag.innerHTML = `<span class="v-num">Latest release</span><span class="v-meta">via GitHub</span>`;
+  }
+}
+loadLatestRelease();
+</script>
+
+</body>
+</html>
