@@ -6,14 +6,11 @@
 package com.soundsphere.music.ui.theme
 
 import android.graphics.Bitmap
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Shapes
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.Saver
@@ -21,7 +18,6 @@ import androidx.compose.runtime.saveable.SaverScope
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.palette.graphics.Palette
 import com.materialkolor.PaletteStyle
@@ -158,7 +154,6 @@ fun SoundsphereTheme(
     themeColor: Color = DefaultThemeColor,
     content: @Composable () -> Unit,
 ) {
-    val context = LocalContext.current
     // When the default theme color is selected, use the fixed Earthy Tones
     // design system palette instead of system dynamic colors. The legacy
     // default is still honored so existing installs keep the Earthy palette.
@@ -169,11 +164,11 @@ fun SoundsphereTheme(
     // Select the appropriate color scheme generation method
     val baseColorScheme = if (useEarthyPalette) {
         if (darkTheme) EarthyDarkColorScheme else EarthyLightColorScheme
-    } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-        // Use standard Material 3 dynamic color functions for system wallpaper colors
-        if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
     } else {
-        // Use materialKolor when a specific seed color is provided
+        // Use materialKolor when a specific seed color is provided. This runs on
+        // all API levels: on Android 12+ the system dynamic color functions
+        // (dynamicDarkColorScheme/dynamicLightColorScheme) only read the wallpaper
+        // and ignore the seed, which made palette changes appear to do nothing.
         rememberDynamicColorScheme(
             seedColor = themeColor, // themeColor is guaranteed non-default here
             isDark = darkTheme,
