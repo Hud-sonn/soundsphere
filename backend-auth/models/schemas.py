@@ -100,3 +100,15 @@ class ProfileUpdateRequest(BaseModel):
 
 class SettingsUpdateRequest(BaseModel):
     settings: dict = Field(default_factory=dict)
+
+
+class AiPlaylistRequest(BaseModel):
+    """Prompt for the server-side AI playlist generator.
+
+    The Groq API key lives on the server; the app only sends the prompt and
+    receives resolved track suggestions (the server resolves them against
+    YouTube Music search results).
+    """
+
+    prompt: str = Field(min_length=3, max_length=1024)
+    count: int = Field(default=16, ge=5, le=30)

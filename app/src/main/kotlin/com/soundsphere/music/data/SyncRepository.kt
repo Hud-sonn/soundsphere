@@ -533,6 +533,22 @@ class SyncRepository @Inject constructor(
         }
     }
 
+    // ===== AI playlist =====
+
+    /**
+     * Server-side AI playlist generation (Groq key is configured on the
+     * server; consent is enforced there too). Returns the resolved tracks
+     * so the caller can create the playlist locally.
+     */
+    suspend fun generateAiPlaylist(prompt: String, count: Int = 16): Result<List<SyncTrack>> {
+        val token = authRepository.getToken() ?: return Result.failure(Exception("Not signed in"))
+        val result = retryNetwork { SyncService.generateAiPlaylist(token, prompt, count) }
+        if (result.isFailure) {
+            handleFailure(result.exceptionOrNull())
+        }
+        return result
+    }
+
     private fun parsePlaylistMap(json: String?): Map<String, String> {
         if (json.isNullOrBlank()) return emptyMap()
         return try {

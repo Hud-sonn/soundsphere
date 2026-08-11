@@ -5,6 +5,7 @@
 
 package com.soundsphere.music.ui.screens.library
 
+import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
@@ -18,6 +19,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -28,11 +30,13 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -44,6 +48,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
@@ -54,8 +59,11 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.soundsphere.innertube.utils.parseCookieString
+import com.soundsphere.music.LocalDatabase
 import com.soundsphere.music.LocalPlayerAwareWindowInsets
+import com.soundsphere.music.LocalSyncRepository
 import com.soundsphere.music.R
+import com.soundsphere.music.constants.AiPlaylistConsentKey
 import com.soundsphere.music.constants.CONTENT_TYPE_HEADER
 import com.soundsphere.music.constants.CONTENT_TYPE_PLAYLIST
 import com.soundsphere.music.constants.GridItemSize
@@ -75,7 +83,10 @@ import com.soundsphere.music.constants.ShowUploadedPlaylistKey
 import com.soundsphere.music.constants.YtmSyncKey
 import com.soundsphere.music.db.entities.Playlist
 import com.soundsphere.music.db.entities.PlaylistEntity
+import com.soundsphere.music.db.entities.PlaylistSongMap
+import com.soundsphere.music.db.entities.SongEntity
 import com.soundsphere.music.ui.component.CreatePlaylistDialog
+import com.soundsphere.music.ui.component.DefaultDialog
 import com.soundsphere.music.ui.component.LibrarySearchEmptyPlaceholder
 import com.soundsphere.music.ui.component.LibrarySearchHeader
 import com.soundsphere.music.ui.component.LibraryPlaylistGridItem
@@ -84,13 +95,16 @@ import com.soundsphere.music.ui.component.LocalMenuState
 import com.soundsphere.music.ui.component.PlaylistGridItem
 import com.soundsphere.music.ui.component.PlaylistListItem
 import com.soundsphere.music.ui.component.SortHeader
+import com.soundsphere.music.ui.component.TextFieldDialog
 import com.soundsphere.music.extensions.matchesNormalizedQuery
 import com.soundsphere.music.extensions.normalizeForSearch
 import com.soundsphere.music.utils.rememberEnumPreference
 import com.soundsphere.music.utils.rememberPreference
 import com.soundsphere.music.viewmodels.LibraryPlaylistsViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.time.LocalDateTime
 import java.util.UUID
 
 private data class VisiblePlaylistItem(
@@ -328,6 +342,139 @@ fun LibraryPlaylistsScreen(
         )
     }
 
+    val database = LocalDatabase.current
+    val syncRepository = LocalSyncRepository.current
+    val context = LocalContext.current
+
+    var showAiConsentDialog by rememberSaveable { mutableStateOf(false) }
+    var showAiPromptDialog by rememberSaveable { mutableStateOf(false) }
+    var aiGenerating by rememberSaveable { mutableStateOf(false) }
+    var aiConsent by rememberPreference(AiPlaylistConsentKey, false)
+
+    val aiNotEnabledStr = stringResource(R.string.ai_playlist_not_enabled)
+    val aiFailedStr = stringResource(R.string.ai_playlist_failed)
+    val aiNoTracksStr = stringResource(R.string.ai_playlist_no_tracks)
+
+    fun generateAiPlaylist(prompt: String) {
+        if (prompt.isBlank()) return
+        aiGenerating = true
+        coroutineScope.launch(Dispatchers.IO) {
+            val result = syncRepository.generateAiPlaylist(prompt.trim())
+            withContext(Dispatchers.Main) {
+                aiGenerating = false
+                showAiPromptDialog = false
+                result.onSuccess { tracks ->
+                    if (tracks.isEmpty()) {
+                        Toast.makeText(context, aiNoTracksStr, Toast.LENGTH_SHORT).show()
+                        return@onSuccess
+                    }
+                    val playlistName =
+                        prompt.trim().let {
+                            if (it.length > 60) it.take(57).trimEnd() + "…" else it
+                        }
+                    val playlistEntity =
+                        PlaylistEntity(
+                            name = playlistName,
+                            bookmarkedAt = LocalDateTime.now(),
+                            isLocal = true,
+                        )
+                    val existingSongIds = tracks.mapNotNull { database.songEntity(it.id)?.id }.toHashSet()
+                    database.query {
+                        insert(playlistEntity)
+                        tracks.forEachIndexed { index, track ->
+                            if (track.id !in existingSongIds) {
+                                insert(
+                                    SongEntity(
+                                        id = track.id,
+                                        title = track.title,
+                                        duration = track.duration,
+                                        thumbnailUrl = track.artworkUrl,
+                                        albumName = track.album,
+                                        year = track.year,
+                                        inLibrary = LocalDateTime.now(),
+                                    ),
+                                )
+                            }
+                            insert(
+                                PlaylistSongMap(
+                                    playlistId = playlistEntity.id,
+                                    songId = track.id,
+                                    position = index,
+                                ),
+                            )
+                        }
+                    }
+                    syncRepository.playlistCreated(playlistEntity)
+                    navController.navigate("local_playlist/${playlistEntity.id}")
+                }.onFailure { error ->
+                    val message =
+                        when {
+                            error.message?.contains("not enabled", ignoreCase = true) == true -> aiNotEnabledStr
+                            else -> aiFailedStr
+                        }
+                    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+    if (showAiConsentDialog) {
+        DefaultDialog(
+            onDismiss = { showAiConsentDialog = false },
+            icon = { Icon(painterResource(R.drawable.ai), contentDescription = null) },
+            title = { Text(text = stringResource(R.string.ai_playlist_consent_title)) },
+            buttons = {
+                TextButton(onClick = { showAiConsentDialog = false }) {
+                    Text(text = stringResource(android.R.string.cancel))
+                }
+                TextButton(
+                    onClick = {
+                        aiConsent = true
+                        syncRepository.settingsChanged(mapOf("ai_playlist_consent" to true))
+                        showAiConsentDialog = false
+                        showAiPromptDialog = true
+                    },
+                ) {
+                    Text(text = stringResource(R.string.ai_playlist_agree))
+                }
+            },
+        ) {
+            Text(
+                text = stringResource(R.string.ai_playlist_consent_text),
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        }
+    }
+
+    if (showAiPromptDialog && !aiGenerating) {
+        TextFieldDialog(
+            icon = { Icon(painterResource(R.drawable.ai), contentDescription = null) },
+            title = { Text(text = stringResource(R.string.ai_playlist_prompt_title)) },
+            placeholder = { Text(text = stringResource(R.string.ai_playlist_prompt_hint)) },
+            singleLine = false,
+            maxLines = 3,
+            autoDismiss = false,
+            onDismiss = { showAiPromptDialog = false },
+            onDone = { generateAiPlaylist(it) },
+        )
+    }
+
+    if (aiGenerating) {
+        DefaultDialog(
+            onDismiss = { aiGenerating = false },
+            icon = { Icon(painterResource(R.drawable.ai), contentDescription = null) },
+            title = { Text(text = stringResource(R.string.ai_playlist_prompt_title)) },
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                Spacer(Modifier.width(12.dp))
+                Text(text = stringResource(R.string.ai_playlist_generating))
+            }
+        }
+    }
+
     val headerContent = @Composable {
         LibrarySearchHeader(
             isSearchActive = isSearchActive,
@@ -554,6 +701,30 @@ fun LibraryPlaylistsScreen(
             Icon(
                 painter = painterResource(R.drawable.add),
                 contentDescription = stringResource(R.string.create_playlist),
+            )
+        }
+
+        // AI playlist generation (server-side Groq, keys never reach the app)
+        FloatingActionButton(
+            onClick = {
+                if (aiConsent) {
+                    showAiPromptDialog = true
+                } else {
+                    showAiConsentDialog = true
+                }
+            },
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .windowInsetsPadding(
+                    LocalPlayerAwareWindowInsets.current
+                        .only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal)
+                )
+                .padding(16.dp)
+                .padding(bottom = 72.dp),
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.ai),
+                contentDescription = stringResource(R.string.create_playlist_with_ai),
             )
         }
     }
