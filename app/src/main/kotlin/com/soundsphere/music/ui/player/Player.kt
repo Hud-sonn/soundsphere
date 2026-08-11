@@ -9,8 +9,11 @@ import androidx.activity.compose.BackHandler
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.graphics.Bitmap
 import android.content.Intent
 import android.content.res.Configuration
+import android.os.Handler
+import android.os.Looper
 import android.view.WindowManager
 import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
@@ -57,6 +60,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -115,6 +119,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
+import androidx.core.net.toUri
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -125,6 +130,9 @@ import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.media3.common.C
 import androidx.media3.common.Player
 import androidx.media3.common.Player.STATE_ENDED
+import androidx.media3.exoplayer.offline.Download
+import androidx.media3.exoplayer.offline.DownloadRequest
+import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.NavController
 import androidx.palette.graphics.Palette
 import com.soundsphere.music.LocalNavController
@@ -163,6 +171,7 @@ import com.soundsphere.music.extensions.togglePlayPause
 import com.soundsphere.music.extensions.toggleRepeatMode
 import com.soundsphere.music.listentogether.RoomRole
 import com.soundsphere.music.models.MediaMetadata
+import com.soundsphere.music.playback.ExoDownloadService
 import com.soundsphere.music.ui.component.BottomSheet
 import com.soundsphere.music.ui.component.BottomSheetState
 import com.soundsphere.music.ui.component.LocalBottomSheetPageState
@@ -177,14 +186,16 @@ import com.soundsphere.music.ui.menu.PlayerMenu
 import com.soundsphere.music.ui.screens.settings.DarkMode
 import com.soundsphere.music.ui.theme.PlayerColorExtractor
 import com.soundsphere.music.ui.theme.PlayerSliderColors
-import com.soundsphere.music.ui.utils.ShowMediaInfo
 import com.soundsphere.music.ui.utils.ShowOffsetDialog
+import com.soundsphere.music.utils.ScreenshotDetector
 import com.soundsphere.music.utils.dataStore
+import com.soundsphere.music.utils.ComposeToImage
 import com.soundsphere.music.utils.makeTimeString
 import com.soundsphere.music.utils.rememberEnumPreference
 import com.soundsphere.music.utils.rememberPreference
 import com.soundsphere.music.utils.safeDataStoreEdit
 import dagger.hilt.android.EntryPointAccessors
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
@@ -324,6 +335,26 @@ fun BottomSheetPlayer(
     val canSkipPrevious by playerConnection.canSkipPrevious.collectAsStateWithLifecycle()
     val canSkipNext by playerConnection.canSkipNext.collectAsStateWithLifecycle()
     val isMuted by playerConnection.isMuted.collectAsStateWithLifecycle()
+
+    // Share card preview: opened from the share button or when a screenshot is detected
+    var shareCardFor by remember { mutableStateOf<MediaMetadata?>(null) }
+    val shareMediaState = rememberUpdatedState(mediaMetadata)
+    val shareScreenshotDetector =
+        remember(context) {
+            ScreenshotDetector(
+                onScreenshot = {
+                    Handler(Looper.getMainLooper()).post {
+                        shareCardFor = shareMediaState.value
+                    }
+                },
+            )
+        }
+    LaunchedEffect(Unit) {
+        shareScreenshotDetector.startWatching()
+    }
+    DisposableEffect(Unit) {
+        onDispose { shareScreenshotDetector.stopWatching() }
+    }
 
     val sliderStyle by rememberEnumPreference(SliderStyleKey, SliderStyle.DEFAULT)
     val squigglySlider by rememberPreference(SquigglySliderKey, defaultValue = false)
@@ -941,8 +972,8 @@ fun BottomSheetPlayer(
         },
     ) {
         val controlsContent: @Composable ColumnScope.(MediaMetadata) -> Unit = { mediaMetadata ->
-            val playPauseRoundness by animateDpAsState(
-                targetValue = if (isPlaying) 24.dp else 36.dp,
+            val database = LocalDatabase.current
+            val playPauseRoundness by animateDpAsState(                targetValue = if (isPlaying) 24.dp else 36.dp,
                 animationSpec = tween(durationMillis = 90, easing = LinearEasing),
                 label = "playPauseRoundness",
             )
@@ -1170,18 +1201,9 @@ fun BottomSheetPlayer(
                                     )
                                 }
                             } else {
-                                FilledIconButton(
+ FilledIconButton(
                                     onClick = {
-                                        val intent =
-                                            Intent().apply {
-                                                action = Intent.ACTION_SEND
-                                                type = "text/plain"
-                                                putExtra(
-                                                    Intent.EXTRA_TEXT,
-                                                    "https://music.youtube.com/watch?v=${mediaMetadata.id}",
-                                                )
-                                            }
-                                        context.startActivity(Intent.createChooser(intent, null))
+                                        shareCardFor = mediaMetadata
                                     },
                                     shape = shareShape,
                                     colors =
@@ -1196,6 +1218,79 @@ fun BottomSheetPlayer(
                                         contentDescription = null,
                                         modifier = Modifier.size(24.dp),
                                     )
+                                }
+                            }
+                        }
+
+                        AnimatedContent(targetState = showInlineLyrics, label = "DownloadButton") { showLyrics ->
+                            if (!showLyrics) {
+                                FilledIconButton(
+                                    onClick = {
+                                        when (download?.state) {
+                                            Download.STATE_COMPLETED,
+                                            Download.STATE_QUEUED,
+                                            Download.STATE_DOWNLOADING,
+                                            -> {
+                                                DownloadService.sendRemoveDownload(
+                                                    context,
+                                                    ExoDownloadService::class.java,
+                                                    mediaMetadata.id,
+                                                    false,
+                                                )
+                                            }
+
+                                            else -> {
+                                                database.transaction {
+                                                    insert(mediaMetadata)
+                                                }
+                                                val downloadRequest =
+                                                    DownloadRequest
+                                                        .Builder(mediaMetadata.id, mediaMetadata.id.toUri())
+                                                        .setCustomCacheKey(mediaMetadata.id)
+                                                        .setData(mediaMetadata.title.toByteArray())
+                                                        .build()
+                                                DownloadService.sendAddDownload(
+                                                    context,
+                                                    ExoDownloadService::class.java,
+                                                    downloadRequest,
+                                                    false,
+                                                )
+                                            }
+                                        }
+                                    },
+                                    shape = middleShape,
+                                    colors =
+                                        IconButtonDefaults.filledIconButtonColors(
+                                            containerColor = textButtonColor,
+                                            contentColor = iconButtonColor,
+                                        ),
+                                    modifier = Modifier.size(42.dp),
+                                ) {
+                                    when (download?.state) {
+                                        Download.STATE_COMPLETED -> {
+                                            Icon(
+                                                painter = painterResource(R.drawable.offline),
+                                                contentDescription = null,
+                                                modifier = Modifier.size(24.dp),
+                                            )
+                                        }
+
+                                        Download.STATE_QUEUED, Download.STATE_DOWNLOADING -> {
+                                            CircularProgressIndicator(
+                                                modifier = Modifier.size(24.dp),
+                                                strokeWidth = 2.dp,
+                                                color = iconButtonColor,
+                                            )
+                                        }
+
+                                        else -> {
+                                            Icon(
+                                                painter = painterResource(R.drawable.download),
+                                                contentDescription = null,
+                                                modifier = Modifier.size(24.dp),
+                                            )
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -1294,16 +1389,7 @@ fun BottomSheetPlayer(
                                         .clip(RoundedCornerShape(24.dp))
                                         .background(textButtonColor)
                                         .clickable {
-                                            val intent =
-                                                Intent().apply {
-                                                    action = Intent.ACTION_SEND
-                                                    type = "text/plain"
-                                                    putExtra(
-                                                        Intent.EXTRA_TEXT,
-                                                        "https://music.youtube.com/watch?v=${mediaMetadata.id}",
-                                                    )
-                                                }
-                                            context.startActivity(Intent.createChooser(intent, null))
+                                            shareCardFor = mediaMetadata
                                         },
                             ) {
                                 Icon(
@@ -1949,6 +2035,16 @@ fun BottomSheetPlayer(
                                     modifier = Modifier.nestedScroll(state.preUpPostDownNestedScrollConnection),
                                     isPlayerExpanded = isExpandedProvider,
                                     isListenTogetherGuest = isListenTogetherGuest,
+                                    headerEndAction = mediaMetadata?.let { metadata ->
+                                        {
+                                            PlayerMoreMenuButton(
+                                                mediaMetadata = metadata,
+                                                state = state,
+                                                textButtonColor = textButtonColor,
+                                                iconButtonColor = iconButtonColor,
+                                            )
+                                        }
+                                    },
                                 )
                             }
                         }
@@ -1989,6 +2085,17 @@ fun BottomSheetPlayer(
                 },
             )
         }
+    }
+
+    shareCardFor?.let { metadata ->
+        ShareCardDialog(
+            mediaMetadata = metadata,
+            onDismiss = { shareCardFor = null },
+            onShare = { bitmap ->
+                shareCardFor = null
+                shareBitmap(context, metadata, bitmap)
+            },
+        )
     }
 }
 
@@ -2136,57 +2243,13 @@ fun InlineLyricsView(
 }
 
 @Composable
-fun MoreActionsButton(
-    mediaMetadata: MediaMetadata,
-    navController: NavController,
-    state: BottomSheetState,
-    textButtonColor: Color,
-    iconButtonColor: Color,
-) {
-    val menuState = LocalMenuState.current
-    val bottomSheetPageState = LocalBottomSheetPageState.current
-
-    Box(
-        modifier =
-            Modifier
-                .size(40.dp)
-                .clip(RoundedCornerShape(24.dp))
-                .background(textButtonColor)
-                .clickable {
-                    menuState.show {
-                        PlayerMenu(
-                            mediaMetadata = mediaMetadata,
-                            playerBottomSheetState = state,
-                            onShowDetailsDialog = {
-                                mediaMetadata.id.let {
-                                    bottomSheetPageState.show {
-                                        ShowMediaInfo(it)
-                                    }
-                                }
-                            },
-                            onDismiss = menuState::dismiss,
-                        )
-                    }
-                },
-    ) {
-        Image(
-            painter = painterResource(R.drawable.more_horiz),
-            contentDescription = null,
-            colorFilter = ColorFilter.tint(iconButtonColor),
-        )
-    }
-}
-
-@Composable
 private fun PlayerMoreMenuButton(
     mediaMetadata: MediaMetadata,
     state: BottomSheetState,
     textButtonColor: Color,
     iconButtonColor: Color,
 ) {
-    val navController = LocalNavController.current
     val menuState = LocalMenuState.current
-    val bottomSheetPageState = LocalBottomSheetPageState.current
 
     Box(
         contentAlignment = Alignment.Center,
@@ -2200,13 +2263,6 @@ private fun PlayerMoreMenuButton(
                         PlayerMenu(
                             mediaMetadata = mediaMetadata,
                             playerBottomSheetState = state,
-                            onShowDetailsDialog = {
-                                mediaMetadata.id.let {
-                                    bottomSheetPageState.show {
-                                        ShowMediaInfo(it)
-                                    }
-                                }
-                            },
                             onDismiss = menuState::dismiss,
                         )
                     }
@@ -2218,4 +2274,31 @@ private fun PlayerMoreMenuButton(
             colorFilter = ColorFilter.tint(iconButtonColor),
         )
     }
+}
+
+/**
+ * Saves the generated share card and opens the system share sheet with a
+ * Soundsphere download link instead of a YouTube Music URL.
+ */
+private fun shareBitmap(
+    context: Context,
+    mediaMetadata: MediaMetadata,
+    bitmap: Bitmap,
+) {
+    val uri = ComposeToImage.saveBitmapAsFile(context, bitmap, "share_${mediaMetadata.id}")
+    val shareText =
+        context.getString(
+            R.string.share_card_text,
+            mediaMetadata.title,
+            mediaMetadata.artists.joinToString { it.name },
+        )
+    val intent =
+        Intent().apply {
+            action = Intent.ACTION_SEND
+            type = "image/png"
+            putExtra(Intent.EXTRA_STREAM, uri)
+            putExtra(Intent.EXTRA_TEXT, shareText)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+    context.startActivity(Intent.createChooser(intent, null))
 }

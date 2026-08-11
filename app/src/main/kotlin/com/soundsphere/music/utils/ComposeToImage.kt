@@ -44,6 +44,28 @@ import java.io.FileOutputStream
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
+private const val SHARE_CARD_SIZE = 1080
+
+/**
+ * Visual styles available for the generated track share card.
+ */
+enum class ShareCardDesign { CLASSIC, VIBRANT, GRADIENT, MINIMAL, FRAMED }
+
+/**
+ * Theme-derived colors used when rendering a share card, so every design
+ * stays consistent with the app's Material color scheme.
+ */
+data class ShareCardThemeColors(
+    val primary: Int,
+    val onPrimary: Int,
+    val secondary: Int,
+    val tertiary: Int,
+    val surface: Int,
+    val onSurface: Int,
+    val onSurfaceVariant: Int,
+    val surfaceContainer: Int,
+)
+
 object ComposeToImage {
     suspend fun createLyricsImage(
         context: Context,
@@ -372,6 +394,679 @@ object ComposeToImage {
 
             return@withContext bitmap
         }
+
+    /**
+     * Generates a 1080x1080 share card for a song:
+     * blurred album-art background, rounded cover art, title/artist text
+     * in the Soundsphere palette, a thin accent line and a corner wordmark.
+     */
+    suspend fun createShareCard(
+        context: Context,
+        coverArtUrl: String?,
+        songTitle: String,
+        artistName: String,
+        design: ShareCardDesign,
+        themeColors: ShareCardThemeColors,
+    ): Bitmap =
+        withContext(Dispatchers.Default) {
+            val bitmap = createBitmap(SHARE_CARD_SIZE, SHARE_CARD_SIZE)
+            val canvas = Canvas(bitmap)
+
+            val coverArtBitmap = loadCoverArt(context, coverArtUrl, 1024)
+
+            when (design) {
+                ShareCardDesign.CLASSIC -> drawClassicCard(canvas, context, coverArtBitmap, songTitle, artistName, themeColors)
+                ShareCardDesign.VIBRANT -> drawVibrantCard(canvas, context, coverArtBitmap, songTitle, artistName, themeColors)
+                ShareCardDesign.GRADIENT -> drawGradientCard(canvas, context, coverArtBitmap, songTitle, artistName, themeColors)
+                ShareCardDesign.MINIMAL -> drawMinimalCard(canvas, context, coverArtBitmap, songTitle, artistName, themeColors)
+                ShareCardDesign.FRAMED -> drawFramedCard(canvas, context, coverArtBitmap, songTitle, artistName, themeColors)
+            }
+
+            bitmap
+        }
+
+    /**
+     * Classic design: blurred album-art background, rounded cover art, title
+     * and artist in the Soundsphere cream palette, a thin accent line and a
+     * corner wordmark.
+     */
+    private fun drawClassicCard(
+        canvas: Canvas,
+        context: Context,
+        coverArtBitmap: Bitmap?,
+        songTitle: String,
+        artistName: String,
+        themeColors: ShareCardThemeColors,
+    ) {
+        val imageWidth = SHARE_CARD_SIZE
+        val imageHeight = SHARE_CARD_SIZE
+        val titleColor = 0xFFEAE0D5.toInt()
+        val artistColor = 0xFFC6AC8F.toInt()
+        val accentColor = themeColors.primary
+        val fallbackBackground = 0xFF17140F.toInt()
+
+            val backgroundRect = RectF(0f, 0f, imageWidth.toFloat(), imageHeight.toFloat())
+            val backgroundPaint =
+                Paint().apply {
+                    isAntiAlias = true
+                }
+
+            if (coverArtBitmap != null) {
+                try {
+                    // Downscale before blurring for performance, then upscale via draw
+                    val scaledBitmap = Bitmap.createScaledBitmap(coverArtBitmap, imageWidth / 12, imageHeight / 12, true)
+                    val blurredBitmap = fastBlur(scaledBitmap, 1f, 24)
+
+                    if (blurredBitmap != null) {
+                        canvas.drawBitmap(blurredBitmap, null, backgroundRect, null)
+                        // Dark overlay for readability
+                        val overlayPaint =
+                            Paint().apply {
+                                color = 0x66000000 // 40% black overlay
+                            }
+                        canvas.drawRect(backgroundRect, overlayPaint)
+                    } else {
+                        backgroundPaint.color = fallbackBackground
+                        canvas.drawRect(backgroundRect, backgroundPaint)
+                    }
+                } catch (_: Exception) {
+                    backgroundPaint.color = fallbackBackground
+                    canvas.drawRect(backgroundRect, backgroundPaint)
+                }
+            } else {
+                backgroundPaint.color = fallbackBackground
+                canvas.drawRect(backgroundRect, backgroundPaint)
+            }
+
+            // --- Cover art ---
+            val artSize = 560f
+            val artCornerRadius = 28f
+            val artLeft = (imageWidth - artSize) / 2f
+            val artTop = 140f
+
+            coverArtBitmap?.let { art ->
+                val artRect = RectF(artLeft, artTop, artLeft + artSize, artTop + artSize)
+                val artPath =
+                    Path().apply {
+                        addRoundRect(artRect, artCornerRadius, artCornerRadius, Path.Direction.CW)
+                    }
+
+                canvas.withClip(artPath) {
+                    drawBitmap(art, null, artRect, null)
+                }
+
+                // Subtle border around the cover art
+                val borderPaint =
+                    Paint().apply {
+                        color = titleColor
+                        alpha = (255 * 0.14).toInt()
+                        style = Paint.Style.STROKE
+                        strokeWidth = 3f
+                        isAntiAlias = true
+                    }
+                canvas.drawRoundRect(artRect, artCornerRadius, artCornerRadius, borderPaint)
+            } ?: run {
+                val artRect = RectF(artLeft, artTop, artLeft + artSize, artTop + artSize)
+                val artPath =
+                    Path().apply {
+                        addRoundRect(artRect, artCornerRadius, artCornerRadius, Path.Direction.CW)
+                    }
+                val placeholderPaint =
+                    Paint().apply {
+                        color = accentColor
+                        alpha = (255 * 0.35).toInt()
+                        isAntiAlias = true
+                    }
+                canvas.withClip(artPath) {
+                    drawRect(artRect, placeholderPaint)
+                }
+            }
+
+            // --- Labels ---
+            val textMaxWidth = imageWidth - 160f
+            val titlePaint =
+                TextPaint().apply {
+                    color = titleColor
+                    textSize = 72f
+                    typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
+                    isAntiAlias = true
+                }
+
+            val artistPaint =
+                TextPaint().apply {
+                    color = artistColor
+                    textSize = 44f
+                    typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL)
+                    isAntiAlias = true
+                }
+
+            // Adaptive title sizing so long titles still fit
+            var titleTextSize = 72f
+            val minTitleSize = 34f
+            var titleLayout: StaticLayout
+
+            while (titleTextSize > minTitleSize) {
+                titlePaint.textSize = titleTextSize
+                titleLayout =
+                    StaticLayout.Builder
+                        .obtain(songTitle, 0, songTitle.length, titlePaint, textMaxWidth.toInt())
+                        .setAlignment(Layout.Alignment.ALIGN_CENTER)
+                        .setMaxLines(2)
+                        .setEllipsize(android.text.TextUtils.TruncateAt.END)
+                        .setIncludePad(false)
+                        .build()
+
+                if (titleLayout.height <= 170f) {
+                    break
+                }
+
+                titleTextSize -= 3f
+            }
+
+            titlePaint.textSize = titleTextSize
+            titleLayout =
+                StaticLayout.Builder
+                    .obtain(songTitle, 0, songTitle.length, titlePaint, textMaxWidth.toInt())
+                    .setAlignment(Layout.Alignment.ALIGN_CENTER)
+                    .setMaxLines(2)
+                    .setEllipsize(android.text.TextUtils.TruncateAt.END)
+                    .setIncludePad(false)
+                    .build()
+
+            val artistLayout =
+                StaticLayout.Builder
+                    .obtain(artistName, 0, artistName.length, artistPaint, textMaxWidth.toInt())
+                    .setAlignment(Layout.Alignment.ALIGN_CENTER)
+                    .setMaxLines(2)
+                    .setEllipsize(android.text.TextUtils.TruncateAt.END)
+                    .setIncludePad(false)
+                    .build()
+
+            val labelsTop = artTop + artSize + 56f
+            val totalTextHeight = titleLayout.height + 18f + artistLayout.height
+            val labelsStartY = labelsTop + (260f - totalTextHeight) / 2f
+
+            canvas.save()
+            canvas.translate(80f, labelsStartY)
+            titleLayout.draw(canvas)
+            canvas.translate(0f, titleLayout.height.toFloat() + 18f)
+            artistLayout.draw(canvas)
+            canvas.restore()
+
+            // --- Accent line ---
+            val accentPaint =
+                Paint().apply {
+                    color = accentColor
+                    isAntiAlias = true
+                }
+            val accentWidth = 150f
+            val accentHeight = 5f
+            val accentY = imageHeight - 150f
+            canvas.drawRoundRect(
+                RectF(
+                    (imageWidth - accentWidth) / 2f,
+                    accentY,
+                    (imageWidth + accentWidth) / 2f,
+                    accentY + accentHeight,
+                ),
+                2.5f,
+                2.5f,
+                accentPaint,
+            )
+
+            // --- Wordmark ---
+            val wordmark = context.getString(R.string.app_name)
+            val wordmarkPaint =
+                TextPaint().apply {
+                    color = accentColor
+                    textSize = 34f
+                    typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
+                    isAntiAlias = true
+                    letterSpacing = 0.08f
+                }
+            val wordmarkLayout =
+                StaticLayout.Builder
+                    .obtain(wordmark, 0, wordmark.length, wordmarkPaint, textMaxWidth.toInt())
+                    .setAlignment(Layout.Alignment.ALIGN_CENTER)
+                    .build()
+            canvas.save()
+            canvas.translate(0f, imageHeight - 96f)
+            wordmarkLayout.draw(canvas)
+            canvas.restore()
+
+    }
+
+    /**
+     * Vibrant design: saturated colors extracted from the album art,
+     * full-bleed square artwork and bold typography.
+     */
+    private fun drawVibrantCard(
+        canvas: Canvas,
+        context: Context,
+        coverArtBitmap: Bitmap?,
+        songTitle: String,
+        artistName: String,
+        themeColors: ShareCardThemeColors,
+    ) {
+        val palette = coverArtBitmap?.let { Palette.from(it).generate() }
+        val background =
+            palette?.vibrantSwatch?.rgb
+                ?: palette?.darkVibrantSwatch?.rgb
+                ?: themeColors.primary
+        val backgroundPaint =
+            Paint().apply {
+                isAntiAlias = true
+                color = darken(background, 0.82f)
+            }
+        canvas.drawRect(RectF(0f, 0f, SHARE_CARD_SIZE.toFloat(), SHARE_CARD_SIZE.toFloat()), backgroundPaint)
+
+        val textColor =
+            palette?.lightVibrantSwatch?.rgb
+                ?: palette?.lightMutedSwatch?.rgb
+                ?: 0xFFFFFFFF.toInt()
+
+        val artSize = 660f
+        val artLeft = (SHARE_CARD_SIZE - artSize) / 2f
+        val artTop = 120f
+        drawRoundedArt(
+            canvas = canvas,
+            art = coverArtBitmap,
+            left = artLeft,
+            top = artTop,
+            size = artSize,
+            cornerRadius = 0f,
+            borderColor = textColor,
+            borderWidth = 10f,
+            placeholderColor = palette?.mutedSwatch?.rgb ?: themeColors.secondary,
+        )
+
+        val titlePaint =
+            TextPaint().apply {
+                color = textColor
+                textSize = 92f
+                typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
+                isAntiAlias = true
+            }
+        val artistPaint =
+            TextPaint().apply {
+                color = textColor
+                alpha = (255 * 0.72).toInt()
+                textSize = 48f
+                typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL)
+                isAntiAlias = true
+            }
+        val titleLayout =
+            adaptiveLayout(songTitle, titlePaint, maxWidth = SHARE_CARD_SIZE - 160, maxLines = 2, minTextSize = 40f, maxTextHeight = 200f)
+        val artistLayout =
+            adaptiveLayout(artistName, artistPaint, maxWidth = SHARE_CARD_SIZE - 160, maxLines = 2, minTextSize = 30f, maxTextHeight = 130f)
+
+        val labelsTop = artTop + artSize + 56f
+        val totalTextHeight = titleLayout.height + 16f + artistLayout.height
+        val labelsStartY = labelsTop + (300f - totalTextHeight) / 2f
+
+        canvas.save()
+        canvas.translate(80f, labelsStartY)
+        titleLayout.draw(canvas)
+        canvas.translate(0f, titleLayout.height.toFloat() + 16f)
+        artistLayout.draw(canvas)
+        canvas.restore()
+
+        drawWordmark(canvas, context, textColor, y = SHARE_CARD_SIZE - 96f)
+    }
+
+    /**
+     * Gradient design: diagonal primary-to-tertiary gradient background with
+     * a bordered rounded cover and white typography.
+     */
+    private fun drawGradientCard(
+        canvas: Canvas,
+        context: Context,
+        coverArtBitmap: Bitmap?,
+        songTitle: String,
+        artistName: String,
+        themeColors: ShareCardThemeColors,
+    ) {
+        val gradient =
+            LinearGradient(
+                0f,
+                0f,
+                SHARE_CARD_SIZE.toFloat(),
+                SHARE_CARD_SIZE.toFloat(),
+                intArrayOf(themeColors.primary, themeColors.secondary, themeColors.tertiary),
+                null,
+                Shader.TileMode.CLAMP,
+            )
+        val backgroundPaint =
+            Paint().apply {
+                isAntiAlias = true
+                shader = gradient
+            }
+        canvas.drawRect(RectF(0f, 0f, SHARE_CARD_SIZE.toFloat(), SHARE_CARD_SIZE.toFloat()), backgroundPaint)
+
+        val artSize = 600f
+        val artLeft = (SHARE_CARD_SIZE - artSize) / 2f
+        val artTop = 140f
+        drawRoundedArt(
+            canvas = canvas,
+            art = coverArtBitmap,
+            left = artLeft,
+            top = artTop,
+            size = artSize,
+            cornerRadius = 32f,
+            borderColor = 0xFFFFFFFF.toInt(),
+            borderWidth = 8f,
+            placeholderColor = 0x33FFFFFF,
+        )
+
+        val titlePaint =
+            TextPaint().apply {
+                color = 0xFFFFFFFF.toInt()
+                textSize = 84f
+                typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
+                isAntiAlias = true
+            }
+        val artistPaint =
+            TextPaint().apply {
+                color = 0xFFFFFFFF.toInt()
+                alpha = (255 * 0.85).toInt()
+                textSize = 46f
+                typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL)
+                isAntiAlias = true
+            }
+        val titleLayout =
+            adaptiveLayout(songTitle, titlePaint, maxWidth = SHARE_CARD_SIZE - 160, maxLines = 2, minTextSize = 38f, maxTextHeight = 190f)
+        val artistLayout =
+            adaptiveLayout(artistName, artistPaint, maxWidth = SHARE_CARD_SIZE - 160, maxLines = 2, minTextSize = 30f, maxTextHeight = 130f)
+
+        val labelsTop = artTop + artSize + 56f
+        val totalTextHeight = titleLayout.height + 16f + artistLayout.height
+        val labelsStartY = labelsTop + (280f - totalTextHeight) / 2f
+
+        canvas.save()
+        canvas.translate(80f, labelsStartY)
+        titleLayout.draw(canvas)
+        canvas.translate(0f, titleLayout.height.toFloat() + 16f)
+        artistLayout.draw(canvas)
+        canvas.restore()
+
+        drawWordmark(canvas, context, 0xCCFFFFFF.toInt(), y = SHARE_CARD_SIZE - 96f)
+    }
+
+    /**
+     * Minimal design: solid theme surface, compact rounded artwork and
+     * restrained typography with a primary accent divider.
+     */
+    private fun drawMinimalCard(
+        canvas: Canvas,
+        context: Context,
+        coverArtBitmap: Bitmap?,
+        songTitle: String,
+        artistName: String,
+        themeColors: ShareCardThemeColors,
+    ) {
+        val backgroundPaint =
+            Paint().apply {
+                isAntiAlias = true
+                color = themeColors.surface
+            }
+        canvas.drawRect(RectF(0f, 0f, SHARE_CARD_SIZE.toFloat(), SHARE_CARD_SIZE.toFloat()), backgroundPaint)
+
+        val artSize = 460f
+        val artLeft = (SHARE_CARD_SIZE - artSize) / 2f
+        val artTop = 160f
+        drawRoundedArt(
+            canvas = canvas,
+            art = coverArtBitmap,
+            left = artLeft,
+            top = artTop,
+            size = artSize,
+            cornerRadius = 24f,
+            placeholderColor = themeColors.primary,
+        )
+
+        val titlePaint =
+            TextPaint().apply {
+                color = themeColors.onSurface
+                textSize = 78f
+                typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
+                isAntiAlias = true
+            }
+        val artistPaint =
+            TextPaint().apply {
+                color = themeColors.onSurfaceVariant
+                textSize = 46f
+                typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL)
+                isAntiAlias = true
+            }
+        val titleLayout =
+            adaptiveLayout(songTitle, titlePaint, maxWidth = SHARE_CARD_SIZE - 160, maxLines = 2, minTextSize = 36f, maxTextHeight = 190f)
+        val artistLayout =
+            adaptiveLayout(artistName, artistPaint, maxWidth = SHARE_CARD_SIZE - 160, maxLines = 2, minTextSize = 28f, maxTextHeight = 130f)
+
+        val labelsTop = artTop + artSize + 64f
+        val totalTextHeight = titleLayout.height + 18f + 6f + artistLayout.height
+        val labelsStartY = labelsTop + (280f - totalTextHeight) / 2f
+
+        canvas.save()
+        canvas.translate(80f, labelsStartY)
+        titleLayout.draw(canvas)
+        canvas.translate(0f, titleLayout.height.toFloat() + 18f)
+        val dividerPaint =
+            Paint().apply {
+                color = themeColors.primary
+                isAntiAlias = true
+            }
+        canvas.drawRoundRect(
+            RectF((SHARE_CARD_SIZE - 80f) / 2f, 0f, (SHARE_CARD_SIZE + 80f) / 2f, 5f),
+            2.5f,
+            2.5f,
+            dividerPaint,
+        )
+        canvas.translate(0f, 11f)
+        artistLayout.draw(canvas)
+        canvas.restore()
+
+        drawWordmark(canvas, context, themeColors.primary, y = SHARE_CARD_SIZE - 96f)
+    }
+
+    /**
+     * Framed design: surface-container background with a primary-bordered
+     * cover, on-surface title and primary artist name.
+     */
+    private fun drawFramedCard(
+        canvas: Canvas,
+        context: Context,
+        coverArtBitmap: Bitmap?,
+        songTitle: String,
+        artistName: String,
+        themeColors: ShareCardThemeColors,
+    ) {
+        val backgroundPaint =
+            Paint().apply {
+                isAntiAlias = true
+                color = themeColors.surfaceContainer
+            }
+        canvas.drawRect(RectF(0f, 0f, SHARE_CARD_SIZE.toFloat(), SHARE_CARD_SIZE.toFloat()), backgroundPaint)
+
+        val artSize = 640f
+        val artLeft = (SHARE_CARD_SIZE - artSize) / 2f
+        val artTop = 110f
+        drawRoundedArt(
+            canvas = canvas,
+            art = coverArtBitmap,
+            left = artLeft,
+            top = artTop,
+            size = artSize,
+            cornerRadius = 44f,
+            borderColor = themeColors.primary,
+            borderWidth = 14f,
+            placeholderColor = themeColors.primary,
+        )
+
+        val titlePaint =
+            TextPaint().apply {
+                color = themeColors.onSurface
+                textSize = 76f
+                typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
+                isAntiAlias = true
+            }
+        val artistPaint =
+            TextPaint().apply {
+                color = themeColors.primary
+                textSize = 44f
+                typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL)
+                isAntiAlias = true
+            }
+        val titleLayout =
+            adaptiveLayout(songTitle, titlePaint, maxWidth = SHARE_CARD_SIZE - 160, maxLines = 2, minTextSize = 34f, maxTextHeight = 190f)
+        val artistLayout =
+            adaptiveLayout(artistName, artistPaint, maxWidth = SHARE_CARD_SIZE - 160, maxLines = 2, minTextSize = 28f, maxTextHeight = 130f)
+
+        val labelsTop = artTop + artSize + 56f
+        val totalTextHeight = titleLayout.height + 14f + artistLayout.height
+        val labelsStartY = labelsTop + (260f - totalTextHeight) / 2f
+
+        canvas.save()
+        canvas.translate(80f, labelsStartY)
+        titleLayout.draw(canvas)
+        canvas.translate(0f, titleLayout.height.toFloat() + 14f)
+        artistLayout.draw(canvas)
+        canvas.restore()
+
+        drawWordmark(canvas, context, themeColors.onSurfaceVariant, y = SHARE_CARD_SIZE - 96f)
+    }
+
+    private suspend fun loadCoverArt(context: Context, coverArtUrl: String?, size: Int): Bitmap? {
+        if (coverArtUrl == null) return null
+        return try {
+            val imageLoader = ImageLoader(context)
+            val request =
+                ImageRequest
+                    .Builder(context)
+                    .data(coverArtUrl)
+                    .size(size)
+                    .allowHardware(false)
+                    .build()
+            val result = imageLoader.execute(request)
+            result.image?.toBitmap()
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    private fun adaptiveLayout(
+        text: String,
+        paint: TextPaint,
+        maxWidth: Int,
+        maxLines: Int,
+        minTextSize: Float,
+        maxTextHeight: Float,
+        align: Layout.Alignment = Layout.Alignment.ALIGN_CENTER,
+    ): StaticLayout {
+        var textSize = paint.textSize
+        while (textSize > minTextSize) {
+            paint.textSize = textSize
+            val layout =
+                StaticLayout.Builder
+                    .obtain(text, 0, text.length, paint, maxWidth)
+                    .setAlignment(align)
+                    .setMaxLines(maxLines)
+                    .setEllipsize(android.text.TextUtils.TruncateAt.END)
+                    .setIncludePad(false)
+                    .build()
+            if (layout.height <= maxTextHeight) {
+                break
+            }
+            textSize -= 3f
+        }
+        paint.textSize = textSize
+        return StaticLayout.Builder
+            .obtain(text, 0, text.length, paint, maxWidth)
+            .setAlignment(align)
+            .setMaxLines(maxLines)
+            .setEllipsize(android.text.TextUtils.TruncateAt.END)
+            .setIncludePad(false)
+            .build()
+    }
+
+    private fun drawRoundedArt(
+        canvas: Canvas,
+        art: Bitmap?,
+        left: Float,
+        top: Float,
+        size: Float,
+        cornerRadius: Float,
+        borderColor: Int? = null,
+        borderWidth: Float = 0f,
+        placeholderColor: Int? = null,
+    ) {
+        val artRect = RectF(left, top, left + size, top + size)
+        val artPath =
+            Path().apply {
+                addRoundRect(artRect, cornerRadius, cornerRadius, Path.Direction.CW)
+            }
+
+        if (art != null) {
+            canvas.withClip(artPath) {
+                drawBitmap(art, null, artRect, null)
+            }
+        } else if (placeholderColor != null) {
+            val placeholderPaint =
+                Paint().apply {
+                    color = placeholderColor
+                    alpha = (255 * 0.5).toInt()
+                    isAntiAlias = true
+                }
+            canvas.withClip(artPath) {
+                drawRect(artRect, placeholderPaint)
+            }
+        }
+
+        if (borderColor != null && borderWidth > 0f) {
+            val borderPaint =
+                Paint().apply {
+                    color = borderColor
+                    style = Paint.Style.STROKE
+                    strokeWidth = borderWidth
+                    isAntiAlias = true
+                }
+            canvas.drawRoundRect(artRect, cornerRadius, cornerRadius, borderPaint)
+        }
+    }
+
+    private fun drawWordmark(
+        canvas: Canvas,
+        context: Context,
+        color: Int,
+        y: Float,
+    ) {
+        val wordmark = context.getString(R.string.app_name)
+        val wordmarkPaint =
+            TextPaint().apply {
+                this.color = color
+                textSize = 34f
+                typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
+                isAntiAlias = true
+                letterSpacing = 0.08f
+            }
+        val wordmarkLayout =
+            StaticLayout.Builder
+                .obtain(wordmark, 0, wordmark.length, wordmarkPaint, SHARE_CARD_SIZE - 160)
+                .setAlignment(Layout.Alignment.ALIGN_CENTER)
+                .build()
+        canvas.save()
+        canvas.translate(0f, y)
+        wordmarkLayout.draw(canvas)
+        canvas.restore()
+    }
+
+    private fun darken(color: Int, factor: Float): Int {
+        val a = color ushr 24 and 0xFF
+        val r = ((color ushr 16 and 0xFF) * factor).roundToInt()
+        val g = ((color ushr 8 and 0xFF) * factor).roundToInt()
+        val b = ((color and 0xFF) * factor).roundToInt()
+        return (a shl 24) or (r shl 16) or (g shl 8) or b
+    }
 
     // Stack Blur v1.0 from http://www.quasimondo.com/StackBlurForCanvas/StackBlurDemo.html
     // Java Author: Mario Klingemann <mario at quasimondo.com>
