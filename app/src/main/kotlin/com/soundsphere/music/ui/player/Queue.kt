@@ -42,9 +42,9 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.HorizontalDivider
@@ -91,6 +91,7 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -117,8 +118,10 @@ import com.soundsphere.music.ui.component.BottomSheet
 import com.soundsphere.music.ui.component.BottomSheetState
 import com.soundsphere.music.ui.component.LocalBottomSheetPageState
 import com.soundsphere.music.ui.component.LocalMenuState
+import com.soundsphere.music.ui.component.ListDialog
+import com.soundsphere.music.ui.component.Material3MenuGroup
+import com.soundsphere.music.ui.component.Material3MenuItemData
 import com.soundsphere.music.ui.component.MediaMetadataListItem
-import com.soundsphere.music.ui.menu.PlayerMenu
 import com.soundsphere.music.ui.menu.QueueMenu
 import com.soundsphere.music.ui.menu.SelectionMediaMetadataMenu
 import com.soundsphere.music.ui.utils.ShowMediaInfo
@@ -266,7 +269,7 @@ fun Queue(
             if (useNewPlayerDesign) {
                 // New design
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                     modifier =
                         Modifier
@@ -380,40 +383,6 @@ fun Queue(
                         textBackgroundColor = TextBackgroundColor,
                         playerBackground = playerBackground,
                     )
-
-                    Spacer(modifier = Modifier.weight(1f))
-
-                    Box(
-                        modifier =
-                            Modifier
-                                .size(buttonSize)
-                                .clip(CircleShape)
-                                .background(textButtonColor)
-                                .clickable {
-                                    menuState.show {
-                                        PlayerMenu(
-                                            mediaMetadata = mediaMetadata,
-                                            playerBottomSheetState = playerBottomSheetState,
-                                            onShowDetailsDialog = {
-                                                mediaMetadata?.id?.let {
-                                                    bottomSheetPageState.show {
-                                                        ShowMediaInfo(it)
-                                                    }
-                                                }
-                                            },
-                                            onDismiss = menuState::dismiss,
-                                        )
-                                    }
-                                },
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.more_vert),
-                            contentDescription = null,
-                            modifier = Modifier.size(iconSize),
-                            tint = iconButtonColor,
-                        )
-                    }
                 }
             } else {
                 // Old design
@@ -665,7 +634,7 @@ fun Queue(
 
         val coroutineScope = rememberCoroutineScope()
 
-        val headerItems = 1
+        val headerItems = 2
         val lazyListState = rememberLazyListState()
         var dragInfo by remember { mutableStateOf<Pair<Int, Int>?>(null) }
 
@@ -767,6 +736,15 @@ fun Queue(
                                 .animateContentSize()
                                 .height(if (inSelectMode) 48.dp else 0.dp),
                     )
+                }
+
+                item(key = "queue_about") {
+                    if (!inSelectMode) {
+                        QueueAboutSection(
+                            mediaMetadata = mediaMetadata,
+                            playerBottomSheetState = playerBottomSheetState,
+                        )
+                    }
                 }
 
                 itemsIndexed(
@@ -1282,6 +1260,172 @@ fun Queue(
                                     .asPaddingValues()
                                     .calculateBottomPadding(),
                     ).align(Alignment.BottomCenter),
+        )
+    }
+}
+
+/**
+ * Scrollable "About" section shown at the top of the expanded queue sheet.
+ * Provides quick access to the current song's artist, album, and details.
+ */
+@Composable
+private fun QueueAboutSection(
+    mediaMetadata: MediaMetadata?,
+    playerBottomSheetState: BottomSheetState,
+) {
+    mediaMetadata ?: return
+    val navController = LocalNavController.current
+    val bottomSheetPageState = LocalBottomSheetPageState.current
+    val isPodcast = mediaMetadata.album?.let { !it.id.startsWith("MPREb_") } ?: false
+    val artists = remember(mediaMetadata.artists) { mediaMetadata.artists.filter { it.id != null } }
+
+    var showSelectArtistDialog by rememberSaveable { mutableStateOf(false) }
+
+    if (showSelectArtistDialog) {
+        ListDialog(
+            onDismiss = { showSelectArtistDialog = false },
+        ) {
+            items(artists) { artist ->
+                Box(
+                    contentAlignment = Alignment.CenterStart,
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .height(ListItemHeight)
+                            .clickable {
+                                navController.navigate("artist/${artist.id}")
+                                showSelectArtistDialog = false
+                                playerBottomSheetState.collapseSoft()
+                            }.padding(horizontal = 24.dp),
+                ) {
+                    Text(
+                        text = artist.name,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
+        }
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Text(
+            text = stringResource(R.string.about).uppercase(),
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+
+        Material3MenuGroup(
+            items =
+                buildList {
+                    if (artists.isNotEmpty() && !isPodcast) {
+                        add(
+                            Material3MenuItemData(
+                                title = { Text(text = stringResource(R.string.view_artist)) },
+                                description = {
+                                    Text(
+                                        text = mediaMetadata.artists.joinToString { it.name },
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                    )
+                                },
+                                icon = {
+                                    Icon(
+                                        painter = painterResource(R.drawable.artist),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(24.dp),
+                                    )
+                                },
+                                trailingContent = {
+                                    Icon(
+                                        painter = painterResource(R.drawable.arrow_forward),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(20.dp),
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                },
+                                onClick = {
+                                    if (artists.size == 1) {
+                                        navController.navigate("artist/${artists[0].id}")
+                                        playerBottomSheetState.collapseSoft()
+                                    } else {
+                                        showSelectArtistDialog = true
+                                    }
+                                },
+                            ),
+                        )
+                    }
+                    if (mediaMetadata.album != null) {
+                        add(
+                            Material3MenuItemData(
+                                title = { Text(text = stringResource(if (isPodcast) R.string.view_podcast else R.string.view_album)) },
+                                description = {
+                                    Text(
+                                        text = mediaMetadata.album.title,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                    )
+                                },
+                                icon = {
+                                    Icon(
+                                        painter = painterResource(if (isPodcast) R.drawable.mic else R.drawable.album),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(24.dp),
+                                    )
+                                },
+                                trailingContent = {
+                                    Icon(
+                                        painter = painterResource(R.drawable.arrow_forward),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(20.dp),
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                },
+                                onClick = {
+                                    if (isPodcast) {
+                                        navController.navigate("online_podcast/${mediaMetadata.album.id}")
+                                    } else {
+                                        navController.navigate("album/${mediaMetadata.album.id}")
+                                    }
+                                    playerBottomSheetState.collapseSoft()
+                                },
+                            ),
+                        )
+                    }
+                    add(
+                        Material3MenuItemData(
+                            title = { Text(text = stringResource(R.string.details)) },
+                            description = { Text(text = stringResource(R.string.details_desc)) },
+                            icon = {
+                                Icon(
+                                    painter = painterResource(R.drawable.info),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(24.dp),
+                                )
+                            },
+                            trailingContent = {
+                                Icon(
+                                    painter = painterResource(R.drawable.arrow_forward),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(20.dp),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            },
+                            onClick = {
+                                bottomSheetPageState.show {
+                                    ShowMediaInfo(mediaMetadata.id)
+                                }
+                            },
+                        ),
+                    )
+                },
         )
     }
 }
