@@ -344,4 +344,24 @@ object SyncService {
         val response = execute(token, authRequest(token, "PUT", "/user/settings", body))
         return response.map { Unit }
     }
+
+    // ===== AI playlist =====
+
+    /** Asks the server to generate + resolve a playlist from a prompt (Groq key lives server-side). */
+    suspend fun generateAiPlaylist(
+        token: String,
+        prompt: String,
+        count: Int = 16,
+    ): Result<List<SyncTrack>> {
+        val body = JSONObject().put("prompt", prompt).put("count", count)
+        val response = execute(token, authRequest(token, "POST", "/ai/generate-playlist", body))
+        return response.mapCatching { body ->
+            val arr = JSONObject(body).optJSONArray("tracks") ?: return@mapCatching emptyList()
+            buildList {
+                for (i in 0 until arr.length()) {
+                    arr.optJSONObject(i)?.let { add(parseTrack(it)) }
+                }
+            }
+        }
+    }
 }

@@ -174,6 +174,9 @@ val StreamSourceAndroidCreatorKey = booleanPreferencesKey("streamSourceAndroidCr
 
 val EnableDynamicIconKey = booleanPreferencesKey("enableDynamicIcon")
 
+// AI playlist generation (server-side Groq, consent stored both locally and on the server)
+val AiPlaylistConsentKey = booleanPreferencesKey("ai_playlist_consent")
+
 // Google Cast
 val EnableGoogleCastKey = booleanPreferencesKey("enableGoogleCast")
 
