@@ -2,7 +2,7 @@
 
 The Groq API key is configured on the server (GROQ_API_KEY env var); the
 app never sees it. Suggested tracks are resolved against YouTube Music
-through the public InnerTube "music/search" endpoint, mirroring the header
+through the public InnerTube "search" endpoint, mirroring the header
 set and context shape the app's innertube module sends (this file is a
 standalone Python mirror and does not touch the app's extraction code).
 
@@ -25,7 +25,7 @@ GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile").strip()
 GROQ_URL = os.getenv("GROQ_URL", "https://api.groq.com/openai/v1/chat/completions")
 GROQ_TIMEOUT = 60
 
-_SEARCH_URL = "https://music.youtube.com/youtubei/v1/music/search"
+_SEARCH_URL = "https://music.youtube.com/youtubei/v1/search"
 _SEARCH_TIMEOUT = 12
 _SEARCH_CONCURRENCY = 6
 
@@ -186,25 +186,133 @@ def _runs_text(node: dict | None) -> str:
     return "".join(str(run.get("text") or "") for run in runs if isinstance(run, dict))
 
 
-def _line_2_parts(item: dict) -> list[str]:
-    """Artist • album line from flexColumns; splits on the bullet separator."""
+def _run_text(node: dict | None) -> str:
+    """First run text of a flexColumn 'text' node (the title line)."""
+    if not isinstance(node, dict):
+        return ""
+    runs = node.get("runs")
+    if not isinstance(runs, list) or not runs:
+        return ""
+    first = runs[0] if isinstance(runs[0], dict) else {}
+    return str(first.get("text") or "")
+
+
+def _all_runs(node: dict | None) -> list[dict]:
+    if not isinstance(node, dict):
+        return []
+    runs = node.get("runs")
+    return [run for run in runs if isinstance(run, dict)] if isinstance(runs, list) else []
+
+
+_DURATION_RE = re.compile(r"\d{1,2}[:.,]\d{2}(?:[:.,]\d{2})?")
+_YEAR_RE = re.compile(r"(?:19|20)\d{2}")
+_VIEWS_RE = re.compile(r"\d[\d.,]*[kmb]?\s*(?:views?|plays?|likes?|subscribers?)")
+_METADATA_LABELS = {"song", "video", "single", "album", "episode", "playlist", "podcast"}
+
+
+def _is_metadata_text(text: str) -> bool:
+    """True for metadata bits ('Song', '3:54', '5.2M views') vs artist names."""
+    value = text.strip()
+    lower = value.lower().replace("\u00a0", " ")
+    return (
+        bool(_DURATION_RE.match(value))
+        or bool(_YEAR_RE.match(value))
+        or lower in _METADATA_LABELS
+        or "monthly audience" in lower
+        or bool(_VIEWS_RE.match(value))
+    )
+
+
+def _is_artist_run(run: dict) -> bool:
+    """True when a run links to an artist page (UC... browse id or ARTIST page type)."""
+    endpoint = run.get("navigationEndpoint")
+    if not isinstance(endpoint, dict):
+        return False
+    browse = endpoint.get("browseEndpoint")
+    if not isinstance(browse, dict):
+        return False
+    if str(browse.get("browseId") or "").startswith("UC"):
+        return True
+    config = browse.get("browseEndpointContextSupportedConfigs")
+    music = (config or {}).get("browseEndpointContextMusicConfig") if isinstance(config, dict) else None
+    return bool(isinstance(music, dict) and music.get("pageType") == "MUSIC_PAGE_TYPE_ARTIST")
+
+
+def _flex_column(item: dict, index: int) -> dict:
     flex = item.get("flexColumns") or []
-    if len(flex) >= 2:
-        col = flex[1].get("musicResponsiveListItemFlexColumnRenderer") or {}
-        return [p.strip() for p in _runs_text(col.get("text")).split("•") if p.strip()]
-    return []
+    if index >= len(flex) or not isinstance(flex[index], dict):
+        return {}
+    return flex[index].get("musicResponsiveListItemFlexColumnRenderer") or {}
+
+
+def _line_2_artist(item: dict) -> str:
+    """Artist name from the secondary line: artist links first, then bullets."""
+    runs = _all_runs(_flex_column(item, 1).get("text"))
+    for run in runs:
+        if _is_artist_run(run):
+            return str(run.get("text") or "").strip()
+    for part in _runs_text(_flex_column(item, 1).get("text")).split("•"):
+        stripped = part.strip()
+        if stripped and not _is_metadata_text(stripped):
+            return stripped
+    return ""
 
 
 def _video_id(item: dict) -> str | None:
+    """videoId mirroring the app: playlistItemData, title-column link, or play overlay."""
     pid = item.get("playlistItemData")
     if isinstance(pid, dict) and pid.get("videoId"):
         return pid["videoId"]
-    endpoint = item.get("navigationEndpoint")
-    if isinstance(endpoint, dict) and endpoint.get("watchEndpoint"):
-        vid = endpoint["watchEndpoint"].get("videoId")
-        if vid:
-            return vid
+    for run in _all_runs(_flex_column(item, 0).get("text")):
+        endpoint = run.get("navigationEndpoint")
+        if not isinstance(endpoint, dict):
+            continue
+        watch = endpoint.get("watchEndpoint")
+        if isinstance(watch, dict) and watch.get("videoId"):
+            return watch["videoId"]
+    overlay = item.get("overlay")
+    if isinstance(overlay, dict):
+        content = (overlay.get("musicItemThumbnailOverlayRenderer") or {}).get("content") or {}
+        play = content.get("musicPlayButtonRenderer") or {}
+        watch = (play.get("playNavigationEndpoint") or {}).get("watchEndpoint") if isinstance(play, dict) else None
+        if isinstance(watch, dict) and watch.get("videoId"):
+            return watch["videoId"]
     return None
+
+
+def _is_song_row(item: dict) -> bool:
+    """True when the row plays a track rather than linking to a browse page."""
+    endpoint = item.get("navigationEndpoint")
+    if endpoint is None:
+        return True
+    if not isinstance(endpoint, dict):
+        return False
+    if endpoint.get("watchEndpoint") or endpoint.get("watchPlaylistEndpoint"):
+        return True
+    overlay = item.get("overlay")
+    if isinstance(overlay, dict):
+        content = (overlay.get("musicItemThumbnailOverlayRenderer") or {}).get("content") or {}
+        play = content.get("musicPlayButtonRenderer") or {}
+        watch = (play.get("playNavigationEndpoint") or {}).get("watchEndpoint") if isinstance(play, dict) else None
+        if isinstance(watch, dict) and watch.get("videoId"):
+            return True
+    return False
+
+
+def _duration_seconds_item(item: dict) -> int:
+    """Duration from the fixed countdown column, then the secondary line."""
+    for col in item.get("fixedColumns") or []:
+        if not isinstance(col, dict):
+            continue
+        text = (col.get("musicResponsiveListItemFixedColumnRenderer") or {}).get("text")
+        secs = _duration_seconds(_runs_text(text))
+        if secs:
+            return secs
+    for run in _all_runs(_flex_column(item, 1).get("text")):
+        match = _DURATION_RE.match(str(run.get("text") or "").strip())
+        if match:
+            return _duration_seconds(match.group(0))
+    return 0
 
 
 def _thumbnail_url(item: dict, video_id: str) -> str:
@@ -220,12 +328,16 @@ def _thumbnail_url(item: dict, video_id: str) -> str:
 
 
 def _parse_search_payload(payload: dict, expected_artist: str) -> list[dict]:
-    """Extract song-style video hits from a music/search response."""
+    """Extract playable track hits from a music/search response."""
     expected_artist = expected_artist.strip().lower()
     hits: list[dict] = []
     seen: set[str] = set()
 
-    def visit(node: dict) -> None:
+    def visit(node) -> None:
+        if isinstance(node, list):
+            for value in node:
+                visit(value)
+            return
         if not isinstance(node, dict):
             return
         renderer = node.get("musicResponsiveListItemRenderer")
@@ -233,50 +345,30 @@ def _parse_search_payload(payload: dict, expected_artist: str) -> list[dict]:
             video_id = _video_id(renderer)
             if not video_id or video_id in seen:
                 return
-            # Skip non-song rows (artists/albums/channels carry no videoId,
-            # so reaching here means it is a song or plain video).
-            seen.add(video_id)
-            parts = _line_2_parts(renderer)
-            artist = parts[0] if parts else ""
-            album = parts[1] if len(parts) > 1 else None
-            fixed = renderer.get("fixedColumns") or []
-            duration = 0
-            for col in fixed:
-                text = _runs_text(
-                    (col.get("musicResponsiveListItemFixedColumnRenderer") or {}).get("text")
-                )
-                secs = _duration_seconds(text)
-                if secs:
-                    duration = secs
-                    break
-            title = _runs_text(
-                ((renderer.get("flexColumns") or [{}])[0]
-                    .get("musicResponsiveListItemFlexColumnRenderer") or {})
-                .get("text")
-            )
+            title = _run_text(_flex_column(renderer, 0).get("text"))
             if not title:
                 return
-            # A better match contains the searched artist name.
-            matched = bool(expected_artist) and expected_artist in artist.lower()
+            seen.add(video_id)
+            artist = _line_2_artist(renderer)
             hits.append(
                 {
                     "id": video_id,
                     "title": title,
                     "artist": artist,
-                    "album": album,
-                    "duration": duration,
+                    "album": _run_text(_flex_column(renderer, 2).get("text")) or None,
+                    "duration": _duration_seconds_item(renderer),
                     "artwork_url": _thumbnail_url(renderer, video_id),
-                    "matched_artist": matched,
+                    "matched_artist": bool(expected_artist) and expected_artist in artist.lower(),
+                    "song_row": _is_song_row(renderer),
                 }
             )
             return
         for value in node.values():
-            if isinstance(value, (dict, list)):
-                visit(value)
+            visit(value)
 
     visit(payload)
-    # Prefer artist-matched hits, keep the rest as fallback.
-    hits.sort(key=lambda h: (not h.pop("matched_artist"),))
+    # Prefer rows whose artist matches the query, then playable song rows.
+    hits.sort(key=lambda h: (not h.pop("song_row"), not h.pop("matched_artist")))
     return hits
 
 
