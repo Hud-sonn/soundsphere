@@ -68,10 +68,22 @@ async def generate_playlist(
     db = get_supabase()
     _require_user(db, user_id)
 
-    row = (
-        db.table("user_settings").select("settings").eq("user_id", user_id).execute()
-    )
-    settings = row.data[0].get("settings", {}) if row.data else {}
+    try:
+        row = (
+            db.table("user_settings")
+            .select("settings")
+            .eq("user_id", user_id)
+            .execute()
+        )
+    except Exception:
+        # user_settings table missing (002 migration not applied yet): treat
+        # as no consent instead of surfacing a 500 to the app.
+        logger.warning(
+            "user_settings table unavailable for %s; treating as no consent",
+            user_id,
+        )
+        row = None
+    settings = row.data[0].get("settings", {}) if row and row.data else {}
     if not settings.get(_CONSENT_KEY):
         raise HTTPException(
             status_code=403, detail="AI playlist consent not granted"
