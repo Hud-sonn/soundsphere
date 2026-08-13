@@ -13,7 +13,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 
 from auth.jwt import get_current_user
 from db.supabase import get_supabase
-from models.schemas import AiPlaylistRequest
+from models.schemas import AiPlaylistRequest, ArtistDetectRequest
 from services import ai_playlist
 from services.limiter import limiter
 
@@ -23,6 +23,9 @@ router = APIRouter(prefix="/ai")
 
 # LLM calls cost money; keep the blast radius small per user.
 _GENERATE_LIMIT = "10/day"
+
+# Artist detection is a single search; still cap it to avoid abuse.
+_DETECT_LIMIT = "30/hour"
 
 _CONSENT_KEY = "ai_playlist_consent"
 
@@ -91,7 +94,13 @@ async def generate_playlist(
 
     try:
         history = await _recent_history(db, user_id)
-        tracks = await ai_playlist.generate_playlist(body.prompt, history, body.count)
+        tracks = await ai_playlist.generate_playlist(
+            body.prompt,
+            history,
+            body.count,
+            artist=body.artist,
+            mix_similar=body.mix_similar,
+        )
     except RuntimeError as exc:
         raise HTTPException(status_code=503, detail=str(exc))
     except Exception as exc:
@@ -106,3 +115,24 @@ async def generate_playlist(
         )
 
     return {"prompt": body.prompt, "tracks": tracks}
+
+
+@router.post("/detect-artist")
+@limiter.limit(_DETECT_LIMIT)
+async def detect_artist(
+    body: ArtistDetectRequest,
+    request: Request,
+    user_id: str = Depends(get_current_user),
+):
+    """Best-effort artist detection for the search bar (one cheap search)."""
+    db = get_supabase()
+    _require_user(db, user_id)
+
+    try:
+        artist = await ai_playlist.detect_artist(body.prompt)
+    except Exception as exc:
+        logger.error("Artist detection failed: %s", exc)
+        raise HTTPException(
+            status_code=502, detail="Artist detection failed, please try again"
+        )
+    return {"artist": artist}

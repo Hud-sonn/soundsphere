@@ -32,6 +32,9 @@ _SEARCH_CONCURRENCY = 6
 # Songs-only filter for music/search (same param the app uses).
 _SONGS_PARAMS = "EgWKAQIIAWoKEAoQCRADEAA%3D"
 
+# Artists-only filter for music/search (same param the app uses).
+_ARTIST_PARAMS = "EgWKAQIgAWoKEAkQChAFEAMQBA%3D%3D"
+
 # Header set replicated from the app's InnerTube client (WEB_REMIX).
 _SEARCH_HEADERS = {
     "User-Agent": (
@@ -80,17 +83,36 @@ def _build_context() -> dict:
 # ===== LLM suggestions =====
 
 
-async def _llm_suggestions(prompt: str, history: list[dict], count: int) -> list[dict]:
+async def _llm_suggestions(
+    prompt: str, history: list[dict], count: int, artist: str | None = None, mix_similar: bool = False
+) -> list[dict]:
     """Ask Groq for `count` (title, artist) song suggestions."""
     history_block = "\n".join(
         f"- {h.get('title', '')} / {h.get('artist', '')}" for h in history[: _MAX_HISTORY]
     )
-    system_prompt = (
-        "You are a music curation assistant for a YouTube Music client. "
-        "Suggest real, well-known songs matching the user's request. "
+    constraints = []
+    if artist:
+        if mix_similar:
+            constraints.append(
+                f"The user is asking about the artist '{artist}'. "
+                f"Include songs by '{artist}' AND songs by other artists with a "
+                f"similar style. Do not reply with '{artist}' trivia or biography."
+            )
+        else:
+            constraints.append(
+                f"The user is asking about the artist '{artist}'. "
+                f"Every single track must be by '{artist}' (their own releases, "
+                f"not covers by other artists)."
+            )
+    constraints.append(
         "Reply with ONLY a JSON object of the form "
         '{"tracks": [{"title": "...", "artist": "..."}, ...]} with exactly '
         f"{count} tracks. Use the canonical artist name. No markdown, no prose."
+    )
+    system_prompt = (
+        "You are a music curation assistant for a YouTube Music client. "
+        "Suggest real, well-known songs matching the user's request. "
+        + " ".join(constraints)
     )
     user_prompt = f"User request: {prompt}\nRecent listening history for taste:\n{history_block or '(none)'}"
 
@@ -368,7 +390,9 @@ def _parse_search_payload(payload: dict, expected_artist: str) -> list[dict]:
 
     visit(payload)
     # Prefer rows whose artist matches the query, then playable song rows.
-    hits.sort(key=lambda h: (not h.pop("song_row"), not h.pop("matched_artist")))
+    hits.sort(
+        key=lambda h: (not h.get("song_row", False), not h.get("matched_artist", False))
+    )
     return hits
 
 
@@ -400,9 +424,7 @@ async def _search_track(title: str, artist: str) -> dict | None:
                 continue
             hits = _parse_search_payload(payload, artist)
             if hits:
-                hit = hits[0]
-                hit.pop("matched_artist", None)
-                return hit
+                return hits[0]
         elif response.status_code in (403, 429):
             logger.warning("AI search '%s' throttled (HTTP %d)", query, response.status_code)
             await asyncio.sleep(1.0 * (attempt + 1))
@@ -413,22 +435,103 @@ async def _search_track(title: str, artist: str) -> dict | None:
     return None
 
 
+def _parse_artist_payload(payload: dict) -> dict | None:
+    """Extract the top artist hit from an artists-filtered search response."""
+    best: dict | None = None
+    best_rank = -1
+    rank = 0
+
+    def visit(node) -> None:
+        nonlocal best, best_rank, rank
+        if isinstance(node, list):
+            for value in node:
+                visit(value)
+            return
+        if not isinstance(node, dict):
+            return
+        renderer = node.get("musicResponsiveListItemRenderer")
+        if isinstance(renderer, dict):
+            rank += 1
+            endpoint = renderer.get("navigationEndpoint")
+            browse = (endpoint or {}).get("browseEndpoint") if isinstance(endpoint, dict) else None
+            browse_id = str((browse or {}).get("browseId") or "")
+            if (best_rank == -1 or rank < best_rank) and browse_id.startswith("UC"):
+                name = _run_text(_flex_column(renderer, 0).get("text"))
+                if name:
+                    best = {"name": name.strip(), "browse_id": browse_id}
+                    best_rank = rank
+            return
+        for value in node.values():
+            visit(value)
+
+    visit(payload)
+    return best
+
+
+async def detect_artist(query: str) -> dict | None:
+    """Detect whether the query names a specific artist, via artists-filtered search."""
+    body = _build_context()
+    body["query"] = query
+    body["params"] = _ARTIST_PARAMS
+
+    for attempt in range(_MAX_SEARCH_RETRIES):
+        try:
+            async with _search_semaphore:
+                response = await _client.post(
+                    _SEARCH_URL,
+                    headers=_SEARCH_HEADERS,
+                    params={"prettyPrint": False},
+                    json=body,
+                )
+        except (httpx.HTTPError, asyncio.TimeoutError) as exc:
+            logger.warning("AI artist detect '%s' attempt %d failed: %s", query, attempt, exc)
+            await asyncio.sleep(0.5 * (attempt + 1))
+            continue
+        if response.status_code == 200:
+            try:
+                payload = response.json()
+            except ValueError:
+                logger.warning("AI artist detect '%s' returned non-JSON body", query)
+                continue
+            return _parse_artist_payload(payload)
+        elif response.status_code in (403, 429):
+            logger.warning("AI artist detect '%s' throttled (HTTP %d)", query, response.status_code)
+            await asyncio.sleep(1.0 * (attempt + 1))
+            continue
+        else:
+            logger.warning("AI artist detect '%s' failed (HTTP %d)", query, response.status_code)
+            return None
+    return None
+
+
 # ===== Public API =====
 
 
-async def generate_playlist(prompt: str, history: list[dict], count: int) -> list[dict]:
+async def generate_playlist(
+    prompt: str,
+    history: list[dict],
+    count: int,
+    artist: str | None = None,
+    mix_similar: bool = False,
+) -> list[dict]:
     """Full pipeline: LLM suggestions -> Innertube resolution."""
     if not ai_enabled():
         raise RuntimeError("AI playlist generation is not enabled")
 
-    suggestions = await _llm_suggestions(prompt, history, count)
+    suggestions = await _llm_suggestions(prompt, history, count, artist, mix_similar)
     results: list[dict] = []
     seen: set[str] = set()
     for suggestion in suggestions:
         track = await _search_track(suggestion["title"], suggestion["artist"])
         if track is None or track["id"] in seen:
             continue
+        # "Only this artist" mode: drop hits whose resolved artist doesn't match,
+        # so covers/mis-tagged uploads can't sneak in.
+        if artist and not mix_similar and not track.get("matched_artist", False):
+            continue
         seen.add(track["id"])
+        track.pop("matched_artist", None)
+        track.pop("song_row", None)
         results.append(track)
         if len(results) >= count:
             break
