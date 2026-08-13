@@ -351,7 +351,7 @@ object SyncService {
     suspend fun generateAiPlaylist(
         token: String,
         prompt: String,
-        count: Int = 16,
+        count: Int = 30,
     ): Result<List<SyncTrack>> {
         val body = JSONObject().put("prompt", prompt).put("count", count)
         val response = execute(token, authRequest(token, "POST", "/ai/generate-playlist", body))
