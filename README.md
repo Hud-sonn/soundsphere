@@ -4,7 +4,7 @@
 
 # Soundsphere
 
-### A YouTube Music client for Android
+### A music streaming app for Android
 
 <br/>
 
@@ -19,7 +19,7 @@
 </div>
 
 > [!WARNING]
-> **Regional Restriction** - If YouTube Music is unavailable in your region, this app will not work without a **VPN or proxy** connecting to a supported region.
+> **Regional Restriction** - If the streaming service is unavailable in your region, this app will not work without a **VPN or proxy** connecting to a supported region.
 
 ---
 
@@ -27,7 +27,7 @@
 
 <h1><a id="about"></a>About</h1>
 
-Soundsphere is an independent, open-source YouTube Music client for Android. It is a fork of [Metrolist](https://github.com/MetrolistGroup/Metrolist) with a rebranded identity, its own account system, and its own development direction. It follows Material 3 design guidelines closely and is built with Kotlin and Jetpack Compose.
+Soundsphere is an independent, open-source music streaming app for Android. It is a fork of [Metrolist](https://github.com/MetrolistGroup/Metrolist) with a rebranded identity, its own account system, and its own development direction. It follows Material 3 design guidelines closely and is built with Kotlin and Jetpack Compose.
 
 </div>
 
@@ -57,7 +57,7 @@ Soundsphere is an independent, open-source YouTube Music client for Android. It 
     <td width="50%" valign="top">
 
 #### Playback
-- Stream any song or video from YouTube Music
+- Stream any song or video
 - Background playback
 - Download & cache for offline use
 - Skip silence
@@ -220,7 +220,7 @@ Soundsphere is a fork of [Metrolist](https://github.com/MetrolistGroup/Metrolist
 - [Better Lyrics](https://better-lyrics.boidu.dev) - time-synced lyrics with word-by-word highlighting
 - [metroserver](https://github.com/MetrolistGroup/metroserver) - listen-together real-time backend
 - [MusicRecognizer](https://github.com/aleksey-saenko/MusicRecognizer) - music recognition feature
-- [zemer-cipher](https://github.com/ZemerTeam/zemer-cipher) - YouTube cipher deobfuscation and PoToken generation
+- [zemer-cipher](https://github.com/ZemerTeam/zemer-cipher) - cipher deobfuscation and PoToken generation
 
 </div>
 

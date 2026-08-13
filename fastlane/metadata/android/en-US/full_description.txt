@@ -1,15 +1,15 @@
-Material 3 YouTube Music client for Android
+Material 3 music streaming app for Android
 
 Features:
 
-- Play any song or video from YT Music
+- Play any song or video
 - Background playback 
 - Personalized quick picks 
 - Library management 
 - Download and cache songs for offline playback
 - Search for songs, albums, artists, videos and playlists
 - Live lyrics 
-- YouTube Music account login support
+- Streaming service account login support
 - Syncing of songs, artists, albums and playlists, from and to your account
 - Skip silence 
 - Import playlists 
