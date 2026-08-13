@@ -111,4 +111,4 @@ class AiPlaylistRequest(BaseModel):
     """
 
     prompt: str = Field(min_length=3, max_length=1024)
-    count: int = Field(default=16, ge=5, le=30)
+    count: int = Field(default=30, ge=30, le=50)
