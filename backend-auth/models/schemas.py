@@ -112,3 +112,11 @@ class AiPlaylistRequest(BaseModel):
 
     prompt: str = Field(min_length=3, max_length=1024)
     count: int = Field(default=30, ge=30, le=50)
+    artist: Optional[str] = Field(default=None, max_length=512)
+    mix_similar: bool = False
+
+
+class ArtistDetectRequest(BaseModel):
+    """Query used to detect whether the user is asking about a specific artist."""
+
+    prompt: str = Field(min_length=3, max_length=1024)

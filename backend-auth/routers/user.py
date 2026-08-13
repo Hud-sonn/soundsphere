@@ -107,6 +107,26 @@ def _get_owned_playlist(db, user_id: str, playlist_id: str) -> dict:
     return playlist
 
 
+def _recount_playlist(db, playlist_id: str) -> None:
+    """Keep the denormalized `track_count` column in sync with playlist_tracks."""
+    try:
+        result = (
+            db.table("playlist_tracks")
+            .select("track_id", count="exact")
+            .eq("playlist_id", playlist_id)
+            .execute()
+        )
+        raw = result.count
+        try:
+            count = int(raw)
+        except (TypeError, ValueError):
+            count = len(result.data)
+    except Exception:
+        logger.exception("Could not recount playlist %s", playlist_id)
+        return
+    db.table("playlists").update({"track_count": count}).eq("id", playlist_id).execute()
+
+
 # ===== Profile =====
 
 
@@ -345,6 +365,7 @@ async def add_playlist_track(
             "position": position,
         }
     ).execute()
+    _recount_playlist(db, playlist_id)
     return {"status": "ok"}
 
 
@@ -362,6 +383,7 @@ async def remove_playlist_track(
     db.table("playlist_tracks").delete().eq("playlist_id", playlist_id).eq(
         "track_id", track_id
     ).execute()
+    _recount_playlist(db, playlist_id)
     return {"status": "ok"}
 
 

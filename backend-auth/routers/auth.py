@@ -226,12 +226,12 @@ async def login(request: Request):
         body = await request.json()
     except Exception:
         raise HTTPException(status_code=400, detail="Invalid JSON body")
-    logger.info(f"LOGIN_BODY: {body}")
     try:
         login_req = LoginRequest(**body)
     except Exception as e:
         logger.error(f"LOGIN_VALIDATION_ERROR: {e}")
         raise HTTPException(status_code=422, detail=str(e))
+    logger.info(f"LOGIN_ATTEMPT email={login_req.email}")
     db = get_supabase()
     user = db.table("users").select("*").eq("email", login_req.email).execute()
     if not user.data or not user.data[0].get("password_hash"):
