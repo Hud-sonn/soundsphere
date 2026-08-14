@@ -15,6 +15,7 @@ from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from services.limiter import limiter
+from services.activity import log_activity
 from routers.auth import router as auth_router
 from routers.user import router as user_router
 from routers.ai import router as ai_router
@@ -111,6 +112,7 @@ def _record_error_log(method: str, path: str, status_code: int, client_ip: str, 
                 "detail": detail,
             }
         ).execute()
+        log_activity(None, "error", f"{status_code} {method} {path}")
     except Exception:
         logger.exception("Failed to write api_error_log row")
 

@@ -3,6 +3,7 @@ from datetime import datetime, timedelta, timezone
 from jose import JWTError, jwt  # type: ignore
 from fastapi import Depends, HTTPException
 from fastapi.security import HTTPBearer
+from services.activity import maybe_touch_last_active, track_app_use
 
 ALGORITHM = "HS256"
 _bearer = HTTPBearer(auto_error=False)
@@ -30,6 +31,12 @@ def decode_token(token: str) -> dict:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
 
 
+def _track_user(user_id: str) -> None:
+    """Keep last_active honest and emit throttled app_use events."""
+    maybe_touch_last_active(user_id)
+    track_app_use(user_id)
+
+
 def get_current_user(credentials=Depends(_bearer)) -> str:  # type: ignore
     """Backward compatible: returns user_id (sub) from the token."""
     if credentials is None:
@@ -38,6 +45,7 @@ def get_current_user(credentials=Depends(_bearer)) -> str:  # type: ignore
     user_id: str = decoded.get("sub")
     if user_id is None:
         raise HTTPException(status_code=401, detail="Invalid token")
+    _track_user(user_id)
     return user_id
 
 
@@ -46,7 +54,10 @@ def get_current_user_info(credentials=Depends(_bearer)) -> dict:  # type: ignore
     if credentials is None:
         raise HTTPException(status_code=401, detail="Missing authorization header")
     decoded = decode_token(credentials.credentials)
-    return {"user_id": decoded.get("sub"), "role": decoded.get("role", "user")}
+    user_id = decoded.get("sub")
+    if user_id:
+        _track_user(user_id)
+    return {"user_id": user_id, "role": decoded.get("role", "user")}
 
 
 def get_optional_user(credentials=Depends(_bearer)) -> str:  # type: ignore
@@ -55,7 +66,10 @@ def get_optional_user(credentials=Depends(_bearer)) -> str:  # type: ignore
         return ""
     try:
         decoded = decode_token(credentials.credentials)
-        return decoded.get("sub", "")
+        user_id = decoded.get("sub", "")
+        if user_id:
+            _track_user(user_id)
+        return user_id
     except HTTPException:
         return ""
 
