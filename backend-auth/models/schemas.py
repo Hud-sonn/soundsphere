@@ -120,3 +120,24 @@ class ArtistDetectRequest(BaseModel):
     """Query used to detect whether the user is asking about a specific artist."""
 
     prompt: str = Field(min_length=3, max_length=1024)
+
+
+class CrashReportRequest(BaseModel):
+    """Crash payload uploaded by the Android app (POST /admin/crashes/ingest).
+
+    No PII: the app never sends email/username; user attribution is done
+    server-side via the JWT subject. Stack traces are truncated app-side.
+    """
+
+    app_version: str = Field(default="", max_length=64)
+    app_version_code: int = 0
+    flavor: str = Field(default="", max_length=32)
+    os: str = Field(default="", max_length=128)
+    device_model: str = Field(default="", max_length=128)
+    manufacturer: str = Field(default="", max_length=128)
+    exception: str = Field(default="", max_length=256)
+    message: str = Field(default="", max_length=1024)
+    stack_trace: str = Field(max_length=16384)
+    thread_name: str = Field(default="", max_length=128)
+    fatal: bool = True
+    reported_at: Optional[str] = None

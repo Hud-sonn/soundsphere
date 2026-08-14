@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SoundSphere Admin</title>
+<meta name="robots" content="noindex, nofollow">
+<style>
+  :root {
+    --bg: #0a0908;
+    --panel: #171412;
+    --border: #2b2622;
+    --text: #eae0d5;
+    --muted: #a89f93;
+    --accent: #c6ac8f;
+    --danger: #e07b6a;
+    --ok: #7fb88a;
+    --warn: #d9b36c;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Space Grotesk', 'Helvetica Neue', Arial, sans-serif;
+    min-height: 100vh;
+  }
+
+  #login-view {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 24px;
+  }
+
+  .login-card {
+    width: 100%;
+    max-width: 360px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 32px;
+  }
+
+  .login-card h1 {
+    font-size: 20px;
+    margin-bottom: 4px;
+  }
+
+  .login-card p.sub {
+    color: var(--muted);
+    font-size: 13px;
+    margin-bottom: 24px;
+  }
+
+  label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+
+  input {
+    width: 100%;
+    padding: 10px 12px;
+    margin-bottom: 16px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 14px;
+  }
+
+  input:focus { outline: none; border-color: var(--accent); }
+
+  button {
+    width: 100%;
+    padding: 11px 16px;
+    background: var(--accent);
+    color: #0a0908;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  button.secondary {
+    background: transparent;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    width: auto;
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+
+  button.ghost {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    width: auto;
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+
+  #login-error { color: var(--danger); font-size: 13px; margin-top: 12px; min-height: 18px; }
+
+  .hidden { display: none !important; }
+
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  header h1 { font-size: 18px; }
+  header .who { color: var(--muted); font-size: 13px; }
+
+  nav {
+    display: flex;
+    gap: 8px;
+    padding: 12px 24px;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+
+  nav button {
+    width: auto;
+    padding: 8px 16px;
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  nav button.active {
+    background: var(--accent);
+    color: #0a0908;
+    border-color: var(--accent);
+  }
+
+  main { padding: 24px; max-width: 1200px; margin: 0 auto; }
+
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+  }
+
+  .card .num { font-size: 28px; font-weight: 700; }
+  .card .lbl { font-size: 12px; color: var(--muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  h2 { font-size: 16px; margin-bottom: 12px; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 500; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+  tr:last-child td { border-bottom: none; }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  .badge.ok { background: rgba(127,184,138,0.15); color: var(--ok); }
+  .badge.warn { background: rgba(217,179,108,0.15); color: var(--warn); }
+  .badge.err { background: rgba(224,123,106,0.15); color: var(--danger); }
+  .badge.muted { background: rgba(168,159,147,0.15); color: var(--muted); }
+
+  .mono { font-family: 'JetBrains Mono', 'Courier New', monospace; font-size: 12px; }
+  code { font-family: 'JetBrains Mono', 'Courier New', monospace; font-size: 12px; }
+
+  .toolbar { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; align-items: center; }
+
+  .toolbar input {
+    width: auto;
+    margin-bottom: 0;
+    flex: 1;
+    min-width: 180px;
+  }
+
+  .empty { color: var(--muted); padding: 24px; text-align: center; }
+
+  .stacktrace {
+    font-family: 'JetBrains Mono', 'Courier New', monospace;
+    font-size: 11px;
+    white-space: pre-wrap;
+    word-break: break-all;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    margin-top: 8px;
+    max-height: 300px;
+    overflow: auto;
+  }
+
+  .detail { color: var(--muted); font-size: 12px; margin-bottom: 16px; }
+
+  #toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 13px;
+    z-index: 100;
+    display: none;
+  }
+</style>
+</head>
+<body>
+
+<div id="login-view">
+  <div class="login-card">
+    <h1>SoundSphere Admin</h1>
+    <p class="sub">Sign in with your SoundSphere account (admin role required).</p>
+    <label for="email">Email</label>
+    <input type="email" id="email" autocomplete="username" placeholder="you@example.com">
+    <label for="password">Password</label>
+    <input type="password" id="password" autocomplete="current-password" placeholder="Password">
+    <button id="login-btn">Sign in</button>
+    <div id="login-error"></div>
+  </div>
+</div>
+
+<div id="app-view" class="hidden">
+  <header>
+    <h1>SoundSphere Admin</h1>
+    <span class="who" id="who"></span>
+  </header>
+  <nav>
+    <button data-tab="overview" class="active">Overview</button>
+    <button data-tab="errors">Error log</button>
+    <button data-tab="users">Users</button>
+    <button data-tab="crashes">Crashes</button>
+  </nav>
+  <main>
+    <section id="tab-overview"></section>
+    <section id="tab-errors" class="hidden"></section>
+    <section id="tab-users" class="hidden"></section>
+    <section id="tab-crashes" class="hidden"></section>
+  </main>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const API = '';
+let token = sessionStorage.getItem('admin_token') || null;
+let userEmail = '';
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  setTimeout(() => { t.style.display = 'none'; }, 3000);
+}
+
+async function api(path, options = {}) {
+  const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  const res = await fetch(API + path, { ...options, headers });
+  if (res.status === 401 || res.status === 403) {
+    logout();
+    throw new Error('Unauthorized');
+  }
+  if (!res.ok) {
+    let detail = res.statusText;
+    try {
+      const body = await res.json();
+      if (body.detail) detail = typeof body.detail === 'string' ? body.detail : JSON.stringify(body.detail);
+    } catch (e) {}
+    throw new Error(`${res.status} ${detail}`);
+  }
+  return res.json();
+}
+
+function logout() {
+  token = null;
+  sessionStorage.removeItem('admin_token');
+  document.getElementById('login-view').classList.remove('hidden');
+  document.getElementById('app-view').classList.add('hidden');
+}
+
+async function login() {
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const err = document.getElementById('login-error');
+  err.textContent = '';
+  try {
+    const data = await fetch(API + '/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+    const body = await data.json().catch(() => ({}));
+    if (!data.ok) {
+      err.textContent = body.detail || `Login failed (${data.status})`;
+      return;
+    }
+    if (body.user && body.user.role !== 'admin') {
+      err.textContent = 'Admin access required for this account.';
+      return;
+    }
+    token = body.token;
+    userEmail = body.user ? body.user.email : email;
+    sessionStorage.setItem('admin_token', token);
+    document.getElementById('login-view').classList.add('hidden');
+    document.getElementById('app-view').classList.remove('hidden');
+    document.getElementById('who').textContent = userEmail;
+    loadOverview();
+  } catch (e) {
+    err.textContent = e.message;
+  }
+}
+
+function esc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function statusBadge(code) {
+  if (code < 400) return `<span class="badge ok">${code}</span>`;
+  if (code === 429) return `<span class="badge warn">429 rate-limited</span>`;
+  if (code < 500) return `<span class="badge warn">${code}</span>`;
+  return `<span class="badge err">${code}</span>`;
+}
+
+function fmtTs(ts) {
+  if (!ts) return '—';
+  const d = new Date(ts);
+  return d.toLocaleString();
+}
+
+// ===== Overview =====
+
+async function loadOverview() {
+  const tab = document.getElementById('tab-overview');
+  tab.innerHTML = '<p class="empty">Loading…</p>';
+  try {
+    const [overview, summary] = await Promise.all([
+      api('/admin/stats/overview'),
+      api('/admin/errors/summary'),
+    ]);
+    const u = overview.users, c = overview.content;
+    tab.innerHTML = `
+      <div class="cards">
+        <div class="card"><div class="num">${u.total}</div><div class="lbl">Users</div></div>
+        <div class="card"><div class="num">${u.active_7d}</div><div class="lbl">Active 7d</div></div>
+        <div class="card"><div class="num">${u.new_7d}</div><div class="lbl">New 7d</div></div>
+        <div class="card"><div class="num">${u.verified}</div><div class="lbl">Verified</div></div>
+        <div class="card"><div class="num">${u.admins}</div><div class="lbl">Admins</div></div>
+        <div class="card"><div class="num">${c.tracks}</div><div class="lbl">Tracks</div></div>
+        <div class="card"><div class="num">${c.likes}</div><div class="lbl">Likes</div></div>
+        <div class="card"><div class="num">${c.playlists}</div><div class="lbl">Playlists</div></div>
+        <div class="card"><div class="num">${c.playlist_tracks}</div><div class="lbl">Playlist tracks</div></div>
+        <div class="card"><div class="num">${c.history}</div><div class="lbl">History rows</div></div>
+        <div class="card"><div class="num">${overview.errors_24h}</div><div class="lbl">API errors 24h</div></div>
+        <div class="card"><div class="num">${overview.crashes.unhandled}</div><div class="lbl">Crashes open</div></div>
+      </div>
+      <h2>Error summary (7 days)</h2>
+      <table>
+        <thead><tr><th>Endpoint</th><th>Count</th><th>Top IPs</th><th>By status</th></tr></thead>
+        <tbody>
+          ${summary.top_paths.length ? summary.top_paths.map(p => `
+            <tr>
+              <td><code>${esc(p.path)}</code></td>
+              <td>${p.count}</td>
+              <td>${summary.top_ips.map(ip => `${esc(ip.ip)} (${ip.count})`).join(', ')}</td>
+              <td>${summary.by_status.map(s => `${s.status}:${s.count}`).join(', ')}</td>
+            </tr>`).join('') : '<tr><td colspan="4" class="empty">No errors in the last 7 days</td></tr>'}
+        </tbody>
+      </table>`;
+  } catch (e) {
+    tab.innerHTML = `<p class="empty">Failed to load: ${esc(e.message)}</p>`;
+  }
+}
+
+// ===== Error log =====
+
+let errorFilter = { status: '', ip: '', path: '' };
+
+async function loadErrors() {
+  const tab = document.getElementById('tab-errors');
+  const params = new URLSearchParams();
+  if (errorFilter.status) params.set('status_code', errorFilter.status);
+  if (errorFilter.ip) params.set('ip', errorFilter.ip);
+  if (errorFilter.path) params.set('path', errorFilter.path);
+  params.set('limit', '200');
+  tab.innerHTML = '<p class="empty">Loading…</p>';
+  try {
+    const data = await api('/admin/errors?' + params.toString());
+    const rows = data.errors;
+    tab.innerHTML = `
+      <div class="toolbar">
+        <input id="f-status" placeholder="Filter status (e.g. 429)" value="${esc(errorFilter.status)}">
+        <input id="f-ip" placeholder="Filter IP" value="${esc(errorFilter.ip)}">
+        <input id="f-path" placeholder="Filter path" value="${esc(errorFilter.path)}">
+        <button class="secondary" id="apply-errors">Apply</button>
+        <button class="ghost" id="clear-errors">Clear</button>
+      </div>
+      <table>
+        <thead><tr><th>Time</th><th>Status</th><th>Method</th><th>Path</th><th>IP</th></tr></thead>
+        <tbody>
+          ${rows.length ? rows.map(r => `
+            <tr>
+              <td>${fmtTs(r.created_at)}</td>
+              <td>${statusBadge(r.status_code)}</td>
+              <td>${esc(r.method)}</td>
+              <td><code>${esc(r.path)}</code></td>
+              <td class="mono">${esc(r.client_ip)}</td>
+            </tr>`).join('') : '<tr><td colspan="5" class="empty">No errors match the filter</td></tr>'}
+        </tbody>
+      </table>`;
+    document.getElementById('apply-errors').onclick = () => {
+      errorFilter.status = document.getElementById('f-status').value.trim();
+      errorFilter.ip = document.getElementById('f-ip').value.trim();
+      errorFilter.path = document.getElementById('f-path').value.trim();
+      loadErrors();
+    };
+    document.getElementById('clear-errors').onclick = () => {
+      errorFilter = { status: '', ip: '', path: '' };
+      loadErrors();
+    };
+  } catch (e) {
+    tab.innerHTML = `<p class="empty">Failed to load: ${esc(e.message)}</p>`;
+  }
+}
+
+// ===== Users =====
+
+async function loadUsers() {
+  const tab = document.getElementById('tab-users');
+  tab.innerHTML = '<p class="empty">Loading…</p>';
+  try {
+    const data = await api('/admin/users?limit=200');
+    const users = data.users;
+    tab.innerHTML = `
+      <div class="toolbar">
+        <input id="u-search" placeholder="Search email / username" value="">
+        <button class="secondary" id="u-search-btn">Search</button>
+      </div>
+      <table>
+        <thead><tr><th>Email</th><th>Role</th><th>Verified</th><th>Created</th><th>Last active</th></tr></thead>
+        <tbody>
+          ${users.length ? users.map(u => `
+            <tr>
+              <td>${esc(u.email)}${u.username ? ` <span class="detail">(${esc(u.username)})</span>` : ''}</td>
+              <td><span class="badge ${u.role === 'admin' ? 'ok' : 'muted'}">${esc(u.role)}</span></td>
+              <td>${u.is_verified ? '<span class="badge ok">yes</span>' : '<span class="badge err">no</span>'}</td>
+              <td>${fmtTs(u.created_at)}</td>
+              <td>${fmtTs(u.last_active)}</td>
+            </tr>`).join('') : '<tr><td colspan="5" class="empty">No users</td></tr>'}
+        </tbody>
+      </table>`;
+    document.getElementById('u-search-btn').onclick = () => {
+      const q = document.getElementById('u-search').value.trim();
+      const params = new URLSearchParams({ limit: '200' });
+      if (q) params.set('search', q);
+      api('/admin/users?' + params.toString()).then(d => {
+        tab.innerHTML = '';
+        // simplest: re-render via loadUsers with the query
+        tab.dataset.search = q;
+        renderUsers(d.users, tab);
+      }).catch(e => tab.innerHTML = `<p class="empty">${esc(e.message)}</p>`);
+    };
+  } catch (e) {
+    tab.innerHTML = `<p class="empty">Failed to load: ${esc(e.message)}</p>`;
+  }
+}
+
+function renderUsers(users, tab) {
+  tab.innerHTML = `
+    <table>
+      <thead><tr><th>Email</th><th>Role</th><th>Verified</th><th>Created</th><th>Last active</th></tr></thead>
+      <tbody>
+        ${users.length ? users.map(u => `
+          <tr>
+            <td>${esc(u.email)}${u.username ? ` <span class="detail">(${esc(u.username)})</span>` : ''}</td>
+            <td><span class="badge ${u.role === 'admin' ? 'ok' : 'muted'}">${esc(u.role)}</span></td>
+            <td>${u.is_verified ? '<span class="badge ok">yes</span>' : '<span class="badge err">no</span>'}</td>
+            <td>${fmtTs(u.created_at)}</td>
+            <td>${fmtTs(u.last_active)}</td>
+          </tr>`).join('') : '<tr><td colspan="5" class="empty">No users</td></tr>'}
+      </tbody>
+    </table>`;
+}
+
+// ===== Crashes =====
+
+async function loadCrashes() {
+  const tab = document.getElementById('tab-crashes');
+  tab.innerHTML = '<p class="empty">Loading…</p>';
+  try {
+    const data = await api('/admin/crashes?limit=50');
+    const crashes = data.crashes;
+    tab.innerHTML = `
+      <p class="detail">Fatal crashes and non-fatal exceptions reported by the app.</p>
+      <table>
+        <thead><tr><th>Time</th><th>Fatal</th><th>Version</th><th>Device</th><th>Exception</th><th>Message</th><th></th></tr></thead>
+        <tbody>
+          ${crashes.length ? crashes.map(c => `
+            <tr>
+              <td>${fmtTs(c.reported_at)}</td>
+              <td>${c.fatal ? '<span class="badge err">fatal</span>' : '<span class="badge muted">non-fatal</span>'}</td>
+              <td class="mono">${esc(c.app_version)} (${c.app_version_code})</td>
+              <td>${esc(c.manufacturer)} ${esc(c.device_model)}</td>
+              <td><code>${esc(c.exception)}</code></td>
+              <td>${esc(c.message).slice(0, 80)}</td>
+              <td><button class="ghost" data-crash="${c.id}">View</button></td>
+            </tr>`).join('') : '<tr><td colspan="7" class="empty">No crash reports yet</td></tr>'}
+        </tbody>
+      </table>`;
+    tab.querySelectorAll('button[data-crash]').forEach(b => {
+      b.onclick = async () => {
+        try {
+          const d = await api(`/admin/crashes/${b.dataset.crash}`);
+          const c = d.crash;
+          const overlay = document.createElement('div');
+          overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:50;padding:24px;';
+          const box = document.createElement('div');
+          box.style.cssText = 'background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:24px;max-width:760px;width:100%;max-height:85vh;overflow:auto;';
+          box.innerHTML = `
+            <h2>${esc(c.exception) || 'Crash'}</h2>
+            <p class="detail">${fmtTs(c.reported_at)} · ${esc(c.app_version)} (${c.app_version_code}) · ${esc(c.flavor)} · ${esc(c.os)} · ${esc(c.manufacturer)} ${esc(c.device_model)} · ${c.fatal ? 'fatal' : 'non-fatal'}</p>
+            <p class="detail">${esc(c.message)}</p>
+            <div class="stacktrace">${esc(c.stack_trace)}</div>
+            <div style="margin-top:16px;text-align:right"><button class="ghost" id="close-crash">Close</button></div>`;
+          overlay.appendChild(box);
+          document.body.appendChild(overlay);
+          document.getElementById('close-crash').onclick = () => overlay.remove();
+          overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+        } catch (e) { toast(e.message); }
+      };
+    });
+  } catch (e) {
+    tab.innerHTML = `<p class="empty">Failed to load: ${esc(e.message)}</p>`;
+  }
+}
+
+// ===== Tabs =====
+
+document.querySelectorAll('nav button[data-tab]').forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll('nav button[data-tab]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    ['overview', 'errors', 'users', 'crashes'].forEach(t => {
+      document.getElementById('tab-' + t).classList.toggle('hidden', t !== btn.dataset.tab);
+    });
+    if (btn.dataset.tab === 'overview') loadOverview();
+    if (btn.dataset.tab === 'errors') loadErrors();
+    if (btn.dataset.tab === 'users') loadUsers();
+    if (btn.dataset.tab === 'crashes') loadCrashes();
+  };
+});
+
+document.getElementById('login-btn').onclick = login;
+document.getElementById('email').addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
+document.getElementById('password').addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
+
+if (token) {
+  document.getElementById('login-view').classList.add('hidden');
+  document.getElementById('app-view').classList.remove('hidden');
+  api('/admin/health').then(() => {
+    document.getElementById('who').textContent = 'admin';
+    loadOverview();
+  }).catch(() => {});
+}
+</script>
+</body>
+</html>
