@@ -20,6 +20,7 @@ from routers.user import router as user_router
 from routers.ai import router as ai_router
 from routers.admin import router as admin_router
 from routers.share import router as share_router
+from routers.web import router as web_router
 from db.supabase import get_supabase
 
 REQUIRED = [
@@ -64,8 +65,13 @@ async def add_security_headers(request: Request, call_next):
 
 
 # Trusted hosts middleware
+# Trusted hosts middleware. PRODUCTION list: only the app's domain and the
+# onrender host. Deliberately NO localhost/127.0.0.1 here — allowing them
+# would let anyone spoof the Host header (DNS-rebinding protection gone).
+# When testing the backend locally you MUST add localhost via the env var,
+# e.g. ALLOWED_HOSTS="localhost,api.soundsphere.name.ng,soundsphere-auth.onrender.com"
 allowed_hosts = os.getenv(
-    "ALLOWED_HOSTS", "localhost,127.0.0.1,*.onrender.com"
+    "ALLOWED_HOSTS", "api.soundsphere.name.ng,soundsphere-auth.onrender.com"
 )
 app.add_middleware(
     TrustedHostMiddleware,
@@ -88,6 +94,7 @@ app.include_router(user_router)
 app.include_router(ai_router)
 app.include_router(admin_router)
 app.include_router(share_router)
+app.include_router(web_router)
 
 
 def _record_error_log(method: str, path: str, status_code: int, client_ip: str, detail: str = ""):
