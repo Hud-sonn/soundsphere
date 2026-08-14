@@ -19,6 +19,7 @@ from routers.auth import router as auth_router
 from routers.user import router as user_router
 from routers.ai import router as ai_router
 from routers.admin import router as admin_router
+from routers.share import router as share_router
 from db.supabase import get_supabase
 
 REQUIRED = [
@@ -86,6 +87,7 @@ app.include_router(auth_router)
 app.include_router(user_router)
 app.include_router(ai_router)
 app.include_router(admin_router)
+app.include_router(share_router)
 
 
 def _record_error_log(method: str, path: str, status_code: int, client_ip: str, detail: str = ""):
