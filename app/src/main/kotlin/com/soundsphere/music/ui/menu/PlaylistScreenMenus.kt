@@ -33,6 +33,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.media3.exoplayer.offline.Download
 import com.soundsphere.music.LocalListenTogetherManager
+import com.soundsphere.music.LocalSyncRepository
 import com.soundsphere.music.R
 import com.soundsphere.music.db.entities.Playlist
 import com.soundsphere.music.db.entities.PlaylistSong
@@ -43,6 +44,7 @@ import com.soundsphere.music.ui.component.Material3MenuItemData
 import com.soundsphere.music.utils.PlaylistExporter
 import com.soundsphere.music.utils.getExportFileUri
 import com.soundsphere.music.utils.saveToPublicDocuments
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 /**
@@ -60,11 +62,13 @@ fun LocalPlaylistMenu(
     onDownload: () -> Unit,
     onQueue: () -> Unit,
     onDismiss: () -> Unit,
+    coroutineScope: CoroutineScope,
 ) {
     val listenTogetherManager = LocalListenTogetherManager.current
     val isGuest = listenTogetherManager?.isInRoom == true && !listenTogetherManager.isHost
-    val coroutineScope = rememberCoroutineScope()
+    val exportScope = rememberCoroutineScope()
     val localContext = LocalContext.current
+    val syncRepository = LocalSyncRepository.current
 
     val (showExportDialog, setShowExportDialog) = remember { mutableStateOf(false) }
 
@@ -195,21 +199,44 @@ fun LocalPlaylistMenu(
                         )
                     },
                     onClick = {
-                        val shareText =
-                            if (isYouTubePlaylist) {
-                                "https://music.youtube.com/playlist?list=${playlist.playlist.browseId}"
-                            } else {
-                                songs.joinToString("\n") { it.song.song.title }
-                            }
-                        val sendIntent: Intent =
-                            Intent().apply {
-                                action = Intent.ACTION_SEND
-                                putExtra(Intent.EXTRA_TEXT, shareText)
-                                type = "text/plain"
-                            }
-                        val shareIntent = Intent.createChooser(sendIntent, null)
-                        context.startActivity(shareIntent)
                         onDismiss()
+                        if (isYouTubePlaylist) {
+                            val shareText = "https://music.youtube.com/playlist?list=${playlist.playlist.browseId}"
+                            val sendIntent: Intent =
+                                Intent().apply {
+                                    action = Intent.ACTION_SEND
+                                    putExtra(Intent.EXTRA_TEXT, shareText)
+                                    type = "text/plain"
+                                }
+                            context.startActivity(Intent.createChooser(sendIntent, null))
+                        } else if (!syncRepository.isLoggedIn) {
+                            Toast.makeText(context, R.string.share_unavailable, Toast.LENGTH_SHORT).show()
+                        } else {
+                            coroutineScope.launch {
+                                val shareText =
+                                    syncRepository.getPlaylistShareToken(playlist.playlist.id)
+                                        .fold(
+                                            onSuccess = { shareToken ->
+                                                context.getString(
+                                                    R.string.share_playlist_message,
+                                                    playlist.playlist.name,
+                                                    songs.size,
+                                                    shareToken,
+                                                )
+                                            },
+                                            onFailure = {
+                                                songs.joinToString("\n") { it.song.song.title }
+                                            },
+                                        )
+                                val sendIntent: Intent =
+                                    Intent().apply {
+                                        action = Intent.ACTION_SEND
+                                        putExtra(Intent.EXTRA_TEXT, shareText)
+                                        type = "text/plain"
+                                    }
+                                context.startActivity(Intent.createChooser(sendIntent, null))
+                            }
+                        }
                     },
                 ),
             )
@@ -252,7 +279,7 @@ fun LocalPlaylistMenu(
         ExportDialog(
             onDismiss = { setShowExportDialog(false) },
             onShare = { format ->
-                coroutineScope.launch {
+                exportScope.launch {
                     val result =
                         when (format) {
                             "csv" -> PlaylistExporter.exportPlaylistAsCSV(localContext, playlist.playlist.name, songs)
@@ -276,7 +303,7 @@ fun LocalPlaylistMenu(
                 onDismiss()
             },
             onSave = { format ->
-                coroutineScope.launch {
+                exportScope.launch {
                     val exportResult =
                         when (format) {
                             "csv" -> PlaylistExporter.exportPlaylistAsCSV(localContext, playlist.playlist.name, songs)

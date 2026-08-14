@@ -330,7 +330,12 @@ fun QueueMenu(
                                 type = "text/plain"
                                 putExtra(
                                     Intent.EXTRA_TEXT,
-                                    "https://music.youtube.com/watch?v=${mediaMetadata.id}"
+                                    context.getString(
+                                        R.string.share_song_message,
+                                        mediaMetadata.title,
+                                        mediaMetadata.artists.joinToString { it.name },
+                                        mediaMetadata.id
+                                    )
                                 )
                             }
                             context.startActivity(Intent.createChooser(intent, null))

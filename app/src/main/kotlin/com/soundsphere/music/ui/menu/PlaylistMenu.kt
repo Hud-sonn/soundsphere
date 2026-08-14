@@ -50,6 +50,7 @@ import com.soundsphere.music.LocalDatabase
 import com.soundsphere.music.LocalDownloadUtil
 import com.soundsphere.music.LocalListenTogetherManager
 import com.soundsphere.music.LocalPlayerConnection
+import com.soundsphere.music.LocalSyncRepository
 import com.soundsphere.music.R
 import com.soundsphere.music.db.entities.Playlist
 import com.soundsphere.music.db.entities.PlaylistSong
@@ -89,6 +90,7 @@ fun PlaylistMenu(
     val database = LocalDatabase.current
     val downloadUtil = LocalDownloadUtil.current
     val playerConnection = LocalPlayerConnection.current ?: return
+    val syncRepository = LocalSyncRepository.current
     val listenTogetherManager = LocalListenTogetherManager.current
     val isGuest = listenTogetherManager?.isInRoom == true && !listenTogetherManager.isHost
     val dbPlaylist by database.playlist(playlist.id).collectAsStateWithLifecycle(initialValue = playlist)
@@ -379,16 +381,34 @@ fun PlaylistMenu(
                             text = stringResource(R.string.share),
                             onClick = {
                                 onDismiss()
-                                val intent =
-                                    Intent().apply {
-                                        action = Intent.ACTION_SEND
-                                        type = "text/plain"
-                                        putExtra(
-                                            Intent.EXTRA_TEXT,
-                                            "https://music.youtube.com/playlist?list=${dbPlaylist?.playlist?.browseId}",
-                                        )
+                                if (!syncRepository.isLoggedIn) {
+                                    Toast.makeText(context, R.string.share_unavailable, Toast.LENGTH_SHORT).show()
+                                } else {
+                                    coroutineScope.launch {
+                                        val shareText =
+                                            syncRepository.getPlaylistShareToken(playlist.id)
+                                                .fold(
+                                                    onSuccess = { shareToken ->
+                                                        context.getString(
+                                                            R.string.share_playlist_message,
+                                                            playlist.playlist.name,
+                                                            songs.size,
+                                                            shareToken,
+                                                        )
+                                                    },
+                                                    onFailure = {
+                                                        "https://music.youtube.com/playlist?list=${playlist.playlist.browseId}"
+                                                    },
+                                                )
+                                        val intent =
+                                            Intent().apply {
+                                                action = Intent.ACTION_SEND
+                                                type = "text/plain"
+                                                putExtra(Intent.EXTRA_TEXT, shareText)
+                                            }
+                                        context.startActivity(Intent.createChooser(intent, null))
                                     }
-                                context.startActivity(Intent.createChooser(intent, null))
+                                }
                             },
                         ),
                     ),

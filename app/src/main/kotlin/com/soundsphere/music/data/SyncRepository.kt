@@ -6,12 +6,24 @@
 package com.soundsphere.music.data
 
 import android.content.Context
+import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.stringPreferencesKey
+import com.soundsphere.music.api.SyncArtist
 import com.soundsphere.music.api.SyncHistoryEntry
 import com.soundsphere.music.api.SyncPlaylist
 import com.soundsphere.music.api.SyncService
 import com.soundsphere.music.api.SyncTrack
 import com.soundsphere.music.api.UnauthorizedException
+import com.soundsphere.music.constants.AiPlaylistConsentKey
+import com.soundsphere.music.constants.DarkModeKey
+import com.soundsphere.music.constants.DynamicThemeKey
+import com.soundsphere.music.constants.HideExplicitKey
+import com.soundsphere.music.constants.PauseListenHistoryKey
+import com.soundsphere.music.constants.PauseSearchHistoryKey
+import com.soundsphere.music.constants.PureBlackKey
+import com.soundsphere.music.constants.SelectedThemeColorKey
+import com.soundsphere.music.constants.SoundsphereEmailKey
+import com.soundsphere.music.constants.SoundsphereUsernameKey
 import com.soundsphere.music.db.MusicDatabase
 import com.soundsphere.music.db.entities.Event
 import com.soundsphere.music.db.entities.PlaylistEntity
@@ -27,7 +39,10 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import org.json.JSONObject
@@ -76,6 +91,22 @@ class SyncRepository @Inject constructor(
     // are re-pushed on the next full sync (see retryPendingLikes).
     private val _pendingLikePushes = MutableStateFlow<Set<String>>(emptySet())
 
+    /**
+     * Account-level settings that follow the user across devices. Playback and
+     * device-specific preferences are intentionally excluded.
+     */
+    private val syncedSettingsKeys: List<Pair<Preferences.Key<*>, String>> =
+        listOf(
+            Pair<Preferences.Key<*>, String>(DarkModeKey, "dark_mode"),
+            Pair<Preferences.Key<*>, String>(SelectedThemeColorKey, "theme_color"),
+            Pair<Preferences.Key<*>, String>(PureBlackKey, "pure_black"),
+            Pair<Preferences.Key<*>, String>(DynamicThemeKey, "dynamic_theme"),
+            Pair<Preferences.Key<*>, String>(AiPlaylistConsentKey, "ai_playlist_consent"),
+            Pair<Preferences.Key<*>, String>(HideExplicitKey, "hide_explicit"),
+            Pair<Preferences.Key<*>, String>(PauseListenHistoryKey, "pause_listen_history"),
+            Pair<Preferences.Key<*>, String>(PauseSearchHistoryKey, "pause_search_history"),
+        )
+
     init {
         scope.launch {
             val json = context.dataStore.data.first()[PLAYLIST_MAP_KEY]
@@ -85,6 +116,21 @@ class SyncRepository @Inject constructor(
             val json = context.dataStore.data.first()[PENDING_LIKES_KEY]
             _pendingLikePushes.value = parseIdSet(json)
         }
+        // Watch the key settings and push changes to the server (debounced).
+        // The last-pushed snapshot is only recorded while signed in, so the
+        // current values are re-pushed after a fresh login.
+        scope.launch {
+            var lastPushed: Map<String, Any?>? = null
+            context.dataStore.data
+                .map { prefs -> syncedSettingsKeys.associate { (key, name) -> name to prefs[key] } }
+                .distinctUntilChanged()
+                .debounce(1500)
+                .collect { settings ->
+                    if (authRepository.getToken() == null || settings == lastPushed) return@collect
+                    lastPushed = settings
+                    pushSettings(settings)
+                }
+        }
     }
 
     // ===== Public API (fire-and-forget, called from UI / service) =====
@@ -92,6 +138,20 @@ class SyncRepository @Inject constructor(
     /** Full pull after login or app start: likes, playlists and history. */
     fun onLoggedIn() {
         scope.launch { pullAll() }
+    }
+
+    /**
+     * Caches the Soundsphere account profile (email + username) fetched from
+     * /auth/me so the sidebar can show the signed-in user even when no YouTube
+     * account is linked. Fire-and-forget.
+     */
+    fun cacheAccountProfile(email: String, username: String) {
+        scope.launch {
+            context.safeDataStoreEdit { prefs ->
+                if (email.isNotBlank()) prefs[SoundsphereEmailKey] = email
+                if (username.isNotBlank()) prefs[SoundsphereUsernameKey] = username
+            }
+        }
     }
 
     /** Called from every like/unlike path (funnelled through SyncUtils.likeSong). */
@@ -135,6 +195,7 @@ class SyncRepository @Inject constructor(
             pullPlaylists(token)
             pullHistory(token)
             pullFollowedArtists(token)
+            pullSettings(token)
             retryPendingLikes(token)
         } finally {
             _isSyncing.value = false
@@ -177,7 +238,10 @@ class SyncRepository @Inject constructor(
             if (remote.id in pendingLikes) continue
             val local = database.songEntity(remote.id)
             if (local == null) {
-                database.insert(remote.toSongEntity(liked = true, likedDate = now))
+                database.insertSongWithArtists(
+                    remote.toSongEntity(liked = true, likedDate = now),
+                    listOfNotNull(remote.artist.takeIf { it.isNotBlank() }),
+                )
             } else if (!local.liked) {
                 database.update(local.copy(liked = true, likedDate = local.likedDate ?: now))
             }
@@ -212,7 +276,10 @@ class SyncRepository @Inject constructor(
             for (playlistTrack in server.tracks) {
                 val remote = playlistTrack.track
                 if (database.songEntity(remote.id) == null) {
-                    database.insert(remote.toSongEntity(liked = false, likedDate = null))
+                    database.insertSongWithArtists(
+                        remote.toSongEntity(liked = false, likedDate = null),
+                        listOfNotNull(remote.artist.takeIf { it.isNotBlank() }),
+                    )
                 }
                 if (remote.id !in existingSongIds) {
                     database.insert(
@@ -239,7 +306,10 @@ class SyncRepository @Inject constructor(
             val remote = entry.track
             if (remote.id in existingSongIds) continue
             if (database.songEntity(remote.id) == null) {
-                database.insert(remote.toSongEntity(liked = false, likedDate = null))
+                database.insertSongWithArtists(
+                    remote.toSongEntity(liked = false, likedDate = null),
+                    listOfNotNull(remote.artist.takeIf { it.isNotBlank() }),
+                )
             }
             database.insert(
                 Event(
@@ -372,6 +442,24 @@ class SyncRepository @Inject constructor(
         val updated = _serverPlaylistIds.value - localId
         _serverPlaylistIds.value = updated
         context.safeDataStoreEdit { it[PLAYLIST_MAP_KEY] = mapToJson(updated) }
+    }
+
+    /** Server id of a synced playlist, or null when the playlist is not synced yet. */
+    fun serverIdFor(localPlaylistId: String): String? = _serverPlaylistIds.value[localPlaylistId]
+
+    /** Whether the user is signed in to a Soundsphere account. */
+    val isLoggedIn: Boolean
+        get() = authRepository.isLoggedIn.value
+
+    /**
+     * Gets the server-side share token for a synced playlist, creating it on
+     * first share (idempotent). Fails when the user isn't signed in or the
+     * playlist isn't synced to the server yet.
+     */
+    suspend fun getPlaylistShareToken(localPlaylistId: String): Result<String> {
+        val token = authRepository.getToken() ?: return Result.failure(Exception("Not signed in"))
+        val serverId = serverIdFor(localPlaylistId) ?: return Result.failure(Exception("Playlist not synced"))
+        return retryNetwork { SyncService.getShareToken(token, serverId) }
     }
 
     private suspend fun markPendingLike(songId: String) {
@@ -520,8 +608,41 @@ class SyncRepository @Inject constructor(
         }
         val remoteSettings = result.getOrThrow()
         if (remoteSettings.isEmpty()) return
-        // Remote settings are read-only for now; local settings take precedence.
-        // Full merge logic can be added later when settings sync is wired to the UI.
+        // Apply synced settings from the server, skipping keys whose local value
+        // already matches (so unchanged snapshots don't churn the DataStore).
+        context.safeDataStoreEdit { prefs ->
+            for ((name, value) in remoteSettings) {
+                when (name) {
+                    "dark_mode" ->
+                        (value as? String)?.takeIf { it != prefs[DarkModeKey] }?.let { prefs[DarkModeKey] = it }
+
+                    "theme_color" ->
+                        (value as? Number)?.toInt()?.takeIf { it != prefs[SelectedThemeColorKey] }
+                            ?.let { prefs[SelectedThemeColorKey] = it }
+
+                    "pure_black" ->
+                        (value as? Boolean)?.takeIf { it != prefs[PureBlackKey] }?.let { prefs[PureBlackKey] = it }
+
+                    "dynamic_theme" ->
+                        (value as? Boolean)?.takeIf { it != prefs[DynamicThemeKey] }?.let { prefs[DynamicThemeKey] = it }
+
+                    "ai_playlist_consent" ->
+                        (value as? Boolean)?.takeIf { it != prefs[AiPlaylistConsentKey] }
+                            ?.let { prefs[AiPlaylistConsentKey] = it }
+
+                    "hide_explicit" ->
+                        (value as? Boolean)?.takeIf { it != prefs[HideExplicitKey] }?.let { prefs[HideExplicitKey] = it }
+
+                    "pause_listen_history" ->
+                        (value as? Boolean)?.takeIf { it != prefs[PauseListenHistoryKey] }
+                            ?.let { prefs[PauseListenHistoryKey] = it }
+
+                    "pause_search_history" ->
+                        (value as? Boolean)?.takeIf { it != prefs[PauseSearchHistoryKey] }
+                            ?.let { prefs[PauseSearchHistoryKey] = it }
+                }
+            }
+        }
     }
 
     private suspend fun pushSettings(settings: Map<String, Any?>) {
@@ -540,9 +661,26 @@ class SyncRepository @Inject constructor(
      * server; consent is enforced there too). Returns the resolved tracks
      * so the caller can create the playlist locally.
      */
-    suspend fun generateAiPlaylist(prompt: String, count: Int = 30): Result<List<SyncTrack>> {
+    suspend fun generateAiPlaylist(
+        prompt: String,
+        count: Int = 30,
+        artist: String? = null,
+        mixSimilar: Boolean = false,
+    ): Result<List<SyncTrack>> {
         val token = authRepository.getToken() ?: return Result.failure(Exception("Not signed in"))
-        val result = retryNetwork { SyncService.generateAiPlaylist(token, prompt, count) }
+        val result = retryNetwork {
+            SyncService.generateAiPlaylist(token, prompt, count, artist, mixSimilar)
+        }
+        if (result.isFailure) {
+            handleFailure(result.exceptionOrNull())
+        }
+        return result
+    }
+
+    /** Best-effort artist detection for the AI playlist flow. */
+    suspend fun detectArtist(prompt: String): Result<SyncArtist?> {
+        val token = authRepository.getToken() ?: return Result.failure(Exception("Not signed in"))
+        val result = retryNetwork { SyncService.detectArtist(token, prompt) }
         if (result.isFailure) {
             handleFailure(result.exceptionOrNull())
         }

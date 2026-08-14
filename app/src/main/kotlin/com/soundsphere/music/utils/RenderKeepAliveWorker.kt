@@ -13,7 +13,8 @@ import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
-import com.soundsphere.music.BuildConfig
+import com.soundsphere.music.data.BackendEndpoint
+import java.io.IOException
 import java.util.concurrent.TimeUnit
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -31,12 +32,21 @@ class RenderKeepAliveWorker(
 ) : CoroutineWorker(context, workerParams) {
 
     override suspend fun doWork(): Result {
-        val healthUrl = "${BuildConfig.API_BASE_URL}/health"
+        val healthUrl = "${BackendEndpoint.current()}/health"
         return try {
             client.newCall(Request.Builder().url(healthUrl).build()).execute().use { response ->
                 Timber.tag(TAG).d("Render health ping: HTTP ${response.code}")
-                if (response.isSuccessful) Result.success() else Result.retry()
+                if (response.isSuccessful) {
+                    BackendEndpoint.markSuccess()
+                    Result.success()
+                } else {
+                    Result.retry()
+                }
             }
+        } catch (e: IOException) {
+            BackendEndpoint.markFailure()
+            Timber.tag(TAG).w(e, "Render health ping failed")
+            Result.retry()
         } catch (e: Exception) {
             Timber.tag(TAG).w(e, "Render health ping failed")
             Result.retry()

@@ -45,7 +45,16 @@
     <string name="share_card_design_gradient">Gradient</string>
     <string name="share_card_design_minimal">Minimal</string>
     <string name="share_card_design_framed">Framed</string>
-    <string name="share_card_text">Listening to %1$s — %2$s on Soundsphere. Get the app: https://soundsphere-website-vujf.onrender.com</string>
+    <string name="share_card_text">Listening to %1$s — %2$s on Soundsphere\nhttps://api.soundsphere.name.ng/s/%3$s\nGet the app: https://soundsphere.name.ng/</string>
+    <!-- Shared links -->
+    <string name="share_playlist_message">Check out my playlist “%1$s” on Soundsphere — %2$d songs\nhttps://api.soundsphere.name.ng/p/%3$s\nsoundsphere://p/%3$s</string>
+    <string name="share_song_message">Now playing: %1$s — %2$s on Soundsphere\nhttps://api.soundsphere.name.ng/s/%3$s</string>
+    <string name="share_unavailable">Sharing isn’t available yet — sign in to your Soundsphere account first</string>
+    <string name="shared_playlist_screen_title">Shared playlist</string>
+    <string name="shared_playlist_load_error">Couldn’t load this playlist. Check your connection and try again.</string>
+    <string name="shared_playlist_play_all">Play all</string>
+    <string name="shared_playlist_song_count">%1$d songs</string>
+    <string name="shared_playlist_by_owner">by %1$s</string>
     <string name="create_playlist_with_ai">Create with AI</string>
     <string name="ai_playlist_prompt_title">Create a playlist with AI</string>
     <string name="ai_playlist_prompt_hint">Describe the vibe — e.g. rainy night lofi, 80s synthpop classics</string>
@@ -53,13 +62,15 @@
     <string name="ai_playlist_consent_title">AI playlist generation</string>
     <string name="ai_playlist_consent_text">To create a playlist from your request, Soundsphere sends your prompt and a list of titles and artists from your recent listening history to our server, which uses an AI provider (Groq) to suggest songs. Songs are then matched to YouTube Music. Your listening history is never shared with anyone else.</string>
     <string name="ai_playlist_agree">Agree &amp; continue</string>
+    <string name="ai_playlist_search_result_title">Create AI playlist</string>
+    <string name="ai_playlist_search_result_desc">Generate 30–50 tracks that match “%1$s”</string>
+    <string name="ai_playlist_choice_title">What should the playlist contain?</string>
+    <string name="ai_playlist_choice_only_artist">Only %1$s</string>
+    <string name="ai_playlist_choice_mix">%1$s + similar</string>
+    <string name="ai_playlist_choice_body">Generate a playlist of %1$s only, or %1$s plus artists with a similar style.</string>
     <string name="ai_playlist_failed">AI playlist generation failed</string>
     <string name="ai_playlist_not_enabled">AI playlist generation is not enabled yet</string>
     <string name="ai_playlist_no_tracks">No tracks could be generated, please try a different request</string>
-    <string name="ai_playlist_search_title">Create an AI playlist from this search?</string>
-    <string name="ai_playlist_search_text">Generate a playlist of songs that match \u201c%1$s\u201d, with 30 to 50 tracks.</string>
-    <string name="ai_playlist_search_action">Generate playlist</string>
-    <string name="ai_playlist_search_just_search">Just search</string>
     <string name="max_selection_limit">Maximum selection limit reached</string>
     <string name="share_selected">Share selected</string>
     <string name="customize_colors">Customize colors</string>
@@ -396,6 +407,17 @@
 
     <!-- Material 3 Settings Sections -->
     <string name="settings_section_ui">Interface</string>
+    <string name="sidebar_section_music">Music</string>
+    <string name="sidebar_section_app">App</string>
+    <string name="sidebar_sign_in_hint">Sign in to your account</string>
+    <string name="sidebar_signed_in">Signed in to Soundsphere</string>
+    <string name="soundsphere_account">Soundsphere account</string>
+    <string name="sidebar">Menu</string>
+    <string name="updates">Updates</string>
+    <string name="app_version_value">Version %1$s</string>
+    <string name="settings_section_ai">AI</string>
+    <string name="ai_playlist_generation">AI playlists</string>
+    <string name="ai_playlist_generation_desc">Let Soundsphere create playlists from your prompts</string>
     <string name="settings_section_privacy">Privacy &amp; Security</string>
     <string name="settings_section_player_content">Player &amp; Content</string>
     <string name="settings_section_storage">Storage &amp; Data</string>
@@ -777,6 +799,7 @@
     <string name="palette_sky_blue">Sky Blue</string>
     <string name="palette_cyan">Cyan</string>
     <string name="palette_teal">Teal</string>
+    <string name="palette_spotify_green">Spotify Green</string>
     <string name="palette_green">Green</string>
     <string name="palette_light_green">Light Green</string>
     <string name="palette_lime">Lime</string>
@@ -785,8 +808,11 @@
     <string name="palette_orange">Orange</string>
     <string name="palette_deep_orange">Deep Orange</string>
     <string name="palette_brown">Brown</string>
+    <string name="palette_charcoal_grey">Charcoal Grey</string>
     <string name="palette_grey">Grey</string>
+    <string name="palette_cool_grey">Cool Grey</string>
     <string name="palette_blue_grey">Blue Grey</string>
+    <string name="palette_pure_black">Pure Black</string>
 
     <!-- Theme Content Descriptions -->
     <string name="cd_back">Back</string>
@@ -877,6 +903,10 @@
     <string name="about_tagline">Built alone. Still going.</string>
     <string name="about_based_on_metrolist">Based on Metrolist, originally created by Mo Agamy</string>
     <string name="community_and_info">Community &amp; Info</string>
+    <string name="credits_feedback_group">WhatsApp feedback group</string>
+    <string name="credits_feedback_group_desc">Share bugs and ideas with the community</string>
+    <string name="credits_solus_log_channel">Solus Log channel</string>
+    <string name="credits_solus_log_channel_desc">Follow the update channel on WhatsApp</string>
     <string name="about_license_badge">GPL-3.0</string>
     <string name="report_an_issue">Report an Issue</string>
     <string name="report_an_issue_description">Found a bug or have a suggestion? Reach out directly.</string>
