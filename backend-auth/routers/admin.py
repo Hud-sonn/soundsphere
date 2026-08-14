@@ -40,8 +40,8 @@ async def stats_overview(request: Request, claims: dict = Depends(admin_required
     def days_ago(n: int) -> str:
         return (now - timedelta(days=n)).isoformat()
 
-    def count(table: str, **filters) -> int:
-        query = db.table(table).select("id", count="exact")
+    def count(table: str, col: str = "id", **filters) -> int:
+        query = db.table(table).select(col, count="exact")
         for column, value in filters.items():
             if column == "gte":
                 for k, v in value.items():
@@ -78,11 +78,11 @@ async def stats_overview(request: Request, claims: dict = Depends(admin_required
         },
         "content": {
             "tracks": count("tracks"),
-            "likes": count("liked_tracks"),
+            "likes": count("liked_tracks", col="user_id"),
             "playlists": count("playlists"),
             "playlist_tracks": count("playlist_tracks"),
             "history": count("history"),
-            "follows": count("followed_artists"),
+            "follows": count("followed_artists", col="user_id"),
         },
         "errors_24h": len(error_logs.data),
         "crashes": {
