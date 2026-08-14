@@ -11,6 +11,7 @@ into `tracks`. The app sends a TrackPayload for exactly this reason.
 """
 
 import logging
+import secrets
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -297,6 +298,7 @@ async def create_playlist(
                 "user_id": user_id,
                 "name": body.name,
                 "cover_url": body.cover_url,
+                "share_token": secrets.token_urlsafe(16),
             },
             returning="representation",
         )
@@ -306,6 +308,41 @@ async def create_playlist(
     playlist["track_count"] = 0
     playlist["tracks"] = []
     return playlist
+
+
+@router.post("/playlists/{playlist_id}/share")
+@limiter.limit(_WRITE_LIMIT)
+async def share_playlist(
+    playlist_id: str,
+    request: Request,
+    user_id: str = Depends(get_current_user),
+):
+    """Get (or lazily create) the unguessable share token for an owned
+    playlist. Idempotent: sharing an already-shared playlist returns the
+    existing token."""
+    db = get_supabase()
+    _require_user(db, user_id)
+    playlist = _get_owned_playlist(db, user_id, playlist_id)
+    token = playlist.get("share_token")
+    if not token:
+        token = secrets.token_urlsafe(16)
+        db.table("playlists").update({"share_token": token}).eq("id", playlist_id).execute()
+    return {"share_token": token}
+
+
+@router.delete("/playlists/{playlist_id}/share")
+@limiter.limit(_WRITE_LIMIT)
+async def unshare_playlist(
+    playlist_id: str,
+    request: Request,
+    user_id: str = Depends(get_current_user),
+):
+    """Revoke sharing: the token becomes NULL and every existing link dies."""
+    db = get_supabase()
+    _require_user(db, user_id)
+    _get_owned_playlist(db, user_id, playlist_id)
+    db.table("playlists").update({"share_token": None}).eq("id", playlist_id).execute()
+    return {"status": "ok"}
 
 
 @router.put("/playlists/{playlist_id}")
