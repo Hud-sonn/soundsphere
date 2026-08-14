@@ -16,6 +16,7 @@ import logging
 from fastapi import APIRouter, HTTPException, Request
 
 from db.supabase import get_supabase
+from services.activity import log_activity
 from services.limiter import limiter
 
 logger = logging.getLogger("soundsphere-auth")
@@ -85,6 +86,7 @@ async def get_shared_playlist(request: Request, token: str):
     if not rows.data:
         raise HTTPException(status_code=404, detail="Playlist not found or sharing disabled")
     playlist = rows.data[0]
+    log_activity(None, "share_view", f"playlist {token}")
 
     owner_rows = (
         db.table("users")

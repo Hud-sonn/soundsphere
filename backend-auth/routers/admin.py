@@ -15,6 +15,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from auth.jwt import admin_required, get_optional_user
 from db.supabase import get_supabase
 from models.schemas import CrashReportRequest
+from services.activity import log_activity
 from services.limiter import limiter
 
 logger = logging.getLogger("soundsphere-auth")
@@ -226,6 +227,41 @@ async def crash_detail(crash_id: str, request: Request, claims: dict = Depends(a
     return {"crash": result.data[0]}
 
 
+@router.get("/activity")
+@limiter.limit(_READ_LIMIT)
+async def activity_feed(
+    request: Request,
+    limit: int = 50,
+    claims: dict = Depends(admin_required),
+):
+    """Live activity feed: recent logins, signups, app usage, share-link
+    views, errors and crashes. Emails are resolved via the users table."""
+    db = get_supabase()
+    cap = min(max(limit, 1), 200)
+    rows = (
+        db.table("activity_events")
+        .select("id, user_id, event_type, detail, created_at")
+        .order("created_at", desc=True)
+        .limit(cap)
+        .execute()
+    )
+    events = rows.data
+    user_ids = {e["user_id"] for e in events if e.get("user_id")}
+    emails: dict[str, str] = {}
+    if user_ids:
+        user_rows = (
+            db.table("users")
+            .select("id, email")
+            .in_("id", list(user_ids))
+            .execute()
+        )
+        emails = {u["id"]: u.get("email", "") for u in user_rows.data}
+    for e in events:
+        e["email"] = emails.get(e.get("user_id"), "")
+        e.pop("user_id", None)
+    return {"events": events}
+
+
 @router.delete("/crashes/{crash_id}")
 @limiter.limit(_READ_LIMIT)
 async def delete_crash(crash_id: str, request: Request, claims: dict = Depends(admin_required)):
@@ -261,4 +297,5 @@ async def ingest_crash(
     if payload.reported_at:
         row["reported_at"] = payload.reported_at
     db.table("crash_reports").insert(row).execute()
+    log_activity(user_id or None, "crash", f"{payload.exception} :: {payload.message}")
     return {"ok": True}

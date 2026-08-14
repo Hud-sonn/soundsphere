@@ -19,6 +19,7 @@ from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import HTMLResponse
 
 from db.supabase import get_supabase
+from services.activity import log_activity
 from services.limiter import limiter
 
 logger = logging.getLogger("soundsphere-auth")
@@ -220,6 +221,7 @@ async def shared_playlist_page(request: Request, token: str):
     if not rows.data:
         raise HTTPException(status_code=404, detail="Playlist not found or sharing disabled")
     playlist = rows.data[0]
+    log_activity(None, "page_view", f"playlist {token}")
 
     raw_tracks = playlist.get("playlist_tracks") or []
     tracks = sorted(raw_tracks, key=lambda t: t.get("position", 0))
@@ -265,6 +267,7 @@ async def shared_playlist_page(request: Request, token: str):
 async def shared_song_page(request: Request, video_id: str):
     if not video_id or len(video_id) > 64:
         raise HTTPException(status_code=404, detail="Song not found")
+    log_activity(None, "page_view", f"song {video_id}")
     cover = f"https://i.ytimg.com/vi/{video_id}/hqdefault.jpg"
     url = f"https://api.soundsphere.name.ng/s/{html.escape(video_id, quote=True)}"
     head = _page_head(

@@ -187,6 +187,63 @@
   .badge.warn { background: rgba(217,179,108,0.15); color: var(--warn); }
   .badge.err { background: rgba(224,123,106,0.15); color: var(--danger); }
   .badge.muted { background: rgba(168,159,147,0.15); color: var(--muted); }
+  .badge.info { background: rgba(110,160,205,0.15); color: #6ea0cd; }
+
+  .live-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--ok);
+    margin-right: 8px;
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.25; }
+  }
+
+  .feed {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+
+  .feed-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+
+  .feed-item:last-child { border-bottom: none; }
+
+  .feed-item .rel { color: var(--muted); font-size: 12px; white-space: nowrap; min-width: 62px; }
+  .feed-item .who { min-width: 190px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .feed-item .what { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .feed-item .what code { color: var(--muted); }
+
+  .feed-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .feed-head .live-label {
+    display: flex;
+    align-items: center;
+    font-size: 12px;
+    color: var(--ok);
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
 
   .mono { font-family: 'JetBrains Mono', 'Courier New', monospace; font-size: 12px; }
   code { font-family: 'JetBrains Mono', 'Courier New', monospace; font-size: 12px; }
@@ -255,12 +312,14 @@
   </header>
   <nav>
     <button data-tab="overview" class="active">Overview</button>
+    <button data-tab="live">Live</button>
     <button data-tab="errors">Error log</button>
     <button data-tab="users">Users</button>
     <button data-tab="crashes">Crashes</button>
   </nav>
   <main>
     <section id="tab-overview"></section>
+    <section id="tab-live" class="hidden"></section>
     <section id="tab-errors" class="hidden"></section>
     <section id="tab-users" class="hidden"></section>
     <section id="tab-crashes" class="hidden"></section>
@@ -356,6 +415,70 @@ function fmtTs(ts) {
   if (!ts) return '—';
   const d = new Date(ts);
   return d.toLocaleString();
+}
+
+function fmtRel(ts) {
+  if (!ts) return '—';
+  const s = Math.max(0, (Date.now() - new Date(ts).getTime()) / 1000);
+  if (s < 5) return 'now';
+  if (s < 60) return `${Math.floor(s)}s ago`;
+  if (s < 3600) return `${Math.floor(s / 60)}m ago`;
+  if (s < 86400) return `${Math.floor(s / 3600)}h ago`;
+  return `${Math.floor(s / 86400)}d ago`;
+}
+
+// ===== Live activity =====
+
+const ACTIVITY_LABEL = {
+  login: ['Login', 'ok'],
+  signup: ['Signup', 'info'],
+  app_use: ['App use', 'info'],
+  share_view: ['Share link opened', 'warn'],
+  page_view: ['Page viewed', 'muted'],
+  error: ['API error', 'err'],
+  crash: ['Crash', 'err'],
+};
+
+let activityTimer = null;
+
+async function loadActivity() {
+  const tab = document.getElementById('tab-live');
+  try {
+    const data = await api('/admin/activity?limit=30');
+    const events = data.events || [];
+    const rows = events.length ? events.map(e => {
+      const [label, cls] = ACTIVITY_LABEL[e.event_type] || [e.event_type || 'event', 'muted'];
+      const who = e.email || (e.event_type === 'page_view' || e.event_type === 'share_view' || e.event_type === 'error' ? '<span class="muted">anonymous</span>' : '—');
+      return `
+        <div class="feed-item">
+          <span class="rel">${fmtRel(e.created_at)}</span>
+          <span class="badge ${cls}">${esc(label)}</span>
+          <span class="who">${who}</span>
+          <span class="what">${esc(e.detail) || '<span class="muted">—</span>'}</span>
+        </div>`;
+    }).join('') : '<div class="empty">No activity yet — logins, signups, app usage, share-link views and errors will appear here.</div>';
+    tab.innerHTML = `
+      <div class="feed-head">
+        <span class="live-label"><span class="live-dot"></span>Live</span>
+        <span class="detail">Refreshes every 5s</span>
+      </div>
+      <div class="feed">${rows}</div>`;
+  } catch (e) {
+    tab.innerHTML = `<p class="empty">Failed to load: ${esc(e.message)}</p>`;
+  }
+}
+
+function startActivityPoll() {
+  if (activityTimer) return;
+  loadActivity();
+  activityTimer = setInterval(loadActivity, 5000);
+}
+
+function stopActivityPoll() {
+  if (activityTimer) {
+    clearInterval(activityTimer);
+    activityTimer = null;
+  }
 }
 
 // ===== Overview =====
@@ -570,9 +693,11 @@ document.querySelectorAll('nav button[data-tab]').forEach(btn => {
   btn.onclick = () => {
     document.querySelectorAll('nav button[data-tab]').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    ['overview', 'errors', 'users', 'crashes'].forEach(t => {
+    ['overview', 'live', 'errors', 'users', 'crashes'].forEach(t => {
       document.getElementById('tab-' + t).classList.toggle('hidden', t !== btn.dataset.tab);
     });
+    if (btn.dataset.tab === 'live') startActivityPoll();
+    else stopActivityPoll();
     if (btn.dataset.tab === 'overview') loadOverview();
     if (btn.dataset.tab === 'errors') loadErrors();
     if (btn.dataset.tab === 'users') loadUsers();

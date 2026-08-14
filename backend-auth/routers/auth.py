@@ -4,6 +4,7 @@ from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, HTTPException, Request
 from db.supabase import get_supabase
 from services.limiter import limiter
+from services.activity import log_activity
 from auth.password import hash_password, verify_password
 
 logger = logging.getLogger("solus-rift")
@@ -178,6 +179,7 @@ async def verify(body: VerifyOtpRequest, request: Request = None):
         raise HTTPException(status_code=500, detail="Failed to create account")
     db.table("pending_registrations").delete().eq("email", email).execute()
     user = created.data[0]
+    log_activity(user["id"], "signup", email)
     token = create_token(user["id"], role=user.get("role", "user"))
     return TokenResponse(token=token, user=_user_to_response(user))
 
@@ -244,6 +246,7 @@ async def login(request: Request):
     db.table("users").update(
         {"last_active": datetime.now(timezone.utc).isoformat()}
     ).eq("id", user["id"]).execute()
+    log_activity(user["id"], "login", user.get("email", ""))
     token = create_token(user["id"], role=user.get("role", "user"))
     return TokenResponse(token=token, user=_user_to_response(user))
 
