@@ -177,6 +177,9 @@ val EnableDynamicIconKey = booleanPreferencesKey("enableDynamicIcon")
 // AI playlist generation (server-side Groq, consent stored both locally and on the server)
 val AiPlaylistConsentKey = booleanPreferencesKey("ai_playlist_consent")
 
+// Master switch for AI playlist generation (hidden from the UI entirely when off)
+val AiPlaylistEnabledKey = booleanPreferencesKey("ai_playlist_enabled")
+
 // Google Cast
 val EnableGoogleCastKey = booleanPreferencesKey("enableGoogleCast")
 
@@ -522,6 +525,8 @@ val InnerTubeCookieKey = stringPreferencesKey("innerTubeCookie")
 val AccountNameKey = stringPreferencesKey("accountName")
 val AccountEmailKey = stringPreferencesKey("accountEmail")
 val AccountChannelHandleKey = stringPreferencesKey("accountChannelHandle")
+val SoundsphereEmailKey = stringPreferencesKey("soundsphereEmail")
+val SoundsphereUsernameKey = stringPreferencesKey("soundsphereUsername")
 val UseLoginForBrowse = booleanPreferencesKey("useLoginForBrowse")
 
 val LanguageCodeToName =

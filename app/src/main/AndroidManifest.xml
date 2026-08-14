@@ -145,6 +145,18 @@
                 <data android:scheme="vnd.youtube.launch" />
             </intent-filter>
 
+            <!-- Soundsphere deep links (custom scheme; works on every flavor/applicationId).
+                 soundsphere://p/{token}   -> shared playlist
+                 soundsphere://song/{id}   -> shared song -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="soundsphere" />
+            </intent-filter>
+
             <!-- Share filter -->
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />

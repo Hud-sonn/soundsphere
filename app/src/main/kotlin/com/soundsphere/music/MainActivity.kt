@@ -54,13 +54,12 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialogDefaults
-import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -68,6 +67,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -125,7 +126,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import coil3.compose.AsyncImage
 import coil3.imageLoader
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
@@ -152,7 +152,6 @@ import com.soundsphere.music.constants.MiniPlayerBottomSpacing
 import com.soundsphere.music.constants.MiniPlayerHeight
 import com.soundsphere.music.constants.NavigationBarAnimationSpec
 import com.soundsphere.music.constants.NavigationBarHeight
-import com.soundsphere.music.constants.PauseListenHistoryKey
 import com.soundsphere.music.constants.PauseSearchHistoryKey
 import com.soundsphere.music.constants.PreferredLyricsProvider
 import com.soundsphere.music.constants.PreferredLyricsProviderKey
@@ -183,6 +182,7 @@ import com.soundsphere.music.ui.component.BottomSheetMenu
 import com.soundsphere.music.ui.component.BottomSheetPage
 import com.soundsphere.music.ui.component.LocalBottomSheetPageState
 import com.soundsphere.music.ui.component.LocalMenuState
+import com.soundsphere.music.ui.component.SoundsphereSidebar
 import com.soundsphere.music.ui.component.UpdateChangelogSheet
 import com.soundsphere.music.ui.component.UpdateSheetMode
 import com.soundsphere.music.ui.component.rememberBottomSheetState
@@ -216,6 +216,7 @@ import com.soundsphere.music.utils.rememberEnumPreference
 import com.soundsphere.music.utils.rememberPreference
 import com.soundsphere.music.utils.reportException
 import com.soundsphere.music.utils.setAppLocale
+import com.soundsphere.music.data.AuthRepository
 import com.soundsphere.music.data.SyncRepository
 import com.soundsphere.music.viewmodels.HomeViewModel
 import com.soundsphere.music.viewmodels.AuthViewModel
@@ -260,10 +261,14 @@ class MainActivity : ComponentActivity() {
     lateinit var syncRepository: SyncRepository
 
     @Inject
+    lateinit var authRepository: AuthRepository
+
+    @Inject
     lateinit var listenTogetherManager: com.soundsphere.music.listentogether.ListenTogetherManager
 
     private lateinit var navController: NavHostController
     private var pendingIntent: Intent? = null
+    private var pendingShareRoute: String? = null
     private var latestVersionName by mutableStateOf(BuildConfig.VERSION_NAME)
     private var showUpdateChangelogSheet by mutableStateOf(false)
     private var updateChangelogMode by mutableStateOf(UpdateSheetMode.AVAILABLE)
@@ -806,6 +811,8 @@ class MainActivity : ComponentActivity() {
 
                 val homeViewModel: HomeViewModel = hiltViewModel()
                 val accountImageUrl by homeViewModel.accountImageUrl.collectAsStateWithLifecycle()
+                val accountName by homeViewModel.accountName.collectAsStateWithLifecycle()
+                val soundsphereLoggedIn by authRepository.isLoggedIn.collectAsStateWithLifecycle()
                 val homeIsLoading by homeViewModel.isLoading.collectAsStateWithLifecycle()
                 val isHomePageLoading by homeViewModel.isHomePageLoading.collectAsStateWithLifecycle()
 
@@ -916,6 +923,9 @@ class MainActivity : ComponentActivity() {
                                 launchSingleTop = true
                             }
                         }
+                        // A shared-playlist deep link may have arrived while the
+                        // account gate was showing; now that we're logged in, deliver it.
+                        routePendingShareRoute(navController)
                     } else if (currentRoute !in authGateRoutes) {
                         if (currentRoute == Screens.Splash.route && !splashExiting) {
                             splashExiting = true
@@ -1163,6 +1173,7 @@ class MainActivity : ComponentActivity() {
                         handleRecognitionIntent(intent, navController)
                         handleDeepLinkIntent(intent, navController)
                     }
+                    routePendingShareRoute(navController)
                 }
 
                 DisposableEffect(isLoggedIn) {
@@ -1191,14 +1202,9 @@ class MainActivity : ComponentActivity() {
 
                 var showAccountDialog by remember { mutableStateOf(false) }
 
-                val pauseListenHistory by rememberPreference(PauseListenHistoryKey, defaultValue = false)
-                val eventCount by database.eventCount().collectAsStateWithLifecycle(initialValue = 0)
-                val showHistoryButton =
-                    remember(pauseListenHistory, eventCount) {
-                        !(pauseListenHistory && eventCount == 0)
-                    }
-
                 val baseBg = if (pureBlack) Color.Black else MaterialTheme.colorScheme.surfaceContainer
+
+                val drawerState = rememberDrawerState(DrawerValue.Closed)
 
                 CompositionLocalProvider(
                     LocalDatabase provides database,
@@ -1257,6 +1263,41 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
+                    ModalNavigationDrawer(
+                        drawerState = drawerState,
+                        drawerContent = {
+                            SoundsphereSidebar(
+                                currentRoute = navBackStackEntry?.destination?.route,
+                                accountName = accountName,
+                                accountImageUrl = accountImageUrl,
+                                listenTogetherInTopBar = listenTogetherInTopBar,
+                                updateAvailable = Updater.isUpdateAvailable(BuildConfig.VERSION_NAME, latestVersionName),
+                                isLoggedIn = soundsphereLoggedIn,
+                                onNavigate = { route ->
+                                    coroutineScope.launch {
+                                        drawerState.close()
+                                        navController.navigate(route) {
+                                            popUpTo(navController.graph.startDestinationId) { saveState = true }
+                                            launchSingleTop = true
+                                            restoreState = true
+                                        }
+                                    }
+                                },
+                                onOpenAccount = {
+                                    coroutineScope.launch {
+                                        drawerState.close()
+                                        showAccountDialog = true
+                                    }
+                                },
+                                onOpenChangelog = {
+                                    coroutineScope.launch {
+                                        drawerState.close()
+                                        showChangelog.value = true
+                                    }
+                                },
+                            )
+                        },
+                    ) {
                     Scaffold(
                         snackbarHost = { SnackbarHost(snackbarHostState) },
                         topBar = {
@@ -1284,52 +1325,14 @@ class MainActivity : ComponentActivity() {
                                                 )
                                             }
                                         },
-                                        actions = {
-                                            if (showHistoryButton) {
-                                                IconButton(onClick = { navController.navigate("history") }) {
-                                                    Icon(
-                                                        painter = painterResource(R.drawable.history),
-                                                        contentDescription = stringResource(R.string.history),
-                                                    )
-                                                }
-                                            }
-                                            IconButton(onClick = { navController.navigate("stats") }) {
+                                        navigationIcon = {
+                                            IconButton(onClick = {
+                                                coroutineScope.launch { drawerState.open() }
+                                            }) {
                                                 Icon(
-                                                    painter = painterResource(R.drawable.stats),
-                                                    contentDescription = stringResource(R.string.stats),
+                                                    painter = painterResource(R.drawable.hamburger),
+                                                    contentDescription = stringResource(R.string.sidebar),
                                                 )
-                                            }
-                                            if (listenTogetherInTopBar) {
-                                                IconButton(onClick = { navController.navigate("listen_together_from_topbar") }) {
-                                                    Icon(
-                                                        painter = painterResource(R.drawable.group_outlined),
-                                                        contentDescription = stringResource(R.string.together),
-                                                    )
-                                                }
-                                            }
-                                            IconButton(onClick = { showAccountDialog = true }) {
-                                                BadgedBox(badge = {
-                                                    if (Updater.isUpdateAvailable(BuildConfig.VERSION_NAME, latestVersionName)) {
-                                                        Badge()
-                                                    }
-                                                }) {
-                                                    if (accountImageUrl != null) {
-                                                        AsyncImage(
-                                                            model = accountImageUrl,
-                                                            contentDescription = stringResource(R.string.account),
-                                                            modifier =
-                                                                Modifier
-                                                                    .size(24.dp)
-                                                                    .clip(CircleShape),
-                                                        )
-                                                    } else {
-                                                        Icon(
-                                                            painter = painterResource(R.drawable.account),
-                                                            contentDescription = stringResource(R.string.account),
-                                                            modifier = Modifier.size(24.dp),
-                                                        )
-                                                    }
-                                                }
                                             }
                                         },
                                         scrollBehavior = topAppBarScrollBehavior,
@@ -1481,7 +1484,7 @@ class MainActivity : ComponentActivity() {
                                     )
                                 }
                             } else {
-                                if (currentRoute != "wrapped") {
+                                if (currentRoute != "wrapped" && currentRoute !in authGateRoutes) {
                                     if (activePlayerConnection != null) {
                                         BottomSheetPlayer(
                                             state = playerBottomSheetState,
@@ -1624,6 +1627,7 @@ class MainActivity : ComponentActivity() {
                             }
                         }
                     }
+                    }
 
                     BottomSheetMenu(
                         state = LocalMenuState.current,
@@ -1758,6 +1762,37 @@ class MainActivity : ComponentActivity() {
         intent.removeExtra(Intent.EXTRA_TEXT)
         val coroutineScope = lifecycle.coroutineScope
 
+        // Soundsphere deep links: soundsphere://p/{token} (shared playlist),
+        // soundsphere://song/{videoId} (shared song), plus the https fallback
+        // https://soundsphere.name.ng/p.html?token=... Shared playlists are
+        // deferred via pendingShareRoute so they survive the auth gate when
+        // the user is logged out.
+        if (uri.scheme == "soundsphere" || uri.host == "soundsphere.name.ng") {
+            val isWebFallback = uri.host == "soundsphere.name.ng"
+            val host = uri.host ?: ""
+            val segments = uri.pathSegments
+            val token =
+                uri.getQueryParameter("token")
+                    ?: when {
+                        isWebFallback && segments.firstOrNull() == "p" -> segments.getOrNull(1)
+                        else -> segments.firstOrNull()
+                    }
+            val isPlaylistLink =
+                host == "p" || host == "playlist" ||
+                    (isWebFallback && (segments.firstOrNull() == "p" || segments.firstOrNull() == "p.html"))
+            if (isPlaylistLink && !token.isNullOrBlank()) {
+                pendingShareRoute = "shared_playlist/$token"
+                routePendingShareRoute(navController)
+                return
+            }
+            val videoId = uri.getQueryParameter("v") ?: segments.firstOrNull()
+            if ((host == "song" || host == "s" || host == "watch") && !videoId.isNullOrBlank()) {
+                playVideoId(videoId, null)
+                return
+            }
+            return
+        }
+
         val listenCode =
             uri.getQueryParameter("code")
                 ?: uri.getQueryParameter("room")
@@ -1819,22 +1854,7 @@ class MainActivity : ComponentActivity() {
                 val playlistId = uri.getQueryParameter("list")
 
                 if (videoId != null) {
-                    coroutineScope.launch(Dispatchers.IO) {
-                        YouTube
-                            .queue(listOf(videoId), playlistId)
-                            .onSuccess { queue ->
-                                withContext(Dispatchers.Main) {
-                                    playerConnection?.playQueue(
-                                        YouTubeQueue(
-                                            WatchEndpoint(videoId = queue.firstOrNull()?.id, playlistId = playlistId),
-                                            queue.firstOrNull()?.toMediaMetadata(),
-                                        ),
-                                    )
-                                }
-                            }.onFailure {
-                                reportException(it)
-                            }
-                    }
+                    playVideoId(videoId, playlistId)
                 } else if (playlistId != null) {
                     coroutineScope.launch(Dispatchers.IO) {
                         YouTube
@@ -1856,6 +1876,42 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    /**
+     * Queues a single YouTube video and starts playback — the same path used
+     * by /watch deep links, youtu.be links and the shared-song deep link.
+     */
+    private fun playVideoId(videoId: String, playlistId: String?) {
+        val coroutineScope = lifecycle.coroutineScope
+        coroutineScope.launch(Dispatchers.IO) {
+            YouTube
+                .queue(listOf(videoId), playlistId)
+                .onSuccess { queue ->
+                    withContext(Dispatchers.Main) {
+                        playerConnection?.playQueue(
+                            YouTubeQueue(
+                                WatchEndpoint(videoId = queue.firstOrNull()?.id, playlistId = playlistId),
+                                queue.firstOrNull()?.toMediaMetadata(),
+                            ),
+                        )
+                    }
+                }.onFailure {
+                    reportException(it)
+                }
+        }
+    }
+
+    /**
+     * Navigates to the pending shared-playlist route, but only once logged in:
+     * deep links that arrive while the account gate is showing would otherwise
+     * be consumed and lost (the intent data is nulled in handleDeepLinkIntent).
+     */
+    private fun routePendingShareRoute(navController: NavHostController) {
+        val route = pendingShareRoute ?: return
+        if (!authViewModel.isLoggedIn.value) return
+        pendingShareRoute = null
+        navController.navigate(route) { launchSingleTop = true }
     }
 
     @SuppressLint("ObsoleteSdkInt")

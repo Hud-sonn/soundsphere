@@ -35,6 +35,7 @@ import androidx.navigation.NavController
 import com.soundsphere.music.BuildConfig
 import com.soundsphere.music.LocalPlayerAwareWindowInsets
 import com.soundsphere.music.R
+import com.soundsphere.music.constants.AiPlaylistEnabledKey
 import com.soundsphere.music.ui.component.IconButton
 import com.soundsphere.music.ui.component.Material3SettingsGroup
 import com.soundsphere.music.ui.component.Material3SettingsItem
@@ -44,6 +45,7 @@ import com.soundsphere.music.ui.component.UpdateSheetMode
 import com.soundsphere.music.ui.utils.backToMain
 import com.soundsphere.music.utils.AppUpdateDownloader
 import com.soundsphere.music.utils.Updater
+import com.soundsphere.music.utils.rememberPreference
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -111,6 +113,24 @@ fun SettingsScreen(
                     icon = painterResource(R.drawable.language),
                     title = { Text(stringResource(R.string.content)) },
                     onClick = { navController.navigate("settings/content") }
+                )
+            )
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // AI Section
+        Material3SettingsGroup(
+            title = stringResource(R.string.settings_section_ai),
+            items = listOf(
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.ai),
+                    title = { Text(stringResource(R.string.ai_playlist_generation)) },
+                    description = { Text(stringResource(R.string.ai_playlist_generation_desc)) },
+                    trailingContent = {
+                        val (enabled, onEnabledChange) = rememberPreference(AiPlaylistEnabledKey, true)
+                        Switch(checked = enabled, onCheckedChange = onEnabledChange)
+                    }
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.translate),

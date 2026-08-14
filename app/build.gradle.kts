@@ -140,7 +140,10 @@ android {
         // SoundSphere auth API. Debug builds can target a local dev server via
         // local.properties (AUTH_DEV_BASE_URL) or the AUTH_DEV_BASE_URL env var;
         // they fall back to production when unset so nothing breaks.
-        buildConfigField("String", "API_BASE_URL", "\"https://soundsphere-auth.onrender.com\"")
+        // API_BASE_URL is the primary host; API_FALLBACK_BASE_URL is used
+        // automatically when the primary is unreachable (see BackendEndpoint).
+        buildConfigField("String", "API_BASE_URL", "\"https://api.soundsphere.name.ng\"")
+        buildConfigField("String", "API_FALLBACK_BASE_URL", "\"https://soundsphere-auth.onrender.com\"")
     }
 
     flavorDimensions += listOf("variant")
@@ -202,7 +205,8 @@ android {
             isShrinkResources = true
             isCrunchPngs = false
             isDebuggable = false
-            buildConfigField("String", "API_BASE_URL", "\"https://soundsphere-auth.onrender.com\"")
+            buildConfigField("String", "API_BASE_URL", "\"https://api.soundsphere.name.ng\"")
+            buildConfigField("String", "API_FALLBACK_BASE_URL", "\"https://soundsphere-auth.onrender.com\"")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
@@ -222,8 +226,9 @@ android {
             val devAuthBaseUrl =
                 localProperties.getProperty("AUTH_DEV_BASE_URL")
                     ?: System.getenv("AUTH_DEV_BASE_URL")
-                    ?: "https://soundsphere-auth.onrender.com"
+                    ?: "https://api.soundsphere.name.ng"
             buildConfigField("String", "API_BASE_URL", "\"$devAuthBaseUrl\"")
+            buildConfigField("String", "API_FALLBACK_BASE_URL", "\"https://soundsphere-auth.onrender.com\"")
             if (applicationIdOverride == null) {
                 applicationIdSuffix = ".debug"
             }

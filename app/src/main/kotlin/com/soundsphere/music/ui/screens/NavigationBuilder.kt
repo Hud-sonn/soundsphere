@@ -38,6 +38,7 @@ import com.soundsphere.music.ui.screens.playlist.AutoPlaylistScreen
 import com.soundsphere.music.ui.screens.playlist.CachePlaylistScreen
 import com.soundsphere.music.ui.screens.playlist.LocalPlaylistScreen
 import com.soundsphere.music.ui.screens.playlist.OnlinePlaylistScreen
+import com.soundsphere.music.ui.screens.playlist.SharedPlaylistScreen
 import com.soundsphere.music.ui.screens.playlist.TopPlaylistScreen
 import com.soundsphere.music.ui.screens.podcast.OnlinePodcastScreen
 import com.soundsphere.music.ui.screens.recognition.RecognitionHistoryScreen
@@ -281,6 +282,18 @@ fun NavGraphBuilder.navigationBuilder(
             ),
     ) {
         OnlinePlaylistScreen(navController)
+    }
+
+    composable(
+        route = "shared_playlist/{token}",
+        arguments =
+            listOf(
+                navArgument("token") {
+                    type = NavType.StringType
+                },
+            ),
+    ) {
+        SharedPlaylistScreen(navController)
     }
 
     composable(

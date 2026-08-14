@@ -74,7 +74,8 @@ class AuthViewModel @Inject constructor(
         val token = repository.getToken() ?: return
         viewModelScope.launch {
             AuthService.me(token)
-                .onSuccess {
+                .onSuccess { user ->
+                    syncRepository.cacheAccountProfile(user.email, user.username)
                     _authChecked.value = true
                 }
                 .onFailure { error ->

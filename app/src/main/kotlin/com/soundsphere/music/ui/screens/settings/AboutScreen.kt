@@ -99,7 +99,8 @@ private data class Contributor(
 private data class CommunityLink(
     val labelRes: Int,
     val iconRes: Int,
-    val url: String
+    val url: String,
+    val descRes: Int? = null,
 )
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -115,7 +116,9 @@ private val collaborators = emptyList<Contributor>()
 
 private val communityLinks = listOf(
     CommunityLink(R.string.credits_view_repo, R.drawable.github, "https://github.com/Hud-sonn/soundsphere"),
-    CommunityLink(R.string.credits_license_name, R.drawable.info, "https://github.com/Hud-sonn/soundsphere/blob/main/LICENSE")
+    CommunityLink(R.string.credits_license_name, R.drawable.info, "https://github.com/Hud-sonn/soundsphere/blob/main/LICENSE", R.string.credits_license_desc),
+    CommunityLink(R.string.credits_feedback_group, R.drawable.whatsapp, "https://chat.whatsapp.com/DHjfKPLbn5iE7i1EqOELwX?s=cl&p=a&ilr=4", R.string.credits_feedback_group_desc),
+    CommunityLink(R.string.credits_solus_log_channel, R.drawable.whatsapp, "https://whatsapp.com/channel/0029VbDq3TyEQIaq2loTE147", R.string.credits_solus_log_channel_desc),
 )
 
 private fun handleEasterEggClick(
@@ -505,9 +508,9 @@ fun AboutScreen(
                 Material3SettingsItem(
                     icon = painterResource(link.iconRes),
                     title = { Text(stringResource(link.labelRes), fontWeight = FontWeight.SemiBold) },
-                    description = if (link.labelRes == R.string.credits_license_name) {
-                        { Text(stringResource(R.string.credits_license_desc)) }
-                    } else null,
+                    description = link.descRes?.let { descRes ->
+                        { Text(stringResource(descRes)) }
+                    },
                     onClick = { uriHandler.openUri(link.url) }
                 )
             }

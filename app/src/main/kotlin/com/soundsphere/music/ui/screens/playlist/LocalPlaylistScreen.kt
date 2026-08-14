@@ -1396,6 +1396,7 @@ fun LocalPlaylistHeader(
                             songs = songs,
                             context = context,
                             downloadState = downloadState,
+                            coroutineScope = scope,
                             onEdit = onShowEditDialog,
                             onSync = {
                                 scope.launch(Dispatchers.IO) {

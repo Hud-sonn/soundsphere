@@ -64,6 +64,7 @@ import com.soundsphere.music.LocalPlayerAwareWindowInsets
 import com.soundsphere.music.LocalSyncRepository
 import com.soundsphere.music.R
 import com.soundsphere.music.constants.AiPlaylistConsentKey
+import com.soundsphere.music.constants.AiPlaylistEnabledKey
 import com.soundsphere.music.constants.CONTENT_TYPE_HEADER
 import com.soundsphere.music.constants.CONTENT_TYPE_PLAYLIST
 import com.soundsphere.music.constants.GridItemSize
@@ -350,6 +351,7 @@ fun LibraryPlaylistsScreen(
     var showAiPromptDialog by rememberSaveable { mutableStateOf(false) }
     var aiGenerating by rememberSaveable { mutableStateOf(false) }
     var aiConsent by rememberPreference(AiPlaylistConsentKey, false)
+    var aiPlaylistsEnabled by rememberPreference(AiPlaylistEnabledKey, true)
 
     val aiNotEnabledStr = stringResource(R.string.ai_playlist_not_enabled)
     val aiFailedStr = stringResource(R.string.ai_playlist_failed)
@@ -383,7 +385,7 @@ fun LibraryPlaylistsScreen(
                         insert(playlistEntity)
                         tracks.forEachIndexed { index, track ->
                             if (track.id !in existingSongIds) {
-                                insert(
+                                insertSongWithArtists(
                                     SongEntity(
                                         id = track.id,
                                         title = track.title,
@@ -393,6 +395,7 @@ fun LibraryPlaylistsScreen(
                                         year = track.year,
                                         inLibrary = LocalDateTime.now(),
                                     ),
+                                    listOfNotNull(track.artist.takeIf { it.isNotBlank() }),
                                 )
                             }
                             insert(
@@ -705,27 +708,29 @@ fun LibraryPlaylistsScreen(
         }
 
         // AI playlist generation (server-side Groq, keys never reach the app)
-        FloatingActionButton(
-            onClick = {
-                if (aiConsent) {
-                    showAiPromptDialog = true
-                } else {
-                    showAiConsentDialog = true
-                }
-            },
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .windowInsetsPadding(
-                    LocalPlayerAwareWindowInsets.current
-                        .only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal)
+        if (aiPlaylistsEnabled) {
+            FloatingActionButton(
+                onClick = {
+                    if (aiConsent) {
+                        showAiPromptDialog = true
+                    } else {
+                        showAiConsentDialog = true
+                    }
+                },
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .windowInsetsPadding(
+                        LocalPlayerAwareWindowInsets.current
+                            .only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal)
+                    )
+                    .padding(16.dp)
+                    .padding(bottom = 72.dp),
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.ai),
+                    contentDescription = stringResource(R.string.create_playlist_with_ai),
                 )
-                .padding(16.dp)
-                .padding(bottom = 72.dp),
-        ) {
-            Icon(
-                painter = painterResource(R.drawable.ai),
-                contentDescription = stringResource(R.string.create_playlist_with_ai),
-            )
+            }
         }
     }
 }

@@ -2291,6 +2291,7 @@ private fun shareBitmap(
             R.string.share_card_text,
             mediaMetadata.title,
             mediaMetadata.artists.joinToString { it.name },
+            mediaMetadata.id,
         )
     val intent =
         Intent().apply {

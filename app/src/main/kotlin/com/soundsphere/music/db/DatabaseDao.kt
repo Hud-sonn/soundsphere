@@ -1682,6 +1682,35 @@ interface DatabaseDao {
         }
     }
 
+    /** Inserts a song plus its artist relations (find-or-create artists by name). */
+    @Transaction
+    fun insertSongWithArtists(
+        song: SongEntity,
+        artists: List<String>,
+    ) {
+        if (insert(song) == -1L) return
+
+        artists.forEachIndexed { index, name ->
+            if (name.isBlank()) return@forEachIndexed
+            val artistId = artistByName(name)?.id ?: ArtistEntity.generateArtistId()
+
+            insert(
+                ArtistEntity(
+                    id = artistId,
+                    name = name,
+                )
+            )
+
+            insert(
+                SongArtistMap(
+                    songId = song.id,
+                    artistId = artistId,
+                    position = index,
+                )
+            )
+        }
+    }
+
     @Transaction
     fun insert(albumPage: AlbumPage) {
         if (insert(

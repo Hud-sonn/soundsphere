@@ -55,6 +55,7 @@ import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.soundsphere.innertube.YouTube
 import com.soundsphere.innertube.utils.parseCookieString
+import com.soundsphere.music.LocalPlayerConnection
 import com.soundsphere.music.BuildConfig
 import com.soundsphere.music.R
 import com.soundsphere.music.constants.AccountChannelHandleKey
@@ -112,6 +113,7 @@ fun AccountSettings(
     var showTokenEditor by remember { mutableStateOf(false) }
     var showLogoutDialog by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
+    val playerConnection = LocalPlayerConnection.current
 
     Column(
         modifier = Modifier
@@ -167,6 +169,13 @@ fun AccountSettings(
                                 }
                                 onInnerTubeCookieChange("")
                                 Timber.d("[LOGOUT_CLEAR] Logout complete")
+                                // Stop playback so music doesn't keep playing after the
+                                // YouTube account is signed out (mirrors the auth logout effect).
+                                playerConnection?.let {
+                                    it.service.clearAutomix()
+                                    it.player.stop()
+                                    it.player.clearMediaItems()
+                                }
                                 showLogoutDialog = false
                                 onClose()
                             }
@@ -181,6 +190,13 @@ fun AccountSettings(
                                 Timber.d("[LOGOUT_KEEP] Starting logout process (keeping data)")
                                 accountSettingsViewModel.logoutKeepData(context, onInnerTubeCookieChange)
                                 Timber.d("[LOGOUT_KEEP] Logout complete")
+                                // Stop playback so music doesn't keep playing after the
+                                // YouTube account is signed out (mirrors the auth logout effect).
+                                playerConnection?.let {
+                                    it.service.clearAutomix()
+                                    it.player.stop()
+                                    it.player.clearMediaItems()
+                                }
                                 showLogoutDialog = false
                                 onClose()
                             }

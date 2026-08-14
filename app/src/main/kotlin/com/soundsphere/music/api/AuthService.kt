@@ -5,14 +5,16 @@
 
 package com.soundsphere.music.api
 
-import com.soundsphere.music.BuildConfig
+import com.soundsphere.music.data.BackendEndpoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.Response
 import org.json.JSONObject
+import java.io.IOException
 import java.util.concurrent.TimeUnit
 
 data class AuthUser(
@@ -47,7 +49,35 @@ object AuthService {
             .build()
     private val JSON = "application/json; charset=utf-8".toMediaType()
 
-    private const val BASE_URL = BuildConfig.API_BASE_URL
+    /**
+     * Runs a backend call against the current [BackendEndpoint] host. If the
+     * network layer fails (IOException), the request is retried once against
+     * the fallback host so a dead primary domain never blocks login/sync.
+     */
+    private suspend fun <T> withBackend(
+        build: (base: String) -> Request,
+        parse: (Response) -> Result<T>,
+    ): Result<T> =
+        withContext(Dispatchers.IO) {
+            try {
+                executeOnce(BackendEndpoint.current(), build, parse)
+            } catch (e: IOException) {
+                BackendEndpoint.markFailure()
+                try {
+                    executeOnce(BackendEndpoint.current(), build, parse)
+                } catch (e2: IOException) {
+                    Result.failure(e2)
+                }
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
+
+    private fun <T> executeOnce(
+        base: String,
+        build: (base: String) -> Request,
+        parse: (Response) -> Result<T>,
+    ): Result<T> = client.newCall(build(base)).execute().use { parse(it) }
 
     /**
      * Parses the backend error body into a human-readable message, preferring
@@ -68,194 +98,179 @@ object AuthService {
         password: String,
         username: String,
     ): Result<Unit> =
-        withContext(Dispatchers.IO) {
-            try {
-                val jsonBody =
-                    JSONObject()
-                        .put("email", email)
-                        .put("password", password)
-                        .put("username", username)
-                val request =
-                    Request
-                        .Builder()
-                        .url("$BASE_URL/auth/register")
-                        .post(jsonBody.toString().toRequestBody(JSON))
-                        .build()
-                client.newCall(request).execute().use { response ->
-                    val body = response.body?.string()
-                    if (response.isSuccessful) {
-                        Result.success(Unit)
-                    } else {
-                        Result.failure(Exception(errorMessage(body, response.code)))
-                    }
+        withBackend(
+            build = { base ->
+                Request
+                    .Builder()
+                    .url("$base/auth/register")
+                    .post(
+                        JSONObject()
+                            .put("email", email)
+                            .put("password", password)
+                            .put("username", username)
+                            .toString()
+                            .toRequestBody(JSON),
+                    )
+                    .build()
+            },
+            parse = { response ->
+                val body = response.body?.string()
+                if (response.isSuccessful) {
+                    Result.success(Unit)
+                } else {
+                    Result.failure(Exception(errorMessage(body, response.code)))
                 }
-            } catch (e: Exception) {
-                Result.failure(e)
-            }
-        }
+            },
+        )
 
     suspend fun verify(
         email: String,
         otp: String,
     ): Result<AuthToken> =
-        withContext(Dispatchers.IO) {
-            try {
-                val jsonBody =
-                    JSONObject()
-                        .put("email", email)
-                        .put("otp", otp)
-                val request =
-                    Request
-                        .Builder()
-                        .url("$BASE_URL/auth/verify")
-                        .post(jsonBody.toString().toRequestBody(JSON))
-                        .build()
-                client.newCall(request).execute().use { response ->
-                    val body = response.body?.string()
-                    if (response.isSuccessful) {
-                        Result.success(parseToken(body))
-                    } else {
-                        Result.failure(Exception(errorMessage(body, response.code)))
-                    }
+        withBackend(
+            build = { base ->
+                Request
+                    .Builder()
+                    .url("$base/auth/verify")
+                    .post(
+                        JSONObject()
+                            .put("email", email)
+                            .put("otp", otp)
+                            .toString()
+                            .toRequestBody(JSON),
+                    )
+                    .build()
+            },
+            parse = { response ->
+                val body = response.body?.string()
+                if (response.isSuccessful) {
+                    Result.success(parseToken(body))
+                } else {
+                    Result.failure(Exception(errorMessage(body, response.code)))
                 }
-            } catch (e: Exception) {
-                Result.failure(e)
-            }
-        }
+            },
+        )
 
     suspend fun resendOtp(email: String): Result<Unit> =
-        withContext(Dispatchers.IO) {
-            try {
-                val jsonBody = JSONObject().put("email", email)
-                val request =
-                    Request
-                        .Builder()
-                        .url("$BASE_URL/auth/resend-otp")
-                        .post(jsonBody.toString().toRequestBody(JSON))
-                        .build()
-                client.newCall(request).execute().use { response ->
-                    val body = response.body?.string()
-                    if (response.isSuccessful) {
-                        Result.success(Unit)
-                    } else {
-                        Result.failure(Exception(errorMessage(body, response.code)))
-                    }
+        withBackend(
+            build = { base ->
+                Request
+                    .Builder()
+                    .url("$base/auth/resend-otp")
+                    .post(JSONObject().put("email", email).toString().toRequestBody(JSON))
+                    .build()
+            },
+            parse = { response ->
+                val body = response.body?.string()
+                if (response.isSuccessful) {
+                    Result.success(Unit)
+                } else {
+                    Result.failure(Exception(errorMessage(body, response.code)))
                 }
-            } catch (e: Exception) {
-                Result.failure(e)
-            }
-        }
+            },
+        )
 
     suspend fun login(
         email: String,
         password: String,
     ): Result<AuthToken> =
-        withContext(Dispatchers.IO) {
-            try {
-                val jsonBody =
-                    JSONObject()
-                        .put("email", email)
-                        .put("password", password)
-                val request =
-                    Request
-                        .Builder()
-                        .url("$BASE_URL/auth/login")
-                        .post(jsonBody.toString().toRequestBody(JSON))
-                        .build()
-                client.newCall(request).execute().use { response ->
-                    val body = response.body?.string()
-                    if (response.isSuccessful) {
-                        Result.success(parseToken(body))
-                    } else {
-                        Result.failure(Exception(errorMessage(body, response.code)))
-                    }
+        withBackend(
+            build = { base ->
+                Request
+                    .Builder()
+                    .url("$base/auth/login")
+                    .post(
+                        JSONObject()
+                            .put("email", email)
+                            .put("password", password)
+                            .toString()
+                            .toRequestBody(JSON),
+                    )
+                    .build()
+            },
+            parse = { response ->
+                val body = response.body?.string()
+                if (response.isSuccessful) {
+                    Result.success(parseToken(body))
+                } else {
+                    Result.failure(Exception(errorMessage(body, response.code)))
                 }
-            } catch (e: Exception) {
-                Result.failure(e)
-            }
-        }
+            },
+        )
 
     suspend fun forgotPassword(email: String): Result<Unit> =
-        withContext(Dispatchers.IO) {
-            try {
-                val jsonBody = JSONObject().put("email", email)
-                val request =
-                    Request
-                        .Builder()
-                        .url("$BASE_URL/auth/forgot-password")
-                        .post(jsonBody.toString().toRequestBody(JSON))
-                        .build()
-                client.newCall(request).execute().use { response ->
-                    val body = response.body?.string()
-                    if (response.isSuccessful) {
-                        Result.success(Unit)
-                    } else {
-                        Result.failure(Exception(errorMessage(body, response.code)))
-                    }
+        withBackend(
+            build = { base ->
+                Request
+                    .Builder()
+                    .url("$base/auth/forgot-password")
+                    .post(JSONObject().put("email", email).toString().toRequestBody(JSON))
+                    .build()
+            },
+            parse = { response ->
+                val body = response.body?.string()
+                if (response.isSuccessful) {
+                    Result.success(Unit)
+                } else {
+                    Result.failure(Exception(errorMessage(body, response.code)))
                 }
-            } catch (e: Exception) {
-                Result.failure(e)
-            }
-        }
+            },
+        )
 
     suspend fun resetPassword(
         email: String,
         otp: String,
         newPassword: String,
     ): Result<Unit> =
-        withContext(Dispatchers.IO) {
-            try {
-                val jsonBody =
-                    JSONObject()
-                        .put("email", email)
-                        .put("otp", otp)
-                        .put("new_password", newPassword)
-                val request =
-                    Request
-                        .Builder()
-                        .url("$BASE_URL/auth/reset-password")
-                        .post(jsonBody.toString().toRequestBody(JSON))
-                        .build()
-                client.newCall(request).execute().use { response ->
-                    val body = response.body?.string()
-                    if (response.isSuccessful) {
-                        Result.success(Unit)
-                    } else {
-                        Result.failure(Exception(errorMessage(body, response.code)))
-                    }
+        withBackend(
+            build = { base ->
+                Request
+                    .Builder()
+                    .url("$base/auth/reset-password")
+                    .post(
+                        JSONObject()
+                            .put("email", email)
+                            .put("otp", otp)
+                            .put("new_password", newPassword)
+                            .toString()
+                            .toRequestBody(JSON),
+                    )
+                    .build()
+            },
+            parse = { response ->
+                val body = response.body?.string()
+                if (response.isSuccessful) {
+                    Result.success(Unit)
+                } else {
+                    Result.failure(Exception(errorMessage(body, response.code)))
                 }
-            } catch (e: Exception) {
-                Result.failure(e)
-            }
-        }
+            },
+        )
 
     suspend fun me(token: String): Result<AuthUser> =
-        withContext(Dispatchers.IO) {
-            try {
-                val request =
-                    Request
-                        .Builder()
-                        .url("$BASE_URL/auth/me")
-                        .header("Authorization", "Bearer $token")
-                        .get()
-                        .build()
-                client.newCall(request).execute().use { response ->
-                    val body = response.body?.string()
-                    if (response.isSuccessful) {
-                        Result.success(parseUser(body))
+        withBackend(
+            build = { base ->
+                Request
+                    .Builder()
+                    .url("$base/auth/me")
+                    .header("Authorization", "Bearer $token")
+                    .get()
+                    .build()
+            },
+            parse = { response ->
+                val body = response.body?.string()
+                if (response.isSuccessful) {
+                    Result.success(parseUser(body))
+                } else {
+                    val message = errorMessage(body, response.code)
+                    if (response.code == 401) {
+                        Result.failure(UnauthorizedException(message))
                     } else {
-                        val message = errorMessage(body, response.code)
-                        if (response.code == 401) {
-                            Result.failure(UnauthorizedException(message))
-                        } else {
-                            Result.failure(Exception(message))
-                        }
+                        Result.failure(Exception(message))
                     }
                 }
-            } catch (e: Exception) {
-                Result.failure(e)
-            }
-        }
+            },
+        )
 
     private fun parseUser(body: String?): AuthUser {
         val json = JSONObject(body ?: throw Exception("Empty response"))
