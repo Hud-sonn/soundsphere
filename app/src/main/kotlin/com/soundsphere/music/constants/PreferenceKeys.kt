@@ -17,6 +17,7 @@ val EnableHighRefreshRateKey = booleanPreferencesKey("enableHighRefreshRate")
 val EnableLandscapeScalingKey = booleanPreferencesKey("enableLandscapeScaling")
 val DynamicThemeKey = booleanPreferencesKey("dynamicTheme")
 val SelectedThemeColorKey = intPreferencesKey("selectedThemeColor")
+val PaletteModeKey = stringPreferencesKey("paletteMode")
 val DarkModeKey = stringPreferencesKey("darkMode")
 val PureBlackKey = booleanPreferencesKey("pureBlack")
 val PureBlackMiniPlayerKey = booleanPreferencesKey("pureBlackMiniPlayer")
@@ -31,6 +32,24 @@ enum class MiniPlayerBackgroundStyle {
     PURE_BLACK,
 }
 
+enum class PaletteMode(val value: String) {
+    HAND_PICKED("hand_picked"),
+    PRE_SELECTED_COMBOS("pre_selected_combos"),
+    AUTO_GENERATED("auto_generated"),
+}
+
+val ThemeVariantKey = stringPreferencesKey("themeVariant")
+
+enum class ThemeVariant(val value: String) {
+    EARTHY("earthy"),
+    MATERIAL_U("material_u"),
+    LIQUID_GLASS("liquid_glass"),
+}
+
+val ComboAccentColorKey = intPreferencesKey("comboAccentColor")
+val WallpaperUriKey = stringPreferencesKey("wallpaperUri")
+val WallpaperBackgroundKey = booleanPreferencesKey("wallpaperBackground")
+
 val DensityScaleKey = floatPreferencesKey("density_scale_factor")
 val CustomDensityScaleKey = floatPreferencesKey("custom_density_scale_value")
 
@@ -38,6 +57,9 @@ enum class DensityScale(
     val value: Float,
     val label: String,
 ) {
+    // Default out-of-the-box scale: a touch smaller than native so the app
+    // doesn't feel oversized; "Native (100%)" remains available for full size.
+    DEFAULT(0.95f, "Default (95%)"),
     NATIVE(1.0f, "Native (100%)"),
     SLIGHTLY_COMPACT(0.85f, "Slightly Compact (85%)"),
     COMPACT(0.75f, "Compact (75%)"),
@@ -89,6 +111,8 @@ val EnableLrcLibKey = booleanPreferencesKey("enableLrclib")
 val EnableBetterLyricsKey = booleanPreferencesKey("enableBetterLyrics")
 val EnablePaxsenixKey = booleanPreferencesKey("enablePaxsenix")
 val EnableLyricsPlus = booleanPreferencesKey("enableLyricsPlus")
+val EnableSimpMusicKey = booleanPreferencesKey("enableSimpMusic")
+val EnableUnisonKey = booleanPreferencesKey("enableUnison")
 val HideExplicitKey = booleanPreferencesKey("hideExplicit")
 val HideVideoSongsKey = booleanPreferencesKey("hideVideoSongs")
 val HideYoutubeShortsKey = booleanPreferencesKey("hideYoutubeShorts")
@@ -108,6 +132,9 @@ val UpdateNotificationsEnabledKey = booleanPreferencesKey("updateNotifications")
 // is not re-posted on every cold start or activity recreation
 val LastNotifiedUpdateVersionKey = stringPreferencesKey("lastNotifiedUpdateVersion")
 val LastUpdateCheckTimeKey = longPreferencesKey("lastUpdateCheckTime")
+// Comma-separated ids of in-app announcements the user has already dismissed,
+// so they are not shown again on every launch.
+val SeenAnnouncementIdsKey = stringPreferencesKey("seenAnnouncementIds")
 
 val AudioQualityKey = stringPreferencesKey("audioQuality")
 
@@ -527,6 +554,7 @@ val AccountEmailKey = stringPreferencesKey("accountEmail")
 val AccountChannelHandleKey = stringPreferencesKey("accountChannelHandle")
 val SoundsphereEmailKey = stringPreferencesKey("soundsphereEmail")
 val SoundsphereUsernameKey = stringPreferencesKey("soundsphereUsername")
+val SoundsphereAvatarUrlKey = stringPreferencesKey("soundsphereAvatarUrl")
 val UseLoginForBrowse = booleanPreferencesKey("useLoginForBrowse")
 
 val LanguageCodeToName =

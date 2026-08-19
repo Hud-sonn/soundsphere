@@ -44,7 +44,7 @@ fun AuthOtpScreen(
     onBack: () -> Unit,
 ) {
     var otp by remember { mutableStateOf("") }
-    val c = EarthyAuthColors
+    val c = rememberEarthyAuthColors()
 
     Box(
         modifier = Modifier.fillMaxSize().background(c.background),

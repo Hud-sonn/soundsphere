@@ -33,6 +33,7 @@ import com.soundsphere.music.R
 import com.soundsphere.music.constants.GridItemSize
 import com.soundsphere.music.constants.GridItemsSizeKey
 import com.soundsphere.music.constants.GridThumbnailHeight
+import com.soundsphere.music.ui.component.ErrorRetryPlaceholder
 import com.soundsphere.music.ui.component.IconButton
 import com.soundsphere.music.ui.component.LocalMenuState
 import com.soundsphere.music.ui.component.YouTubeGridItem
@@ -56,10 +57,17 @@ fun NewReleaseScreen(
     val mediaMetadata by playerConnection.mediaMetadata.collectAsStateWithLifecycle()
 
     val newReleaseAlbums by viewModel.newReleaseAlbums.collectAsStateWithLifecycle()
+    val error by viewModel.error.collectAsStateWithLifecycle()
 
     val coroutineScope = rememberCoroutineScope()
     val gridItemSize by rememberEnumPreference(GridItemsSizeKey, GridItemSize.BIG)
 
+    if (error != null) {
+        ErrorRetryPlaceholder(
+            message = stringResource(R.string.error_loading_new_release),
+            onRetry = viewModel::retry,
+        )
+    } else {
     LazyVerticalGrid(
         columns = GridCells.Adaptive(minSize = GridThumbnailHeight + if (gridItemSize == GridItemSize.BIG) 24.dp else (-24).dp),
         contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues(),
@@ -100,6 +108,7 @@ fun NewReleaseScreen(
                 }
             }
         }
+    }
     }
 
     TopAppBar(

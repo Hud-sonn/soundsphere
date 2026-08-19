@@ -22,12 +22,12 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
 import com.soundsphere.music.constants.ListItemHeight
 import com.soundsphere.music.constants.ListThumbnailSize
-import com.soundsphere.music.constants.ThumbnailCornerRadius
+import com.soundsphere.music.ui.theme.thumbnailCornerRadius
 
 @Composable
 fun ListItemPlaceHolder(
     modifier: Modifier = Modifier,
-    thumbnailShape: Shape = RoundedCornerShape(ThumbnailCornerRadius),
+    thumbnailShape: Shape = RoundedCornerShape(thumbnailCornerRadius()),
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,

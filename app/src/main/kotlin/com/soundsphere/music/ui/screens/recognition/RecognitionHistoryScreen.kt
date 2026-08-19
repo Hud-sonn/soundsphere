@@ -54,7 +54,7 @@ import coil3.compose.AsyncImage
 import com.soundsphere.music.LocalDatabase
 import com.soundsphere.music.LocalPlayerAwareWindowInsets
 import com.soundsphere.music.R
-import com.soundsphere.music.constants.ThumbnailCornerRadius
+import com.soundsphere.music.ui.theme.thumbnailCornerRadius
 import com.soundsphere.music.db.entities.RecognitionHistory
 import com.soundsphere.music.ui.component.DefaultDialog
 import com.soundsphere.music.ui.component.IconButton
@@ -245,7 +245,7 @@ private fun RecognitionHistoryItem(
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 8.dp)
                 .clickable { onClick() },
-        shape = RoundedCornerShape(ThumbnailCornerRadius),
+        shape = RoundedCornerShape(thumbnailCornerRadius()),
         colors =
             CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
@@ -265,7 +265,7 @@ private fun RecognitionHistoryItem(
                 modifier =
                     Modifier
                         .size(60.dp)
-                        .clip(RoundedCornerShape(ThumbnailCornerRadius)),
+                        .clip(RoundedCornerShape(thumbnailCornerRadius())),
                 contentScale = ContentScale.Crop,
             )
 

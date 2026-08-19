@@ -42,9 +42,11 @@ constructor(
     val query = SearchRoutes.decodeQuery(savedStateHandle.get<String>("query").orEmpty())
     val filter = MutableStateFlow<YouTube.SearchFilter?>(null)
     var summaryPage by mutableStateOf<SearchSummaryPage?>(null)
+    var error by mutableStateOf<String?>(null)
     val viewStateMap = mutableStateMapOf<String, ItemsPage?>()
 
     private suspend fun loadSummaryPage() {
+        error = null
         if (summaryPage == null) {
                     YouTube
                         .searchSummary(query)
@@ -62,6 +64,44 @@ constructor(
                                   .filterYoutubeShorts(hideYoutubeShorts)
                 }.onFailure {
                     reportException(it)
+                    error = it.message
+                }
+        }
+    }
+
+    fun retry() {
+        viewModelScope.launch {
+            if (filter.value == null) {
+                loadSummaryPage()
+            } else {
+                loadFilteredSearch()
+            }
+        }
+    }
+
+    private suspend fun loadFilteredSearch() {
+        val currentFilter = filter.value ?: return
+        error = null
+        if (viewStateMap[currentFilter.value] == null) {
+            YouTube
+                .search(query, currentFilter)
+                .onSuccess { result ->
+                    val resolvedItems = YouTube.resolveArtistIds(result.items)
+                    val hideExplicit = context.dataStore.get(HideExplicitKey, false)
+                    val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)
+                    val hideYoutubeShorts = context.dataStore.get(HideYoutubeShortsKey, false)
+                    viewStateMap[currentFilter.value] =
+                        ItemsPage(
+                            resolvedItems
+                                .distinctBy { it.id }
+                                .filterExplicit(hideExplicit)
+                                .filterVideoSongs(hideVideoSongs)
+                                .filterYoutubeShorts(hideYoutubeShorts),
+                            result.continuation,
+                        )
+                }.onFailure {
+                    reportException(it)
+                    error = it.message
                 }
         }
     }
@@ -89,27 +129,7 @@ constructor(
                         }
                     }
                 } else {
-                    if (viewStateMap[filter.value] == null) {
-                        YouTube
-                            .search(query, filter)
-                            .onSuccess { result ->
-                                val resolvedItems = YouTube.resolveArtistIds(result.items)
-                                val hideExplicit = context.dataStore.get(HideExplicitKey, false)
-                                val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)
-                                val hideYoutubeShorts = context.dataStore.get(HideYoutubeShortsKey, false)
-                                viewStateMap[filter.value] =
-                                    ItemsPage(
-                                        resolvedItems
-                                            .distinctBy { it.id }
-                                            .filterExplicit(hideExplicit)
-                                            .filterVideoSongs(hideVideoSongs)
-                                            .filterYoutubeShorts(hideYoutubeShorts),
-                                        result.continuation,
-                                    )
-                            }.onFailure {
-                                reportException(it)
-                            }
-                    }
+                    loadFilteredSearch()
                 }
             }
         }

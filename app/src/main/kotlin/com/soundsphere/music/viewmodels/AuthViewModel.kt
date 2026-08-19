@@ -208,6 +208,68 @@ class AuthViewModel @Inject constructor(
         _uiState.value = AuthUiState()
     }
 
+    /**
+     * Updates the Soundsphere profile on the backend (username) and re-caches
+     * the cached profile so the sidebar / account screen reflect the change.
+     */
+    fun updateUsername(newUsername: String) {
+        val token = repository.getToken() ?: return
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoading = true, error = null, successMessage = null)
+            AuthService.updateProfile(token, username = newUsername)
+                .onSuccess { user ->
+                    syncRepository.cacheAccountProfile(user.email, user.username)
+                    _uiState.value =
+                        _uiState.value.copy(
+                            isLoading = false,
+                            successMessage = "Profile updated",
+                        )
+                }
+                .onFailure { error ->
+                    if (error is UnauthorizedException) {
+                        repository.clearToken()
+                        _isLoggedIn.value = false
+                    }
+                    _uiState.value =
+                        _uiState.value.copy(
+                            isLoading = false,
+                            error = error.message ?: "Failed to update profile",
+                        )
+                }
+        }
+    }
+
+    /**
+     * Updates the Soundsphere profile on the backend (avatar URL) and re-caches
+     * the cached profile so the sidebar / account screen reflect the change.
+     */
+    fun updateAvatar(avatarUrl: String) {
+        val token = repository.getToken() ?: return
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoading = true, error = null, successMessage = null)
+            AuthService.updateProfile(token, avatarUrl = avatarUrl)
+                .onSuccess { user ->
+                    syncRepository.cacheAccountProfile(user.email, user.username)
+                    _uiState.value =
+                        _uiState.value.copy(
+                            isLoading = false,
+                            successMessage = "Profile updated",
+                        )
+                }
+                .onFailure { error ->
+                    if (error is UnauthorizedException) {
+                        repository.clearToken()
+                        _isLoggedIn.value = false
+                    }
+                    _uiState.value =
+                        _uiState.value.copy(
+                            isLoading = false,
+                            error = error.message ?: "Failed to update profile",
+                        )
+                }
+        }
+    }
+
     private fun handleTokenResult(result: Result<AuthToken>) {
         result.onSuccess { token ->
             repository.saveToken(token.token)

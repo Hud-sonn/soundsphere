@@ -5,6 +5,8 @@
 
 package com.soundsphere.music.ui.screens.auth
 
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
 
@@ -18,12 +20,12 @@ data class AuthColors(
     val outline: Color,
 )
 
-val EarthyAuthColors =
-    AuthColors(
-        background = Color(0xFF0A0908),
-        surface = Color(0xFF22333B),
-        primaryText = Color(0xFFEAE0D5),
-        secondaryText = Color(0xFFC6AC8F),
-        accent = Color(0xFF5E503F),
-        outline = Color(0xFF979087),
-    )
+@Composable
+fun rememberEarthyAuthColors() = AuthColors(
+    background = MaterialTheme.colorScheme.background,
+    surface = MaterialTheme.colorScheme.surfaceContainer,
+    primaryText = MaterialTheme.colorScheme.onBackground,
+    secondaryText = MaterialTheme.colorScheme.onSurfaceVariant,
+    accent = MaterialTheme.colorScheme.primary,
+    outline = MaterialTheme.colorScheme.outline,
+)

@@ -44,7 +44,7 @@ fun AuthLoginScreen(
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    val c = EarthyAuthColors
+    val c = rememberEarthyAuthColors()
 
     Box(
         modifier = Modifier.fillMaxSize().background(c.background),

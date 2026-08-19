@@ -47,6 +47,10 @@ constructor(
 
     val historyPage = MutableStateFlow<HistoryPage?>(null)
 
+    val isRemoteLoading = MutableStateFlow(false)
+
+    val remoteError = MutableStateFlow<String?>(null)
+
     val events =
         context.dataStore.data
             .map { it[HideVideoSongsKey] ?: false }
@@ -88,12 +92,17 @@ constructor(
     }
 
     fun fetchRemoteHistory() {
+        if (isRemoteLoading.value) return
+        isRemoteLoading.value = true
+        remoteError.value = null
         viewModelScope.launch(Dispatchers.IO) {
             YouTube.musicHistory().onSuccess {
                 historyPage.value = it
             }.onFailure {
                 reportException(it)
+                remoteError.value = it.message
             }
+            isRemoteLoading.value = false
         }
     }
 }

@@ -84,6 +84,7 @@ import com.soundsphere.music.LocalDatabase
 import com.soundsphere.music.R
 import com.soundsphere.music.db.entities.RecognitionHistory
 import com.soundsphere.music.ui.component.IconButton
+import com.soundsphere.music.ui.theme.thumbnailCornerRadius
 import com.soundsphere.music.ui.utils.backToMain
 import com.soundsphere.music.utils.SearchRoutes
 import com.soundsphere.shazamkit.models.RecognitionResult
@@ -502,7 +503,7 @@ private fun SuccessState(
                 Modifier
                     .size(180.dp)
                     .aspectRatio(1f),
-            shape = RoundedCornerShape(com.soundsphere.music.constants.ThumbnailCornerRadius),
+            shape = RoundedCornerShape(thumbnailCornerRadius()),
             elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
         ) {
             AsyncImage(

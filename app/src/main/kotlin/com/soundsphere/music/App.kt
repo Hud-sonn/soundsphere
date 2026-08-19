@@ -31,6 +31,7 @@ import com.soundsphere.music.di.ApplicationScope
 import com.soundsphere.music.extensions.toEnum
 import com.soundsphere.music.extensions.toInetSocketAddress
 import com.soundsphere.music.utils.CrashHandler
+import com.soundsphere.music.utils.MessageService
 import com.soundsphere.music.utils.RenderKeepAliveWorker
 import com.soundsphere.music.utils.YTPlayerUtils
 import com.soundsphere.music.utils.cipher.CipherDeobfuscator
@@ -204,6 +205,16 @@ class App :
             }
         val nm = getSystemService(NotificationManager::class.java)
         nm.createNotificationChannel(channel)
+
+        nm.createNotificationChannel(
+            NotificationChannel(
+                MessageService.ANNOUNCEMENTS_CHANNEL_ID,
+                getString(R.string.announcement_channel_name),
+                NotificationManager.IMPORTANCE_DEFAULT,
+            ).apply {
+                description = getString(R.string.announcement_channel_desc)
+            }
+        )
     }
 
     private fun observeSettingsChanges() {

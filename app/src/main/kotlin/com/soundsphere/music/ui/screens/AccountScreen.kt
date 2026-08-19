@@ -57,6 +57,8 @@ import com.soundsphere.music.ui.component.ChipsRow
 import com.soundsphere.music.ui.component.IconButton
 import com.soundsphere.music.ui.component.LocalMenuState
 import com.soundsphere.music.ui.component.YouTubeGridItem
+import com.soundsphere.music.ui.component.EmptyPlaceholder
+import com.soundsphere.music.ui.component.ErrorRetryPlaceholder
 import com.soundsphere.music.ui.component.shimmer.GridItemPlaceHolder
 import com.soundsphere.music.ui.component.shimmer.ListItemPlaceHolder
 import com.soundsphere.music.ui.component.shimmer.ShimmerHost
@@ -87,6 +89,7 @@ fun AccountScreen(
     val podcastPlaylists by viewModel.podcastPlaylists.collectAsStateWithLifecycle()
     val podcastChannels by viewModel.podcastChannels.collectAsStateWithLifecycle()
     val selectedContentType by viewModel.selectedContentType.collectAsStateWithLifecycle()
+    val error by viewModel.error.collectAsStateWithLifecycle()
     val gridItemSize by rememberEnumPreference(GridItemsSizeKey, GridItemSize.BIG)
 
     LazyVerticalGrid(
@@ -136,7 +139,14 @@ fun AccountScreen(
                     )
                 }
 
-                if (playlists == null) {
+                if (playlists == null && error != null) {
+                    item(span = { GridItemSpan(maxLineSpan) }) {
+                        ErrorRetryPlaceholder(
+                            message = stringResource(R.string.error_loading_account),
+                            onRetry = viewModel::retry,
+                        )
+                    }
+                } else if (playlists == null) {
                     items(8) {
                         ShimmerHost {
                             GridItemPlaceHolder(fillMaxWidth = true)
@@ -172,7 +182,14 @@ fun AccountScreen(
                     )
                 }
 
-                if (albums == null) {
+                if (albums == null && error != null) {
+                    item(span = { GridItemSpan(maxLineSpan) }) {
+                        ErrorRetryPlaceholder(
+                            message = stringResource(R.string.error_loading_account),
+                            onRetry = viewModel::retry,
+                        )
+                    }
+                } else if (albums == null) {
                     items(8) {
                         ShimmerHost {
                             GridItemPlaceHolder(fillMaxWidth = true)
@@ -208,7 +225,14 @@ fun AccountScreen(
                     )
                 }
 
-                if (artists == null) {
+                if (artists == null && error != null) {
+                    item(span = { GridItemSpan(maxLineSpan) }) {
+                        ErrorRetryPlaceholder(
+                            message = stringResource(R.string.error_loading_account),
+                            onRetry = viewModel::retry,
+                        )
+                    }
+                } else if (artists == null) {
                     items(8) {
                         ShimmerHost {
                             GridItemPlaceHolder(fillMaxWidth = true)
@@ -308,9 +332,18 @@ fun AccountScreen(
                 }
 
                 if (rdpnPlaylist == null && sePlaylist == null && podcastPlaylists.isEmpty() && podcastChannels.isEmpty()) {
-                    items(4, span = { GridItemSpan(maxLineSpan) }) {
-                        ShimmerHost {
-                            ListItemPlaceHolder()
+                    if (error != null) {
+                        item(span = { GridItemSpan(maxLineSpan) }) {
+                            ErrorRetryPlaceholder(
+                                message = stringResource(R.string.error_loading_account),
+                                onRetry = viewModel::retry,
+                            )
+                        }
+                    } else {
+                        items(4, span = { GridItemSpan(maxLineSpan) }) {
+                            ShimmerHost {
+                                ListItemPlaceHolder()
+                            }
                         }
                     }
                 }

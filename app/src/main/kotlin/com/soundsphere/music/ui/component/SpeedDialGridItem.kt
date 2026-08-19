@@ -27,7 +27,7 @@ import com.soundsphere.innertube.models.ArtistItem
 import com.soundsphere.innertube.models.SongItem
 import com.soundsphere.innertube.models.YTItem
 import com.soundsphere.music.R
-import com.soundsphere.music.constants.ThumbnailCornerRadius
+import com.soundsphere.music.ui.theme.thumbnailCornerRadius
 import com.soundsphere.music.ui.utils.resize
 
 @Composable
@@ -42,14 +42,14 @@ fun SpeedDialGridItem(
         modifier = modifier
             .fillMaxWidth()
             .aspectRatio(1f) // Square aspect ratio
-            .clip(RoundedCornerShape(ThumbnailCornerRadius))
+            .clip(RoundedCornerShape(thumbnailCornerRadius()))
     ) {
         // Thumbnail
         ItemThumbnail(
             thumbnailUrl = item.thumbnail?.resize(200, 200),
             isActive = isActive,
             isPlaying = isPlaying,
-            shape = if (item is ArtistItem) CircleShape else RoundedCornerShape(ThumbnailCornerRadius),
+            shape = if (item is ArtistItem) CircleShape else RoundedCornerShape(thumbnailCornerRadius()),
             modifier = Modifier.fillMaxSize()
         )
 

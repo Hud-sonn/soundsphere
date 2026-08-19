@@ -92,7 +92,7 @@ import com.soundsphere.music.constants.MiniPlayerHeight
 import com.soundsphere.music.constants.PureBlackMiniPlayerKey
 import com.soundsphere.music.constants.SwipeSensitivityKey
 import com.soundsphere.music.constants.SwipeThumbnailKey
-import com.soundsphere.music.constants.ThumbnailCornerRadius
+import com.soundsphere.music.ui.theme.thumbnailCornerRadius
 import com.soundsphere.music.constants.UseNewMiniPlayerDesignKey
 import com.soundsphere.music.db.entities.ArtistEntity
 import com.soundsphere.music.listentogether.ListenTogetherManager
@@ -975,7 +975,7 @@ private fun LegacyMiniMediaInfo(
                 Modifier
                     .padding(6.dp)
                     .size(48.dp)
-                    .clip(RoundedCornerShape(ThumbnailCornerRadius)),
+                    .clip(RoundedCornerShape(thumbnailCornerRadius())),
         ) {
             Box(
                 modifier =
@@ -995,7 +995,7 @@ private fun LegacyMiniMediaInfo(
                 modifier =
                     Modifier
                         .fillMaxSize()
-                        .clip(RoundedCornerShape(ThumbnailCornerRadius)),
+                        .clip(RoundedCornerShape(thumbnailCornerRadius())),
             )
 
             androidx.compose.animation.AnimatedVisibility(visible = error != null, enter = fadeIn(), exit = fadeOut()) {
@@ -1004,7 +1004,7 @@ private fun LegacyMiniMediaInfo(
                         .fillMaxSize()
                         .background(
                             color = if (pureBlack) Color.Black else Color.Black.copy(alpha = 0.6f),
-                            shape = RoundedCornerShape(ThumbnailCornerRadius),
+                            shape = RoundedCornerShape(thumbnailCornerRadius()),
                         ),
                 ) {
                     Icon(

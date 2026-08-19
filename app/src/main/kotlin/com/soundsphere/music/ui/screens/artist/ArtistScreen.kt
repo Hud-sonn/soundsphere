@@ -101,6 +101,7 @@ import com.soundsphere.music.models.toMediaMetadata
 import com.soundsphere.music.playback.queues.ListQueue
 import com.soundsphere.music.playback.queues.YouTubeQueue
 import com.soundsphere.music.ui.component.AlbumGridItem
+import com.soundsphere.music.ui.component.ErrorRetryPlaceholder
 import com.soundsphere.music.ui.component.ExpandableText
 import com.soundsphere.music.ui.component.HideOnScrollFAB
 import com.soundsphere.music.ui.component.IconButton
@@ -147,6 +148,7 @@ fun ArtistScreen(
     val isPlaying by playerConnection.isEffectivelyPlaying.collectAsStateWithLifecycle()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsStateWithLifecycle()
     val artistPage = viewModel.artistPage
+    val artistError by viewModel.error.collectAsStateWithLifecycle()
     val libraryArtist by viewModel.libraryArtist.collectAsStateWithLifecycle()
     val librarySongs by viewModel.librarySongs.collectAsStateWithLifecycle()
     val libraryAlbums by viewModel.libraryAlbums.collectAsStateWithLifecycle()
@@ -520,7 +522,15 @@ fun ArtistScreen(
                 }
 
                 // Show loading shimmer for sections when API hasn't returned yet
-                if (artistPage == null && !showLocal) {
+            if (artistPage == null && !showLocal && artistError != null) {
+                item(key = "artist_error") {
+                    ErrorRetryPlaceholder(
+                        message = stringResource(R.string.error_loading_artist),
+                        onRetry = viewModel::fetchArtistsFromYTM,
+                        modifier = Modifier.fillParentMaxSize(),
+                    )
+                }
+            } else if (artistPage == null && !showLocal) {
                     item(key = "section_shimmer") {
                         ShimmerHost {
                             repeat(4) { ListItemPlaceHolder() }

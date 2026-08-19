@@ -54,6 +54,9 @@ class AccountViewModel @Inject constructor(
     // Podcast host channels from YT Music library
     val podcastChannels = MutableStateFlow<List<ArtistItem>>(emptyList())
 
+    // Set when any account library request fails, cleared on reload
+    val error = MutableStateFlow<String?>(null)
+
     // Selected content type for chips
     val selectedContentType = MutableStateFlow(AccountContentType.PLAYLISTS)
 
@@ -67,42 +70,70 @@ class AccountViewModel @Inject constructor(
                 .filterNot { it.id == "SE" }
                 .filterYoutubeShorts(hideYoutubeShorts)
         }.onFailure {
-            reportException(it)
+            reportLoadFailure(it)
         }
     }
 
-    init {
+    private suspend fun loadAlbums() {
+        YouTube.library("FEmusic_liked_albums").completed().onSuccess {
+            albums.value = it.items.filterIsInstance<AlbumItem>()
+        }.onFailure {
+            reportLoadFailure(it)
+        }
+    }
+
+    private suspend fun loadArtists() {
+        YouTube.library("FEmusic_library_corpus_artists").completed().onSuccess {
+            artists.value = it.items.filterIsInstance<ArtistItem>().map { artist ->
+                artist.copy(
+                    thumbnail = artist.thumbnail?.resize(544, 544)
+                )
+            }
+        }.onFailure {
+            reportLoadFailure(it)
+        }
+    }
+
+    private suspend fun loadRdpnPlaylist() {
+        YouTube.newEpisodesPlaylistInfo().onSuccess {
+            rdpnPlaylist.value = it
+        }.onFailure {
+            reportLoadFailure(it)
+        }
+    }
+
+    private suspend fun loadPodcastChannels() {
+        YouTube.libraryPodcastChannels().onSuccess {
+            podcastChannels.value = it.items.filterIsInstance<ArtistItem>()
+        }.onFailure {
+            reportLoadFailure(it)
+        }
+    }
+
+    private fun reportLoadFailure(error: Throwable) {
+        reportException(error)
+        this.error.value = error.message
+    }
+
+    fun loadAll() {
+        error.value = null
         viewModelScope.launch {
             loadPlaylists()
-            YouTube.library("FEmusic_liked_albums").completed().onSuccess {
-                albums.value = it.items.filterIsInstance<AlbumItem>()
-            }.onFailure {
-                reportException(it)
-            }
-            YouTube.library("FEmusic_library_corpus_artists").completed().onSuccess {
-                artists.value = it.items.filterIsInstance<ArtistItem>().map { artist ->
-                    artist.copy(
-                        thumbnail = artist.thumbnail?.resize(544, 544)
-                    )
-                }
-            }.onFailure {
-                reportException(it)
-            }
+            loadAlbums()
+            loadArtists()
         }
         viewModelScope.launch {
-            YouTube.newEpisodesPlaylistInfo().onSuccess {
-                rdpnPlaylist.value = it
-            }.onFailure {
-                reportException(it)
-            }
+            loadRdpnPlaylist()
         }
         viewModelScope.launch(Dispatchers.IO) {
-            YouTube.libraryPodcastChannels().onSuccess {
-                podcastChannels.value = it.items.filterIsInstance<ArtistItem>()
-            }.onFailure {
-                reportException(it)
-            }
+            loadPodcastChannels()
         }
+    }
+
+    fun retry() = loadAll()
+
+    init {
+        loadAll()
 
         // Listen for HideYoutubeShorts preference changes and reload playlists instantly
         viewModelScope.launch(Dispatchers.IO) {

@@ -35,22 +35,35 @@ constructor(
     private val params = savedStateHandle.get<String>("params")
 
     val result = MutableStateFlow<BrowseResult?>(null)
+    val error = MutableStateFlow<String?>(null)
 
     init {
         viewModelScope.launch {
-            val hideExplicit = context.dataStore.get(HideExplicitKey, false)
-            val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)
-            val hideYoutubeShorts = context.dataStore.get(HideYoutubeShortsKey, false)
-            YouTube
-                .browse(browseId, params)
-                .onSuccess {
-                    result.value = it
-                        .filterExplicit(hideExplicit)
-                        .filterVideoSongs(hideVideoSongs)
-                        .filterYoutubeShorts(hideYoutubeShorts)
-                }.onFailure {
-                    reportException(it)
-                }
+            load()
         }
+    }
+
+    fun retry() {
+        viewModelScope.launch {
+            load()
+        }
+    }
+
+    private suspend fun load() {
+        error.value = null
+        val hideExplicit = context.dataStore.get(HideExplicitKey, false)
+        val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)
+        val hideYoutubeShorts = context.dataStore.get(HideYoutubeShortsKey, false)
+        YouTube
+            .browse(browseId, params)
+            .onSuccess {
+                result.value = it
+                    .filterExplicit(hideExplicit)
+                    .filterVideoSongs(hideVideoSongs)
+                    .filterYoutubeShorts(hideYoutubeShorts)
+            }.onFailure {
+                reportException(it)
+                error.value = it.message
+            }
     }
 }

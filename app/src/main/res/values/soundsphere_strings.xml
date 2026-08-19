@@ -2,6 +2,16 @@
 <resources>
     <string name="local_history">Local</string>
     <string name="remote_history">Remote</string>
+    <string name="error_loading_remote_history">Couldn\'t load remote history. Check your connection and try again.</string>
+    <string name="remote_history_empty">No remote history found</string>
+    <string name="error_loading_explore">Couldn\'t load the explore page. Check your connection and try again.</string>
+    <string name="error_loading_browse">Couldn\'t load this page. Check your connection and try again.</string>
+    <string name="error_loading_new_release">Couldn\'t load new release albums. Check your connection and try again.</string>
+    <string name="error_loading_mood_and_genres">Couldn\'t load moods and genres. Check your connection and try again.</string>
+    <string name="error_loading_artist">Couldn\'t load this artist. Check your connection and try again.</string>
+    <string name="error_loading_search">Couldn\'t load search results. Check your connection and try again.</string>
+    <string name="error_loading_account">Couldn\'t load your library. Check your connection and try again.</string>
+    <string name="error_loading_home">Couldn\'t load the home feed. Check your connection and try again.</string>
 
     <string name="charts">Charts</string>
     <string name="mixes">Mixes</string>
@@ -174,6 +184,10 @@
     <string name="enable_paxsenix_desc">High-quality synchronized lyrics from Paxsenix API</string>
     <string name="enable_lyricsplus">Enable LyricsPlus</string>
     <string name="enable_lyricsplus_desc">Synchronized lyrics from multiple sources</string>
+    <string name="enable_simpmusic">Enable SimpMusic</string>
+    <string name="enable_simpmusic_desc">Community lyrics synced to the YouTube video</string>
+    <string name="enable_unison">Enable Unison</string>
+    <string name="enable_unison_desc">Community-synced lyrics from the Better Lyrics database</string>
     <string name="lyrics_provider_selection">Provider selection</string>
     <string name="lyrics_provider_selection_desc">Choose which lyrics providers are enabled</string>
     <string name="auto_scroll">Re-sync</string>
@@ -272,9 +286,7 @@
     <string name="release_notes">Release notes</string>
     <string name="changelog">Changelog</string>
     <string name="changelog_empty">No changelogs available</string>
-    <string name="github_releases_url">https://github.com/Hud-sonn/soundsphere/releases</string>
     <string name="list_bullet">•</string>
-    <string name="view_on_github">View on GitHub</string>
     <string name="current_version">Current version</string>
     <string name="version_format">Version: %s</string>
     <string name="update_settings">Update settings</string>
@@ -411,6 +423,19 @@
     <string name="sidebar_section_app">App</string>
     <string name="sidebar_sign_in_hint">Sign in to your account</string>
     <string name="sidebar_signed_in">Signed in to Soundsphere</string>
+
+    <!-- Account Settings Screen -->
+    <string name="account_settings">Account Settings</string>
+    <string name="account_info">Account Info</string>
+    <string name="account_no_name">No name set</string>
+    <string name="account_no_email">No email</string>
+    <string name="youtube_account">YouTube Account</string>
+    <string name="advanced_settings">Advanced</string>
+    <string name="devices_signed_in">Devices Signed In</string>
+    <string name="device_active">Active on this device</string>
+    <string name="device_not_signed_in">Not signed in</string>
+    <string name="listening_history">Listening History</string>
+    <string name="profile">Profile</string>
     <string name="soundsphere_account">Soundsphere account</string>
     <string name="sidebar">Menu</string>
     <string name="updates">Updates</string>
@@ -676,8 +701,8 @@
     <string name="listen_together_auto_approval_suggestions_desc">Automatically approve and queue song suggestions from guests</string>
     <string name="listen_together_sync_volume">Sync host volume</string>
     <string name="listen_together_sync_volume_desc">Guests will match the host\'s volume level</string>
-    <string name="listen_together_in_top_bar">Listen Together in top bar</string>
-    <string name="listen_together_in_top_bar_desc">Show Listen Together in the top app bar instead of the navigation bar</string>
+    <string name="listen_together_in_top_bar">Listen Together in sidebar</string>
+    <string name="listen_together_in_top_bar_desc">Show Listen Together in the sidebar instead of the navigation bar</string>
     <string name="listen_together_description">Listen to music with your friends in real time. Create a room to host, or join an existing room with a code</string>
     <string name="listen_together_background_disconnect_note">NOTE: When you are connected but not in a room, Listen Together disconnects after 30 minutes in the background to save battery</string>
     <string name="listen_together_not_configured">Listen Together is not set up. Please configure the server URL in: Listen Together &gt; Settings &gt; Server URL</string>
@@ -790,29 +815,44 @@
 
     <!-- Theme Palette Names -->
     <string name="palette_dynamic">Earthy</string>
+    <string name="palette_default_brand">Earthy</string>
+    <string name="palette_acid_lime">Acid Lime</string>
+    <string name="palette_teal_charcoal">Teal + Charcoal</string>
     <string name="palette_crimson">Crimson</string>
     <string name="palette_rose">Rose</string>
     <string name="palette_purple">Purple</string>
     <string name="palette_deep_purple">Deep Purple</string>
     <string name="palette_indigo">Indigo</string>
     <string name="palette_blue">Blue</string>
-    <string name="palette_sky_blue">Sky Blue</string>
-    <string name="palette_cyan">Cyan</string>
-    <string name="palette_teal">Teal</string>
-    <string name="palette_spotify_green">Spotify Green</string>
-    <string name="palette_green">Green</string>
-    <string name="palette_light_green">Light Green</string>
-    <string name="palette_lime">Lime</string>
-    <string name="palette_yellow">Yellow</string>
     <string name="palette_amber">Amber</string>
-    <string name="palette_orange">Orange</string>
+    <string name="palette_spotify_green">Spotify Green</string>
+    <string name="palette_cyan">Cyan</string>
     <string name="palette_deep_orange">Deep Orange</string>
-    <string name="palette_brown">Brown</string>
     <string name="palette_charcoal_grey">Charcoal Grey</string>
     <string name="palette_grey">Grey</string>
     <string name="palette_cool_grey">Cool Grey</string>
     <string name="palette_blue_grey">Blue Grey</string>
     <string name="palette_pure_black">Pure Black</string>
+    <string name="palette_hand_picked">Hand-picked</string>
+    <string name="palette_auto_generated">Auto-generated</string>
+    <string name="palette_pre_selected">Combos</string>
+    <string name="auto_generated_description">Colors derived from your wallpaper using Material You</string>
+    <string name="combo_from_wallpaper">From Wallpaper</string>
+    <string name="theme_look">Look</string>
+    <string name="look_earthy">Earthy</string>
+    <string name="look_material_u">Material U</string>
+
+    <!-- Color Combos -->
+    <string name="combo_ocean_sunset">Ocean Sunset</string>
+    <string name="combo_teal_coral">Teal + Coral</string>
+    <string name="combo_lavender_plum">Lavender + Plum</string>
+    <string name="combo_midnight_mint">Midnight + Mint</string>
+    <string name="combo_mustard_indigo">Mustard + Indigo</string>
+    <string name="combo_terrastta_sage">Terracotta + Sage</string>
+    <string name="combo_peach_dusty_blue">Peach + Dusty Blue</string>
+    <string name="combo_coral_black">Coral + Black</string>
+    <string name="combo_ocean_sand">Ocean + Sand</string>
+    <string name="combo_royal_purple_gold">Royal Purple + Gold</string>
 
     <!-- Theme Content Descriptions -->
     <string name="cd_back">Back</string>
@@ -890,13 +930,11 @@
     <string name="credits_lead_developer">Lead developer</string>
     <string name="credits_collaborator">Collaborator</string>
     <string name="credits_collaborators_section">Collaborators</string>
-    <string name="credits_license_name">GNU General Public License v3.0</string>
-    <string name="credits_license_desc">Free, open-source software. You may use, study, share, and improve it</string>
+    <string name="credits_ui_ux_designer">UI/UX Designer</string>
+    <string name="credits_creative_team">Creative Team</string>
     <string name="credits_telegram">Telegram channel</string>
     <string name="credits_website">Website</string>
     <string name="credits_instagram">Instagram</string>
-    <string name="credits_github">GitHub</string>
-    <string name="credits_view_repo">View repository</string>
     <string name="app_version_info">%1$s • %2$s</string>
     <string name="like_what_i_do">Like what I do?</string>
     <string name="buy_mo_a_coffee">Buy me a coffee!</string>
@@ -916,6 +954,14 @@
     <string name="wanna_play_favorite_song">Want to play their favorite song?</string>
     <string name="yeah">Yeah!</string>
     <string name="made_in_nigeria">Proudly built in Nigeria 🇳🇬</string>
+
+    <!-- In-app announcements -->
+    <string name="announcement_got_it">Got it</string>
+    <string name="announcements">Announcements</string>
+    <string name="announcements_empty">No announcements available</string>
+    <string name="announcements_mark_all_read">Mark all as read</string>
+    <string name="announcement_channel_name">Announcements</string>
+    <string name="announcement_channel_desc">Notifications about new announcements</string>
 
     <!-- Podcasts -->
     <string name="filter_podcasts">Podcasts</string>
@@ -1078,4 +1124,12 @@
     <string name="auth_reset_password">RESET PASSWORD</string>
     <string name="auth_reset_code_placeholder">------</string>
     <string name="auth_account_title">Soundsphere account</string>
+    <string name="edit_account">Edit</string>
+    <string name="edit_account_title">Edit account</string>
+    <string name="edit_avatar">Edit avatar</string>
+    <string name="avatar_uploading">Uploading avatar…</string>
+    <string name="change_avatar">Change avatar</string>
+    <string name="action_save">Save</string>
+    <string name="auth_no_email">No email</string>
+    <string name="wallpaper_background">Use wallpaper as app background</string>
 </resources>

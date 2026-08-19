@@ -119,6 +119,7 @@ import com.soundsphere.music.playback.queues.YouTubeQueue
 import com.soundsphere.music.ui.component.ChipsRow
 import com.soundsphere.music.ui.component.DefaultDialog
 import com.soundsphere.music.ui.component.EmptyPlaceholder
+import com.soundsphere.music.ui.component.ErrorRetryPlaceholder
 import com.soundsphere.music.ui.component.HideOnScrollFAB
 import com.soundsphere.music.ui.component.LocalMenuState
 import com.soundsphere.music.ui.component.NavigationTitle
@@ -368,6 +369,7 @@ fun OnlineSearchResult(
 
     val searchFilter by viewModel.filter.collectAsStateWithLifecycle()
     val searchSummary = viewModel.summaryPage
+    val searchError = viewModel.error
     val itemsPage by remember(searchFilter) {
         derivedStateOf {
             searchFilter?.value?.let {
@@ -754,7 +756,15 @@ fun OnlineSearchResult(
                         }
                     }
 
-                    if (searchFilter == null && searchSummary == null || searchFilter != null && itemsPage == null) {
+                    if (searchError != null) {
+                        item {
+                            ErrorRetryPlaceholder(
+                                message = stringResource(R.string.error_loading_search),
+                                onRetry = viewModel::retry,
+                                modifier = Modifier.fillParentMaxSize(),
+                            )
+                        }
+                    } else if (searchFilter == null && searchSummary == null || searchFilter != null && itemsPage == null) {
                         item {
                             ShimmerHost {
                                 repeat(8) {

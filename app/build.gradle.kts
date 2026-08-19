@@ -119,8 +119,8 @@ android {
         applicationId = applicationIdOverride ?: baseApplicationId
         minSdk = 26
         targetSdk = 36
-        versionCode = 9
-        versionName = "1.1.7"
+        versionCode = 10
+        versionName = "1.2.0"
         resValue("string", "app_name", appNameOverride ?: "Soundsphere")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -441,6 +441,8 @@ dependencies {
     implementation(project(":betterlyrics"))
     implementation(project(":shazamkit"))
     implementation(project(":paxsenix"))
+    implementation(project(":simpmusic"))
+    implementation(project(":unison"))
 
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.cio)

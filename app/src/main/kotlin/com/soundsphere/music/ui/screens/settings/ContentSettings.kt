@@ -64,6 +64,8 @@ import com.soundsphere.music.constants.EnableKugouKey
 import com.soundsphere.music.constants.EnableLrcLibKey
 import com.soundsphere.music.constants.EnablePaxsenixKey
 import com.soundsphere.music.constants.EnableLyricsPlus
+import com.soundsphere.music.constants.EnableSimpMusicKey
+import com.soundsphere.music.constants.EnableUnisonKey
 import com.soundsphere.music.constants.HideExplicitKey
 import com.soundsphere.music.constants.HideVideoSongsKey
 import com.soundsphere.music.constants.HideYoutubeShortsKey
@@ -124,6 +126,8 @@ fun ContentSettings(
     val (enableBetterLyrics, onEnableBetterLyricsChange) = rememberPreference(key = EnableBetterLyricsKey, defaultValue = true)
     val (enablePaxsenix, onEnablePaxsenixChange) = rememberPreference(key = EnablePaxsenixKey, defaultValue = true)
     val (enableLyricsPlus, onEnableLyricsPlusChange) = rememberPreference(key = EnableLyricsPlus, defaultValue = true)
+    val (enableSimpMusic, onEnableSimpMusicChange) = rememberPreference(key = EnableSimpMusicKey, defaultValue = true)
+    val (enableUnison, onEnableUnisonChange) = rememberPreference(key = EnableUnisonKey, defaultValue = true)
     val (lyricsProviderOrder, onLyricsProviderOrderChange) = rememberPreference(
         key = LyricsProviderOrderKey,
         defaultValue = LyricsProviderRegistry.serializeProviderOrder(LyricsProviderRegistry.getDefaultProviderOrder())
@@ -168,6 +172,8 @@ fun ContentSettings(
             "LyricsPlus" to "LyricsPlus",
             "YouTubeSubtitle" to "YouTube Subtitles",
             "YouTube" to "YouTube",
+            "SimpMusic" to "SimpMusic",
+            "Unison" to "Unison",
         )
 
     var showProxyConfigurationDialog by rememberSaveable {
@@ -513,6 +519,64 @@ fun ContentSettings(
                             }
                         )
                     }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Column(
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(stringResource(R.string.enable_simpmusic))
+                            Text(
+                                text = stringResource(R.string.enable_simpmusic_desc),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Switch(
+                            checked = enableSimpMusic,
+                            onCheckedChange = onEnableSimpMusicChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (enableSimpMusic) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Column(
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(stringResource(R.string.enable_unison))
+                            Text(
+                                text = stringResource(R.string.enable_unison_desc),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Switch(
+                            checked = enableUnison,
+                            onCheckedChange = onEnableUnisonChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (enableUnison) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    }
                     Column(modifier = Modifier.padding(2.dp)) {
                         Text(
                             text = stringResource(R.string.youtube_music_lyrics_note),
@@ -609,11 +673,13 @@ fun ContentSettings(
             "BetterLyrics".takeIf { enableBetterLyrics },
             "Paxsenix".takeIf { enablePaxsenix },
             "LyricsPlus".takeIf { enableLyricsPlus },
+            "SimpMusic".takeIf { enableSimpMusic },
+            "Unison".takeIf { enableUnison },
         ).filterNotNull().toSet()
         val lyricsIcon = painterResource(R.drawable.lyrics)
         val draggableItems = remember { mutableStateListOf<DraggableLyricsProviderItem>() }
 
-        LaunchedEffect(normalizedOrder, enableLrclib, enableKugou, enableBetterLyrics, enablePaxsenix, enableLyricsPlus) {
+        LaunchedEffect(normalizedOrder, enableLrclib, enableKugou, enableBetterLyrics, enablePaxsenix, enableLyricsPlus, enableSimpMusic, enableUnison) {
             val orderedEnabledProviders = normalizedOrder.filter { it in enabledProviders }
             draggableItems.clear()
             draggableItems.addAll(

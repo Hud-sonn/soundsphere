@@ -125,3 +125,6 @@ stitch_earthy_tones_ui_redesign.zip
 # Python
 __pycache__/
 *.pyc
+
+# Listen Together server (separate repo)
+metroserver/

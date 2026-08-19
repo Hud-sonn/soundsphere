@@ -132,24 +132,6 @@ fun ChangelogScreen(
                     }
                 }
             }
-
-            androidx.compose.animation.AnimatedVisibility(
-                visible = showFab,
-                enter = fadeIn() + slideInVertically { it },
-                exit = fadeOut() + slideOutVertically { it },
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(16.dp)
-            ) {
-                val githubReleasesUrl = stringResource(R.string.github_releases_url)
-                ExtendedFloatingActionButton(
-                    onClick = { uriHandler.openUri(githubReleasesUrl) },
-                    icon = { Icon(painterResource(R.drawable.github), contentDescription = null, modifier = Modifier.size(24.dp)) },
-                    text = { Text(stringResource(R.string.view_on_github)) },
-                    containerColor = MaterialTheme.colorScheme.onPrimary,
-                    contentColor = MaterialTheme.colorScheme.primary
-                )
-            }
         }
     }
 }

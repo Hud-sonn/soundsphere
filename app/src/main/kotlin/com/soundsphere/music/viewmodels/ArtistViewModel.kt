@@ -68,6 +68,7 @@ class ArtistViewModel @Inject constructor(
 
     // Track API subscription state separately
     private val _apiSubscribed = MutableStateFlow<Boolean?>(null)
+    val error = MutableStateFlow<String?>(null)
 
     val libraryArtist = database.artist(artistId)
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
@@ -141,6 +142,7 @@ class ArtistViewModel @Inject constructor(
 
     fun fetchArtistsFromYTM() {
         viewModelScope.launch {
+            error.value = null
             val hideExplicit = context.dataStore.get(HideExplicitKey, false)
             val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)
             val hideYoutubeShorts = context.dataStore.get(HideYoutubeShortsKey, false)
@@ -256,6 +258,7 @@ class ArtistViewModel @Inject constructor(
                     _apiSubscribed.value = resolvedPage.isSubscribed
                 }.onFailure {
                     reportException(it)
+                    error.value = it.message
                 }
         }
     }

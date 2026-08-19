@@ -32,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -50,6 +51,7 @@ import com.soundsphere.music.constants.GridItemsSizeKey
 import com.soundsphere.music.constants.GridThumbnailHeight
 import com.soundsphere.music.models.toMediaMetadata
 import com.soundsphere.music.playback.queues.YouTubeQueue
+import com.soundsphere.music.ui.component.ErrorRetryPlaceholder
 import com.soundsphere.music.ui.component.IconButton
 import com.soundsphere.music.ui.component.LocalMenuState
 import com.soundsphere.music.ui.component.YouTubeGridItem
@@ -84,6 +86,7 @@ fun ArtistItemsScreen(
 
     val title by viewModel.title.collectAsStateWithLifecycle()
     val itemsPage by viewModel.itemsPage.collectAsStateWithLifecycle()
+    val error by viewModel.error.collectAsStateWithLifecycle()
 
     LaunchedEffect(lazyListState) {
         snapshotFlow {
@@ -103,7 +106,13 @@ fun ArtistItemsScreen(
         }
     }
 
-    if (itemsPage == null) {
+    if (itemsPage == null && error != null) {
+        ErrorRetryPlaceholder(
+            message = stringResource(R.string.error_loading_artist),
+            onRetry = viewModel::retry,
+            modifier = Modifier.windowInsetsPadding(LocalPlayerAwareWindowInsets.current),
+        )
+    } else if (itemsPage == null) {
         ShimmerHost(
             modifier = Modifier.windowInsetsPadding(LocalPlayerAwareWindowInsets.current),
         ) {

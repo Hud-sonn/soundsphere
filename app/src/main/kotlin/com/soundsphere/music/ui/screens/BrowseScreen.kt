@@ -21,6 +21,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -33,6 +34,7 @@ import com.soundsphere.music.R
 import com.soundsphere.music.constants.GridItemSize
 import com.soundsphere.music.constants.GridItemsSizeKey
 import com.soundsphere.music.constants.GridThumbnailHeight
+import com.soundsphere.music.ui.component.ErrorRetryPlaceholder
 import com.soundsphere.music.ui.component.IconButton
 import com.soundsphere.music.ui.component.LocalMenuState
 import com.soundsphere.music.ui.component.YouTubeGridItem
@@ -59,10 +61,17 @@ fun BrowseScreen(
 
     val title by viewModel.title.collectAsStateWithLifecycle()
     val items by viewModel.items.collectAsStateWithLifecycle()
+    val error by viewModel.error.collectAsStateWithLifecycle()
 
     val coroutineScope = rememberCoroutineScope()
     val gridItemSize by rememberEnumPreference(GridItemsSizeKey, GridItemSize.BIG)
 
+    if (error != null) {
+        ErrorRetryPlaceholder(
+            message = stringResource(R.string.error_loading_browse),
+            onRetry = viewModel::retry,
+        )
+    } else {
     LazyVerticalGrid(
         columns = GridCells.Adaptive(minSize = GridThumbnailHeight + if (gridItemSize == GridItemSize.BIG) 24.dp else (-24).dp),
         contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues(),
@@ -142,6 +151,7 @@ fun BrowseScreen(
                 }
             }
         }
+    }
     }
 
     TopAppBar(

@@ -3,6 +3,62 @@
 Working notes for known issues that need human eyes or a future session. Do not delete
 without resolving the items below.
 
+## 0. Playback breaks when a YouTube account is logged in — "bot detection" / re-login prompt (open, investigation)
+
+**Symptom:** playback works normally logged out; the moment a YouTube account is logged
+in, playback breaks and the app surfaces a bot-detection error that prompts the user to
+re-login repeatedly.
+
+**Investigated 2026-08-18 (code walk-through, re-verified after build; not yet device-tested):**
+
+- The only request-path difference between logged-in and logged-out `/player` calls is
+  the auth headers: `InnerTube.player()` always uses `setLogin = true`
+  (`innertube/.../InnerTube.kt:229`), which appends `Cookie` + `Authorization:
+  SAPISIDHASH <ts>_<hash>` only when a cookie is present (InnerTube.kt:158-165).
+  Logged out, neither header is sent — same client persona (WEB_REMIX).
+- **Key conflict with the earlier report:** the earlier fix assumed re-login was the
+  correct remedy. In fact, `YTPlayerUtils.playerResponseForPlayback` treats bot
+  detection on the primary WEB_REMIX response as fatal and **throws before the
+  fallback-client loop runs** (YTPlayerUtils.kt:181-188 → the loop at 228+ never
+  executes). This is the single point that kills playback: the loop itself already
+  handles a non-OK main response gracefully (skips it at 273-276 and tries the next
+  client), so removing the throw would let logged-in playback fall through to
+  anonymous fallback clients.
+- **Verified client matrix** (which fallbacks stay anonymous even when logged in):
+  - `VISIONOS` (default #1), `ANDROID_VR_1_65_10` (#2), `ANDROID_VR_1_43_32` (#3),
+    `TVHTML5_SIMPLY` (#6): `loginSupported = false` → **no cookie, no SAPISIDHASH,
+    no onBehalfOfUser** — byte-identical requests to the logged-out path that works.
+  - `TVHTML5` (#5): `loginSupported = true` → also carries auth when logged in.
+  - `WEB_REMIX` (main): `loginSupported = true` + `useWebPoTokens` — the flagged one.
+- **Secondary suspect (poToken session mismatch):** the poToken is minted against the
+  **anonymous** visitor session — `sessionId = YouTube.visitorData` (YTPlayerUtils.kt:140,
+  PoTokenGenerator.getWebClientPoToken). When logged in, the same visitor-bound token +
+  visitorData ride an authenticated request (cookie + dataSyncId onBehalfOfUser).
+  BotGuard can flag exactly this credential/token mismatch. Logged out, the pairing is
+  consistent, which also explains why the anonymous path never trips.
+- `PlayerConfigStore` (remote player/cipher config) is **not** implicated: configs are
+  keyed by player hash, not by auth state; and the anonymous fallback clients
+  (`useSignatureTimestamp = false`) don't need cipher/decipher at all.
+- `validateStatus` HEAD requests (YTPlayerUtils.kt:653-656) add the cookie only for
+  uploaded/private tracks — not the main path.
+
+**Why re-login only temporarily works:** a fresh SAPISID session passes bot detection
+until YouTube flags the automated authenticated request shape (or the token/session
+mismatch) again. The request shape never changes, so the prompt recurs.
+
+**Proposed fix (not yet applied):** when bot detection fires on the authenticated
+primary client, do not throw — log a warning and fall through to the anonymous fallback
+clients (VISIONOS/ANDROID_VR/TVHTML5_SIMPLY). Optionally combine with preferring an
+anonymous client (VISIONOS) as the primary metadata/stream client when logged in.
+
+**Action items:**
+- [ ] Implement the fall-through (or header drop) fix and smoke-test logged-in playback.
+- [ ] Check whether `validateStatus` HEAD requests adding the cookie (YTPlayerUtils.kt:653-656)
+      contribute to detection; the WEB_REMIX path skips HEAD validation already.
+- [ ] Verify with logcat whether the thrown `BOT_DETECTED` error is the actual observed
+      failure (vs. a plain 403 stream rejection) before finalizing.
+
+
 ## 1. Account sync: playlists not pulled on debug device (open)
 
 **Reported by user:** signed in as `marthasmith89977` on the debug build and the
@@ -103,3 +159,19 @@ hour. Large-playlist sync will always blow through the 120/hour limit.
 - [ ] Increase the write limit or exempt playlist-track pushes (or batch them).
 - [ ] Consider treating 429 as non-retryable (fail fast + queued offline retry) so the
       app stops hammering a rate-limited endpoint.
+
+## 9. Backend `ReadError` exceptions from client disconnects (low priority)
+
+**Evidence from Render logs (2026-08-15 08:15–09:49 UTC):** 16
+`soundsphere-auth:Unhandled exception: ReadError` / `Exception in ASGI application`
+errors, all from mobile clients on variable networks.
+
+**Root cause:** the app closes the HTTP connection before the response finishes
+(typical with background sync on flaky mobile networks). Uvicorn/Starlette logs
+the broken pipe as an unhandled exception. Not a functional bug — the data still
+gets written — but noisy.
+
+**Action items:**
+- [ ] Catch `ReadError` / `ConnectionResetError` in the ASGI app and log at DEBUG
+      level instead of ERROR (or add a middleware that suppresses known disconnect
+      exceptions).
