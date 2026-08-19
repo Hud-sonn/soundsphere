@@ -1,0 +1,14 @@
+[
+  {
+    "id": "announcement-test-2026-08-19",
+    "title": "Test announcement",
+    "body": "This is a test announcement to verify the in-app announcement feed works end to end. Delete this entry after testing.",
+    "dismissable": true
+  },
+  {
+    "id": "announcement-2026-08-16",
+    "title": "Welcome to Soundsphere's in-app announcements",
+    "body": "Soundsphere now ships a lightweight in-app announcement feed — this is the first one. Updates like new features and fixes will now reach you right inside the app, no need to check the Telegram channel.\n\n- Edit your Soundsphere account: username and avatar picture in Settings → Account Settings.\n- Wallpaper backgrounds: pick a wallpaper in Theme settings and use it behind the whole app.\n- Material U look: switch between the classic Earthy look and the rounder Material U look in Theme settings.",
+    "dismissable": true
+  }
+]
