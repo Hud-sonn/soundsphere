@@ -278,7 +278,7 @@ fun AppearanceSettings(
     val sharedPreferences = remember { context.getSharedPreferences("soundsphere_settings", Context.MODE_PRIVATE) }
     val prefDensityScale =
         remember(sharedPreferences) {
-            sharedPreferences.getFloat("density_scale_factor", 1.0f)
+            sharedPreferences.getFloat("density_scale_factor", 0.95f)
         }
     val (densityScale, setDensityScale) = rememberPreference(DensityScaleKey, defaultValue = prefDensityScale)
     var showRestartDialog by rememberSaveable { mutableStateOf(false) }

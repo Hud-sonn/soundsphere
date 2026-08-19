@@ -2833,6 +2833,14 @@ class MusicService :
             performAggressiveCacheClear(mediaId)
         }
 
+        // Bot detection: stop immediately, don't retry (user must re-login)
+        val errorMessage = error.cause?.cause?.message ?: error.cause?.message ?: error.message ?: ""
+        if (errorMessage.contains("BOT_DETECTED", ignoreCase = true)) {
+            Timber.tag(TAG).w("YouTube bot detection triggered, stopping playback — user must re-login")
+            stopOnError()
+            return
+        }
+
         when {
             isAudioRendererError(error) -> {
                 Timber.tag(TAG).d("AudioTrack error detected (${error.errorCode}), performing safe recovery")

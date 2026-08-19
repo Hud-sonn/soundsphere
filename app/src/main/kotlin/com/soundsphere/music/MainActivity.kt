@@ -34,6 +34,7 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -89,6 +90,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -99,6 +101,7 @@ import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
@@ -126,6 +129,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import coil3.compose.AsyncImage
 import coil3.imageLoader
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
@@ -159,12 +163,18 @@ import com.soundsphere.music.constants.PureBlackKey
 import com.soundsphere.music.constants.SYSTEM_DEFAULT
 import com.soundsphere.music.constants.SelectedThemeColorKey
 import com.soundsphere.music.constants.SimpMusicMigrationDoneKey
+import com.soundsphere.music.constants.ThemeVariant
+import com.soundsphere.music.constants.ThemeVariantKey
 import com.soundsphere.music.constants.SlimNavBarHeight
 import com.soundsphere.music.constants.SlimNavBarKey
 import com.soundsphere.music.constants.StopMusicOnTaskClearKey
 import com.soundsphere.music.constants.UpdateNotificationsEnabledKey
 import com.soundsphere.music.constants.LastNotifiedUpdateVersionKey
+import com.soundsphere.music.constants.SoundsphereAvatarUrlKey
 import com.soundsphere.music.constants.UseNewMiniPlayerDesignKey
+import com.soundsphere.music.constants.WallpaperBackgroundKey
+import com.soundsphere.music.constants.WallpaperUriKey
+import com.soundsphere.music.constants.SeenAnnouncementIdsKey
 import com.soundsphere.music.db.MusicDatabase
 import com.soundsphere.music.db.entities.SearchHistory
 import com.soundsphere.music.extensions.toEnum
@@ -175,7 +185,6 @@ import com.soundsphere.music.playback.MusicService
 import com.soundsphere.music.playback.MusicService.MusicBinder
 import com.soundsphere.music.playback.PlayerConnection
 import com.soundsphere.music.playback.queues.YouTubeQueue
-import com.soundsphere.music.ui.component.AccountSettingsDialog
 import com.soundsphere.music.ui.component.AppNavigationBar
 import com.soundsphere.music.ui.component.AppNavigationRail
 import com.soundsphere.music.ui.component.BottomSheetMenu
@@ -185,12 +194,14 @@ import com.soundsphere.music.ui.component.LocalMenuState
 import com.soundsphere.music.ui.component.SoundsphereSidebar
 import com.soundsphere.music.ui.component.UpdateChangelogSheet
 import com.soundsphere.music.ui.component.UpdateSheetMode
+import com.soundsphere.music.ui.component.AnnouncementSheet
 import com.soundsphere.music.ui.component.rememberBottomSheetState
 import com.soundsphere.music.ui.component.shimmer.ShimmerTheme
 import com.soundsphere.music.ui.menu.YouTubeSongMenu
 import com.soundsphere.music.ui.player.BottomSheetPlayer
 import com.soundsphere.music.ui.screens.Screens
 import com.soundsphere.music.ui.screens.navigationBuilder
+import com.soundsphere.music.ui.screens.settings.AnnouncementsScreen
 import com.soundsphere.music.ui.screens.settings.ChangelogScreen
 import com.soundsphere.music.ui.screens.settings.DarkMode
 import com.soundsphere.music.ui.screens.settings.NavigationTab
@@ -199,11 +210,14 @@ import com.soundsphere.music.ui.screens.auth.SoundsphereSplashLogo
 import com.soundsphere.music.ui.theme.ColorSaver
 import com.soundsphere.music.ui.theme.DefaultThemeColor
 import com.soundsphere.music.ui.theme.SoundsphereTheme
+import com.soundsphere.music.ui.theme.bbh_bartle
 import com.soundsphere.music.ui.theme.extractThemeColor
 import com.soundsphere.music.ui.utils.appBarScrollBehavior
 import com.soundsphere.music.ui.utils.resetHeightOffset
 import com.soundsphere.music.utils.AppUpdateDownloadJob
 import com.soundsphere.music.utils.AppUpdateDownloader
+import com.soundsphere.music.utils.AnnouncementMessage
+import com.soundsphere.music.utils.MessageService
 import com.soundsphere.music.utils.SearchRoutes
 import com.soundsphere.music.utils.SyncUtils
 import com.soundsphere.music.utils.Updater
@@ -272,6 +286,7 @@ class MainActivity : ComponentActivity() {
     private var latestVersionName by mutableStateOf(BuildConfig.VERSION_NAME)
     private var showUpdateChangelogSheet by mutableStateOf(false)
     private var updateChangelogMode by mutableStateOf(UpdateSheetMode.AVAILABLE)
+    private var announcementFeedRequested by mutableStateOf(false)
 
     /**
      * Activity-scoped auth state holder. Shared by the native splash (keep-on-screen
@@ -408,11 +423,22 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         handleUpdateChangelogIntent(intent)
+        handleAnnouncementIntent(intent)
         if (::navController.isInitialized) {
             handleWidgetTargetIntent(intent, navController)
             handleDeepLinkIntent(intent, navController)
         } else {
             pendingIntent = intent
+        }
+    }
+
+    /**
+     * Opens the full announcements feed when the user taps the announcement
+     * system notification.
+     */
+    private fun handleAnnouncementIntent(intent: Intent) {
+        if (intent.action == MessageService.ACTION_SHOW_ANNOUNCEMENTS) {
+            announcementFeedRequested = true
         }
     }
 
@@ -464,6 +490,7 @@ class MainActivity : ComponentActivity() {
         listenTogetherManager.initialize()
 
         handleUpdateChangelogIntent(intent)
+        handleAnnouncementIntent(intent)
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
             val locale =
@@ -641,8 +668,57 @@ class MainActivity : ComponentActivity() {
             }
         }
 
+        // In-app announcements: fetch the GitHub-hosted feed once at launch
+        // (2-hour cache), then surface the first not-yet-seen message as a
+        // dismissible sheet. Seen ids are persisted so each message shows once.
+        val (seenAnnouncementIds, setSeenAnnouncementIds) =
+            rememberPreference(SeenAnnouncementIdsKey, defaultValue = "")
+        var announcements by remember { mutableStateOf<List<AnnouncementMessage>>(emptyList()) }
+        var showAnnouncementSheet by remember { mutableStateOf(false) }
+        var showAnnouncementsScreen by remember { mutableStateOf(false) }
+
+        LaunchedEffect(Unit) {
+            withContext(Dispatchers.IO) {
+                MessageService.fetchMessages().onSuccess { messages ->
+                    if (messages.isNotEmpty()) {
+                        val seen =
+                            dataStore
+                                .get(SeenAnnouncementIdsKey, "")
+                                .split(",")
+                                .filter { it.isNotBlank() }
+                                .toSet()
+                        val unseen = MessageService.unseenMessages(messages, seen)
+                        if (unseen.isNotEmpty()) {
+                            announcements = messages
+                            // The feed was already requested (e.g. via the system
+                            // notification), so skip the launch sheet.
+                            if (!announcementFeedRequested) {
+                                showAnnouncementSheet = true
+                            }
+                            // Also surface the newest unseen announcement as a system
+                            // notification so users notice it without opening the app.
+                            MessageService.postAnnouncementNotification(
+                                this@MainActivity,
+                                unseen.first(),
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
         val enableDynamicTheme by rememberPreference(DynamicThemeKey, defaultValue = true)
         val enableHighRefreshRate by rememberPreference(EnableHighRefreshRateKey, defaultValue = true)
+
+        // Open the announcements feed when the user taps the announcement
+        // system notification (flag set from onCreate/onNewIntent). Also
+        // suppresses the launch sheet so only the feed bottom sheet appears.
+        LaunchedEffect(announcementFeedRequested) {
+            if (announcementFeedRequested) {
+                showAnnouncementSheet = false
+                showAnnouncementsScreen = true
+            }
+        }
 
         LaunchedEffect(enableHighRefreshRate) {
             val window = this@MainActivity.window
@@ -692,6 +768,10 @@ class MainActivity : ComponentActivity() {
 
         val (selectedThemeColorInt) = rememberPreference(SelectedThemeColorKey, defaultValue = DefaultThemeColor.toArgb())
         val selectedThemeColor = Color(selectedThemeColorInt)
+        val (themeVariant) = rememberEnumPreference(ThemeVariantKey, defaultValue = ThemeVariant.EARTHY)
+        val (wallpaperUri) = rememberPreference(WallpaperUriKey, defaultValue = "")
+        val (wallpaperBackground) = rememberPreference(WallpaperBackgroundKey, defaultValue = false)
+        val (soundsphereAvatarUrl) = rememberPreference(SoundsphereAvatarUrlKey, defaultValue = "")
 
         val showChangelog = rememberSaveable { mutableStateOf(false) }
 
@@ -757,6 +837,7 @@ class MainActivity : ComponentActivity() {
             darkTheme = useDarkTheme,
             pureBlack = pureBlack,
             themeColor = themeColor,
+            themeVariant = themeVariant,
         ) {
             val isLoggedIn by authViewModel.isLoggedIn.collectAsStateWithLifecycle()
             val authChecked by authViewModel.authChecked.collectAsStateWithLifecycle()
@@ -792,6 +873,22 @@ class MainActivity : ComponentActivity() {
                         .fillMaxSize()
                         .background(if (pureBlack) Color.Black else MaterialTheme.colorScheme.surface),
             ) {
+                // Whole-app wallpaper background with a subtle dark scrim so
+                // foreground content stays readable on top of the picture.
+                if (wallpaperBackground && wallpaperUri.isNotBlank() && !pureBlack) {
+                    AsyncImage(
+                        model = wallpaperUri,
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                    Box(
+                        modifier =
+                            Modifier
+                                .fillMaxSize()
+                                .background(Color.Black.copy(alpha = 0.35f)),
+                    )
+                }
                 val density = LocalDensity.current
                 val configuration = LocalWindowInfo.current
                 val cutoutInsets = WindowInsets.displayCutout
@@ -1200,8 +1297,6 @@ class MainActivity : ComponentActivity() {
                         }
                     }
 
-                var showAccountDialog by remember { mutableStateOf(false) }
-
                 val baseBg = if (pureBlack) Color.Black else MaterialTheme.colorScheme.surfaceContainer
 
                 val drawerState = rememberDrawerState(DrawerValue.Closed)
@@ -1263,6 +1358,38 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
+                    val seenAnnouncementIdSet =
+                        seenAnnouncementIds.split(",").filter { it.isNotBlank() }.toSet()
+                    val announcementsUnseen =
+                        MessageService.unseenMessages(announcements, seenAnnouncementIdSet)
+                    val currentAnnouncement = announcementsUnseen.firstOrNull()
+                    if (showAnnouncementSheet && currentAnnouncement != null) {
+                        AnnouncementSheet(
+                            message = currentAnnouncement,
+                            onDismiss = {
+                                setSeenAnnouncementIds(
+                                    (seenAnnouncementIdSet + currentAnnouncement.id).joinToString(","),
+                                )
+                                MessageService.cancelAnnouncementNotification(this@MainActivity)
+                            },
+                        )
+                    }
+
+                    if (showAnnouncementsScreen) {
+                        AnnouncementsScreen(
+                            onDismiss = {
+                                announcementFeedRequested = false
+                                showAnnouncementsScreen = false
+                            },
+                            onAllSeen = { allIds ->
+                                setSeenAnnouncementIds(
+                                    (seenAnnouncementIdSet + allIds).joinToString(","),
+                                )
+                                MessageService.cancelAnnouncementNotification(this@MainActivity)
+                            },
+                        )
+                    }
+
                     ModalNavigationDrawer(
                         drawerState = drawerState,
                         drawerContent = {
@@ -1270,8 +1397,9 @@ class MainActivity : ComponentActivity() {
                                 currentRoute = navBackStackEntry?.destination?.route,
                                 accountName = accountName,
                                 accountImageUrl = accountImageUrl,
-                                listenTogetherInTopBar = listenTogetherInTopBar,
+                                listenTogetherInBottomNav = !listenTogetherInTopBar,
                                 updateAvailable = Updater.isUpdateAvailable(BuildConfig.VERSION_NAME, latestVersionName),
+                                announcementsUnseen = announcementsUnseen.isNotEmpty(),
                                 isLoggedIn = soundsphereLoggedIn,
                                 onNavigate = { route ->
                                     coroutineScope.launch {
@@ -1283,16 +1411,11 @@ class MainActivity : ComponentActivity() {
                                         }
                                     }
                                 },
-                                onOpenAccount = {
+                                onShowAnnouncements = {
                                     coroutineScope.launch {
                                         drawerState.close()
-                                        showAccountDialog = true
-                                    }
-                                },
-                                onOpenChangelog = {
-                                    coroutineScope.launch {
-                                        drawerState.close()
-                                        showChangelog.value = true
+                                        showAnnouncementSheet = false
+                                        showAnnouncementsScreen = true
                                     }
                                 },
                             )
@@ -1300,6 +1423,12 @@ class MainActivity : ComponentActivity() {
                     ) {
                     Scaffold(
                         snackbarHost = { SnackbarHost(snackbarHostState) },
+                        containerColor =
+                            if (wallpaperBackground && wallpaperUri.isNotBlank() && !pureBlack) {
+                                Color.Transparent
+                            } else {
+                                MaterialTheme.colorScheme.background
+                            },
                         topBar = {
                             AnimatedVisibility(
                                 visible = shouldShowTopBar,
@@ -1310,14 +1439,29 @@ class MainActivity : ComponentActivity() {
                                     TopAppBar(
                                         title = {
                                             if (navBackStackEntry?.destination?.route == Screens.Home.route) {
-                                                Image(
-                                                    painter = painterResource(R.drawable.soundsphere_foreground_mark),
-                                                    contentDescription = stringResource(R.string.app_name),
-                                                    modifier =
-                                                        Modifier
-                                                            .height(dimenResource(R.dimen.logo_size_top_bar))
-                                                            .padding(end = 4.dp),
-                                                )
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    horizontalArrangement = Arrangement.Center,
+                                                    modifier = Modifier.fillMaxWidth(),
+                                                ) {
+                                                    Image(
+                                                        painter = painterResource(R.drawable.soundsphere_foreground_mark),
+                                                        contentDescription = stringResource(R.string.app_name),
+                                                        modifier =
+                                                            Modifier
+                                                                .height(dimenResource(R.dimen.logo_size_top_bar))
+                                                                .padding(end = 4.dp),
+                                                    )
+                                                    Text(
+                                                        text = stringResource(R.string.app_name),
+                                                        style =
+                                                            MaterialTheme.typography.titleMedium.copy(
+                                                                fontFamily = bbh_bartle,
+                                                                fontStyle = FontStyle.Italic,
+                                                            ),
+                                                        color = MaterialTheme.colorScheme.onSurface,
+                                                    )
+                                                }
                                             } else {
                                                 Text(
                                                     text = currentTitleRes?.let { stringResource(it) } ?: "",
@@ -1326,13 +1470,42 @@ class MainActivity : ComponentActivity() {
                                             }
                                         },
                                         navigationIcon = {
-                                            IconButton(onClick = {
-                                                coroutineScope.launch { drawerState.open() }
-                                            }) {
-                                                Icon(
-                                                    painter = painterResource(R.drawable.hamburger),
-                                                    contentDescription = stringResource(R.string.sidebar),
-                                                )
+                                            if (navBackStackEntry?.destination?.route != Screens.Home.route) {
+                                                IconButton(onClick = {
+                                                    coroutineScope.launch { drawerState.open() }
+                                                }) {
+                                                    Icon(
+                                                        painter = painterResource(R.drawable.hamburger),
+                                                        contentDescription = stringResource(R.string.sidebar),
+                                                    )
+                                                }
+                                            }
+                                        },
+                                        actions = {
+                                            if (navBackStackEntry?.destination?.route == Screens.Home.route) {
+                                                IconButton(onClick = {
+                                                    navController.navigate("account_settings") {
+                                                        launchSingleTop = true
+                                                    }
+                                                }) {
+                                                    val avatarUrl = accountImageUrl ?: soundsphereAvatarUrl.ifBlank { null }
+                                                    if (avatarUrl != null) {
+                                                        AsyncImage(
+                                                            model = avatarUrl,
+                                                            contentDescription = stringResource(R.string.account),
+                                                            modifier =
+                                                                Modifier
+                                                                    .size(24.dp)
+                                                                    .clip(CircleShape),
+                                                        )
+                                                    } else {
+                                                        Icon(
+                                                            painter = painterResource(R.drawable.account),
+                                                            contentDescription = stringResource(R.string.account),
+                                                            modifier = Modifier.size(24.dp),
+                                                        )
+                                                    }
+                                                }
                                             }
                                         },
                                         scrollBehavior = topAppBarScrollBehavior,
@@ -1638,16 +1811,6 @@ class MainActivity : ComponentActivity() {
                         state = LocalBottomSheetPageState.current,
                         modifier = Modifier.align(Alignment.BottomCenter),
                     )
-
-                    if (showAccountDialog) {
-                        AccountSettingsDialog(
-                            onDismiss = {
-                                showAccountDialog = false
-                                homeViewModel.refresh()
-                            },
-                            latestVersionName = latestVersionName,
-                        )
-                    }
 
                     sharedSong?.let { song ->
                         playerConnection?.let {

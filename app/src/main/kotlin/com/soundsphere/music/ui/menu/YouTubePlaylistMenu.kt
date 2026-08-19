@@ -67,7 +67,7 @@ import com.soundsphere.music.LocalListenTogetherManager
 import com.soundsphere.music.LocalPlayerConnection
 import com.soundsphere.music.R
 import com.soundsphere.music.constants.ListThumbnailSize
-import com.soundsphere.music.constants.ThumbnailCornerRadius
+import com.soundsphere.music.ui.theme.thumbnailCornerRadius
 import com.soundsphere.music.db.entities.PlaylistEntity
 import com.soundsphere.music.db.entities.PlaylistSongMap
 import com.soundsphere.music.db.entities.SpeedDialItem
@@ -376,7 +376,7 @@ fun YouTubePlaylistMenu(
                                 modifier =
                                     Modifier
                                         .fillMaxSize()
-                                        .clip(RoundedCornerShape(ThumbnailCornerRadius)),
+                                        .clip(RoundedCornerShape(thumbnailCornerRadius())),
                             )
                         }
                     },

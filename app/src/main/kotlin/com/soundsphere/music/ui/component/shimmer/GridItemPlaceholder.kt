@@ -25,13 +25,13 @@ import com.soundsphere.music.constants.GridItemSize
 import com.soundsphere.music.constants.GridItemsSizeKey
 import com.soundsphere.music.constants.GridThumbnailHeight
 import com.soundsphere.music.constants.SmallGridThumbnailHeight
-import com.soundsphere.music.constants.ThumbnailCornerRadius
+import com.soundsphere.music.ui.theme.thumbnailCornerRadius
 import com.soundsphere.music.utils.rememberEnumPreference
 
 @Composable
 fun GridItemPlaceHolder(
     modifier: Modifier = Modifier,
-    thumbnailShape: Shape = RoundedCornerShape(ThumbnailCornerRadius),
+    thumbnailShape: Shape = RoundedCornerShape(thumbnailCornerRadius()),
     fillMaxWidth: Boolean = false,
 ) {
     val gridItemSize by rememberEnumPreference(GridItemsSizeKey, GridItemSize.BIG)

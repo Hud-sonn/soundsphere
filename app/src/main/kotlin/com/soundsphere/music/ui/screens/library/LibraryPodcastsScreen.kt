@@ -73,7 +73,7 @@ import com.soundsphere.music.constants.PodcastFilterKey
 import com.soundsphere.music.constants.SongSortDescendingKey
 import com.soundsphere.music.constants.SongSortType
 import com.soundsphere.music.constants.SongSortTypeKey
-import com.soundsphere.music.constants.ThumbnailCornerRadius
+import com.soundsphere.music.ui.theme.thumbnailCornerRadius
 import com.soundsphere.music.db.MusicDatabase
 import com.soundsphere.music.db.entities.PodcastEntity
 import com.soundsphere.music.db.entities.SpeedDialItem
@@ -511,7 +511,7 @@ private fun AutoPlaylistCard(
             modifier =
                 Modifier
                     .size(56.dp)
-                    .clip(RoundedCornerShape(ThumbnailCornerRadius))
+                    .clip(RoundedCornerShape(thumbnailCornerRadius()))
                     .background(MaterialTheme.colorScheme.primaryContainer),
             contentAlignment = Alignment.Center,
         ) {
@@ -523,7 +523,7 @@ private fun AutoPlaylistCard(
                     modifier =
                         Modifier
                             .size(56.dp)
-                            .clip(RoundedCornerShape(ThumbnailCornerRadius)),
+                            .clip(RoundedCornerShape(thumbnailCornerRadius())),
                 )
             } else {
                 Icon(
@@ -581,7 +581,7 @@ private fun PodcastEpisodePlaylistItem(
             modifier =
                 Modifier
                     .size(56.dp)
-                    .clip(RoundedCornerShape(ThumbnailCornerRadius))
+                    .clip(RoundedCornerShape(thumbnailCornerRadius()))
                     .background(MaterialTheme.colorScheme.primaryContainer),
             contentAlignment = Alignment.Center,
         ) {
@@ -593,7 +593,7 @@ private fun PodcastEpisodePlaylistItem(
                     modifier =
                         Modifier
                             .size(56.dp)
-                            .clip(RoundedCornerShape(ThumbnailCornerRadius)),
+                            .clip(RoundedCornerShape(thumbnailCornerRadius())),
                 )
             } else {
                 Icon(

@@ -34,6 +34,8 @@ include(":lastfm")
 include(":betterlyrics")
 include(":shazamkit")
 include(":paxsenix")
+include(":simpmusic")
+include(":unison")
 
 // Use a local copy of NewPipe Extractor by uncommenting the lines below.
 // We assume, that Soundsphere and NewPipe Extractor have the same parent directory.

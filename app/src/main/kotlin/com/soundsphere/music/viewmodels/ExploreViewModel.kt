@@ -33,7 +33,10 @@ constructor(
 ) : ViewModel() {
     val explorePage = MutableStateFlow<ExplorePage?>(null)
 
+    val error = MutableStateFlow<String?>(null)
+
     private suspend fun load() {
+        error.value = null
         YouTube
             .explore()
             .onSuccess { page ->
@@ -68,7 +71,14 @@ constructor(
                     )
             }.onFailure {
                 reportException(it)
+                error.value = it.message
             }
+    }
+
+    fun retry() {
+        viewModelScope.launch(Dispatchers.IO) {
+            load()
+        }
     }
 
     init {

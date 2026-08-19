@@ -30,7 +30,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.soundsphere.music.R
-import com.soundsphere.music.constants.ThumbnailCornerRadius
+import com.soundsphere.music.ui.theme.thumbnailCornerRadius
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.random.Random
@@ -41,7 +41,7 @@ fun PlayingIndicator(
     modifier: Modifier = Modifier,
     bars: Int = 3,
     barWidth: Dp = 4.dp,
-    cornerRadius: Dp = ThumbnailCornerRadius,
+    cornerRadius: Dp = thumbnailCornerRadius(),
 ) {
     val animatables =
         remember {

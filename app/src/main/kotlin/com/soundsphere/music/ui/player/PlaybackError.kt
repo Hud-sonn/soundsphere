@@ -59,8 +59,16 @@ fun PlaybackError(
             (rawErrorMessage.contains("cancelled", ignoreCase = true) ||
                     rawErrorMessage.contains("canceled", ignoreCase = true) ||
                     rawErrorMessage.contains("cancellat", ignoreCase = true))
+
+    // Check if this is a YouTube bot detection error
+    val isBotDetected = rawErrorMessage.contains("BOT_DETECTED", ignoreCase = true) ||
+            rawErrorMessage.contains("confirm you're not a bot", ignoreCase = true) ||
+            rawErrorMessage.contains("confirm you are not a bot", ignoreCase = true) ||
+            rawErrorMessage.contains("sign in to confirm", ignoreCase = true)
     
-    val errorMessage = if (isAgeRestricted) {
+    val errorMessage = if (isBotDetected) {
+        "YouTube requires re-authentication. Please sign out and sign in again from Settings."
+    } else if (isAgeRestricted) {
         "This app does not support playing age-restricted songs. We are working on fixing this issue."
     } else if (isJobCancelled) {
         stringResource(R.string.error_job_cancelled)

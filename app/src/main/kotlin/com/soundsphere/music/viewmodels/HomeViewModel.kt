@@ -88,6 +88,7 @@ class HomeViewModel @Inject constructor(
     val isLoading = MutableStateFlow(false)
     val isHomePageLoading = MutableStateFlow(false)
     val isRandomizing = MutableStateFlow(false)
+    val error = MutableStateFlow<String?>(null)
 
     private val quickPicksEnum = context.dataStore.data.map {
         it[QuickPicksKey].toEnum(QuickPicks.QUICK_PICKS)
@@ -458,6 +459,7 @@ class HomeViewModel @Inject constructor(
     }
 
     private suspend fun load() {
+        error.value = null
         isLoading.value = true
         isHomePageLoading.value = true
         val hideExplicit = context.dataStore.get(HideExplicitKey, false)
@@ -504,7 +506,10 @@ class HomeViewModel @Inject constructor(
                         if (filtered.isEmpty()) null else section.copy(items = filtered)
                     }
                 )
-            }.onFailure { reportException(it) }
+            }.onFailure {
+                reportException(it)
+                error.value = it.message
+            }
             isHomePageLoading.value = false
 
             if (YouTube.cookie != null) {

@@ -6,10 +6,13 @@ import timber.log.Timber
 /**
  * DensityScaler - Main entry point for screen density scaling.
  *
- * Reads scale factor from user preferences with default of 1.0f (100% native).
+ * Reads scale factor from user preferences with default of 0.95f (95%),
+ * a touch below native so the app doesn't feel oversized out of the box.
  *
  * Supported scale factors:
- * - 1.0f (100%) - Native density (default)
+ * - 0.95f (95%) - Default scale (default)
+ * - 1.0f (100%) - Native density
+ * - 0.85f (85%) - Slightly Compact
  * - 0.75f (75%) - Compact
  * - 0.65f (65%) - Very Compact
  * - 0.55f (55%) - Ultra Compact
@@ -26,7 +29,7 @@ class DensityScaler : BaseLifecycleContentProvider() {
     companion object {
         private const val PREFS_NAME = "soundsphere_settings"
         private const val KEY_DENSITY_SCALE = "density_scale_factor"
-        private const val DEFAULT_SCALE_FACTOR = 1.0f
+        private const val DEFAULT_SCALE_FACTOR = 0.95f
 
         /**
          * Reads the density scale factor from SharedPreferences.

@@ -46,6 +46,7 @@ import com.soundsphere.music.ui.screens.recognition.RecognitionScreen
 import com.soundsphere.music.ui.screens.search.OnlineSearchResult
 import com.soundsphere.music.ui.screens.search.SearchScreen
 import com.soundsphere.music.ui.screens.settings.AboutScreen
+import com.soundsphere.music.ui.screens.settings.AccountSettingsScreen
 import com.soundsphere.music.ui.screens.settings.AiSettings
 import com.soundsphere.music.ui.screens.settings.AndroidAutoSettings
 import com.soundsphere.music.ui.screens.settings.AppearanceSettings
@@ -140,6 +141,10 @@ fun NavGraphBuilder.navigationBuilder(
 
     composable("account") {
         AccountScreen(navController)
+    }
+
+    composable("account_settings") {
+        AccountSettingsScreen(navController)
     }
 
     composable("new_release") {

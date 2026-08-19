@@ -1,0 +1,27 @@
+/**
+ * Soundsphere Project (C) 2026
+ * Licensed under GPL-3.0 | See git history for contributors
+ */
+
+package com.soundsphere.music.lyrics
+
+import android.content.Context
+import com.soundsphere.music.constants.EnableSimpMusicKey
+import com.soundsphere.music.utils.dataStore
+import com.soundsphere.music.utils.get
+import com.soundsphere.simpmusic.SimpMusic
+
+object SimpMusicLyricsProvider : LyricsProvider {
+    override val name = "SimpMusic"
+
+    override fun isEnabled(context: Context): Boolean = context.dataStore[EnableSimpMusicKey] ?: true
+
+    override suspend fun getLyrics(
+        context: Context,
+        id: String,
+        title: String,
+        artist: String,
+        duration: Int,
+        album: String?,
+    ): Result<String> = SimpMusic.getLyrics(id)
+}

@@ -67,7 +67,7 @@ import com.soundsphere.music.LocalSyncUtils
 import com.soundsphere.music.R
 import com.soundsphere.music.constants.ListItemHeight
 import com.soundsphere.music.constants.ListThumbnailSize
-import com.soundsphere.music.constants.ThumbnailCornerRadius
+import com.soundsphere.music.ui.theme.thumbnailCornerRadius
 import com.soundsphere.music.db.entities.SpeedDialItem
 import com.soundsphere.music.db.entities.SongEntity
 import com.soundsphere.music.extensions.toMediaItem
@@ -207,14 +207,14 @@ fun YouTubeSongMenu(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
                     .size(ListThumbnailSize)
-                    .clip(RoundedCornerShape(ThumbnailCornerRadius))
+                    .clip(RoundedCornerShape(thumbnailCornerRadius()))
             ) {
                 AsyncImage(
                     model = song.thumbnail.resize(200, 200),
                     contentDescription = null,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(ThumbnailCornerRadius))
+                        .clip(RoundedCornerShape(thumbnailCornerRadius()))
                 )
             }
         },

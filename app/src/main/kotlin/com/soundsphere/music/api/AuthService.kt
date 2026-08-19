@@ -272,6 +272,42 @@ object AuthService {
             },
         )
 
+    /**
+     * Updates the Soundsphere account profile on the backend (username and/or
+     * avatar URL). Returns the updated user on success.
+     */
+    suspend fun updateProfile(
+        token: String,
+        username: String? = null,
+        avatarUrl: String? = null,
+    ): Result<AuthUser> =
+        withBackend(
+            build = { base ->
+                val body = JSONObject()
+                if (username != null) body.put("username", username)
+                if (avatarUrl != null) body.put("avatar_url", avatarUrl)
+                Request
+                    .Builder()
+                    .url("$base/user/profile")
+                    .header("Authorization", "Bearer $token")
+                    .put(body.toString().toRequestBody(JSON))
+                    .build()
+            },
+            parse = { response ->
+                val body = response.body?.string()
+                if (response.isSuccessful) {
+                    Result.success(parseUser(body))
+                } else {
+                    val message = errorMessage(body, response.code)
+                    if (response.code == 401) {
+                        Result.failure(UnauthorizedException(message))
+                    } else {
+                        Result.failure(Exception(message))
+                    }
+                }
+            },
+        )
+
     private fun parseUser(body: String?): AuthUser {
         val json = JSONObject(body ?: throw Exception("Empty response"))
         return AuthUser(

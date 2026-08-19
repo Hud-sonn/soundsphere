@@ -68,6 +68,7 @@ import com.soundsphere.music.R
 import com.soundsphere.music.constants.ListItemHeight
 import com.soundsphere.music.models.toMediaMetadata
 import com.soundsphere.music.playback.queues.YouTubeQueue
+import com.soundsphere.music.ui.component.ErrorRetryPlaceholder
 import com.soundsphere.music.ui.component.IconButton
 import com.soundsphere.music.ui.component.LocalMenuState
 import com.soundsphere.music.ui.component.NavigationTitle
@@ -95,6 +96,7 @@ fun ChartsScreen(
 
     val chartsPage by viewModel.chartsPage.collectAsStateWithLifecycle()
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
+    val error by viewModel.error.collectAsStateWithLifecycle()
 
     val lazyListState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
@@ -129,7 +131,7 @@ fun ChartsScreen(
                     .fillMaxSize()
                     .padding(paddingValues),
         ) {
-            if (isLoading || chartsPage == null) {
+            if (isLoading || (chartsPage == null && error == null)) {
                 ShimmerHost(
                     modifier = Modifier.fillMaxSize(),
                 ) {
@@ -209,6 +211,11 @@ fun ChartsScreen(
                         }
                     }
                 }
+            } else if (chartsPage == null && error != null) {
+                ErrorRetryPlaceholder(
+                    message = error ?: stringResource(R.string.error_unknown),
+                    onRetry = { viewModel.loadCharts() },
+                )
             } else {
                 LazyColumn(
                     state = lazyListState,

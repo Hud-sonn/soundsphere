@@ -11,10 +11,14 @@ import android.webkit.JavascriptInterface
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import android.content.Intent
@@ -24,6 +28,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -133,12 +138,15 @@ fun LoginScreen(navController: NavController) {
         }
     }
 
-    AndroidView(
+    Box(
         modifier =
             Modifier
                 .windowInsetsPadding(LocalPlayerAwareWindowInsets.current)
                 .fillMaxSize(),
-        factory = { webViewContext ->
+    ) {
+        AndroidView(
+            modifier = Modifier.fillMaxSize(),
+            factory = { webViewContext ->
             WebView(webViewContext).apply {
                 webViewClient =
                     object : WebViewClient() {
@@ -190,6 +198,19 @@ fun LoginScreen(navController: NavController) {
             }
         },
     )
+
+        if (isCompletingLogin) {
+            Box(
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.6f)),
+                contentAlignment = Alignment.Center,
+            ) {
+                CircularProgressIndicator()
+            }
+        }
+    }
 
     TopAppBar(
         title = { Text(stringResource(R.string.login)) },

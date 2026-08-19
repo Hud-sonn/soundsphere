@@ -43,7 +43,7 @@ fun AuthResetPasswordScreen(
 ) {
     var otp by remember { mutableStateOf("") }
     var newPassword by remember { mutableStateOf("") }
-    val c = EarthyAuthColors
+    val c = rememberEarthyAuthColors()
 
     Box(
         modifier = Modifier.fillMaxSize().background(c.background),

@@ -163,7 +163,7 @@ import com.soundsphere.music.constants.SleepTimerStopAfterCurrentSongKey
 import com.soundsphere.music.constants.SliderStyle
 import com.soundsphere.music.constants.SliderStyleKey
 import com.soundsphere.music.constants.SquigglySliderKey
-import com.soundsphere.music.constants.ThumbnailCornerRadius
+import com.soundsphere.music.ui.theme.thumbnailCornerRadius
 import com.soundsphere.music.constants.UseNewPlayerDesignKey
 import com.soundsphere.music.db.entities.LyricsEntity
 import com.soundsphere.music.extensions.metadata
@@ -997,7 +997,7 @@ fun BottomSheetPlayer(
                                     modifier =
                                         Modifier
                                             .size(56.dp)
-                                            .clip(RoundedCornerShape(ThumbnailCornerRadius))
+                                            .clip(RoundedCornerShape(thumbnailCornerRadius()))
                                             .background(MaterialTheme.colorScheme.surfaceVariant),
                                     contentAlignment = Alignment.Center,
                                 ) {
@@ -1017,7 +1017,7 @@ fun BottomSheetPlayer(
                                     modifier =
                                         Modifier
                                             .size(56.dp)
-                                            .clip(RoundedCornerShape(ThumbnailCornerRadius)),
+                                            .clip(RoundedCornerShape(thumbnailCornerRadius())),
                                 )
                             }
                             Spacer(modifier = Modifier.width(12.dp))
@@ -1367,7 +1367,7 @@ fun BottomSheetPlayer(
                                 modifier =
                                     Modifier
                                         .size(40.dp)
-                                        .clip(RoundedCornerShape(24.dp))
+                                        .clip(MaterialTheme.shapes.extraLarge)
                                         .background(textButtonColor)
                                         .clickable { isFullScreen = !isFullScreen },
                             ) {
@@ -1386,7 +1386,7 @@ fun BottomSheetPlayer(
                                 modifier =
                                     Modifier
                                         .size(40.dp)
-                                        .clip(RoundedCornerShape(24.dp))
+                                        .clip(MaterialTheme.shapes.extraLarge)
                                         .background(textButtonColor)
                                         .clickable {
                                             shareCardFor = mediaMetadata
@@ -1407,6 +1407,90 @@ fun BottomSheetPlayer(
 
                     Spacer(modifier = Modifier.size(12.dp))
 
+                    AnimatedContent(targetState = showInlineLyrics, label = "DownloadButton") { showLyrics ->
+                        if (!showLyrics) {
+                            Box(
+                                modifier =
+                                    Modifier
+                                        .size(40.dp)
+                                        .clip(MaterialTheme.shapes.extraLarge)
+                                        .background(textButtonColor)
+                                        .clickable {
+                                            when (download?.state) {
+                                                Download.STATE_COMPLETED,
+                                                Download.STATE_QUEUED,
+                                                Download.STATE_DOWNLOADING,
+                                                -> {
+                                                    DownloadService.sendRemoveDownload(
+                                                        context,
+                                                        ExoDownloadService::class.java,
+                                                        mediaMetadata.id,
+                                                        false,
+                                                    )
+                                                }
+
+                                                else -> {
+                                                    database.transaction {
+                                                        insert(mediaMetadata)
+                                                    }
+                                                    val downloadRequest =
+                                                        DownloadRequest
+                                                            .Builder(mediaMetadata.id, mediaMetadata.id.toUri())
+                                                            .setCustomCacheKey(mediaMetadata.id)
+                                                            .setData(mediaMetadata.title.toByteArray())
+                                                            .build()
+                                                    DownloadService.sendAddDownload(
+                                                        context,
+                                                        ExoDownloadService::class.java,
+                                                        downloadRequest,
+                                                        false,
+                                                    )
+                                                }
+                                            }
+                                        },
+                            ) {
+                                when (download?.state) {
+                                    Download.STATE_COMPLETED -> {
+                                        Icon(
+                                            painter = painterResource(R.drawable.offline),
+                                            contentDescription = null,
+                                            tint = iconButtonColor,
+                                            modifier =
+                                                Modifier
+                                                    .align(Alignment.Center)
+                                                    .size(24.dp),
+                                        )
+                                    }
+
+                                    Download.STATE_QUEUED, Download.STATE_DOWNLOADING -> {
+                                        CircularProgressIndicator(
+                                            modifier =
+                                                Modifier
+                                                    .align(Alignment.Center)
+                                                    .size(24.dp),
+                                            strokeWidth = 2.dp,
+                                            color = iconButtonColor,
+                                        )
+                                    }
+
+                                    else -> {
+                                        Icon(
+                                            painter = painterResource(R.drawable.download),
+                                            contentDescription = null,
+                                            tint = iconButtonColor,
+                                            modifier =
+                                                Modifier
+                                                    .align(Alignment.Center)
+                                                    .size(24.dp),
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.size(12.dp))
+
                     AnimatedContent(targetState = showInlineLyrics, label = "LikeButton") { showLyrics ->
                         if (showLyrics) {
                             val currentLyrics by playerConnection.currentLyrics.collectAsStateWithLifecycle(initialValue = null)
@@ -1414,7 +1498,7 @@ fun BottomSheetPlayer(
                                 modifier =
                                     Modifier
                                         .size(40.dp)
-                                        .clip(RoundedCornerShape(24.dp))
+                                        .clip(MaterialTheme.shapes.extraLarge)
                                         .background(textButtonColor)
                                         .clickable {
                                             menuState.show {
@@ -2054,7 +2138,7 @@ fun BottomSheetPlayer(
                         controlsContent(it)
                     }
 
-                    Spacer(Modifier.height(30.dp))
+                    Spacer(Modifier.height(56.dp))
                 }
             }
         }
@@ -2203,7 +2287,7 @@ fun InlineLyricsView(
         modifier =
             Modifier
                 .fillMaxSize()
-                .clip(RoundedCornerShape(12.dp)),
+                .clip(MaterialTheme.shapes.medium),
         contentAlignment = Alignment.Center,
     ) {
         when {
@@ -2256,7 +2340,7 @@ private fun PlayerMoreMenuButton(
         modifier =
             Modifier
                 .size(40.dp)
-                .clip(RoundedCornerShape(24.dp))
+                .clip(MaterialTheme.shapes.extraLarge)
                 .background(textButtonColor)
                 .clickable {
                     menuState.show {

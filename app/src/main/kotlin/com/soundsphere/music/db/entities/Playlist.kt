@@ -38,8 +38,19 @@ data class Playlist(
     
     val thumbnails: List<String>
         get() {
-            return if (playlist.thumbnailUrl != null)
-                listOf(playlist.thumbnailUrl)
-            else songThumbnails.filterNotNull()
+            val customThumbnail = playlist.thumbnailUrl
+            val songCovers = songThumbnails.filterNotNull()
+            // A user-picked cover (gallery file or uploaded custom thumbnail) is
+            // the definitive artwork — always show it alone.
+            val isCustomCover =
+                customThumbnail != null &&
+                    (customThumbnail.contains("content://com.soundsphere.music") ||
+                        customThumbnail.contains("studio_square_thumbnail"))
+            return when {
+                isCustomCover -> listOf(customThumbnail!!)
+                songCovers.isNotEmpty() -> songCovers
+                customThumbnail != null -> listOf(customThumbnail)
+                else -> emptyList()
+            }
         }
 }

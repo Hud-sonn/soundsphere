@@ -119,7 +119,7 @@ import com.soundsphere.music.constants.ListItemHeight
 import com.soundsphere.music.constants.ListThumbnailSize
 import com.soundsphere.music.constants.RandomizeHomeOrderKey
 import com.soundsphere.music.constants.SmallGridThumbnailHeight
-import com.soundsphere.music.constants.ThumbnailCornerRadius
+import com.soundsphere.music.ui.theme.thumbnailCornerRadius
 import com.soundsphere.music.db.entities.Album
 import com.soundsphere.music.db.entities.Artist
 import com.soundsphere.music.db.entities.LocalItem
@@ -136,6 +136,7 @@ import com.soundsphere.music.playback.queues.YouTubeQueue
 import com.soundsphere.music.ui.component.AlbumGridItem
 import com.soundsphere.music.ui.component.ArtistGridItem
 import com.soundsphere.music.ui.component.ChipsRow
+import com.soundsphere.music.ui.component.ErrorRetryPlaceholder
 import com.soundsphere.music.ui.component.HideOnScrollFAB
 import com.soundsphere.music.ui.component.LocalBottomSheetPageState
 import com.soundsphere.music.ui.component.LocalMenuState
@@ -252,7 +253,7 @@ fun CommunityPlaylistCard(
                     modifier =
                         Modifier
                             .size(100.dp)
-                            .clip(RoundedCornerShape(12.dp)),
+                            .clip(MaterialTheme.shapes.medium),
                 ) {
                     Column(modifier = Modifier.fillMaxSize()) {
                         Row(modifier = Modifier.weight(1f)) {
@@ -347,7 +348,7 @@ fun CommunityPlaylistCard(
                             Modifier
                                 .fillMaxWidth()
                                 .padding(vertical = 4.dp)
-                                .clip(RoundedCornerShape(12.dp))
+                                .clip(MaterialTheme.shapes.medium)
                                 .combinedClickable(onClick = { onSongClick(song) }),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -358,7 +359,7 @@ fun CommunityPlaylistCard(
                             modifier =
                                 Modifier
                                     .size(56.dp)
-                                    .clip(RoundedCornerShape(12.dp)),
+                                    .clip(MaterialTheme.shapes.medium),
                             contentScale = ContentScale.Crop,
                         )
                         Column(modifier = Modifier.weight(1f)) {
@@ -665,6 +666,7 @@ fun HomeScreen(
 
     val isLoading: Boolean by viewModel.isLoading.collectAsStateWithLifecycle()
     val isHomePageLoading: Boolean by viewModel.isHomePageLoading.collectAsStateWithLifecycle()
+    val homeError by viewModel.error.collectAsStateWithLifecycle()
     val isMoodAndGenresLoading = isLoading && explorePage?.moodAndGenres == null
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     val isRandomizing by viewModel.isRandomizing.collectAsStateWithLifecycle()
@@ -1197,7 +1199,7 @@ fun HomeScreen(
                                 items(5) {
                                     TextPlaceholder(
                                         height = 30.dp,
-                                        shape = RoundedCornerShape(16.dp),
+                                        shape = MaterialTheme.shapes.large,
                                         modifier = Modifier.width(72.dp),
                                     )
                                 }
@@ -1313,7 +1315,7 @@ fun HomeScreen(
                                                         CircleShape
                                                     } else {
                                                         RoundedCornerShape(
-                                                            ThumbnailCornerRadius,
+                                                            thumbnailCornerRadius(),
                                                         )
                                                     }
                                                 AsyncImage(
@@ -2052,7 +2054,7 @@ fun HomeScreen(
                                             }
                                         },
                                         onClick = {
-                                            navController.navigate("account")
+                                            navController.navigate("account_settings")
                                         },
                                     )
                                 }
@@ -2207,7 +2209,7 @@ fun HomeScreen(
                                                             CircleShape
                                                         } else {
                                                             RoundedCornerShape(
-                                                                ThumbnailCornerRadius,
+                                                                thumbnailCornerRadius(),
                                                             )
                                                         }
                                                     AsyncImage(
@@ -2283,7 +2285,7 @@ fun HomeScreen(
                                                             CircleShape
                                                         } else {
                                                             RoundedCornerShape(
-                                                                ThumbnailCornerRadius,
+                                                                thumbnailCornerRadius(),
                                                             )
                                                         }
                                                     AsyncImage(
@@ -2478,8 +2480,18 @@ fun HomeScreen(
                     }
                 }
 
+                // Error state when the home feed failed to load and nothing is showing
+                if (!isHomePageLoading && homePage?.sections.isNullOrEmpty() && homeError != null) {
+                    item(key = "home_error") {
+                        ErrorRetryPlaceholder(
+                            message = stringResource(R.string.error_loading_home),
+                            onRetry = viewModel::refresh,
+                            modifier = Modifier.fillParentMaxSize(),
+                        )
+                    }
+                }
                 // Only show shimmer during initial loading, not for pagination
-                if (isHomePageLoading && homePage?.sections.isNullOrEmpty()) {
+                else if (isHomePageLoading && homePage?.sections.isNullOrEmpty()) {
                     item(key = "loading_shimmer") {
                         ShimmerHost(
                         ) {

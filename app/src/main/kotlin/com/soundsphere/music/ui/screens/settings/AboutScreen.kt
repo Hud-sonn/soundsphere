@@ -7,7 +7,6 @@ package com.soundsphere.music.ui.screens.settings
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -54,7 +53,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
@@ -88,9 +86,10 @@ import java.util.Locale
 private data class Contributor(
     val name: String,
     val roleRes: Int,
-    val githubHandle: String,
-    val avatarUrl: String = "https://github.com/$githubHandle.png",
-    val githubUrl: String = "https://github.com/$githubHandle",
+    val githubHandle: String? = null,
+    val avatarUrl: String? = githubHandle?.let { "https://github.com/$it.png" },
+    val avatarRes: Int? = null,
+    val githubUrl: String? = githubHandle?.let { "https://github.com/$it" },
     val sponsorUrl: String? = null,
     val polygon: RoundedPolygon? = null,
     val favoriteSongVideoId: String? = null
@@ -112,11 +111,26 @@ private val leadDeveloper = Contributor(
     favoriteSongVideoId = null
 )
 
-private val collaborators = emptyList<Contributor>()
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+private val collaborators = listOf(
+    Contributor(
+        name = "Bekky",
+        roleRes = R.string.credits_ui_ux_designer,
+        githubHandle = null,
+        avatarRes = R.drawable.bekky,
+        polygon = MaterialShapes.Clover4Leaf,
+        favoriteSongVideoId = null,
+    ),
+    Contributor(
+        name = "Bevah Studio",
+        roleRes = R.string.credits_creative_team,
+        githubHandle = null,
+        polygon = MaterialShapes.PuffyDiamond,
+        favoriteSongVideoId = null,
+    ),
+)
 
 private val communityLinks = listOf(
-    CommunityLink(R.string.credits_view_repo, R.drawable.github, "https://github.com/Hud-sonn/soundsphere"),
-    CommunityLink(R.string.credits_license_name, R.drawable.info, "https://github.com/Hud-sonn/soundsphere/blob/main/LICENSE", R.string.credits_license_desc),
     CommunityLink(R.string.credits_feedback_group, R.drawable.whatsapp, "https://chat.whatsapp.com/DHjfKPLbn5iE7i1EqOELwX?s=cl&p=a&ilr=4", R.string.credits_feedback_group_desc),
     CommunityLink(R.string.credits_solus_log_channel, R.drawable.whatsapp, "https://whatsapp.com/channel/0029VbDq3TyEQIaq2loTE147", R.string.credits_solus_log_channel_desc),
 )
@@ -152,7 +166,8 @@ private fun handleEasterEggClick(
 
 @Composable
 private fun ContributorAvatar(
-    avatarUrl: String,
+    avatarUrl: String?,
+    avatarRes: Int? = null,
     sizeDp: Int,
     modifier: Modifier = Modifier,
     shape: Shape = CircleShape,
@@ -160,6 +175,7 @@ private fun ContributorAvatar(
     onClick: (() -> Unit)? = null
 ) {
     val fallback = painterResource(R.drawable.soundsphere_foreground_mark)
+    val localImage = avatarRes?.let { painterResource(it) }
     Surface(
         onClick = onClick ?: {},
         enabled = onClick != null,
@@ -168,15 +184,35 @@ private fun ContributorAvatar(
         color = MaterialTheme.colorScheme.surfaceContainerHighest,
         tonalElevation = 4.dp,
     ) {
-        AsyncImage(
-            model = avatarUrl,
-            contentDescription = contentDescription,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize(),
-            placeholder = fallback,
-            fallback = fallback,
-            error = fallback,
-        )
+        when {
+            avatarUrl != null -> {
+                AsyncImage(
+                    model = avatarUrl,
+                    contentDescription = contentDescription,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize(),
+                    placeholder = fallback,
+                    fallback = fallback,
+                    error = fallback,
+                )
+            }
+            localImage != null -> {
+                Image(
+                    painter = localImage,
+                    contentDescription = contentDescription,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
+            else -> {
+                Image(
+                    painter = fallback,
+                    contentDescription = contentDescription,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
+        }
     }
 }
 
@@ -188,12 +224,6 @@ private fun DeveloperSocials(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        FilledTonalButton(
-            onClick = { uriHandler.openUri("https://github.com/Hud-sonn") },
-            modifier = Modifier.weight(1f).height(48.dp)
-        ) {
-            Icon(painterResource(R.drawable.github), contentDescription = null)
-        }
         FilledTonalButton(
             onClick = { uriHandler.openUri("https://www.instagram.com/hudson_dev") },
             modifier = Modifier.weight(1f).height(48.dp)
@@ -444,6 +474,7 @@ fun AboutScreen(
                             var clickCount by remember(contributor.name) { mutableIntStateOf(0) }
                             ContributorAvatar(
                                 avatarUrl = contributor.avatarUrl,
+                                avatarRes = contributor.avatarRes,
                                 sizeDp = 48,
                                 shape = contributor.polygon?.toShape() ?: CircleShape,
                                 contentDescription = contributor.name,
@@ -485,15 +516,17 @@ fun AboutScreen(
                                         }
                                     }
                                 }
-                                Icon(
-                                    painter = painterResource(R.drawable.github),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(24.dp),
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
+                                if (contributor.githubUrl != null) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.github),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(24.dp),
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
                             }
                         },
-                        onClick = { uriHandler.openUri(contributor.githubUrl) }
+                        onClick = { contributor.githubUrl?.let { uriHandler.openUri(it) } }
                     )
                 }
             )
@@ -550,10 +583,7 @@ fun AboutScreen(
             text = stringResource(R.string.about_based_on_metrolist),
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-            modifier = Modifier
-                .clip(RoundedCornerShape(8.dp))
-                .clickable { uriHandler.openUri("https://github.com/mostafaalagamy/Metrolist") }
-                .padding(4.dp),
+            modifier = Modifier.padding(4.dp),
         )
 
         Spacer(Modifier.height(16.dp))

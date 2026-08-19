@@ -168,8 +168,22 @@ object YTPlayerUtils {
 
         // Check if WEB_REMIX response indicates age-restricted
         val mainStatus = mainPlayerResponse?.playabilityStatus?.status
+        val mainReason = mainPlayerResponse?.playabilityStatus?.reason
         val isAgeRestrictedFromResponse = mainStatus in listOf("AGE_CHECK_REQUIRED", "AGE_VERIFICATION_REQUIRED", "LOGIN_REQUIRED", "CONTENT_CHECK_REQUIRED")
         val wasOriginallyAgeRestricted = isAgeRestrictedFromResponse
+
+        // Detect YouTube bot detection ("Sign in to confirm you're not a bot").
+        // The authenticated WEB_REMIX request can be flagged when logged in while the
+        // anonymous fallback clients below still work; log and fall through instead of
+        // throwing (the loop skips this non-OK response and tries the next client).
+        val isBotDetected = mainReason?.contains("bot", ignoreCase = true) == true ||
+                mainReason?.contains("confirm you", ignoreCase = true) == true ||
+                mainReason?.contains("confirm your", ignoreCase = true) == true ||
+                (mainStatus == "LOGIN_REQUIRED" && mainReason?.contains("sign in", ignoreCase = true) == true)
+
+        if (isBotDetected) {
+            Timber.tag(TAG).w("YouTube bot detection on primary client: status=$mainStatus, reason=$mainReason — falling back to anonymous clients")
+        }
 
         var audioConfig = mainPlayerResponse?.playerConfig?.audioConfig
         var videoDetails = mainPlayerResponse?.videoDetails

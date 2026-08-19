@@ -37,6 +37,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.soundsphere.music.LocalPlayerAwareWindowInsets
 import com.soundsphere.music.R
+import com.soundsphere.music.ui.component.ErrorRetryPlaceholder
 import com.soundsphere.music.ui.component.IconButton
 import com.soundsphere.music.ui.component.NavigationTitle
 import com.soundsphere.music.ui.component.shimmer.ListItemPlaceHolder
@@ -54,11 +55,20 @@ fun MoodAndGenresScreen(
     val itemsPerRow = if (localConfiguration.orientation == ORIENTATION_LANDSCAPE) 3 else 2
 
     val moodAndGenresList by viewModel.moodAndGenres.collectAsStateWithLifecycle()
+    val error by viewModel.error.collectAsStateWithLifecycle()
 
     LazyColumn(
         contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues(),
     ) {
-        if (moodAndGenresList == null) {
+        if (error != null) {
+            item(key = "mood_and_genres_error") {
+                ErrorRetryPlaceholder(
+                    message = stringResource(R.string.error_loading_mood_and_genres),
+                    onRetry = viewModel::retry,
+                    modifier = Modifier.fillParentMaxSize(),
+                )
+            }
+        } else if (moodAndGenresList == null) {
             item(key = "mood_and_genres_shimmer") {
                 ShimmerHost(
                     modifier = Modifier.animateItem()

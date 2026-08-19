@@ -38,32 +38,45 @@ constructor(
 
     val title = MutableStateFlow("")
     val itemsPage = MutableStateFlow<ItemsPage?>(null)
+    val error = MutableStateFlow<String?>(null)
 
     init {
         viewModelScope.launch {
-            YouTube
-                .artistItems(
-                    BrowseEndpoint(
-                        browseId = browseId,
-                        params = params,
-                    ),
-                )                .onSuccess { artistItemsPage ->
-                    val resolvedItems = YouTube.resolveArtistIds(artistItemsPage.items)
-                    val hideExplicit = context.dataStore.get(HideExplicitKey, false)
-                    val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)
-                    title.value = artistItemsPage.title
-                    itemsPage.value =
-                        ItemsPage(
-                            items = resolvedItems
-                                .distinctBy { it.id }
-                                .filterExplicit(hideExplicit)
-                                .filterVideoSongs(hideVideoSongs),
-                            continuation = artistItemsPage.continuation,
-                        )
-                }.onFailure {
-                    reportException(it)
-                }
+            load()
         }
+    }
+
+    fun retry() {
+        viewModelScope.launch {
+            load()
+        }
+    }
+
+    private suspend fun load() {
+        error.value = null
+        YouTube
+            .artistItems(
+                BrowseEndpoint(
+                    browseId = browseId,
+                    params = params,
+                ),
+            )                .onSuccess { artistItemsPage ->
+                val resolvedItems = YouTube.resolveArtistIds(artistItemsPage.items)
+                val hideExplicit = context.dataStore.get(HideExplicitKey, false)
+                val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)
+                title.value = artistItemsPage.title
+                itemsPage.value =
+                    ItemsPage(
+                        items = resolvedItems
+                            .distinctBy { it.id }
+                            .filterExplicit(hideExplicit)
+                            .filterVideoSongs(hideVideoSongs),
+                        continuation = artistItemsPage.continuation,
+                    )
+            }.onFailure {
+                reportException(it)
+                error.value = it.message
+            }
     }
 
     fun loadMore() {

@@ -66,6 +66,7 @@ import com.soundsphere.music.R
 import com.soundsphere.music.constants.ListItemHeight
 import com.soundsphere.music.models.toMediaMetadata
 import com.soundsphere.music.playback.queues.YouTubeQueue
+import com.soundsphere.music.ui.component.ErrorRetryPlaceholder
 import com.soundsphere.music.ui.component.LocalMenuState
 import com.soundsphere.music.ui.component.NavigationTitle
 import com.soundsphere.music.ui.component.YouTubeGridItem
@@ -93,8 +94,10 @@ fun ExploreScreen(
     val mediaMetadata by playerConnection.mediaMetadata.collectAsStateWithLifecycle()
 
     val explorePage by exploreViewModel.explorePage.collectAsStateWithLifecycle()
+    val exploreError by exploreViewModel.error.collectAsStateWithLifecycle()
     val chartsPage by chartsViewModel.chartsPage.collectAsStateWithLifecycle()
     val isChartsLoading by chartsViewModel.isLoading.collectAsStateWithLifecycle()
+    val chartsError by chartsViewModel.error.collectAsStateWithLifecycle()
 
     val coroutineScope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
@@ -131,6 +134,15 @@ fun ExploreScreen(
             )
 
             if (isChartsLoading || chartsPage == null || explorePage == null) {
+                if (chartsPage == null && chartsError != null && explorePage == null && exploreError != null) {
+                    ErrorRetryPlaceholder(
+                        message = stringResource(R.string.error_loading_explore),
+                        onRetry = {
+                            exploreViewModel.retry()
+                            chartsViewModel.loadCharts()
+                        },
+                    )
+                } else {
                 ShimmerHost {
                     TextPlaceholder(
                         height = 36.dp,
@@ -238,6 +250,7 @@ fun ExploreScreen(
                             }
                         }
                     }
+                }
                 }
             } else {
                 chartsPage?.sections?.filter { it.title != "Top music videos" }?.forEach { section ->

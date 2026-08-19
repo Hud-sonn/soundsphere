@@ -20,6 +20,7 @@ import androidx.core.content.ContextCompat
 import com.soundsphere.shazamkit.Shazam
 import com.soundsphere.shazamkit.models.RecognitionResult
 import com.soundsphere.shazamkit.models.RecognitionStatus
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -79,7 +80,7 @@ object MusicRecognitionService {
         
         try {
             // Step 1: Record audio
-            val audioData = recordAudio()
+            val audioData = recordAudio(context)
             Timber.tag(TAG).d("Audio recorded: %d bytes", audioData.size)
 
             _recognitionStatus.value = RecognitionStatus.Processing
@@ -145,6 +146,11 @@ object MusicRecognitionService {
             )
             
             _recognitionStatus.value
+        } catch (e: CancellationException) {
+            // A cancelled recognition (e.g. leaving the screen or stopping the
+            // widget) must propagate cancellation instead of turning into an
+            // Error state.
+            throw e
         } catch (e: Exception) {
             Timber.tag(TAG).e(e, "Recognition failed with exception")
             _recognitionStatus.value = RecognitionStatus.Error(e.message ?: "Recognition failed")
@@ -153,28 +159,52 @@ object MusicRecognitionService {
     }
     
     @SuppressLint("MissingPermission")
-    private suspend fun recordAudio(): ByteArray = withContext(Dispatchers.IO) {
+    private suspend fun recordAudio(context: Context): ByteArray = withContext(Dispatchers.IO) {
+        // Re-check the permission at the exact point of construction: if it was
+        // revoked while the app was backgrounded, AudioRecord silently constructs
+        // an uninitialized instance (STATE_UNINITIALIZED) instead of throwing.
+        if (!hasRecordPermission(context)) {
+            Timber.tag(TAG).w("Microphone permission not granted at record time, aborting")
+            throw IllegalStateException("Microphone permission not granted")
+        }
+
         val bufferSize = AudioRecord.getMinBufferSize(
             RECORDING_SAMPLE_RATE,
             CHANNEL_CONFIG,
             AUDIO_FORMAT
         )
+        if (bufferSize <= 0) {
+            Timber.tag(TAG).e("AudioRecord.getMinBufferSize returned invalid size %d", bufferSize)
+            throw IllegalStateException("Microphone is unavailable (invalid buffer size)")
+        }
         Timber.tag(TAG).d("Recording audio: sampleRate=%d, bufferSize=%d, durationMs=%d", RECORDING_SAMPLE_RATE, bufferSize, RECORDING_DURATION_MS)
 
-        val audioRecord = AudioRecord(
-            MediaRecorder.AudioSource.MIC,
-            RECORDING_SAMPLE_RATE,
-            CHANNEL_CONFIG,
-            AUDIO_FORMAT,
-            bufferSize
-        )
-        
-        val outputStream = ByteArrayOutputStream()
-        val buffer = ByteArray(bufferSize)
-        val startTime = System.currentTimeMillis()
-        
+        var audioRecord: AudioRecord? = null
+        var recordingStarted = false
+
         try {
+            audioRecord = AudioRecord(
+                MediaRecorder.AudioSource.MIC,
+                RECORDING_SAMPLE_RATE,
+                CHANNEL_CONFIG,
+                AUDIO_FORMAT,
+                bufferSize
+            )
+
+            // The constructor can silently fail (mic in use by another app, audio
+            // policy, etc.) leaving the instance unusable. Bail out before any
+            // lifecycle call is made on it.
+            if (audioRecord.state != AudioRecord.STATE_INITIALIZED) {
+                Timber.tag(TAG).w("AudioRecord failed to initialize (state=%d)", audioRecord.state)
+                throw IllegalStateException("Microphone is unavailable")
+            }
+
+            val outputStream = ByteArrayOutputStream()
+            val buffer = ByteArray(bufferSize)
+            val startTime = System.currentTimeMillis()
+
             audioRecord.startRecording()
+            recordingStarted = true
             Timber.tag(TAG).d("AudioRecord started, recording for %dms", RECORDING_DURATION_MS)
 
             while (System.currentTimeMillis() - startTime < RECORDING_DURATION_MS && isActive) {
@@ -183,14 +213,32 @@ object MusicRecognitionService {
                     outputStream.write(buffer, 0, bytesRead)
                 }
             }
-        } finally {
-            audioRecord.stop()
-            audioRecord.release()
-        }
 
-        val totalBytes = outputStream.size()
-        Timber.tag(TAG).d("Audio recording complete: %d bytes collected", totalBytes)
-        outputStream.toByteArray()
+            val totalBytes = outputStream.size()
+            Timber.tag(TAG).d("Audio recording complete: %d bytes collected", totalBytes)
+            outputStream.toByteArray()
+        } finally {
+            val record = audioRecord
+            if (record != null) {
+                // Only stop an instance that actually started recording. Calling
+                // stop() on an uninitialized or already-released AudioRecord throws
+                // "stop() called on an uninitialized AudioRecord" — guard the call.
+                if (recordingStarted) {
+                    try {
+                        if (record.recordingState == AudioRecord.RECORDSTATE_RECORDING) {
+                            record.stop()
+                        }
+                    } catch (e: IllegalStateException) {
+                        Timber.tag(TAG).e(e, "Failed to stop AudioRecord")
+                    }
+                }
+                try {
+                    record.release()
+                } catch (e: Exception) {
+                    Timber.tag(TAG).e(e, "Failed to release AudioRecord")
+                }
+            }
+        }
     }
     
     fun reset() {

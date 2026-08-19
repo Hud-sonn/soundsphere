@@ -22,22 +22,35 @@ class BrowseViewModel @Inject constructor(
 ) : ViewModel() {
     private val browseId: String? = savedStateHandle.get<String>("browseId")
  
-    val items = MutableStateFlow<List<YTItem>?>(emptyList())
+val items = MutableStateFlow<List<YTItem>?>(emptyList())
     val title = MutableStateFlow<String?>("")
- 
+    val error = MutableStateFlow<String?>(null)
+
     init {
         viewModelScope.launch {
-            browseId?.let {
-                YouTube.browse(browseId, null).onSuccess { result ->
-                    // Store the title
-                    title.value = result.title
- 
-                    // Flatten the nested structure to get all YTItems
-                    val allItems = result.items.flatMap { it.items }
-                    items.value = allItems
-                }.onFailure {
-                    reportException(it)
-                }
+            load()
+        }
+    }
+
+    fun retry() {
+        viewModelScope.launch {
+            load()
+        }
+    }
+
+    private suspend fun load() {
+        error.value = null
+        browseId?.let {
+            YouTube.browse(browseId, null).onSuccess { result ->
+                // Store the title
+                title.value = result.title
+
+                // Flatten the nested structure to get all YTItems
+                val allItems = result.items.flatMap { it.items }
+                items.value = allItems
+            }.onFailure {
+                reportException(it)
+                error.value = it.message
             }
         }
     }

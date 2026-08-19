@@ -81,6 +81,7 @@ import com.soundsphere.music.constants.PlayerHorizontalPadding
 import com.soundsphere.music.constants.SeekExtraSeconds
 import com.soundsphere.music.constants.SwipeThumbnailKey
 import com.soundsphere.music.constants.ThumbnailCornerRadius
+import com.soundsphere.music.ui.theme.thumbnailCornerRadius
 import com.soundsphere.music.listentogether.RoomRole
 import com.soundsphere.music.ui.component.CastButton
 import com.soundsphere.music.utils.rememberEnumPreference
@@ -354,10 +355,12 @@ fun Thumbnail(
                     }
                 ) {
                     // Calculate dimensions once per size change, considering landscape mode
+                    val thumbnailCornerRadiusValue = thumbnailCornerRadius()
                     val dimensions = remember(maxWidth, maxHeight, isLandscape) {
                         calculateThumbnailDimensions(
                             containerWidth = maxWidth,
                             containerHeight = maxHeight,
+                            cornerRadius = thumbnailCornerRadiusValue,
                             isLandscape = isLandscape
                         )
                     }

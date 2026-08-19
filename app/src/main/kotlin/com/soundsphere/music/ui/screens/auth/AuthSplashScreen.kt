@@ -42,6 +42,8 @@ fun AuthSplashScreen(onFinished: () -> Unit) {
         label = "splashProgress",
     )
 
+    val colors = rememberEarthyAuthColors()
+    
     LaunchedEffect(Unit) {
         visible = true
         delay(1600)
@@ -52,7 +54,7 @@ fun AuthSplashScreen(onFinished: () -> Unit) {
         modifier =
             Modifier
                 .fillMaxSize()
-                .background(EarthyAuthColors.background),
+                .background(colors.background),
         contentAlignment = Alignment.Center,
     ) {
         Column(
@@ -72,14 +74,14 @@ fun AuthSplashScreen(onFinished: () -> Unit) {
                         .width(120.dp)
                         .height(1.dp)
                         .clip(RoundedCornerShape(1.dp))
-                        .background(EarthyAuthColors.outline.copy(alpha = 0.3f)),
+                        .background(colors.outline.copy(alpha = 0.3f)),
             ) {
                 Box(
                     modifier =
                         Modifier
                             .width(120.dp * progress)
                             .height(1.dp)
-                            .background(EarthyAuthColors.secondaryText),
+                            .background(colors.secondaryText),
                 )
             }
         }

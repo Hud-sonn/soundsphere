@@ -43,7 +43,7 @@ fun SplashLogoMark(
     markSize: Dp,
     modifier: Modifier = Modifier,
     cornerRadius: Dp = 16.dp,
-    containerColor: Color = EarthyAuthColors.surface,
+    containerColor: Color = rememberEarthyAuthColors().surface,
     tint: Color = Color.Unspecified,
 ) {
     Box(
@@ -87,12 +87,13 @@ fun SoundsphereSplashLogo(
         animationSpec = tween(durationMillis = SplashExitAnimationMillis, easing = FastOutSlowInEasing),
         label = "splashExitProgress",
     )
+    val colors = rememberEarthyAuthColors()
 
     Column(
         modifier =
             Modifier
                 .fillMaxSize()
-                .background(EarthyAuthColors.background)
+                .background(colors.background)
                 .then(modifier),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,

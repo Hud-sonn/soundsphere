@@ -752,7 +752,7 @@ fun LogEntryItem(log: LogEntry) {
                 color =
                     when (log.level) {
                         LogLevel.ERROR -> MaterialTheme.colorScheme.errorContainer
-                        LogLevel.WARNING -> Color(0xFFFFF3CD)
+                        LogLevel.WARNING -> MaterialTheme.colorScheme.tertiaryContainer
                         LogLevel.DEBUG -> MaterialTheme.colorScheme.surfaceVariant
                         LogLevel.INFO -> MaterialTheme.colorScheme.primaryContainer
                     },
@@ -764,7 +764,7 @@ fun LogEntryItem(log: LogEntry) {
                     color =
                         when (log.level) {
                             LogLevel.ERROR -> MaterialTheme.colorScheme.onErrorContainer
-                            LogLevel.WARNING -> Color(0xFF856404)
+                            LogLevel.WARNING -> MaterialTheme.colorScheme.onTertiaryContainer
                             LogLevel.DEBUG -> MaterialTheme.colorScheme.onSurfaceVariant
                             LogLevel.INFO -> MaterialTheme.colorScheme.onPrimaryContainer
                         },

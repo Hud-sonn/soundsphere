@@ -45,20 +45,22 @@ import com.soundsphere.music.ui.theme.hankenGrotesk
 
 /** Shared Material color scheme for auth text fields. */
 @Composable
-private fun authFieldColors() =
+private fun authFieldColors() = run {
+    val c = rememberEarthyAuthColors()
     OutlinedTextFieldDefaults.colors(
-        focusedBorderColor = EarthyAuthColors.primaryText,
-        unfocusedBorderColor = EarthyAuthColors.secondaryText,
-        focusedContainerColor = EarthyAuthColors.surface,
-        unfocusedContainerColor = EarthyAuthColors.surface,
-        cursorColor = EarthyAuthColors.secondaryText,
-        focusedTextColor = EarthyAuthColors.primaryText,
-        unfocusedTextColor = EarthyAuthColors.primaryText,
-        focusedPlaceholderColor = EarthyAuthColors.secondaryText.copy(alpha = 0.4f),
-        unfocusedPlaceholderColor = EarthyAuthColors.secondaryText.copy(alpha = 0.4f),
-        focusedLabelColor = EarthyAuthColors.secondaryText,
-        unfocusedLabelColor = EarthyAuthColors.secondaryText,
+        focusedBorderColor = c.primaryText,
+        unfocusedBorderColor = c.secondaryText,
+        focusedContainerColor = c.surface,
+        unfocusedContainerColor = c.surface,
+        cursorColor = c.secondaryText,
+        focusedTextColor = c.primaryText,
+        unfocusedTextColor = c.primaryText,
+        focusedPlaceholderColor = c.secondaryText.copy(alpha = 0.4f),
+        unfocusedPlaceholderColor = c.secondaryText.copy(alpha = 0.4f),
+        focusedLabelColor = c.secondaryText,
+        unfocusedLabelColor = c.secondaryText,
     )
+}
 
 @Composable
 fun AuthLabeledField(
@@ -71,7 +73,7 @@ fun AuthLabeledField(
     isPassword: Boolean = false,
 ) {
     var visible by remember { mutableStateOf(false) }
-    val c = EarthyAuthColors
+    val c = rememberEarthyAuthColors()
 
     Column(Modifier.fillMaxWidth()) {
         Text(
@@ -131,16 +133,17 @@ fun AuthFooter(
     actionLabel: String,
     onAction: () -> Unit,
 ) {
+    val c = rememberEarthyAuthColors()
     Row(
         modifier = Modifier.padding(top = 24.dp),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(prompt, color = EarthyAuthColors.outline, fontSize = 14.sp)
+        Text(prompt, color = c.outline, fontSize = 14.sp)
         Spacer(Modifier.size(4.dp))
         Text(
             text = actionLabel,
-            color = EarthyAuthColors.secondaryText,
+            color = c.secondaryText,
             fontSize = 14.sp,
             fontWeight = FontWeight.SemiBold,
             modifier = Modifier.clickable(onClick = onAction),
@@ -156,7 +159,7 @@ fun AuthPillButton(
     onTap: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val c = EarthyAuthColors
+    val c = rememberEarthyAuthColors()
     androidx.compose.material3.Button(
         onClick = onTap,
         enabled = !isLoading,

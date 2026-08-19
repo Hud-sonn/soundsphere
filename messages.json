@@ -1,8 +1,8 @@
 [
   {
-    "id": "announcement-test-2026-08-19",
-    "title": "Test announcement",
-    "body": "This is a test announcement to verify the in-app announcement feed works end to end. Delete this entry after testing.",
+    "id": "announcement-2026-08-19",
+    "title": "Welcome to Soundsphere v1.2.0 — thank you!",
+    "body": "A big welcome to the new Soundsphere!\n\nFirst of all, thank you — to everyone who sent suggestions and feedback. We read every single one, we genuinely appreciate it, and we're working hard to make the app better with your help. This update is built around what you asked for.\n\nHere's what changed because of your feedback:\n\n- Your own profile: pick a username and an avatar photo that follows you everywhere in the app\n- A redesigned sidebar so your profile, stats and settings are easier to reach\n- A download button on the classic player\n- Wallpaper backgrounds: make the whole app look like you want\n- A new rounder Material U look, on top of the classic Earthy one\n- Lyrics from two new sources (SimpMusic and Unison)\n- Clear error messages and retry buttons everywhere — no more endless loading\n- Announcements right inside the app, like this one\n\nA couple of things are still being worked on and may not work as expected yet:\n\n- \"Recognize music\" is still being fixed — it can crash on some devices when the microphone isn't ready\n- Playback can still stop on YouTube's \"not a bot\" check — a proper fix is in progress\n\nA note on YouTube accounts: please don't sign in to your YouTube Music account yet. If you do want your playlists from YouTube, you can sign in — and when you sign out, you'll get a pop-up to save your playlists first.\n\nThis is just the beginning — keep the suggestions and feedback coming. Together we'll make Soundsphere better for everyone.",
     "dismissable": true
   },
   {

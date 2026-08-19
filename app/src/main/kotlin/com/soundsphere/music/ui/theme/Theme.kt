@@ -12,9 +12,11 @@ import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Shapes
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.SaverScope
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.toArgb
@@ -24,6 +26,8 @@ import com.materialkolor.PaletteStyle
 import com.materialkolor.dynamiccolor.ColorSpec
 import com.materialkolor.rememberDynamicColorScheme
 import com.materialkolor.score.Score
+import com.soundsphere.music.constants.ThumbnailCornerRadius
+import com.soundsphere.music.constants.ThemeVariant
 
 // The auth-screen accent (warm earthy brown). Doubles as the sentinel that
 // selects the fixed Earthy palettes instead of dynamic colors.
@@ -147,11 +151,36 @@ val EarthyShapes = Shapes(
     extraLarge = RoundedCornerShape(24.dp),
 )
 
+// Material U: rounder, more expressive shapes
+val MaterialUShapes = Shapes(
+    extraSmall = RoundedCornerShape(8.dp),
+    small = RoundedCornerShape(12.dp),
+    medium = RoundedCornerShape(16.dp),
+    large = RoundedCornerShape(24.dp),
+    extraLarge = RoundedCornerShape(32.dp),
+)
+
+/**
+ * CompositionLocal for the active theme variant. Lets shared components
+ * (thumbnails, cards) pick shapes that respond to the variant instead of
+ * hardcoding Earthy values.
+ */
+val LocalThemeVariant =
+    staticCompositionLocalOf { ThemeVariant.EARTHY }
+
+/** Corner radius for artwork thumbnails, rounded up in Material U. */
+@Composable
+fun thumbnailCornerRadius(): androidx.compose.ui.unit.Dp {
+    val rounded = LocalThemeVariant.current == ThemeVariant.MATERIAL_U
+    return if (rounded) 12.dp else ThumbnailCornerRadius
+}
+
 @Composable
 fun SoundsphereTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     pureBlack: Boolean = false,
     themeColor: Color = DefaultThemeColor,
+    themeVariant: ThemeVariant = ThemeVariant.EARTHY,
     content: @Composable () -> Unit,
 ) {
     // When the default theme color is selected, use the fixed Earthy Tones
@@ -186,12 +215,22 @@ fun SoundsphereTheme(
         }
     }
 
+    // Select shapes based on theme variant
+    val shapes = when (themeVariant) {
+        ThemeVariant.MATERIAL_U -> MaterialUShapes
+        else -> EarthyShapes
+    }
+
     // Use standard MaterialTheme instead of MaterialExpressiveTheme
     MaterialTheme(
         colorScheme = colorScheme,
         typography = AppTypography, // Use the defined AppTypography
-        shapes = EarthyShapes,
-        content = content
+        shapes = shapes,
+        content = {
+            CompositionLocalProvider(LocalThemeVariant provides themeVariant) {
+                content()
+            }
+        }
     )
 }
 

@@ -6,7 +6,7 @@
 package com.soundsphere.music.ui.component
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -38,14 +38,15 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.soundsphere.music.R
 import com.soundsphere.music.constants.AccountEmailKey
+import com.soundsphere.music.constants.SoundsphereAvatarUrlKey
 import com.soundsphere.music.constants.SoundsphereEmailKey
 import com.soundsphere.music.constants.SoundsphereUsernameKey
 import com.soundsphere.music.utils.rememberPreference
 
 /**
- * Navigation drawer for the home experience: profile header, top-level
- * navigation shortcuts and the app-level entries (settings, changelog,
- * updates, about).
+ * Navigation drawer — pure navigation only. Profile header at top (identity
+ * context, not tappable), followed by navigation items: Profile, Stats,
+ * Listen Together, App Settings, Integrations, Updates. Footer shows app version.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -53,19 +54,18 @@ fun SoundsphereSidebar(
     currentRoute: String?,
     accountName: String,
     accountImageUrl: String?,
-    listenTogetherInTopBar: Boolean,
+    listenTogetherInBottomNav: Boolean,
     updateAvailable: Boolean,
+    announcementsUnseen: Boolean,
     isLoggedIn: Boolean,
     onNavigate: (String) -> Unit,
-    onOpenAccount: () -> Unit,
-    onOpenChangelog: () -> Unit,
+    onShowAnnouncements: () -> Unit,
 ) {
     val email by rememberPreference(AccountEmailKey, "")
     val soundsphereEmail by rememberPreference(SoundsphereEmailKey, "")
     val soundsphereUsername by rememberPreference(SoundsphereUsernameKey, "")
+    val soundsphereAvatarUrl by rememberPreference(SoundsphereAvatarUrlKey, "")
 
-    // Prefer the YouTube account name; fall back to the Soundsphere account
-    // username when signed in; only show "Guest" when fully signed out.
     val displayName =
         when {
             accountName != "Guest" -> accountName
@@ -84,47 +84,76 @@ fun SoundsphereSidebar(
 
     ModalDrawerSheet(
         modifier = Modifier.width(300.dp),
+        drawerContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
     ) {
-        // Profile header
+        // Profile header — identity context only, not tappable
         Column(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .clickable(onClick = onOpenAccount)
                     .padding(horizontal = 20.dp, vertical = 24.dp),
         ) {
             Box(
-                modifier =
-                    Modifier
-                        .size(48.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.surfaceVariant),
-                contentAlignment = Alignment.Center,
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.TopStart,
             ) {
-                if (accountImageUrl != null) {
-                    AsyncImage(
-                        model = accountImageUrl,
-                        contentDescription = null,
+                Box(
+                    modifier =
+                        Modifier
+                            .size(56.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primaryContainer),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    if (accountImageUrl != null) {
+                        AsyncImage(
+                            model = accountImageUrl,
+                            contentDescription = null,
+                            modifier =
+                                Modifier
+                                    .fillMaxSize()
+                                    .clip(CircleShape),
+                        )
+                    } else if (soundsphereAvatarUrl.isNotBlank()) {
+                        AsyncImage(
+                            model = soundsphereAvatarUrl,
+                            contentDescription = null,
+                            modifier =
+                                Modifier
+                                    .fillMaxSize()
+                                    .clip(CircleShape),
+                        )
+                    } else {
+                        Icon(
+                            painter = painterResource(R.drawable.person),
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                            modifier = Modifier.size(28.dp),
+                        )
+                    }
+                }
+                // Red dot over the profile avatar when there are unread announcements
+                if (announcementsUnseen) {
+                    Box(
                         modifier =
                             Modifier
-                                .fillMaxSize()
-                                .clip(CircleShape),
-                    )
-                } else {
-                    Icon(
-                        painter = painterResource(R.drawable.person),
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                .align(Alignment.TopEnd)
+                                .padding(top = 4.dp, end = 4.dp)
+                                .size(12.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.error)
+                                .border(2.dp, MaterialTheme.colorScheme.surfaceContainerLow, CircleShape),
                     )
                 }
             }
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(16.dp))
             Text(
                 text = displayName,
                 style = MaterialTheme.typography.titleMedium,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
+            Spacer(modifier = Modifier.height(2.dp))
             Text(
                 text = subtitle,
                 style = MaterialTheme.typography.bodySmall,
@@ -133,30 +162,24 @@ fun SoundsphereSidebar(
                 overflow = TextOverflow.Ellipsis,
             )
         }
-        HorizontalDivider()
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        Text(
-            text = stringResource(R.string.sidebar_section_music),
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(horizontal = 28.dp, vertical = 8.dp),
+        // Navigation items
+        DrawerItem(
+            icon = R.drawable.person,
+            label = R.string.profile,
+            selected = currentRoute == "account_settings",
+            onClick = { onNavigate("account_settings") },
         )
-
         DrawerItem(
             icon = R.drawable.stats,
             label = R.string.stats,
             selected = currentRoute == "stats",
             onClick = { onNavigate("stats") },
         )
-        DrawerItem(
-            icon = R.drawable.history,
-            label = R.string.history,
-            selected = currentRoute == "history",
-            onClick = { onNavigate("history") },
-        )
-        if (listenTogetherInTopBar) {
+        if (!listenTogetherInBottomNav) {
             DrawerItem(
                 icon = R.drawable.group_outlined,
                 label = R.string.together,
@@ -166,14 +189,9 @@ fun SoundsphereSidebar(
         }
 
         Spacer(modifier = Modifier.height(8.dp))
-        HorizontalDivider()
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
-        Text(
-            text = stringResource(R.string.sidebar_section_app),
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(horizontal = 28.dp, vertical = 8.dp),
-        )
+        Spacer(modifier = Modifier.height(8.dp))
 
         DrawerItem(
             icon = R.drawable.settings,
@@ -182,12 +200,12 @@ fun SoundsphereSidebar(
             onClick = { onNavigate("settings") },
         )
         DrawerItem(
-            icon = R.drawable.newspaper,
-            label = R.string.changelog,
-            selected = false,
-            onClick = onOpenChangelog,
+            icon = R.drawable.integration,
+            label = R.string.integrations,
+            selected = currentRoute == "settings/integrations",
+            onClick = { onNavigate("settings/integrations") },
         )
-                DrawerItem(
+        DrawerItem(
             icon = R.drawable.update,
             label = R.string.updates,
             selected = currentRoute == "settings/updater",
@@ -199,10 +217,15 @@ fun SoundsphereSidebar(
             },
         )
         DrawerItem(
-            icon = R.drawable.info,
-            label = R.string.about,
-            selected = currentRoute == "settings/about",
-            onClick = { onNavigate("settings/about") },
+            icon = R.drawable.newspaper,
+            label = R.string.announcements,
+            selected = false,
+            onClick = onShowAnnouncements,
+            badge = {
+                if (announcementsUnseen) {
+                    Badge()
+                }
+            },
         )
 
         Spacer(modifier = Modifier.weight(1f))
@@ -235,7 +258,14 @@ private fun DrawerItem(
         selected = selected,
         onClick = onClick,
         modifier = Modifier.padding(horizontal = 12.dp),
-        colors = NavigationDrawerItemDefaults.colors(),
+        colors = NavigationDrawerItemDefaults.colors(
+            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+            selectedTextColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            unselectedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+            unselectedTextColor = MaterialTheme.colorScheme.onSurface,
+            unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+        ),
         badge = badge,
     )
 }
