@@ -29,6 +29,7 @@ from models.schemas import (
     SettingsUpdateRequest,
     TrackPayload,
 )
+from services import cloudinary
 from services.limiter import limiter
 
 logger = logging.getLogger("soundsphere-auth")
@@ -156,7 +157,7 @@ async def update_profile(
     user_id: str = Depends(get_current_user),
 ):
     db = get_supabase()
-    _require_user(db, user_id)
+    current_user = _require_user(db, user_id)
     updates = {}
     if body.username is not None:
         updates["username"] = body.username
@@ -168,6 +169,13 @@ async def update_profile(
         db.table("users").update(updates, returning="representation").eq("id", user_id)
     ).execute()
     user = updated.data[0]
+    # Replace-and-delete: once the new avatar is persisted, remove the previous
+    # Cloudinary image so replaced avatars don't accumulate. Best-effort — a
+    # failed cleanup must never fail the profile update.
+    if body.avatar_url is not None:
+        old_avatar = current_user.get("avatar_url")
+        if old_avatar and old_avatar != body.avatar_url:
+            await cloudinary.delete_avatar(old_avatar)
     return {
         "id": user["id"],
         "email": user["email"],
