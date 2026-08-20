@@ -1,5 +1,11 @@
 [
   {
+    "id": "announcement-2026-08-21",
+    "title": "Two more things fixed: Recognize Music & YouTube playback",
+    "body": "Following up on the last update — two of the issues we flagged as still being worked on are now fixed.\n\n- \"Recognize music\" no longer crashes — it works reliably now, including when the microphone isn't immediately ready\n- Playback no longer gets interrupted by YouTube's \"not a bot\" check when you're signed into a YouTube account\n\nOne thing still open: playlists synced from a previous session don't always populate correctly on first load. We know about it and we're on it — for now, a manual refresh on the playlist screen should bring them in.\n\nThanks for bearing with us and for all the reports — keep them coming.",
+    "dismissable": true
+  },
+  {
     "id": "announcement-2026-08-20",
     "title": "Soundsphere v1.2.1 — stability fixes",
     "body": "This update is all about stability — things working correctly and reliably behind the scenes.\n\nWhat's fixed:\n\n- Playlists now sync properly between your devices: create one on any device and it appears everywhere, even after switching accounts\n- Duplicate playlists no longer get merged together when they share a name\n- Syncing is more robust — one hiccup can no longer interrupt the whole sync, and your playlists are fetched again when you reopen the app\n- AI playlists are now limited to 2 per day per account, so the AI service stays fast and fair for everyone\n- Playback fixes: your device now uses two independent sources for player configs, so if one is down or slow, playback keeps working\n- A smoother and more reliable stream connection in general\n\nWe're still working on the \"Recognize music\" fix and YouTube's \"not a bot\" check — stay tuned.\n\nThanks for using Soundsphere!",
