@@ -76,6 +76,11 @@ class AuthViewModel @Inject constructor(
             AuthService.me(token)
                 .onSuccess { user ->
                     syncRepository.cacheAccountProfile(user.email, user.username)
+                    // Pull the account data (liked tracks, playlists, history)
+                    // on cold start too — not just fresh logins — so a session
+                    // that survived an app restart still syncs playlists etc.
+                    // that were created on another device.
+                    syncRepository.onLoggedIn()
                     _authChecked.value = true
                 }
                 .onFailure { error ->

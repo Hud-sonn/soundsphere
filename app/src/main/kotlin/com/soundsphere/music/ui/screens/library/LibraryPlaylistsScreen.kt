@@ -355,6 +355,7 @@ fun LibraryPlaylistsScreen(
 
     val aiNotEnabledStr = stringResource(R.string.ai_playlist_not_enabled)
     val aiFailedStr = stringResource(R.string.ai_playlist_failed)
+    val aiLimitReachedStr = stringResource(R.string.ai_playlist_limit_reached)
     val aiNoTracksStr = stringResource(R.string.ai_playlist_no_tracks)
 
     fun generateAiPlaylist(prompt: String) {
@@ -413,6 +414,7 @@ fun LibraryPlaylistsScreen(
                     val message =
                         when {
                             error.message?.contains("not enabled", ignoreCase = true) == true -> aiNotEnabledStr
+                            error.message?.contains("limit", ignoreCase = true) == true -> aiLimitReachedStr
                             else -> aiFailedStr
                         }
                     Toast.makeText(context, message, Toast.LENGTH_SHORT).show()

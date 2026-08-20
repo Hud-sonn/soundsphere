@@ -45,6 +45,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.json.JSONObject
 import timber.log.Timber
 import java.time.LocalDateTime
@@ -131,6 +132,22 @@ class SyncRepository @Inject constructor(
                     pushSettings(settings)
                 }
         }
+        // Drop account-scoped sync state on logout (manual logout or a 401 that
+        // cleared the token) so a different account can never inherit the
+        // previous account's playlist mapping or pending like pushes.
+        scope.launch {
+            authRepository.isLoggedIn
+                .collect { loggedIn ->
+                    if (!loggedIn) {
+                        _serverPlaylistIds.value = emptyMap()
+                        _pendingLikePushes.value = emptySet()
+                        context.safeDataStoreEdit { prefs ->
+                            prefs.remove(PLAYLIST_MAP_KEY)
+                            prefs.remove(PENDING_LIKES_KEY)
+                        }
+                    }
+                }
+        }
     }
 
     // ===== Public API (fire-and-forget, called from UI / service) =====
@@ -187,19 +204,34 @@ class SyncRepository @Inject constructor(
     // ===== Pull (server -> local, union merge) =====
 
     private suspend fun pullAll() {
-        if (!pullMutex.tryLock()) return
-        try {
+        // Queue behind any in-flight pull instead of silently dropping a
+        // login-triggered sync: the whole point of onLoggedIn() is that the
+        // account data must reach this device, so a concurrent pull must never
+        // swallow it.
+        pullMutex.withLock {
             _isSyncing.value = true
-            val token = authRepository.getToken() ?: return
-            pullLikes(token)
-            pullPlaylists(token)
-            pullHistory(token)
-            pullFollowedArtists(token)
-            pullSettings(token)
-            retryPendingLikes(token)
-        } finally {
-            _isSyncing.value = false
-            pullMutex.unlock()
+            val token = authRepository.getToken() ?: return@withLock
+            try {
+                // Each stage is isolated so one failed pull (e.g. a malformed
+                // remote row) can never abort the rest of the sync.
+                runPullStage("likes") { pullLikes(token) }
+                runPullStage("playlists") { pullPlaylists(token) }
+                runPullStage("history") { pullHistory(token) }
+                runPullStage("followed artists") { pullFollowedArtists(token) }
+                runPullStage("settings") { pullSettings(token) }
+                runPullStage("pending likes") { retryPendingLikes(token) }
+            } finally {
+                _isSyncing.value = false
+            }
+        }
+    }
+
+    private suspend fun runPullStage(stage: String, block: suspend () -> Unit) {
+        try {
+            block()
+        } catch (e: Exception) {
+            Timber.w(e, "Pull stage '$stage' failed; continuing with remaining stages")
+            _lastSyncError.value = e.message ?: "Pull $stage failed"
         }
     }
 
@@ -255,15 +287,39 @@ class SyncRepository @Inject constructor(
             reportError("Pull playlists failed", result.exceptionOrNull())
             return
         }
-        val localPlaylists = database.playlistEntitiesByNameAsc()
+        val localPlaylists = database.playlistEntitiesByNameAsc().toMutableList()
+        // Reverse the localId -> serverId mapping into serverId -> localId so a
+        // pulled server playlist resolves to its existing local copy by id
+        // first, instead of always falling through to a (collision-prone) name
+        // match. The map is mutated as new playlists are created below.
+        val serverIdToLocalId =
+            _serverPlaylistIds.value.entries.associate { (localId, serverId) -> serverId to localId }.toMutableMap()
         for (server in result.getOrThrow()) {
-            val existing = server.id.let { mapped -> _serverPlaylistIds.value[mapped] }
-                ?.let { localId -> localPlaylists.firstOrNull { it.id == localId } }
-                ?: localPlaylists.firstOrNull { it.name == server.name }
+            // 1) Exact match through the persisted mapping. This is the primary
+            //    key: it keeps a renamed remote playlist bound to the same local
+            //    copy and stops two same-named server playlists (e.g. "nf home"
+            //    created on two devices) from collapsing into one local row.
+            val mappedLocalId = serverIdToLocalId[server.id]
+            val existing =
+                mappedLocalId?.let { localId -> localPlaylists.firstOrNull { it.id == localId } }
+                    // 2) Name fallback only when the candidate local playlist is
+                    //    not already claimed by a different server playlist.
+                    ?: localPlaylists.firstOrNull {
+                        it.name == server.name && _serverPlaylistIds.value[it.id] == null
+                    }
             val local: PlaylistEntity
             if (existing == null) {
-                local = PlaylistEntity(name = server.name, isLocal = true)
+                // New remote playlist. A bookmark timestamp is required: every
+                // Library playlist query filters on bookmarkedAt IS NOT NULL, so
+                // without it pulled playlists would be stored yet never shown.
+                local =
+                    PlaylistEntity(
+                        name = server.name,
+                        bookmarkedAt = LocalDateTime.now(),
+                        isLocal = true,
+                    )
                 database.insert(local)
+                localPlaylists.add(local)
             } else {
                 local = existing
                 if (local.name != server.name) {
@@ -271,6 +327,7 @@ class SyncRepository @Inject constructor(
                 }
             }
             savePlaylistMapping(local.id, server.id)
+            serverIdToLocalId[server.id] = local.id
 
             val existingSongIds = database.playlistSongIds(local.id).toSet()
             for (playlistTrack in server.tracks) {

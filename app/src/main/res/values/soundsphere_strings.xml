@@ -80,6 +80,7 @@
     <string name="ai_playlist_choice_body">Generate a playlist of %1$s only, or %1$s plus artists with a similar style.</string>
     <string name="ai_playlist_failed">AI playlist generation failed</string>
     <string name="ai_playlist_not_enabled">AI playlist generation is not enabled yet</string>
+    <string name="ai_playlist_limit_reached">Daily AI playlist limit reached. You can create up to 2 AI playlists per day.</string>
     <string name="ai_playlist_no_tracks">No tracks could be generated, please try a different request</string>
     <string name="max_selection_limit">Maximum selection limit reached</string>
     <string name="share_selected">Share selected</string>

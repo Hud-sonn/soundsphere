@@ -17,7 +17,6 @@ import com.soundsphere.innertube.strategy.ContentAwareFallbackStrategy
 import com.soundsphere.innertube.strategy.ContentHints
 import com.soundsphere.music.constants.AudioQuality
 import com.soundsphere.music.utils.YTPlayerUtils.MAIN_CLIENT
-import com.soundsphere.music.utils.YTPlayerUtils.validateStatus
 import com.soundsphere.music.utils.cipher.CipherDeobfuscator
 import com.soundsphere.music.utils.cipher.FunctionNameExtractor
 import com.soundsphere.music.utils.cipher.PlayerJsFetcher
@@ -41,23 +40,32 @@ object YTPlayerUtils {
 
     private val poTokenGenerator = PoTokenGenerator()
 
-    // Track videoIds whose WEB_REMIX stream URL 403'd on the ExoPlayer GET, so the next resolution
-    // falls through to the fallback clients instead of skipping HEAD validation and looping.
-    private val webRemixFailedIds = java.util.Collections.newSetFromMap(
-        java.util.concurrent.ConcurrentHashMap<String, Boolean>(),
-    )
+    // Temporarily skip WEB_REMIX after its stream is rejected so refresh can fall through without
+    // permanently pinning a video to fallback clients after a transient CDN failure.
+    private const val WEB_REMIX_FAILURE_TTL_MS = 5 * 60 * 1000L
+
+    private val webRemixFailures = java.util.concurrent.ConcurrentHashMap<String, Long>()
 
     fun markWebRemixFailed(videoId: String) {
-        webRemixFailedIds.add(videoId)
+        webRemixFailures[videoId] = System.currentTimeMillis()
+    }
+
+    private fun hasRecentWebRemixFailure(videoId: String): Boolean {
+        val failedAt = webRemixFailures[videoId] ?: return false
+        if ((System.currentTimeMillis() - failedAt) !in 0 until WEB_REMIX_FAILURE_TTL_MS) {
+            webRemixFailures.remove(videoId, failedAt)
+            return false
+        }
+        return true
     }
 
     /**
      * Cleared when the cipher recovers (player config refreshed after a stream rejection): the
      * prior WEB_REMIX failures were caused by the stale cipher, so let resolution try WEB_REMIX
-     * again instead of staying pinned to a lower fallback client for the rest of the process.
+     * again instead of waiting out the TTL.
      */
     fun clearWebRemixFailures() {
-        webRemixFailedIds.clear()
+        webRemixFailures.clear()
     }
 
     // Fire-and-forget scope for the cipher config self-heal triggered when a cipher client fails
@@ -422,17 +430,21 @@ object YTPlayerUtils {
                     break
                 }
 
+                if (currentClient.clientName == "WEB_REMIX" && hasRecentWebRemixFailure(videoId)) {
+                    Timber.tag(logTag).d("Skipping WEB_REMIX after a rejected stream for $videoId")
+                    continue
+                }
+
                 // WEB_REMIX authenticated CDN URLs can 403 on HEAD yet serve fine on the byte-range
                 // GET that ExoPlayer makes. Skip HEAD validation for the main client and let ExoPlayer
-                // try directly, UNLESS this videoId already 403'd on GET (markWebRemixFailed) — then
-                // fall through to the fallback clients. Saves a validateStatus round-trip per resolve.
-                
+                // try directly. Failed WEB_REMIX streams are filtered before this point.
+                // Saves a validateStatus round-trip per resolve.
+
                 val isUgcOrPodcast = musicVideoType == "MUSIC_VIDEO_TYPE_UGC" ||
                                      musicVideoType?.contains("PODCAST") == true ||
                                      musicVideoType == null
 
                 if (currentClient.clientName == "WEB_REMIX" &&
-                    !webRemixFailedIds.contains(videoId) &&
                     !isUgcOrPodcast
                 ) {
                     Timber.tag(logTag).d("WEB_REMIX — skipping HEAD validation, letting ExoPlayer try directly")
@@ -441,7 +453,7 @@ object YTPlayerUtils {
                     break
                 }
 
-                if (validateStatus(streamUrl)) {
+                if (validateStatus(streamUrl, currentClient.streamHeaders())) {
                     // working stream found
                     Timber.tag(logTag).d("Stream validated successfully with client: ${currentClient.clientName}")
                     // Log for release builds
@@ -640,12 +652,19 @@ object YTPlayerUtils {
      * If this returns true the url is likely to work.
      * If this returns false the url might cause an error during playback.
      */
-    private fun validateStatus(url: String): Boolean {
+    private fun validateStatus(
+        url: String,
+        requestHeaders: Map<String, String>,
+    ): Boolean {
         Timber.tag(logTag).d("Validating stream URL status")
         try {
             val requestBuilder = okhttp3.Request.Builder()
                 .head()
                 .url(url)
+
+            requestHeaders.forEach { (name, value) ->
+                requestBuilder.header(name, value)
+            }
 
             // Add authentication cookie for privately owned tracks
             YouTube.cookie?.let { cookie ->
@@ -664,6 +683,30 @@ object YTPlayerUtils {
         }
         return false
     }
+
+    private fun YouTubeClient.streamHeaders(): Map<String, String> =
+        buildMap {
+            put("User-Agent", userAgent)
+            put("Accept", "*/*")
+            put("Accept-Language", "en-US,en;q=0.9")
+
+            when (clientName) {
+                "WEB_REMIX" -> {
+                    put("Referer", "https://music.youtube.com/")
+                    put("Origin", "https://music.youtube.com")
+                }
+
+                "WEB_CREATOR" -> {
+                    put("Referer", "https://studio.youtube.com/")
+                    put("Origin", "https://studio.youtube.com")
+                }
+
+                else -> {
+                    put("Referer", "https://www.youtube.com/")
+                    put("Origin", "https://www.youtube.com")
+                }
+            }
+        }
     data class SignatureTimestampResult(
         val timestamp: Int?,
         val isAgeRestricted: Boolean
