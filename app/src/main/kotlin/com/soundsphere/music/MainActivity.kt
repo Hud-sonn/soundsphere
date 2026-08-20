@@ -1392,6 +1392,9 @@ class MainActivity : ComponentActivity() {
 
                     ModalNavigationDrawer(
                         drawerState = drawerState,
+                        // The sidebar must not be swipeable on auth-gated routes:
+                        // Splash and Auth must stay full-screen with no drawer access.
+                        gesturesEnabled = (navBackStackEntry?.destination?.route ?: "") !in authGateRoutes,
                         drawerContent = {
                             SoundsphereSidebar(
                                 currentRoute = navBackStackEntry?.destination?.route,
@@ -1403,6 +1406,13 @@ class MainActivity : ComponentActivity() {
                                 isLoggedIn = soundsphereLoggedIn,
                                 onNavigate = { route ->
                                     coroutineScope.launch {
+                                        // Defensive auth gate: never navigate away from
+                                        // Splash/Auth via the drawer, even if the gesture
+                                        // guard above is bypassed by another trigger path.
+                                        if ((navBackStackEntry?.destination?.route ?: "") in authGateRoutes) {
+                                            drawerState.close()
+                                            return@launch
+                                        }
                                         drawerState.close()
                                         navController.navigate(route) {
                                             popUpTo(navController.graph.startDestinationId) { saveState = true }
@@ -1470,7 +1480,10 @@ class MainActivity : ComponentActivity() {
                                             }
                                         },
                                         navigationIcon = {
-                                            if (navBackStackEntry?.destination?.route != Screens.Home.route) {
+                                            if (
+                                                navBackStackEntry?.destination?.route != Screens.Home.route &&
+                                                (navBackStackEntry?.destination?.route ?: "") !in authGateRoutes
+                                            ) {
                                                 IconButton(onClick = {
                                                     coroutineScope.launch { drawerState.open() }
                                                 }) {

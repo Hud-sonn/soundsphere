@@ -12,6 +12,74 @@ Newest date block goes on top.
 User-facing release notes live in `changelog.md` (curated by the core
 team at release time) — this file is the source they fold from.
 
+### Release v1.2.1 — stability fixes (pushed)
+- `chore(release): bump app to 1.2.1 (versionCode 11)` — was 1.2.0/10. Human-authorized.
+- `feat(messages): add v1.2.1 stability-fixes announcement` — new messages.json entry
+  (announcement-2026-08-20) covering playlist sync fixes, AI playlist daily cap, dual-source
+  player config fallback, and noting Recognize-music / bot-check fixes still in progress.
+- Pushed to main, tagged `v1.2.1`, tag pushed → release.yml builds, signs, and publishes the
+  APKs (foss + gms).
+
+### Playlist sync overhaul + AI generation cap + Change 2 port (pushed)
+- `fix(sync): playlist pulls were stored but invisible` — `pullPlaylists()` created pulled
+  playlists with `bookmarkedAt = null`, but every Library query filters
+  `WHERE bookmarkedAt IS NOT NULL`, so server playlists never appeared in the UI. New
+  pulled playlists now set `bookmarkedAt = now()` and show up immediately.
+- `fix(sync): inverted playlist-id mapping` — `_serverPlaylistIds` maps localId→serverId but
+  `pullPlaylists()` queried it with server.id as the key (never matched). Now builds a
+  reverse serverIdToLocalId map and matches by id first, with a name fallback that only
+  claims local playlists not already bound to a different server playlist (fixes duplicate
+  names like the two "nf home" / two "NF AI Mix" collapsing into one row).
+- `fix(sync): login pull could be silently dropped` — `pullMutex.tryLock()` returned
+  immediately when a pull was in flight; now `withLock()` queues and always runs.
+- `fix(sync): one bad pull stage aborted the rest` — `pullAll()` now wraps each stage
+  (likes/playlists/history/follows/settings) in `runPullStage()` so a single failure can't
+  kill the whole sync.
+- `fix(sync): mappings/pending likes leaked across accounts` — new logout collector in
+  `SyncRepository` clears `_serverPlaylistIds`, `_pendingLikePushes` and their DataStore
+  keys when `isLoggedIn` flips false.
+- `fix(sync): cold start never pulled` — `AuthViewModel.validateStoredSession` now calls
+  `syncRepository.onLoggedIn()` after restoring a valid session, so reopening the app with
+  a saved login syncs playlists (previously only fresh logins pulled).
+- `feat(ai): daily generation cap (2/day/user, account-level)` — new Supabase table
+  `ai_generation_usage` (PK user_id+usage_date; migration `006_ai_generation_limits.sql`,
+  applied to live project) + backend enforcement in `routers/ai.py`: count checked before
+  the Groq call, 429 with a friendly message when exhausted, incremented on success. The
+  old IP-based slowapi guard was raised to 50/day (coarse); the real cap is account-level
+  so clearing the app cache can't reset it. Client shows a dedicated
+  `ai_playlist_limit_reached` toast in LibraryPlaylistsScreen and OnlineSearchResult.
+- `feat(cipher): dual-source player-config fallback (Faraday first, Zemer fallback)` —
+  ported `docs/upstream_fixes_spec.md` Change 2 (Metrolist commit
+  `0d37cc4658c18ac43123264edf48f7224b77d506`). `PlayerConfigStore.kt` restructured: two
+  named `RemoteSource`s (Faraday interim first-party-style primary, Zemer fallback), per-
+  source tables/cache/meta (old `configs_remote.*` files now belong to Zemer so existing
+  installs keep their cache), `FetchResult` replaces the shared `lastAttemptReachedServer`
+  flag, `fetchFallbackChain()` fetches Zemer only when the specific broken hash is still
+  missing, periodic refresh keeps only Faraday fresh, `refreshAfterStreamRejection()` now
+  takes the current player hash. `CipherDeobfuscator.onStreamRejected()` passes
+  `currentPlayerHash`. Local build passed (assembleFossDebug). Not pushed.
+- `fix(sync): remove deprecated distinctUntilChanged on StateFlow` — compiler error in the
+  current Kotlin; the logout collector now collects `isLoggedIn` directly (StateFlow is
+  already distinct).
+
+### Upstream fix port — stream validation reliability (pushed)
+- `fix(playback): port Metrolist stream-validation fix (YTPlayerUtils.kt)` — per
+  `docs/upstream_fixes_spec.md` Change 1. Replaced the permanent
+  `webRemixFailedIds` blocklist with a 5-minute TTL map (`webRemixFailures` /
+  `hasRecentWebRemixFailure()`); added an explicit skip-and-continue for
+  recently failed WEB_REMIX streams before the no-HEAD-validation shortcut;
+  `validateStatus()` now sends per-client request headers (User-Agent,
+  Accept, Accept-Language, and Referer/Origin for WEB_REMIX / WEB_CREATOR /
+  other clients) via a new `YouTubeClient.streamHeaders()` extension. Fixes
+  the "playback breaks while logged in until logout/re-login" bug — the old
+  blocklist never expired and its only reset path was an unrelated cipher
+  refresh. Local build passed (assembleFossDebug). Pushed.
+- `fix(auth): gate the sidebar drawer on auth routes (MainActivity.kt)` —
+  `ModalNavigationDrawer` now sets `gesturesEnabled` false on Splash/Auth so
+  the drawer can't be swiped open there; `onNavigate` defensively closes the
+  drawer without navigating on auth-gated routes; hamburger trigger hidden on
+  those routes too. Local build passed. Pushed.
+
 ### Release prep for v1.2.0 (local, pending human review)
 - `feat(announcements): system notification + unread indicator` — when a new
   announcement arrives, the app now posts a system notification (new
