@@ -124,32 +124,7 @@ async def _llm_suggestions(
         ],
         "temperature": 0.7,
         "max_tokens": count * 40 + 256,
-        "response_format": {
-            "type": "json_schema",
-            "json_schema": {
-                "name": "playlist",
-                "strict": True,
-                "schema": {
-                    "type": "object",
-                    "properties": {
-                        "tracks": {
-                            "type": "array",
-                            "items": {
-                                "type": "object",
-                                "properties": {
-                                    "title": {"type": "string"},
-                                    "artist": {"type": "string"},
-                                },
-                                "required": ["title", "artist"],
-                                "additionalProperties": False,
-                            },
-                        },
-                    },
-                    "required": ["tracks"],
-                    "additionalProperties": False,
-                },
-            },
-        },
+        "response_format": {"type": "json_object"},
     }
 
     async with httpx.AsyncClient(timeout=GROQ_TIMEOUT) as client:
