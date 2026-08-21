@@ -123,7 +123,7 @@ async def _llm_suggestions(
             {"role": "user", "content": user_prompt},
         ],
         "temperature": 0.7,
-        "max_tokens": count * 40 + 256,
+        "max_tokens": count * 64 + 512,
         "response_format": {"type": "json_object"},
     }
 
