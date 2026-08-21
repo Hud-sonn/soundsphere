@@ -20,6 +20,15 @@ team at release time) — this file is the source they fold from.
 - Pushed to main, tagged `v1.2.1`, tag pushed → release.yml builds, signs, and publishes the
   APKs (foss + gms).
 
+### Profile sync fix + AI backend deploy (pushed)
+- `fix(profile): cache profile data from login response` — `handleTokenResult()` previously
+  discarded the full `UserResponse` (email, username, avatar_url) from the login endpoint,
+  only saving the JWT. After app deletion + reinstall, the profile (including avatar) was
+  invisible until the next cold-start `/auth/me` round-trip, and avatar was never auto-synced.
+  Now `cacheAccountProfile()` is called on login with all three fields, and the function
+  accepts an optional `avatarUrl` parameter. Also updated `updateUsername()` and
+  `updateAvatar()` callers to pass the returned avatar URL. Pushed.
+
 ### Playlist sync overhaul + AI generation cap + Change 2 port (pushed)
 - `fix(sync): playlist pulls were stored but invisible` — `pullPlaylists()` created pulled
   playlists with `bookmarkedAt = null`, but every Library query filters

@@ -75,7 +75,7 @@ class AuthViewModel @Inject constructor(
         viewModelScope.launch {
             AuthService.me(token)
                 .onSuccess { user ->
-                    syncRepository.cacheAccountProfile(user.email, user.username)
+                    syncRepository.cacheAccountProfile(user.email, user.username, user.avatarUrl)
                     // Pull the account data (liked tracks, playlists, history)
                     // on cold start too — not just fresh logins — so a session
                     // that survived an app restart still syncs playlists etc.
@@ -223,7 +223,7 @@ class AuthViewModel @Inject constructor(
             _uiState.value = _uiState.value.copy(isLoading = true, error = null, successMessage = null)
             AuthService.updateProfile(token, username = newUsername)
                 .onSuccess { user ->
-                    syncRepository.cacheAccountProfile(user.email, user.username)
+                    syncRepository.cacheAccountProfile(user.email, user.username, user.avatarUrl)
                     _uiState.value =
                         _uiState.value.copy(
                             isLoading = false,
@@ -254,7 +254,7 @@ class AuthViewModel @Inject constructor(
             _uiState.value = _uiState.value.copy(isLoading = true, error = null, successMessage = null)
             AuthService.updateProfile(token, avatarUrl = avatarUrl)
                 .onSuccess { user ->
-                    syncRepository.cacheAccountProfile(user.email, user.username)
+                    syncRepository.cacheAccountProfile(user.email, user.username, user.avatarUrl)
                     _uiState.value =
                         _uiState.value.copy(
                             isLoading = false,
@@ -278,6 +278,16 @@ class AuthViewModel @Inject constructor(
     private fun handleTokenResult(result: Result<AuthToken>) {
         result.onSuccess { token ->
             repository.saveToken(token.token)
+            // Cache the profile data from the login response immediately so the
+            // sidebar shows the user without waiting for the next cold-start
+            // /auth/me round-trip (which wouldn't happen until the next app
+            // restart anyway). This also preserves the avatar URL which
+            // /auth/me → cacheAccountProfile now also saves.
+            syncRepository.cacheAccountProfile(
+                token.user.email,
+                token.user.username,
+                token.user.avatarUrl,
+            )
             _isLoggedIn.value = true
             _uiState.value =
                 AuthUiState(
