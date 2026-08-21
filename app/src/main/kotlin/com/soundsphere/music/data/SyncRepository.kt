@@ -158,15 +158,16 @@ class SyncRepository @Inject constructor(
     }
 
     /**
-     * Caches the Soundsphere account profile (email + username) fetched from
-     * /auth/me so the sidebar can show the signed-in user even when no YouTube
-     * account is linked. Fire-and-forget.
+     * Caches the Soundsphere account profile (email + username + avatar) fetched from
+     * /auth/me or the login response so the sidebar can show the signed-in user even
+     * when no YouTube account is linked. Fire-and-forget.
      */
-    fun cacheAccountProfile(email: String, username: String) {
+    fun cacheAccountProfile(email: String, username: String, avatarUrl: String? = null) {
         scope.launch {
             context.safeDataStoreEdit { prefs ->
                 if (email.isNotBlank()) prefs[SoundsphereEmailKey] = email
                 if (username.isNotBlank()) prefs[SoundsphereUsernameKey] = username
+                if (!avatarUrl.isNullOrBlank()) prefs[SoundsphereAvatarUrlKey] = avatarUrl
             }
         }
     }
