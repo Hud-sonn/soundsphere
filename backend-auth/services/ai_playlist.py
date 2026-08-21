@@ -21,7 +21,7 @@ import httpx
 logger = logging.getLogger("soundsphere-auth")
 
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "").strip()
-GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile").strip()
+GROQ_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b").strip()
 GROQ_URL = os.getenv("GROQ_URL", "https://api.groq.com/openai/v1/chat/completions")
 GROQ_TIMEOUT = 60
 
@@ -124,7 +124,32 @@ async def _llm_suggestions(
         ],
         "temperature": 0.7,
         "max_tokens": count * 40 + 256,
-        "response_format": {"type": "json_object"},
+        "response_format": {
+            "type": "json_schema",
+            "json_schema": {
+                "name": "playlist",
+                "strict": True,
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "tracks": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "title": {"type": "string"},
+                                    "artist": {"type": "string"},
+                                },
+                                "required": ["title", "artist"],
+                                "additionalProperties": False,
+                            },
+                        },
+                    },
+                    "required": ["tracks"],
+                    "additionalProperties": False,
+                },
+            },
+        },
     }
 
     async with httpx.AsyncClient(timeout=GROQ_TIMEOUT) as client:
