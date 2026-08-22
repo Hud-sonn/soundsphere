@@ -20,6 +20,28 @@ team at release time) — this file is the source they fold from.
 - Pushed to main, tagged `v1.2.1`, tag pushed → release.yml builds, signs, and publishes the
   APKs (foss + gms).
 
+### AI model fix — Groq endpoint working (pushed)
+- `fix(backend): switch AI model to GPT-OSS 120B` — `llama-3.3-70b-versatile` was deprecated
+  on Groq (503 "model_not_found"). Switched to `openai/gpt-oss-120b` (500 tps, 131k context).
+  Restored `json_object` response format (GPT-OSS 120B doesn't support json_schema).
+  Increased `max_tokens` from `count * 40 + 256` to `count * 64 + 512` (GPT-OSS uses
+  internal reasoning tokens that consume quota). Confirmed: 30 tracks returns successfully.
+  Three commits: `02ebcf3b`, `c5d3c6a2`, `ea3fcef4`. Pushed.
+
+### Investigations completed (local)
+- `docs(investigation): Blend collaborative playlists` — full report in `INVESTIGATION_BLEND.md`.
+  Covers: DB scaffolding (playlist_collaborators table exists, 0 rows, not used), missing
+  `added_by_user_id` column, permission split (members add/remove, owner delete/rename),
+  conflict handling (accept race for v1), real-time vs refresh (refresh for v1), second
+  backend architecture (JWT is stateless HS256, same secret verifies on both backends,
+  Android stores token in EncryptedSharedPreferences, manual per-request auth header).
+- `docs(investigation): Recently Played on Home screen` — appended to `INVESTIGATION_BLEND.md`.
+  History is per-song only (no playlist tracking), synced via add-only union merge (never
+  deletes), grows unboundedly. "Recently Played" needs new `recently_played` table (capped,
+  prunable), new backend endpoints, new "replace-with-latest" sync pattern (different from
+  existing add-only union), new Home section. ~3 days estimated. Alternative: use existing
+  `event` table directly (~0.5 day) but no playlist tracking or cross-device recency.
+
 ### Profile sync fix + AI backend deploy (pushed)
 - `fix(profile): cache profile data from login response` — `handleTokenResult()` previously
   discarded the full `UserResponse` (email, username, avatar_url) from the login endpoint,
