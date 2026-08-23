@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://github.com/Hud-sonn/soundsphere/blob/main/fastlane/metadata/android/en-US/images/icon.png" alt="Soundsphere app icon" width="200" />
+<img src="https://github.com/Hud-sonn/soundsphere/blob/main/assets%2Ffile_00000000c00481f480217ac1136f5215.png" alt="Soundsphere app icon" width="200" />
 
 # Soundsphere
 
