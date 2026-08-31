@@ -15,6 +15,9 @@ import logging
 
 from fastapi import APIRouter, HTTPException, Request
 
+from fastapi import Depends
+
+from auth.jwt import get_current_user
 from db.supabase import get_supabase
 from services.activity import log_activity
 from services.limiter import limiter
@@ -39,6 +42,7 @@ def _public_playlist_response(playlist: dict) -> dict:
             {
                 "position": item.get("position", 0),
                 "added_at": item.get("added_at"),
+                "added_by_user_id": item.get("added_by_user_id"),
                 "track": {
                     "id": meta.get("id", ""),
                     "title": meta.get("title", ""),
@@ -58,6 +62,7 @@ def _public_playlist_response(playlist: dict) -> dict:
         "name": playlist.get("name", ""),
         "cover_url": playlist.get("cover_url"),
         "share_token": playlist.get("share_token"),
+        "is_collaborative": playlist.get("is_collaborative", False),
         "track_count": len(tracks),
         "tracks": tracks,
         "owner": {
@@ -77,8 +82,8 @@ async def get_shared_playlist(request: Request, token: str):
     rows = (
         db.table("playlists")
         .select(
-            "id, name, cover_url, share_token, created_at, updated_at, "
-            "user_id, playlist_tracks(track_id, position, added_at, tracks(*))"
+            "id, name, cover_url, share_token, is_collaborative, created_at, updated_at, "
+            "user_id, playlist_tracks(track_id, position, added_at, added_by_user_id, tracks(*))"
         )
         .eq("share_token", token)
         .execute()
@@ -98,3 +103,29 @@ async def get_shared_playlist(request: Request, token: str):
     playlist.pop("user_id", None)
 
     return _public_playlist_response(playlist)
+
+
+@router.post("/playlists/{token}/join")
+@limiter.limit("60/minute")
+async def join_blend(request: Request, token: str, user_id: str = Depends(get_current_user)):
+    db = get_supabase()
+    # Find playlist by token
+    rows = db.table("playlists").select("id, user_id, is_collaborative").eq("share_token", token).execute()
+    if not rows.data:
+        raise HTTPException(status_code=404, detail="Playlist not found or sharing disabled")
+    playlist = rows.data[0]
+    if not playlist.get("is_collaborative"):
+        raise HTTPException(status_code=400, detail="Playlist is not a Blend")
+    if playlist["user_id"] == user_id:
+        raise HTTPException(status_code=400, detail="Owner is already a member")
+    # Check already member
+    existing = db.table("playlist_collaborators").select("id").eq("playlist_id", playlist["id"]).eq("user_id", user_id).execute()
+    if existing.data:
+        return {"status": "already_member"}
+    # Cap at 10 members
+    count = db.table("playlist_collaborators").select("id", count="exact").eq("playlist_id", playlist["id"]).execute()
+    if (count.count or len(count.data)) >= 10:
+        raise HTTPException(status_code=409, detail="Blend is full (10 members)")
+    db.table("playlist_collaborators").insert({"playlist_id": playlist["id"], "user_id": user_id}).execute()
+    log_activity(user_id, "blend_join", f"playlist {playlist['id']}")
+    return {"status": "joined"}

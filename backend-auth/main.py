@@ -4,6 +4,8 @@ import logging
 from contextlib import asynccontextmanager
 from dotenv import load_dotenv
 
+import httpx
+
 load_dotenv()
 
 from fastapi import FastAPI, Request
@@ -147,9 +149,23 @@ async def health(request: Request):
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
-    logger.error(f"Unhandled exception: {type(exc).__name__}")
+    # Full traceback (not just the type) so Render logs are actually debuggable.
+    logger.exception(f"Unhandled exception on {request.method} {request.url.path}")
 
     return JSONResponse(status_code=500, content={"detail": "Internal server error"})
+
+
+@app.exception_handler(httpx.TransportError)
+async def supabase_transport_error_handler(request: Request, exc: httpx.TransportError):
+    """Transient network failures between Render and Supabase (httpx ReadError
+    etc). Surface a retryable 503 instead of an unhandled 500 + traceback."""
+    logger.warning(
+        "Upstream transport error on %s %s: %s",
+        request.method,
+        request.url.path,
+        exc,
+    )
+    return JSONResponse(status_code=503, content={"detail": "Upstream storage unavailable, retry"})
 
 
 # Admin web UI (static HTML/JS/CSS). Mounted last so API routes above win.
