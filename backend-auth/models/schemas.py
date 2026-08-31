@@ -77,6 +77,7 @@ class PlaylistCreateRequest(BaseModel):
 class PlaylistUpdateRequest(BaseModel):
     name: Optional[str] = Field(default=None, min_length=1, max_length=256)
     cover_url: Optional[str] = Field(default=None, max_length=2048)
+    is_collaborative: Optional[bool] = None
 
 
 class AddPlaylistTrackRequest(BaseModel):
@@ -86,6 +87,14 @@ class AddPlaylistTrackRequest(BaseModel):
 
 class HistoryAddRequest(BaseModel):
     track: TrackPayload
+    played_at: Optional[str] = None
+
+
+class RecentlyPlayedAddRequest(BaseModel):
+    source_type: str  # 'song' | 'playlist' | 'album' | 'artist'
+    source_id: str
+    source_name: Optional[str] = None
+    source_thumbnail: Optional[str] = None
     played_at: Optional[str] = None
 
 
