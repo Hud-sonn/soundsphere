@@ -1,5 +1,9 @@
 # Working with Soundsphere as an AI agent
 
+**Date:** 2026-09-01
+**Status:** Live
+**Why:** Added date rule for MDs — every MD must start with Date/Status/Why and HTML docs are served from backend /docs.
+
 Soundsphere is a 3rd party YouTube Music client written in Kotlin. It follows material 3 design guidelines closely.
 
 ## Rules for working on the project
@@ -14,6 +18,7 @@ Soundsphere is a 3rd party YouTube Music client written in Kotlin. It follows ma
 ## AI-only guidelines
 
 1. You are strictly prohibited from making ANY changes to the readme/markdown files, including this one — with one exception: `CHANGES.md`, which MUST be updated for every change per the rules above. This is to ensure that the documentation remains accurate and consistent for all contributors.
+   - **Date rule:** Every markdown file you create or modify (investigations, plans, docs, `CHANGES.md` entries, `INVESTIGATION_*.md`, `BLEND_*.md`, `SECURITY_*.md`, etc.) **must** start with a header containing `Date: YYYY-MM-DD`, `Status`, and `Why/Reason` (one line explaining why it was created/updated). Update the `Date` on every edit. HTML docs generated from these MDs must show the same date/why in their header and be viewable only from the backend domain (`/docs`).
 2. Unless explicitly requested, you are not allowed to commit, push, or merge any changes to any branch. If you are explicitly requested and authorized to commit/push/merge, you have the right to do so; the responsibility then lies with the author who requested it.
    - You should absolutely NOT use any commands that would modify the git history, do force pushes (except for rebases on your own branch), or delete branches without explicit instructions from a human.
 3. Always follow the guidelines and instructions provided by human contributors.
@@ -23,6 +28,29 @@ Soundsphere is a 3rd party YouTube Music client written in Kotlin. It follows ma
 7. If you have any doubts ask a human contributor. Never make assumptions about the requirements or implementation details without clarification.
 8. If you do not test your changes using the instructions in the next section, you will be faced with reprimands from human contributors and may be asked to redo your work. Always ensure that you test your changes thoroughly before asking for a final review.
 9. You are absolutely **not allowed to bump the version** of the app in ANY way. Version bumps are only done by the core development team after manual review.
+
+## Documentation dating
+
+Every markdown file produced for investigation, audit, or planning purposes (investigation reports, audit reports, architecture decisions) must include, at the top of the file:
+- The date the file was created
+- The date of the most recent change, if edited after creation
+- A one-line summary of what changed and why, for every edit after the initial version (append, don't overwrite — keep a running changelog at the top of the file itself)
+
+This applies retroactively when editing any existing investigation/audit doc: if you modify one, add a dated entry noting what changed, do not silently update it with no record of the prior state.
+
+## Row Level Security — apply to all future tables, not just audited ones
+
+Any new table added to this project, in either Supabase project, must be checked against the following rule before shipping: if a table has an `authenticated`-role UPDATE or INSERT/UPSERT policy scoped to "the user's own row" (e.g. `user_id = auth.uid()` or `id = auth.uid()`), every column in that table must be reviewed for whether it represents a privileged, non-user-editable value (limits, counts, roles, flags, tiers, tokens, verification status, anything the user should not be able to set themselves).
+
+If any such column exists on a table with a user-writable policy, one of the following must be applied before the table is used in production — do not ship a user-writable table containing a privileged column with no protection, even temporarily:
+1. Move the privileged column to its own separate table with no `authenticated` policy at all (`service_role`-only writes), or
+2. Add a `BEFORE UPDATE`/`INSERT` trigger (matching the pattern in `prevent_privileged_user_column_changes` / `prevent_privileged_playlist_column_changes`) that rejects any attempt to change that column via the `authenticated` role
+
+This check must be performed as a standard step whenever a new table is created, not only during a dedicated security audit — treat it as part of the table's initial design, the same way choosing a primary key or foreign key is.
+
+## Architectural rule — no direct Supabase writes with backend JWT
+
+Confirm no current or planned code path will ever cause the app to send `Authorization: Bearer <backend-JWT>` directly to `*.supabase.co` with the `anon` key. Document this explicitly as an architectural rule rather than relying on it remaining true by coincidence. If Blend or Listen Together's real-time sync needs ever introduce a `supabase-js`/`realtime` client on the app side, that client must use its own, separately-issued Supabase Auth session — never the backend's custom JWT — precisely so the `role: authenticated` mismatch that's accidentally protecting these tables today isn't silently removed by a future feature.
 
 ## Building and testing your changes
 

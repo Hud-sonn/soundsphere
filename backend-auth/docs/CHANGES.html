@@ -1,4 +1,9 @@
-# Soundsphere — Change Log (development)
+<!doctype html>
+<html><head><meta charset="utf-8"><title>CHANGES.md — 2026-09-01</title>
+<style>body{font-family:system-ui,Arial,sans-serif;max-width:800px;margin:2rem auto;padding:0 1rem;line-height:1.6}header{border-bottom:2px solid #eee;padding-bottom:1rem;margin-bottom:1.5rem}.meta{color:#666;font-size:0.9rem}pre{white-space:pre-wrap;background:#f6f8fa;padding:1rem;border-radius:8px;overflow:auto}a{color:#0366d6}</style>
+</head><body>
+<header><h1>CHANGES.md</h1><div class="meta">Date: 2026-09-01 — Status: Live — Why: Changelog — <a href="index.html">← Back</a></div></header>
+<pre># Soundsphere — Change Log (development)
 
 This file is the running record of everything changed, added, or fixed in
 Soundsphere. It exists so nothing is lost between sessions and so the
@@ -11,22 +16,6 @@ Newest date block goes on top.
 
 User-facing release notes live in `changelog.md` (curated by the core
 team at release time) — this file is the source they fold from.
-
-### Fix: deleted playlist songs reappearing (local, 2026-09-04) — Path B + Path C sync fix + durable retry, not yet pushed
-- `fix(sync): SongMenu remove-from-playlist now syncs to backend` — `SongMenu.kt:829` overflow `Remove from playlist` previously did `database.transaction{ move+delete }` + optional YT `scheduleRemoveFromPlaylist` but never called `syncRepository.playlistTrackRemoved`. Added `LocalSyncRepository` import + field (`SongMenu.kt:74`, `SongMenu.kt:127`) and call `syncRepository.playlistTrackRemoved(ps.map.playlistId, ps.map.songId)` after DB delete, so Blends and synced YT playlists no longer leave ghost rows server-side that `pullPlaylists()` `SyncRepository.kt:392` would re-add.
-- `fix(sync): bulk selection Delete now syncs to backend + YT` — `SelectionSongsMenu.kt:616` bulk `Delete` previously did local `move+delete` only. Added `playlistBrowseId: String? = null` param (`SelectionSongsMenu.kt:78`), `LocalSyncRepository` import/field (`SelectionSongsMenu.kt:54`, `86`), and loop calling `playlistBrowseId?.let{ syncUtils.scheduleRemoveFromPlaylist(...) }` + `syncRepository.playlistTrackRemoved(cur.playlistId, cur.songId)` for each `cur` (`SelectionSongsMenu.kt:616`). Threaded `playlistBrowseId = playlist?.playlist?.browseId` from `LocalPlaylistScreen.kt:858`. Correct reference impl remains `LocalPlaylistScreen.kt:583-591` swipe path.
-- `fix(sync): durable retry for offline playlist-track deletes` — added `SyncRepository.kt:111` `_pendingPlaylistTrackRemoves: StateFlow<Set<String>>` (`playlistId|songId` keys, `PENDING_PLAYLIST_TRACK_REMOVES_KEY` `DataStore`), `markPendingPlaylistTrackRemove`/`clearPendingPlaylistTrackRemove`, `pushPlaylistTrackRemoved` now marks pending on `reportError` and clears on success/404, `pullPlaylists` `SyncRepository.kt:432` skips `pendingKey in _pendingPlaylistTrackRemoves` so offline deletes are not re-added, and `pullAll()` `SyncRepository.kt:288` now runs `retryPendingPlaylistTrackRemoves` (like `retryPendingLikes`) on next full sync. Prevents "deleted while offline → reappears next day" after the B/C fixes.
-
-### Docs + Admin + Blend polish (local, 2026-09-01)
-- `docs(backend): HTML docs from MDs, viewable only from backend domain` — `backend-auth/docs/*.html` (AGENTS, CHANGES, INVESTIGATION_BLEND, BLEND_UI_PLAN, BLEND_IMPLEMENTATION_REPORT, SECURITY_AUDIT_RLS, KNOWN_ISSUES, README) with `Date: 2026-09-01` / `Status` / `Why` header per new AGENTS.md rule, `backend-auth/routers/docs.py` + `main.py` `mount /docs` (StaticFiles, backend domain only, not in APK), `backend-auth/docs/index.html` links all docs together + links to `../admin/` (only `api.soundsphere.name.ng/docs` has them, per AGENTS.md).
-- `docs(AGENTS): add date rule` — `AGENTS.md:1` now starts `Date: 2026-09-01 / Status: Live / Why: Added date rule…` and HTML `docs/AGENTS.html` shows same date/why.
-- `feat(blend): whole Blend history file` — `BLEND_IMPLEMENTATION_REPORT.md` (`Date: 2026-09-01`) timeline 2026-08-21→2026-09-01, what changed + why + how to use.
-- `feat(admin): more features + error cleanup` — `admin_web/index.html` new `Docs` tab + `Error log` `Clean up >7d` button (`DELETE /admin/errors/cleanup` in `admin.py:29` deletes `api_error_logs` older than 7 days), `BlEND_UI_PLAN` link in docs index.
-- `fix(blend): double-project isolation` — `yuukseizasygckaeonrh` (keysheild) activated, tables `users`/`playlists`/`playlist_collaborators`/`playlist_tracks`/`tracks`/`notifications` created, `soundsphere-blend` Render `srv-dabgia5g1s2s73cl7la0` (`https://soundsphere-blend.onrender.com`, `dep-dabgjug…`) with `SUPABASE_URL`/`SUPABASE_SERVICE_KEY` (second project) + `JWT_SECRET=ddcce95…` (same), `PYTHONPATH=backend-auth`, `Root Directory → backend-auth` (dashboard), `app/BlendEndpoint`/`BlendService`/`BlendRepository` + `BuildConfig.BLEND_BASE_URL`, `isDoubleProjectEnabled = BlendEndpoint.isConfigured()` (was `false`).
-- `fix(blend): Library 3-FAB overlap` — `LibraryPlaylistsScreen.kt:762` `padding(bottom=72→144dp)` so `Create@16 / AI@72 / Blend@144` all visible; `Items.kt:1035` `• Blend` subtitle + `group` badge; `LocalPlaylistScreen` header `Blend • Collaborative` pill + member strip + `Added by` → `UserInfoSheet` (reusable) + `Cloudinary` `soundsphere/blends` cover sync.
-- `fix(blend): missing POST /user/playlists/{id}/collaborators` — `user.py:483` `add_collaborator` (10 cap, `already_member`).
-- `fix(security): harden RLS column-write` — audit `SECURITY_AUDIT_RLS.md` (Date: 2026-09-01) flagged 9× (b) fragile `UPDATE (id=user_id)` whole-row policies; `ai_generation_usage.generation_count` is (a) safe (separate table, no `authenticated` policy). No code change yet per audit-only.
-- Not pushed — local only.
 
 ### Backend — Blend + caps + notifications + Listen Together fix (pushed)
 - `feat(backend): Blend (collaborative playlists)` — migration `008_blend_collaborative_playlists` (`added_by_user_id` on `playlist_tracks`, unique `playlist_collaborators`, indexes) already applied via MCP. Helper `_get_accessible_playlist`, union `GET /user/playlists` (owned + `playlist_collaborators`), `GET /user/playlists/{id}` now accessible, `POST /playlists/{id}/tracks` stores `added_by_user_id` and caps at 500, `PUT /playlists/{id}` handles `is_collaborative` + `cover_url`, `GET/DELETE /playlists/{id}/collaborators`, `POST /share/playlists/{token}/join` (cap 10, 409 if full, `is_collaborative` guard). Share `GET /share/playlists/{token}` now returns `is_collaborative` and `added_by_user_id` per track. `POST /playlists` capped at 20, `POST /liked` 2000, `POST /follows` 200, `GET/PUT /notifications` (Blend updates) + `_prune_history` 500 FIFO. `POST /playlists/{id}/tracks` for Blends creates `notifications` rows for other members (type `blend_update`, no webhook — polling, `GET /user/notifications` every 30s). Rate limits doubled: `_READ_LIMIT 300→600/h`, `_WRITE_LIMIT 120→300/h`, `_SYNC_WRITE_LIMIT 600/h` kept for bulk playlist sync. `SyncService` now parses `is_collaborative`/`added_by_user_id`.
@@ -45,8 +34,8 @@ team at release time) — this file is the source they fold from.
 
 ### AI model fix — Groq endpoint working (pushed)
 - `fix(backend): switch AI model to GPT-OSS 120B` — `llama-3.3-70b-versatile` was deprecated
-  on Groq (503 "model_not_found"). Switched to `openai/gpt-oss-120b` (500 tps, 131k context).
-  Restored `json_object` response format (GPT-OSS 120B doesn't support json_schema).
+  on Groq (503 &quot;model_not_found&quot;). Switched to `openai/gpt-oss-120b` (500 tps, 131k context).
+  Restored `json_object` response format (GPT-OSS 120B doesn&#x27;t support json_schema).
   Increased `max_tokens` from `count * 40 + 256` to `count * 64 + 512` (GPT-OSS uses
   internal reasoning tokens that consume quota). Confirmed: 30 tracks returns successfully.
   Three commits: `02ebcf3b`, `c5d3c6a2`, `ea3fcef4`. Pushed.
@@ -60,8 +49,8 @@ team at release time) — this file is the source they fold from.
   Android stores token in EncryptedSharedPreferences, manual per-request auth header).
 - `docs(investigation): Recently Played on Home screen` — appended to `INVESTIGATION_BLEND.md`.
   History is per-song only (no playlist tracking), synced via add-only union merge (never
-  deletes), grows unboundedly. "Recently Played" needs new `recently_played` table (capped,
-  prunable), new backend endpoints, new "replace-with-latest" sync pattern (different from
+  deletes), grows unboundedly. &quot;Recently Played&quot; needs new `recently_played` table (capped,
+  prunable), new backend endpoints, new &quot;replace-with-latest&quot; sync pattern (different from
   existing add-only union), new Home section. ~3 days estimated. Alternative: use existing
   `event` table directly (~0.5 day) but no playlist tracking or cross-device recency.
 
@@ -83,11 +72,11 @@ team at release time) — this file is the source they fold from.
   `pullPlaylists()` queried it with server.id as the key (never matched). Now builds a
   reverse serverIdToLocalId map and matches by id first, with a name fallback that only
   claims local playlists not already bound to a different server playlist (fixes duplicate
-  names like the two "nf home" / two "NF AI Mix" collapsing into one row).
+  names like the two &quot;nf home&quot; / two &quot;NF AI Mix&quot; collapsing into one row).
 - `fix(sync): login pull could be silently dropped` — `pullMutex.tryLock()` returned
   immediately when a pull was in flight; now `withLock()` queues and always runs.
 - `fix(sync): one bad pull stage aborted the rest` — `pullAll()` now wraps each stage
-  (likes/playlists/history/follows/settings) in `runPullStage()` so a single failure can't
+  (likes/playlists/history/follows/settings) in `runPullStage()` so a single failure can&#x27;t
   kill the whole sync.
 - `fix(sync): mappings/pending likes leaked across accounts` — new logout collector in
   `SyncRepository` clears `_serverPlaylistIds`, `_pendingLikePushes` and their DataStore
@@ -100,7 +89,7 @@ team at release time) — this file is the source they fold from.
   applied to live project) + backend enforcement in `routers/ai.py`: count checked before
   the Groq call, 429 with a friendly message when exhausted, incremented on success. The
   old IP-based slowapi guard was raised to 50/day (coarse); the real cap is account-level
-  so clearing the app cache can't reset it. Client shows a dedicated
+  so clearing the app cache can&#x27;t reset it. Client shows a dedicated
   `ai_playlist_limit_reached` toast in LibraryPlaylistsScreen and OnlineSearchResult.
 - `feat(cipher): dual-source player-config fallback (Faraday first, Zemer fallback)` —
   ported `docs/upstream_fixes_spec.md` Change 2 (Metrolist commit
@@ -125,28 +114,28 @@ team at release time) — this file is the source they fold from.
   `validateStatus()` now sends per-client request headers (User-Agent,
   Accept, Accept-Language, and Referer/Origin for WEB_REMIX / WEB_CREATOR /
   other clients) via a new `YouTubeClient.streamHeaders()` extension. Fixes
-  the "playback breaks while logged in until logout/re-login" bug — the old
+  the &quot;playback breaks while logged in until logout/re-login&quot; bug — the old
   blocklist never expired and its only reset path was an unrelated cipher
   refresh. Local build passed (assembleFossDebug). Pushed.
 - `fix(auth): gate the sidebar drawer on auth routes (MainActivity.kt)` —
   `ModalNavigationDrawer` now sets `gesturesEnabled` false on Splash/Auth so
-  the drawer can't be swiped open there; `onNavigate` defensively closes the
+  the drawer can&#x27;t be swiped open there; `onNavigate` defensively closes the
   drawer without navigating on auth-gated routes; hamburger trigger hidden on
   those routes too. Local build passed. Pushed.
 
 ### Release prep for v1.2.0 (local, pending human review)
 - `feat(announcements): system notification + unread indicator` — when a new
   announcement arrives, the app now posts a system notification (new
-  "announcements" channel, tap opens the full announcements feed) and shows a
+  &quot;announcements&quot; channel, tap opens the full announcements feed) and shows a
   red dot over the sidebar profile avatar plus a badge on the Announcements
   sidebar item while there are unseen entries. The feed marks everything as
-  read on open; a "Mark all as read" button was added to the feed; the
+  read on open; a &quot;Mark all as read&quot; button was added to the feed; the
   notification is dismissed once all announcements are seen.
 - `chore(release): bump app to 1.2.0 (versionCode 10)` — was 1.1.7/9.
 - `docs(changelog): rewrite changelog.md` — removed the dead Metrolist-era v13.x
   history (below v1.1); added a human-readable v1.2.0 entry (what/why, no dev
   jargon) compiled from the CHANGES.md records since v1.1.4; kept v1.1 → v1.1.4
-  Soundsphere entries. Format markers (`---vX.Y.Z`) preserved so release.yml's
+  Soundsphere entries. Format markers (`---vX.Y.Z`) preserved so release.yml&#x27;s
   `parse_changelog.sh` still extracts release notes from the v1.2.0 tag.
 - `docs(messages): rewrite messages.json` — replaced the test announcement with
   a welcome/thank-you entry for v1.2.0 that thanks everyone for feedback and
@@ -165,13 +154,13 @@ team at release time) — this file is the source they fold from.
   `httpx.ReadError`, resets the singleton client and retries the query (single choke point — 70 `.execute()`
   call sites make per-call-site wrapping non-viable). Left for a later session per human request.
 - `push: messages.json added to main (00f7580d)` — the announcement feed was
-  never tracked by git, so the app's raw.githubusercontent fetch was 404ing;
+  never tracked by git, so the app&#x27;s raw.githubusercontent fetch was 404ing;
   now live with a test announcement. Verified the raw URL returns the feed.
 - `push: backend-auth pushed to main (95e11fc8)` — Cloudinary avatar deletion is
   live on Render (deploy triggered, autoDeploy=yes). App-side changes still local.
 - `build: :app:assembleFossDebug SUCCESSFUL (12m45s, constrained)` — all changes
   compile; gradle.properties restored to zero diff, daemons stopped.
-- `fix(recognition): AudioRecord crash in "Recognize music"` — `stop() called on an
+- `fix(recognition): AudioRecord crash in &quot;Recognize music&quot;` — `stop() called on an
   uninitialized AudioRecord` no longer possible: `recordAudio()` now re-checks the
   RECORD_AUDIO permission at construction time, verifies `getMinBufferSize`, checks
   `AudioRecord.STATE_INITIALIZED` after construction before any lifecycle call,
@@ -179,11 +168,11 @@ team at release time) — this file is the source they fold from.
   (`recordingStarted` + `RECORDSTATE_RECORDING` guard) and wraps stop/release in
   try/catch as a last-resort safety net. `recognize()` rethrows
   `CancellationException` instead of swallowing it as an Error state. Each
-  "Try again" still builds a fresh AudioRecord instance.
+  &quot;Try again&quot; still builds a fresh AudioRecord instance.
 - `feat(ui): download button added to the old player design` — previously only the
   new design had it; the classic layout now shows share → download → like, with
   the same add/remove download logic and download/offline/progress icons.
-- `fix(strings): Listen Together setting now reads "sidebar"` —
+- `fix(strings): Listen Together setting now reads &quot;sidebar&quot;` —
   `listen_together_in_top_bar` / `_desc` updated since the toggle lives in the
   sidebar now, not the top app bar.
 - `feat(avatar): Cloudinary avatar upload (Option A)` — app uploads the cropped
@@ -198,17 +187,17 @@ team at release time) — this file is the source they fold from.
   App constants in `CloudinaryUploader.kt` must be filled with the real public
   values before uploads work.
 
-### Loading & error states (local)
-- `build: :app:assembleFossDebug SUCCESSFUL (13m17s, constrained)` — all loading &
+### Loading &amp; error states (local)
+- `build: :app:assembleFossDebug SUCCESSFUL (13m17s, constrained)` — all loading &amp;
   error-state changes compile; gradle.properties restored, daemons stopped.
 - `feat(ui): reusable ErrorRetryPlaceholder component` — centered message + retry
   button mirroring the OnlinePlaylistScreen pattern, used by all new error states.
 - `feat(ui): HistoryScreen Remote tab now has loading / error / empty states` —
   previously blank on failure; `isRemoteLoading` + `remoteError` added to
-  HistoryViewModel with re-entry guard on `fetchRemoteHistory()`, plus "No remote
-  history found" empty state and error+retry.
+  HistoryViewModel with re-entry guard on `fetchRemoteHistory()`, plus &quot;No remote
+  history found&quot; empty state and error+retry.
 - `feat(ui): error + retry for infinite-shimmer screens` — Browse, New Release,
-  YouTube Browse, Mood & Genres, Charts, Explore, online search results, Account,
+  YouTube Browse, Mood &amp; Genres, Charts, Explore, online search results, Account,
   Artist, Artist Items screens no longer shimmer forever when the request fails;
   each ViewModel gained an `error` flow (set on failure, cleared on reload) with a
   `retry()`/reload path and the screen shows the error message + retry button.
@@ -226,16 +215,16 @@ team at release time) — this file is the source they fold from.
   image` — the picker previously overwrote a single fixed file
   (`wallpaper_background.jpg`) and persisted the same `file://` URI every time,
   so Coil (whose cache key is the URI string) kept serving the old bitmap.
-  `copyWallpaperToInternalStorage` now writes `wallpaper_<epoch>.jpg` and deletes
+  `copyWallpaperToInternalStorage` now writes `wallpaper_&lt;epoch&gt;.jpg` and deletes
   previous `wallpaper_*` files, giving each pick a fresh URI → fresh cache key →
   the new image renders in both the theme preview and the app background.
 - `fix(playback): bot detection on the primary WEB_REMIX client no longer aborts
   playback` — the `BOT_DETECTED` throw in YTPlayerUtils.kt was removed; when YouTube
-  flags the authenticated primary request ("Sign in to confirm you're not a bot"),
+  flags the authenticated primary request (&quot;Sign in to confirm you&#x27;re not a bot&quot;),
   the code now logs a warning and falls through to the anonymous fallback clients
   (VISIONOS / ANDROID_VR / TVHTML5_SIMPLY, all `loginSupported=false` so they carry no
   auth headers even when logged in), which previously worked only when logged out.
-- `style(topbar): smaller, centered wordmark` — "Soundsphere" dropped from
+- `style(topbar): smaller, centered wordmark` — &quot;Soundsphere&quot; dropped from
   `titleLarge` to `titleMedium` and the logo+text row is now centered via
   `Arrangement.Center` + `fillMaxWidth`.
 - `docs(known-issues): refine entry #0` — verified client matrix (VISIONOS/ANDROID_VR/
@@ -249,7 +238,7 @@ team at release time) — this file is the source they fold from.
   before fallback clients are tried, so re-login only temporarily masks the issue.
 - `build: :app:assembleFossDebug OK (constrained 2GiB/2 workers)` — wallpaper fix,
   Bekky avatar, wordmark + announcements all compile cleanly.
-- `fix(theme): persist wallpaper as a copied file instead of the picker's content URI` —
+- `fix(theme): persist wallpaper as a copied file instead of the picker&#x27;s content URI` —
   the theme picker saved the raw `content://` URI from `GetContent` into DataStore,
   but that temporary read grant expires once the process is killed, so the image
   silently failed to load on later launches while the extracted theme color kept
@@ -261,14 +250,14 @@ team at release time) — this file is the source they fold from.
   `Contributor`, rendered as a local image when no GitHub avatar URL exists).
 
 ### Home top bar wordmark + Announcements feed UI (local)
-- `feat(ui): add italic "Soundsphere" wordmark to the home top bar` — next to
+- `feat(ui): add italic &quot;Soundsphere&quot; wordmark to the home top bar` — next to
   the app logo, using the bundled `bbh_bartle` script font with
   `FontStyle.Italic` (same joined-handwritten look as the Wrapped pages).
 - `feat(ui): add on-demand Announcements screen` — new `AnnouncementsScreen`
   (changelog-style bottom sheet) listing the full announcement feed fetched
   fresh via `MessageService.fetchMessages(forceRefresh = true)` with markdown
   bodies; marks every fetched id as seen on open so the launch popup does not
-  resurface them. Reached from a new "Announcements" entry (newspaper icon) in
+  resurface them. Reached from a new &quot;Announcements&quot; entry (newspaper icon) in
   the navigation drawer, wired through a new `onShowAnnouncements` callback on
   `SoundsphereSidebar`. Strings: `announcements`, `announcements_empty`.
 
@@ -281,7 +270,7 @@ team at release time) — this file is the source they fold from.
   lyrics keyed on YouTube video id; prefers synced LRC, then rich-sync, then
   plain). Unison fetches `https://unison.boidu.dev/lyrics` — by video id first,
   then by metadata (song/artist/album/duration) as fallback; TTML responses are
-  converted to the app's LRC format via the existing `TTMLParser` (depends on
+  converted to the app&#x27;s LRC format via the existing `TTMLParser` (depends on
   `:betterlyrics`).
 - `feat(lyrics): register new providers in registry` — `SimpMusicLyricsProvider`
   and `UnisonLyricsProvider` (thin wrappers implementing `LyricsProvider`,
@@ -289,13 +278,13 @@ team at release time) — this file is the source they fold from.
   and appended after the existing 7 entries in `getDefaultProviderOrder()`, so
   they are tried last as fallback-of-last-resort. `deserializeProviderOrder`
   now appends any default-order providers missing from a stored order, so
-  existing users' saved orders automatically gain the new providers at the end
+  existing users&#x27; saved orders automatically gain the new providers at the end
   (the reorder dialog and `LyricsHelper` fallback loop then pick them up without
   any further change).
 - `feat(settings): add provider toggles and reorder support` — `EnableSimpMusicKey`
   and `EnableUnisonKey` boolean prefs (default true, matching the
   `EnableBetterLyricsKey` pattern); two new toggle rows in the Content settings
-  "Provider selection" dialog (`enable_simpmusic`, `enable_simpmusic_desc`,
+  &quot;Provider selection&quot; dialog (`enable_simpmusic`, `enable_simpmusic_desc`,
   `enable_unison`, `enable_unison_desc` strings added); both providers appear in
   the drag-reorder priority dialog once enabled so users can promote them.
 - No changes to the 7 existing providers, romanization, `LyricsUtils.kt`, or the
@@ -339,11 +328,11 @@ team at release time) — this file is the source they fold from.
 ### Now Playing / Layout (local)
 - `fix(ui): lift Now Playing transport controls off the bottom edge` — increased
   the spacer below the controls (30dp → 56dp) so the prev/play/next row sits
-  comfortably higher and users don't have to stretch.
+  comfortably higher and users don&#x27;t have to stretch.
 - `fix(ui): reduce default display density a touch` — out-of-the-box density
   scale is now 0.95 (95%) instead of 1.0, so the app feels slightly smaller on
-  default settings. `DensityScale.DEFAULT(0.95, "Default (95%)")` added; "Native
-  (100%)" remains available for full size. Fallback reads in `DensityScaler` and
+  default settings. `DensityScale.DEFAULT(0.95, &quot;Default (95%)&quot;)` added; &quot;Native
+  (100%)&quot; remains available for full size. Fallback reads in `DensityScaler` and
   `AppearanceSettings` updated; users who explicitly chose 100% are unchanged.
 
 ## 2026-08-16
@@ -352,7 +341,7 @@ team at release time) — this file is the source they fold from.
 - `feat(ui): add profile icon on homepage top bar` — a circular avatar (YouTube account
   image, falling back to the local Soundsphere avatar, then a default account icon) now
   appears in the top app bar on the Home route only; tapping it opens Account Settings.
-- `feat(ui): allow editing Soundsphere username and avatar` — Account Settings' Soundsphere
+- `feat(ui): allow editing Soundsphere username and avatar` — Account Settings&#x27; Soundsphere
   section now shows avatar + username + email with an Edit dialog: username saved via new
   `AuthService.updateProfile` (`PUT /user/profile`) + `AuthViewModel.updateUsername`, avatar
   picked via Photo Picker, square-cropped with UCrop into app cache, and persisted locally
@@ -363,7 +352,7 @@ team at release time) — this file is the source they fold from.
   to the locally-picked Soundsphere avatar when no YouTube account image is set.
 
 ### Theme / Look (local)
-- `feat(ui): use wallpaper as whole-app background` — new "Use wallpaper as app background"
+- `feat(ui): use wallpaper as whole-app background` — new &quot;Use wallpaper as app background&quot;
   toggle in Theme → Auto-generated (visible once a wallpaper is picked). When enabled, the
   wallpaper is rendered behind the entire app with a 35% dark scrim for legibility
   (`WallpaperBackgroundKey`); not applied when the pure-black theme is active.
@@ -383,17 +372,17 @@ team at release time) — this file is the source they fold from.
 ## 2026-08-15
 
 ### UI (local)
-- `fix(ui): remove GitHub repo links from user-facing UI` — removed "View repository",
-  license link, developer GitHub button from AboutScreen; removed "View on GitHub" FAB
+- `fix(ui): remove GitHub repo links from user-facing UI` — removed &quot;View repository&quot;,
+  license link, developer GitHub button from AboutScreen; removed &quot;View on GitHub&quot; FAB
   from ChangelogScreen; removed clickable link from Metrolist attribution (text remains);
   removed unused string resources (`github_releases_url`, `view_on_github`,
   `credits_view_repo`, `credits_license_name`, `credits_license_desc`, `credits_github`).
   Changelog `@username` link generation kept as requested.
-- `fix(ui): detect YouTube bot detection errors` — added detection for "confirm you're not
-  a bot" / "sign in to confirm" responses from YouTube's player API. When triggered,
+- `fix(ui): detect YouTube bot detection errors` — added detection for &quot;confirm you&#x27;re not
+  a bot&quot; / &quot;sign in to confirm&quot; responses from YouTube&#x27;s player API. When triggered,
   throws `BOT_DETECTED` error that stops playback immediately (no endless fallback retries)
-  and shows "YouTube requires re-authentication. Please sign out and sign in again from
-  Settings." in the player error UI. Also stops playback in MusicService without retrying.
+  and shows &quot;YouTube requires re-authentication. Please sign out and sign in again from
+  Settings.&quot; in the player error UI. Also stops playback in MusicService without retrying.
 - `feat(ui): expand theme screen with 3-mode color system` — replaced flat palette with
   three switchable modes: **Hand-picked** (19 curated seed colors), **Combos** (10 pre-built
   color pairs from complementary color research), and **Auto-generated** (Material You
@@ -406,7 +395,7 @@ team at release time) — this file is the source they fold from.
   image picker to select a wallpaper/photo. App extracts dominant color using
   `extractThemeColor()` and uses it as theme seed. Wallpaper URI persisted in
   `WallpaperUriKey` across restarts.
-- `feat(ui): Material U theme variant` — added "Look" selector (Earthy / Material U) with
+- `feat(ui): Material U theme variant` — added &quot;Look&quot; selector (Earthy / Material U) with
   new `ThemeVariant` enum and `MaterialUShapes` (rounder: 8/12/16/24/32 dp vs 4/8/12/16/24).
   Shape selection wired through `SoundsphereTheme` → `Theme.kt`. Default stays Earthy.
 - `feat(ui): add combo accent color persistence` — `ComboAccentColorKey` stores the accent
@@ -433,7 +422,7 @@ team at release time) — this file is the source they fold from.
   from `Dialog.kt` and removed its usage from `MainActivity.kt`. Account settings now opens
   as a proper navigation destination, not a modal dialog.
 - `fix(ui): homepage profile navigates to Account Settings` — the profile picture/name in
-  HomeScreen's AccountPlaylists section now navigates to `account_settings` instead of
+  HomeScreen&#x27;s AccountPlaylists section now navigates to `account_settings` instead of
   `account` (YouTube playlists page), aligning with the new navigation structure.
 
 ### Material You Design (local)
@@ -485,14 +474,14 @@ team at release time) — this file is the source they fold from.
 
 ### Backend (pushed)
 - **Live activity feed + real `last_active`** (`bb59f805`): root cause of the
-  misleading "active users" numbers — `last_active` was written ONLY in the
+  misleading &quot;active users&quot; numbers — `last_active` was written ONLY in the
   login route, so it measured last login, not app usage. Now every
   authenticated request throttled-updates `users.last_active` (5-min
   per-user cache) and emits throttled `app_use` events. New
   `activity_events` table (migration 005) records logins, signups, share
   link views, page views, errors and crash ingests (fire-and-forget
   threads; zero added request latency). New `GET /admin/activity` resolves
-  emails. **Admin dashboard got a "Live" tab**: 5-second polling feed with
+  emails. **Admin dashboard got a &quot;Live&quot; tab**: 5-second polling feed with
   colored event badges, relative times and a pulsing LIVE indicator.
   Verified on prod with a real user (`marthasmith89977` — `last_active`
   jumped from Aug 13 to the moment she used the app).
@@ -507,13 +496,13 @@ team at release time) — this file is the source they fold from.
 - **OG share pages** (`routers/web.py`, pending push): backend now serves
   `GET /p/{token}` and `GET /s/{videoId}` as real HTML pages with SEO +
   Open Graph + Twitter meta tags (og:image = playlist cover, falling back to
-  the first track's artwork; song pages use the i.ytimg.com thumbnail) so
+  the first track&#x27;s artwork; song pages use the i.ytimg.com thumbnail) so
   WhatsApp/iMessage/Discord previews show artwork. Same dark brand design as
   the static site, server-rendered (works without JS), `soundsphere://p/…`
   deep-link attempt kept. Static `website/p.html` + `website/s.html` deleted
-  (were never deployed — the old "not found" links were caused by them not
+  (were never deployed — the old &quot;not found&quot; links were caused by them not
   existing on the static host at all; backend share API was verified live:
-  `GET /share/playlists/<token>` → 200 with tracks).
+  `GET /share/playlists/&lt;token&gt;` → 200 with tracks).
 - `main.py`: `web` router registered; **production `ALLOWED_HOSTS` tightened
   to exactly `api.soundsphere.name.ng` + `soundsphere-auth.onrender.com`**
   (no localhost/wildcard — host-spoofing/DNS-rebinding protection; the
@@ -537,23 +526,23 @@ team at release time) — this file is the source they fold from.
   `/s/{videoId}` (backend-served OG pages) instead of the static
   `p.html`/`s.html` links.
 - Sidebar fixes (needs build + install): profile header now recognizes the
-  **Soundsphere account** login (was showing "Guest / sign in" because it
+  **Soundsphere account** login (was showing &quot;Guest / sign in&quot; because it
   only reflected the YouTube account) — new `SoundsphereEmailKey` +
   `SoundsphereUsernameKey` prefs cached from `/auth/me` by `AuthViewModel`
   via `SyncRepository.cacheAccountProfile`, cleared on logout; display name
   falls back to Soundsphere username, subtitle shows the registered email
-  or "Signed in to Soundsphere". Drawer now closes smoothly after tapping
+  or &quot;Signed in to Soundsphere&quot;. Drawer now closes smoothly after tapping
   any item (account, changelog, navigation). Home/Library/Search removed
-  from the drawer (they're in the bottom nav); only Stats/History/
+  from the drawer (they&#x27;re in the bottom nav); only Stats/History/
   Together + App section remain.
 - Weekly/monthly auto playlists: **kept the plain-YouTube-link fallback**
-  for sharing (they're local-only, never get server IDs — confirmed backend
-  assigns IDs/tokens fine, e.g. "NF AI Mix" has token `gqrtAitPlJfPwGj5xWPu6A`).
+  for sharing (they&#x27;re local-only, never get server IDs — confirmed backend
+  assigns IDs/tokens fine, e.g. &quot;NF AI Mix&quot; has token `gqrtAitPlJfPwGj5xWPu6A`).
 - Playlist sharing end-to-end: `soundsphere://p/{token}` deep link (custom
   scheme, works on every flavor), `SharedPlaylistScreen` +
   `SharedPlaylistViewModel`, share actions in playlist menus now share a
   branded message via server token (falls back to the plain YouTube link /
-  song list when unsynced; "Sharing isn't available yet" toast when signed
+  song list when unsynced; &quot;Sharing isn&#x27;t available yet&quot; toast when signed
   out). `share_unavailable` string finally wired.
 - **Fix:** share button on the local playlist menu did nothing — the coroutine
   ran on a scope inside the bottom sheet and was cancelled on dismiss; now
@@ -562,8 +551,8 @@ team at release time) — this file is the source they fold from.
   song share messages now use the branded landing page
   `https://soundsphere.name.ng/s.html?videoId=…` so links no longer open
   YouTube Music instead of Soundsphere. Player share card text updated too.
-- New **AI** settings section: "AI playlists" master toggle (hides the AI FAB
-  on Library → Playlists and the AI card in search); "AI lyrics translation"
+- New **AI** settings section: &quot;AI playlists&quot; master toggle (hides the AI FAB
+  on Library → Playlists and the AI card in search); &quot;AI lyrics translation&quot;
   row moved under it.
 - Homepage sidebar redesign: top bar is now logo + hamburger only (History,
   Stats, Listen Together and Account buttons removed); new
@@ -577,14 +566,14 @@ team at release time) — this file is the source they fold from.
 
 ### Website (local, uncommitted)
 - `p.html` and `s.html` **deleted** — replaced by the backend-served
-  `/p/{token}` + `/s/{videoId}` pages (static hosting can't provide
-  per-token Open Graph tags; scrapers don't run JS). Rest of the website
+  `/p/{token}` + `/s/{videoId}` pages (static hosting can&#x27;t provide
+  per-token Open Graph tags; scrapers don&#x27;t run JS). Rest of the website
   stays pure HTML.
 
 ### Design
 - `docs/design-options.md` added — two theme direction proposals:
-  "Material U" (dynamic-color-first, rounder shapes, song-art seed colors)
-  and "Liquid Glass" (translucent blurred surfaces over artwork). No code
+  &quot;Material U&quot; (dynamic-color-first, rounder shapes, song-art seed colors)
+  and &quot;Liquid Glass&quot; (translucent blurred surfaces over artwork). No code
   changes yet; waiting on direction.
 
 ### Known / pending
@@ -593,4 +582,6 @@ team at release time) — this file is the source they fold from.
   approval): enable RLS with no policies (backend uses the service role,
   which bypasses RLS).
 - APK install testing on the TECNO device requires the device to be plugged
-  in with free space (`/data` was 98% full).
+  in with free space (`/data` was 98% full).</pre>
+<p><a href="index.html">← Back to index</a> — <a href="../admin/">Admin</a></p>
+</body></html>

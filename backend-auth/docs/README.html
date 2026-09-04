@@ -1,0 +1,243 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>README.md — 2026-09-01</title>
+<style>body{font-family:system-ui,Arial,sans-serif;max-width:800px;margin:2rem auto;padding:0 1rem;line-height:1.6}header{border-bottom:2px solid #eee;padding-bottom:1rem;margin-bottom:1.5rem}.meta{color:#666;font-size:0.9rem}pre{white-space:pre-wrap;background:#f6f8fa;padding:1rem;border-radius:8px;overflow:auto}a{color:#0366d6}</style>
+</head><body>
+<header><h1>README.md</h1><div class="meta">Date: 2026-09-01 — Status: Live — Why: Readme — <a href="index.html">← Back</a></div></header>
+<pre>&lt;div align=&quot;center&quot;&gt;
+
+&lt;img src=&quot;https://github.com/Hud-sonn/soundsphere/blob/main/assets%2Ffile_00000000c00481f480217ac1136f5215.png&quot; alt=&quot;Soundsphere app icon&quot; width=&quot;200&quot; /&gt;
+
+# Soundsphere
+
+### A music streaming app for Android
+
+&lt;br/&gt;
+
+[![Latest release](https://img.shields.io/github/v/release/Hud-sonn/soundsphere?style=for-the-badge&amp;labelColor=0d1117)](https://github.com/Hud-sonn/soundsphere/releases)
+[![License](https://img.shields.io/github/license/Hud-sonn/soundsphere?style=for-the-badge&amp;labelColor=0d1117)](https://github.com/Hud-sonn/soundsphere/blob/main/LICENSE)
+[![Downloads](https://img.shields.io/github/downloads/Hud-sonn/soundsphere/total?style=for-the-badge&amp;labelColor=0d1117)](https://github.com/Hud-sonn/soundsphere/releases)
+
+&lt;br/&gt;
+
+[**Download**](#download) · [**Features**](#features) · [**Account**](#account) · [**Build**](#build-from-source) · [**FAQ**](#faq)
+
+&lt;/div&gt;
+
+&gt; [!WARNING]
+&gt; **Regional Restriction** - If the streaming service is unavailable in your region, this app will not work without a **VPN or proxy** connecting to a supported region.
+
+---
+
+&lt;div align=&quot;center&quot;&gt;
+
+&lt;h1&gt;&lt;a id=&quot;about&quot;&gt;&lt;/a&gt;About&lt;/h1&gt;
+
+Soundsphere is an independent, open-source music streaming app for Android. It is a fork of [Metrolist](https://github.com/MetrolistGroup/Metrolist) with a rebranded identity, its own account system, and its own development direction. It follows Material 3 design guidelines closely and is built with Kotlin and Jetpack Compose.
+
+&lt;/div&gt;
+
+---
+
+&lt;div align=&quot;center&quot;&gt;
+
+&lt;h1&gt;&lt;a id=&quot;screenshots&quot;&gt;&lt;/a&gt;Screenshots&lt;/h1&gt;
+
+&lt;img src=&quot;https://github.com/Hud-sonn/soundsphere/blob/main/fastlane/metadata/android/en-US/images/screenshots/screenshot_1.png&quot; alt=&quot;Home screen&quot; width=&quot;30%&quot; /&gt;
+&lt;img src=&quot;https://github.com/Hud-sonn/soundsphere/blob/main/fastlane/metadata/android/en-US/images/screenshots/screenshot_2.png&quot; alt=&quot;Artist screen&quot; width=&quot;30%&quot; /&gt;
+&lt;img src=&quot;https://github.com/Hud-sonn/soundsphere/blob/main/fastlane/metadata/android/en-US/images/screenshots/screenshot_3.png&quot; alt=&quot;Recognize music screen&quot; width=&quot;30%&quot; /&gt;
+&lt;img src=&quot;https://github.com/Hud-sonn/soundsphere/blob/main/fastlane/metadata/android/en-US/images/screenshots/screenshot_4.png&quot; alt=&quot;Listen together screen&quot; width=&quot;30%&quot; /&gt;
+&lt;img src=&quot;https://github.com/Hud-sonn/soundsphere/blob/main/fastlane/metadata/android/en-US/images/screenshots/screenshot_5.png&quot; alt=&quot;Player screen&quot; width=&quot;30%&quot; /&gt;
+&lt;img src=&quot;https://github.com/Hud-sonn/soundsphere/blob/main/fastlane/metadata/android/en-US/images/screenshots/screenshot_6.png&quot; alt=&quot;Player lyrics screen&quot; width=&quot;30%&quot; /&gt;
+
+&lt;/div&gt;
+
+---
+
+&lt;div align=&quot;center&quot;&gt;
+
+&lt;h1&gt;&lt;a id=&quot;features&quot;&gt;&lt;/a&gt;Features&lt;/h1&gt;
+
+&lt;table&gt;
+  &lt;tr&gt;
+    &lt;td width=&quot;50%&quot; valign=&quot;top&quot;&gt;
+
+#### Playback
+- Stream any song or video
+- Background playback
+- Download &amp; cache for offline use
+- Skip silence
+- Sleep timer
+
+&lt;/td&gt;
+    &lt;td width=&quot;50%&quot; valign=&quot;top&quot;&gt;
+
+#### Audio
+- Audio normalization
+- Tempo &amp; pitch control
+- Equalizer
+
+&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td width=&quot;50%&quot; valign=&quot;top&quot;&gt;
+
+#### Lyrics &amp; Discovery
+- Live synced lyrics
+- AI-powered lyrics translation
+- Personalized quick picks
+- Search songs, albums, artists, videos, and playlists
+
+&lt;/td&gt;
+    &lt;td width=&quot;50%&quot; valign=&quot;top&quot;&gt;
+
+#### Library &amp; Account
+- Full library management
+- Local playlists
+- Import playlists
+- Reorder songs in playlist or queue
+- Soundsphere account login
+- Optional YouTube Music account login
+
+&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td width=&quot;50%&quot; valign=&quot;top&quot;&gt;
+
+#### Social
+- Listen together with friends in real-time
+
+&lt;/td&gt;
+    &lt;td width=&quot;50%&quot; valign=&quot;top&quot;&gt;
+
+#### Interface
+- Home screen widget
+- Light / Dark / Black / Dynamic theme modes
+- Dynamic color + 19 preset color palettes
+- Built with Material 3
+
+&lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/table&gt;
+
+&lt;/div&gt;
+
+---
+
+&lt;div align=&quot;center&quot;&gt;
+
+&lt;h1&gt;&lt;a id=&quot;account&quot;&gt;&lt;/a&gt;Account&lt;/h1&gt;
+
+Soundsphere has its own account system:
+
+- Register with an email address and verify it via a one-time code
+- Log in, reset your password, and stay signed in with an encrypted local session
+- Your Soundsphere account is completely separate from your YouTube Music login
+
+The account backend lives in the [`backend-auth/`](backend-auth) directory of this repository.
+
+&lt;/div&gt;
+
+---
+
+&lt;div align=&quot;center&quot;&gt;
+
+&lt;h1&gt;&lt;a id=&quot;download&quot;&gt;&lt;/a&gt;Download&lt;/h1&gt;
+
+&lt;h2&gt;Releases&lt;/h2&gt;
+
+Releases are published on the [GitHub Releases page](https://github.com/Hud-sonn/soundsphere/releases). Two variants are built for every release:
+
+&lt;table&gt;
+  &lt;tr&gt;
+    &lt;th align=&quot;center&quot;&gt;Soundsphere (FOSS)&lt;/th&gt;
+    &lt;th align=&quot;center&quot;&gt;Soundsphere with Google Cast&lt;/th&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td align=&quot;center&quot;&gt;
+      `Soundsphere.apk` (universal) · `app-&amp;lt;arch&amp;gt;-release.apk`&lt;br/&gt;
+      No proprietary Google dependencies.
+    &lt;/td&gt;
+    &lt;td align=&quot;center&quot;&gt;
+      `Soundsphere-with-Google-Cast.apk` (universal) · `app-&amp;lt;arch&amp;gt;-with-Google-Cast.apk`&lt;br/&gt;
+      Includes Google Cast support.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/table&gt;
+
+The in-app updater checks GitHub Releases, notifies you when a new version is out, and links to the APK matching your device&#x27;s architecture and variant.
+
+&lt;/div&gt;
+
+---
+
+&lt;div align=&quot;center&quot;&gt;
+
+&lt;h1&gt;&lt;a id=&quot;build&quot;&gt;&lt;/a&gt;Build from Source&lt;/h1&gt;
+
+&lt;h3&gt;Prerequisites&lt;/h3&gt;
+
+- JDK 17 or newer
+- Android SDK
+
+&lt;h3&gt;Debug build&lt;/h3&gt;
+
+```
+./gradlew :app:assembleFossDebug
+```
+
+The APK is written to `app/build/outputs/apk/universalFoss/debug/`.
+
+&lt;h3&gt;Release build&lt;/h3&gt;
+
+The release signing config reads the following environment variables: `STORE_PASSWORD`, `KEY_ALIAS`, and `KEY_PASSWORD`, and expects the keystore at `app/keystore/release.keystore`.
+
+```
+./gradlew :app:assembleFossRelease
+```
+
+&lt;/div&gt;
+
+---
+
+&lt;div align=&quot;center&quot;&gt;
+
+&lt;h1&gt;&lt;a id=&quot;faq&quot;&gt;&lt;/a&gt;FAQ&lt;/h1&gt;
+
+&lt;h3&gt;Is this affiliated with YouTube or Google?&lt;/h3&gt;
+No. Soundsphere is an independent project and is not affiliated with, funded, authorized, endorsed by, or in any way associated with YouTube, Google LLC, or any of their affiliates and subsidiaries.
+
+&lt;h3&gt;Do I need a Soundsphere account?&lt;/h3&gt;
+Yes. The app is gated behind the Soundsphere account system; you can register with any email address and verify it via a one-time code.
+
+&lt;h3&gt;Does the app still work with my YouTube Music account?&lt;/h3&gt;
+Yes. Logging in with your YouTube Music account is supported in addition to the Soundsphere account and remains optional.
+
+&lt;/div&gt;
+
+---
+
+&lt;div align=&quot;center&quot;&gt;
+
+&lt;h1&gt;Credits&lt;/h1&gt;
+
+Soundsphere is a fork of [Metrolist](https://github.com/MetrolistGroup/Metrolist) (GPL-3.0). We thank the Metrolist team and every contributor to the open-source libraries that power this project, including:
+
+- [Better Lyrics](https://better-lyrics.boidu.dev) - time-synced lyrics with word-by-word highlighting
+- [metroserver](https://github.com/MetrolistGroup/metroserver) - listen-together real-time backend
+- [MusicRecognizer](https://github.com/aleksey-saenko/MusicRecognizer) - music recognition feature
+- [zemer-cipher](https://github.com/ZemerTeam/zemer-cipher) - cipher deobfuscation and PoToken generation
+
+&lt;/div&gt;
+
+---
+
+&lt;div align=&quot;center&quot;&gt;
+
+&lt;h1&gt;License&lt;/h1&gt;
+
+This project is licensed under the [GPL-3.0 License](https://github.com/Hud-sonn/soundsphere/blob/main/LICENSE).
+
+&lt;/div&gt;
+</pre>
+<p><a href="index.html">← Back to index</a> — <a href="../admin/">Admin</a></p>
+</body></html>

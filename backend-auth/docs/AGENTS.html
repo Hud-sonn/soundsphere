@@ -1,0 +1,39 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>AGENTS.md — 2026-09-01</title>
+<style>body{font-family:system-ui,Arial,sans-serif;max-width:800px;margin:2rem auto;padding:0 1rem;line-height:1.6} header{border-bottom:2px solid #eee;padding-bottom:1rem;margin-bottom:1.5rem} .meta{color:#666;font-size:0.9rem} pre{white-space:pre-wrap;background:#f6f8fa;padding:1rem;border-radius:8px;overflow:auto} a{color:#0366d6}</style>
+</head>
+<body>
+<header>
+<h1>AGENTS.md</h1>
+<div class="meta">Date: 2026-09-01 — Status: Live — Why: Added date rule for MDs — every MD must start with Date/Status/Why and HTML docs are served from backend /docs.</div>
+<div class="meta"><a href="index.html">← Back to Docs index</a> — <a href="../admin/">Admin</a></div>
+</header>
+<pre># Working with Soundsphere as an AI agent
+
+**Date:** 2026-09-01
+**Status:** Live
+**Why:** Added date rule for MDs — every MD must start with Date/Status/Why and HTML docs are served from backend /docs.
+
+Soundsphere is a 3rd party YouTube Music client written in Kotlin. It follows material 3 design guidelines closely.
+
+## Rules for working on the project
+1. Always pull the latest changes from `main` before starting your work to minimize merge conflicts.
+2. Commit names should be clear and follow the format: `type(scope): short description`. For example: `feat(ui): add dark mode support`. Including the scope is optional.
+3. All string edits should be made to the `Soundsphere/app/src/main/res/values/soundsphere_strings.xml` file, NOT `Soundsphere/app/src/main/res/values/strings.xml`. Do not touch other `strings.xml` or `soundsphere_strings.xml` files in the project. ONLY edit the default (English) `soundsphere_strings.xml` file, DO NOT EDIT OTHER LANGUAGES.
+4. You are to follow best practices for Kotlin and Android development.
+5. DO NOT EDIT THE APP'S DATABASE SCHEMA.
+6. **Record every change in `CHANGES.md`.** Whenever you change, add, or fix anything (code, backend, website, strings, config), add a short concrete entry to `CHANGES.md` before finishing the task — area, what changed, and whether it is `pushed` or `local`/uncommitted. Newest date block goes on top. This file is the running record used to assemble release notes later; it is the one markdown file you MUST keep up to date.
+
+## AI-only guidelines
+1. You are strictly prohibited from making ANY changes to the readme/markdown files, including this one — with one exception: `CHANGES.md`, which MUST be updated for every change per the rules above. This is to ensure that the documentation remains accurate and consistent for all contributors.
+   - **Date rule:** Every markdown file you create or modify (investigations, plans, docs, `CHANGES.md` entries, `INVESTIGATION_*.md`, `BLEND_*.md`, `SECURITY_*.md`, etc.) **must** start with a header containing `Date: YYYY-MM-DD`, `Status`, and `Why/Reason` (one line explaining why it was created/updated). Update the `Date` on every edit. HTML docs generated from these MDs must show the same date/why in their header and be viewable only from the backend domain (`/docs`).
+2. Unless explicitly requested, you are not allowed to commit, push, or merge any changes to any branch. If you are explicitly requested and authorized to commit/push/merge, you have the right to do so; the responsibility then lies with the author who requested it.
+   - You should absolutely NOT use any commands that would modify the git history, do force pushes (except for rebases on your own branch), or delete branches without explicit instructions from a human.
+... (see full file at /docs/AGENTS.html source)
+</pre>
+<p><a href="index.html">← Back to index</a></p>
+</body>
+</html>
