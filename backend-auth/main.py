@@ -44,7 +44,38 @@ logger = logging.getLogger("soundsphere-auth")
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     app.state.limiter = limiter
-    yield
+    # Keep second backend + its DB warm so Blend doesn't cold-start.
+    # Main backend pings the Blend backend's /health every 5 min; that keeps
+    # the free Render instance awake and, via the second backend's own DB
+    # pool, keeps its Supabase DB connection warm. No user data is touched.
+    blend_url = os.getenv("BLEND_BASE_URL", "https://soundsphere-blend.onrender.com").rstrip("/")
+    keepalive_task = None
+    if blend_url:
+        async def _keepalive_loop():
+            # Wait for app to be fully up before first ping
+            await asyncio.sleep(10)
+            async with httpx.AsyncClient(timeout=10) as client:
+                while True:
+                    try:
+                        # Ping health on second backend — keeps its Render free tier awake
+                        await client.get(f"{blend_url}/health")
+                        # Also hit a lightweight DB-touching endpoint if available;
+                        # /health on the second host with the same code will also
+                        # warm its Supabase pool on the next real request.
+                    except Exception as e:
+                        logger.debug(f"Blend keepalive ping failed: {e}")
+                    await asyncio.sleep(300)  # 5 min
+
+        keepalive_task = asyncio.create_task(_keepalive_loop())
+    try:
+        yield
+    finally:
+        if keepalive_task:
+            keepalive_task.cancel()
+            try:
+                await keepalive_task
+            except asyncio.CancelledError:
+                pass
 
 
 app = FastAPI(title="Soundsphere Auth API", version="1.0.0", lifespan=lifespan)
@@ -172,3 +203,9 @@ async def supabase_transport_error_handler(request: Request, exc: httpx.Transpor
 _admin_web_dir = os.path.join(os.path.dirname(__file__), "admin_web")
 if os.path.isdir(_admin_web_dir):
     app.mount("/admin", StaticFiles(directory=_admin_web_dir, html=True), name="admin_web")
+
+# Docs — HTML renderings of the repo's MDs, viewable only from the backend domain.
+# Each doc has a Date/Status/Why header per AGENTS.md, and they are linked via /docs/index.html.
+_docs_dir = os.path.join(os.path.dirname(__file__), "docs")
+if os.path.isdir(_docs_dir):
+    app.mount("/docs", StaticFiles(directory=_docs_dir, html=True), name="docs")

@@ -504,6 +504,31 @@ async def remove_collaborator(
     return {"status": "ok"}
 
 
+@router.post("/playlists/{playlist_id}/collaborators")
+@limiter.limit(_WRITE_LIMIT)
+async def add_collaborator(
+    playlist_id: str,
+    request: Request,
+    user_id: str = Depends(get_current_user),
+):
+    body = await request.json()
+    target_user_id = body.get("user_id")
+    if not target_user_id:
+        raise HTTPException(status_code=400, detail="user_id required")
+    db = get_supabase()
+    _require_user(db, user_id)
+    _get_owned_playlist(db, user_id, playlist_id)
+    existing = db.table("playlist_collaborators").select("id").eq("playlist_id", playlist_id).eq("user_id", target_user_id).execute()
+    if existing.data:
+        return {"status": "already_member"}
+    count = db.table("playlist_collaborators").select("id", count="exact").eq("playlist_id", playlist_id).execute()
+    if (count.count or len(count.data)) >= 10:
+        raise HTTPException(status_code=409, detail="Blend is full (10 members)")
+    db.table("playlist_collaborators").insert({"playlist_id": playlist_id, "user_id": target_user_id}).execute()
+    db.table("playlists").update({"is_collaborative": True}).eq("id", playlist_id).execute()
+    return {"status": "added"}
+
+
 @router.put("/playlists/{playlist_id}")
 @limiter.limit(_WRITE_LIMIT)
 async def update_playlist(

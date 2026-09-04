@@ -1,0 +1,60 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>BLEND_IMPLEMENTATION_REPORT.md — 2026-09-01</title>
+<style>body{font-family:system-ui,Arial,sans-serif;max-width:800px;margin:2rem auto;padding:0 1rem;line-height:1.6}header{border-bottom:2px solid #eee;padding-bottom:1rem;margin-bottom:1.5rem}.meta{color:#666;font-size:0.9rem}pre{white-space:pre-wrap;background:#f6f8fa;padding:1rem;border-radius:8px;overflow:auto}a{color:#0366d6}</style>
+</head><body>
+<header><h1>BLEND_IMPLEMENTATION_REPORT.md</h1><div class="meta">Date: 2026-09-01 — Status: Live — Why: Blend implementation report — <a href="index.html">← Back</a></div></header>
+<pre># Blend Implementation Report — Full History
+
+**Date:** 2026-09-01
+**Status:** Implemented (local), backend pushed, double-project scaffolding ready
+**Why:** Record the complete Blend (collaborative playlists) implementation from investigation to code, for release notes and audit trail. This file is the canonical history for the Blend feature.
+
+---
+
+## Timeline
+
+### 2026-08-21 — Investigation
+- **INVESTIGATION_BLEND.md** created (442 lines) — database already had `playlist_collaborators` (0 rows) and `playlists.is_collaborative` (false), neither used. Identified missing `added_by_user_id`, permission split (members add/remove, owner delete/rename), conflict handling (accept race for v1), refresh-based (no realtime), and second-backend JWT is stateless HS256 (`JWT_SECRET` same on both hosts, `sub` + `role` + `exp` 7 days, no DB lookup on verify). Full report 442 lines, appended second-backend section (total 702 lines).
+
+### 2026-08-22 — Recently Played + Blend scaffolding
+- `recently_played` investigation appended to `INVESTIGATION_BLEND.md` (988 lines) — history is per-song only, no playlist tracking, sync is add-only union, never deletes.
+
+### 2026-08-31 — Backend Blend (pushed `6fe9a48f`)
+- **Migration `008_blend_collaborative_playlists`** applied via `supabase link --project-ref ysfktparruosuegzdnwt` + `supabase db query --linked`: `added_by_user_id uuid → users(id)`, `unique (playlist_id,user_id)`, indexes on `user_id`/`playlist_id`.
+- **Helpers:** `_get_accessible_playlist` (owner OR collaborator), `_playlist_response` now includes `added_by_user_id` per track, `_prune_history` 500 FIFO, caps 20/2000/200/500, rate limits `600/300/600` (doubled as suggested).
+- **Endpoints:** `GET /user/playlists` union (owned + `in_(&quot;id&quot;, collab_ids)`), `GET /user/playlists/{id}` → accessible, `POST /playlists/{id}/tracks` stores `added_by_user_id` + 500 cap + notifications, `PUT is_collaborative`, `GET/DELETE /playlists/{id}/collaborators`, `POST /share/playlists/{token}/join` (10 cap, `is_collaborative` guard, `already_member`), `GET /share` returns `is_collaborative` + `added_by_user_id`, `GET/PUT /notifications` (Blend updates, 20 limit, every 30s poll).
+- **Second Supabase `yuukseizasygckaeonrh` (keysheild)** linked, tables `users`, `playlists`, `playlist_tracks`, `playlist_collaborators`, `tracks`, `notifications` created, keys fetched (`anon eyJhbG...`, `service_role eyJhbG...gERsf…`), URL `https://yuukseizasygckaeonrh.supabase.co`.
+- **Render `soundsphere-blend` (`srv-dabgia5g1s2s73cl7la0`)** created (`https://soundsphere-blend.onrender.com`, `dep-dabgialg...`), env `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `JWT_SECRET=***REDACTED_JWT_SECRET***`, `PYTHONPATH=backend-auth`, then user set **Root Directory → `backend-auth`** in dashboard (required).
+
+### 2026-09-01 — App Blend (local, not yet pushed)
+- **DB v40:** `PlaylistEntity.isCollaborative` (false default) + `PlaylistSongMap.addedByUserId`, `AutoMigration 39→40`, `DatabaseDao.blendPlaylists()` (`WHERE isCollaborative=1`).
+- **Sync:** `SyncService` parses `is_collaborative`/`added_by_user_id` (`SyncPlaylist`, `SyncPlaylistTrack`, `SharedPlaylist`), `joinBlend`/`getCollaborators`/`updatePlaylist(coverUrl/isCollaborative)`, `SyncRepository` union pull (`isCollaborative`+`thumbnailUrl` sync), `addedByUserId` on insert, `notifications` poll every 30s into `StateFlow`, `delete` tombstone `sync_deleted_playlists` + `playlistSlotFreed` auto-promote, `makeBlend`, `playlistCoverChanged`, `canSyncNewPlaylist` (20).
+- **UI:** `CreatePlaylistDialog` cap check (20) → local-only dialog, `LibraryPlaylistsScreen` dedicated `Create Blend` FAB (`SecondaryContainer`, `144dp` above `+`, `R.drawable.add`), long-press `Make Blend` in `PlaylistMenu` (`isCollaborative` flip), `SharedPlaylistScreen` `Join Blend` (primary `Button` when `is_collaborative`), `LocalPlaylistScreen` header pill `Blend • Collaborative` + member avatar strip (placeholder) + track `Added by %s` tappable → `UserInfoSheet` (reusable, `UserInfoContent` 56dp avatar, `userId` short), `HomeScreen` `BlendPlaylists` section (after `RecentlyPlayed`, `DatabaseDao.blendPlaylists`), `Items.kt` subtitle `• Blend` + thumbnail `group` badge, `CloudinaryUploader.uploadBlendCover` (`soundsphere/blends`, same unsigned preset) wired in `LocalPlaylistScreen` `isCollaborative` branch → `syncRepository.playlistCoverChanged` → `PUT cover_url` → `pull` syncs to collaborators.
+- **Double-project app:** `app/build.gradle.kts` `BLEND_BASE_URL`, `BlendEndpoint.kt`, `BlendService.kt`, `BlendRepository.kt` (`isDoubleProjectEnabled = BlendEndpoint.isConfigured()`), fallback to single-project `SyncService` until `soundsphere-blend` is `live`.
+
+---
+
+## What changed (whole Blend)
+
+- **Backend:** `backend-auth/routers/user.py` (union, accessible, caps, `added_by`, collaborators, join), `routers/share.py` (join, `is_collaborative`), `models/schemas.py` (`is_collaborative`), `main.py` (`503` + `logger.exception`), `BlendEndpoint`/`BlendService`/`BlendRepository`, `BuildConfig.BLEND_BASE_URL`.
+- **DB:** `008` + indexes + RLS (existing `authenticated` `SELECT true` on `playlist_collaborators` kept).
+- **App:** `PlaylistEntity`, `PlaylistSongMap`, `MusicDatabase` v40, `SyncService`, `SyncRepository`, `CloudinaryUploader`, `UserInfoSheet`, `LibraryPlaylistsScreen` (FAB, slot-freed prompt), `PlaylistMenu` (Make Blend), `SharedPlaylistScreen`/`ViewModel` (join + save + Home), `HomeScreen`/`ViewModel` (Blend section), `LocalPlaylistScreen` (header pill + attribution + cover upload), `Items` (subtitle/badge), `YouTubeArtistMenu` (follow sync), `Library` blend flows.
+
+## Why
+
+User request: Blend (collaborative playlists) with invite via share link, saves in user&#x27;s Library + Home, tap to see who added a song (reusable `UserInfoSheet`), dedicated `Create Blend` button like Spotify plus long-press `Make Blend` for existing, history fill vs fresh choice, updating via polling + in-app notifications (no webhook), plus the `20` cap + `tombstone` delete fix, `500` history FIFO, `2000` liked / `500` per-playlist / `200` follows caps, `600/300` rate limits, and double-project isolation (best) with same `JWT_SECRET` so the same `Authorization: Bearer` works on both hosts.
+
+## How to use
+
+1. **Library → Playlists → Create Blend** (second FAB, `144dp` above `+`) → name → `Fill from history` (adds 20 recent `event` songs) or `Start fresh` → opens `local_playlist/{id}` (`Blend • Collaborative` pill). Shares like normal `Invite to Blend` (long-press → `Make Blend` for existing) → copy `https://api.soundsphere.name.ng/share/playlists/{token}`.
+2. Recipient opens link → `SharedPlaylistScreen` shows `Join Blend` (not just `Play`) → tap → `POST /share/{token}/join` → saved as `isCollaborative=true` → appears in **Library** (`• Blend`) and **Home → Blend**.
+3. Inside a Blend, each track shows `Added by @name` → tap → `UserInfoSheet` (reusable). Cover edit (`LocalPlaylistHeader` pick) uploads to `Cloudinary` `soundsphere/blends` and syncs `cover_url` to all collaborators via `PUT` + next `pull`.
+4. When a member adds a song (`POST /tracks` with `added_by`), the server inserts `notifications` for the other members; the app polls `GET /user/notifications` every 30 s and can show a badge/toast.
+
+## Next
+
+Push `app` (`M` files + `40.json` + `UserInfoSheet`) when you say `push`, flip `BlendRepository.isDoubleProjectEnabled` once `soundsphere-blend` is `live`, and the `Library` thumbnail `group` badge can be swapped from `R.drawable.add` to a custom `blend.xml` in `v1.1`.
+
+</pre>
+<p><a href="index.html">← Back to index</a> — <a href="../admin/">Admin</a></p>
+</body></html>
