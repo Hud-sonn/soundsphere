@@ -120,7 +120,7 @@ android {
         minSdk = 26
         targetSdk = 36
         versionCode = 12
-        versionName = "1.3.0"
+        versionName = "1.2.2-beta"
         resValue("string", "app_name", appNameOverride ?: "Soundsphere")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"

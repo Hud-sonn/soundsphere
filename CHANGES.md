@@ -12,9 +12,10 @@ Newest date block goes on top.
 User-facing release notes live in `changelog.md` (curated by the core
 team at release time) — this file is the source they fold from.
 
-### 2026-09-12 — user-facing docs + build/test pass (local, 2026-09-12)
-- `docs(messages): messages.json new announcement (local, 2026-09-12, NOT pushed)` — new top entry `announcement-2026-09-12` "Blend is here — playlists you build together": step-by-step how-to create a Blend, invite friends, what you can do (contribution bar, filter, remove, leave), limits (3 Blends free, 10 members, 500 songs), behind-the-scenes fixes summary. Human-readable, no dev jargon.
-- `docs(changelog): changelog.md v1.3.0 entry (local, 2026-09-12, NOT pushed)` — new top section covering Blend (create, invite, collaborate), AI Curator screen, all Blend fixes (dedup, attribution, cover sync, position sync, black-screen join), cache fixes, search, Android Auto slider, behind-the-scenes reliability improvements.
+### 2026-09-12 — user-facing docs + build/test pass + version fix (local, 2026-09-12)
+- `fix(version): 1.3.0 → 1.2.2-beta` — versionName corrected in build.gradle.kts, changelog.md header updated to match.
+- `docs(messages): messages.json new announcement (local, 2026-09-12, NOT pushed)` — new top entry `announcement-2026-09-12` "Blend is here — playlists you build together (Beta)": step-by-step how-to create a Blend, invite friends, what you can do (contribution bar, filter, remove, leave), limits (3 Blends free, 10 members, 500 songs), behind-the-scenes fixes summary. Human-readable, no dev jargon.
+- `docs(changelog): changelog.md v1.2.2-beta entry (local, 2026-09-12, NOT pushed)` — new top section covering Blend (create, invite, collaborate), AI Curator screen, all Blend fixes (dedup, attribution, cover sync, position sync, black-screen join), cache fixes, search, Android Auto slider, behind-the-scenes reliability improvements.
 - `build: assembleFossDebug SUCCESSFUL + unit tests green (local, 2026-09-12, NOT pushed)` — RAM-constrained build, `gradle.properties` restored clean.
 
 ### Upstream 2026-09-04/05 review + cache-bug port + unit test report (local, 2026-09-06) — 28/28 tests, APK built, DO NOT PUSH (user instruction)
