@@ -1,5 +1,5 @@
----v1.3.0
-# Soundsphere v1.3.0 — Blend: Playlists You Build Together (Beta)
+---v1.2.2-beta
+# Soundsphere v1.2.2-beta — Blend: Playlists You Build Together (Beta)
 
 The headline feature this release is Blend — shared playlists where you and your friends add songs together. **Blend is currently in beta** — we're actively fixing things and polishing the experience, so you might see a few rough edges. We'd love your feedback.
 
