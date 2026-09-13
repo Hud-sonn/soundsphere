@@ -72,6 +72,7 @@ class LikeTrackRequest(TrackPayload):
 class PlaylistCreateRequest(BaseModel):
     name: str = Field(min_length=1, max_length=256)
     cover_url: Optional[str] = Field(default=None, max_length=2048)
+    is_collaborative: bool = False
 
 
 class PlaylistUpdateRequest(BaseModel):

@@ -7,12 +7,15 @@ package com.soundsphere.music.ui.screens.library
 
 import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -51,6 +54,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -120,6 +124,8 @@ private data class VisiblePlaylistItem(
 fun LibraryPlaylistsScreen(
     navController: NavController,
     filterContent: @Composable () -> Unit,
+    viewType: LibraryViewType,
+    onViewTypeChange: (LibraryViewType) -> Unit,
     viewModel: LibraryPlaylistsViewModel = hiltViewModel(),
     initialTextFieldValue: String? = null,
     allowSyncing: Boolean = true,
@@ -129,8 +135,12 @@ fun LibraryPlaylistsScreen(
     val keyboardController = LocalSoftwareKeyboardController.current
 
     val coroutineScope = rememberCoroutineScope()
+    val syncRepository = com.soundsphere.music.LocalSyncRepository.current
+    var slotFreedPlaylists by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf<List<com.soundsphere.music.db.entities.PlaylistEntity>?>(null) }
+    androidx.compose.runtime.LaunchedEffect(syncRepository) {
+        syncRepository.playlistSlotFreed.collect { slotFreedPlaylists = it }
+    }
 
-    var viewType by rememberEnumPreference(PlaylistViewTypeKey, LibraryViewType.GRID)
     val (sortType, onSortTypeChange) = rememberEnumPreference(
         PlaylistSortTypeKey,
         PlaylistSortType.CREATE_DATE
@@ -329,6 +339,8 @@ fun LibraryPlaylistsScreen(
         }
     }
 
+    val database = LocalDatabase.current
+    val context = LocalContext.current
     var showCreatePlaylistDialog by rememberSaveable { mutableStateOf(false) }
 
     if (showCreatePlaylistDialog) {
@@ -342,11 +354,15 @@ fun LibraryPlaylistsScreen(
             }
         )
     }
+    // NOTE: the old inline name dialog + history-vs-fresh AlertDialog lived here.
+    // Blend creation moved to the dedicated CreateBlendScreen ("create_blend"
+    // route) — same create logic, redesigned flow. Do not re-add dialogs here.
 
-    val database = LocalDatabase.current
-    val syncRepository = LocalSyncRepository.current
-    val context = LocalContext.current
-
+    // NOTE: AI dialog flow moved to AiCuratorScreen ("ai_curator" route).
+    // Keep generation alive here because syncRepository.generateAiPlaylist is
+    // the only caller with the Groq path — the old dialogs are retained as a
+    // fallback for any deep-link that still triggers them, but the FAB now
+    // routes to the screen.
     var showAiConsentDialog by rememberSaveable { mutableStateOf(false) }
     var showAiPromptDialog by rememberSaveable { mutableStateOf(false) }
     var aiGenerating by rememberSaveable { mutableStateOf(false) }
@@ -531,7 +547,7 @@ fun LibraryPlaylistsScreen(
 
             IconButton(
                 onClick = {
-                    viewType = viewType.toggle()
+                    onViewTypeChange(viewType.toggle())
                 },
                 modifier = Modifier.padding(end = 8.dp).size(40.dp),
             ) {
@@ -575,6 +591,17 @@ fun LibraryPlaylistsScreen(
                         contentType = CONTENT_TYPE_HEADER,
                     ) {
                         headerContent()
+                    }
+
+                    // Blend entry — theme-adaptive mark, taps straight into create flow.
+                    item(
+                        key = "create_blend",
+                        contentType = CONTENT_TYPE_HEADER,
+                    ) {
+                        CreateBlendTile(
+                            onClick = { navController.navigate("create_blend") },
+                            modifier = Modifier.animateItem(),
+                        )
                     }
 
                     if (visibleResults.isEmpty()) {
@@ -645,6 +672,13 @@ fun LibraryPlaylistsScreen(
                         headerContent()
                     }
 
+                    item(span = { GridItemSpan(maxLineSpan) }) {
+                        CreateBlendTile(
+                            onClick = { navController.navigate("create_blend") },
+                            modifier = Modifier.animateItem(),
+                        )
+                    }
+
                     if (visibleResults.isEmpty()) {
                         item(span = { GridItemSpan(maxLineSpan) }) {
                             if (searchQuery.isNotBlank()) {
@@ -692,6 +726,26 @@ fun LibraryPlaylistsScreen(
             }
         }
 
+        // Blend — dedicated button like Spotify (always visible).
+        // Mark is the reusable theme-adaptive BlendIcon, not a generic plus.
+        FloatingActionButton(
+            onClick = { navController.navigate("create_blend") },
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .windowInsetsPadding(
+                    LocalPlayerAwareWindowInsets.current
+                        .only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal)
+                )
+                .padding(16.dp)
+                .padding(bottom = 144.dp),
+            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+        ) {
+            com.soundsphere.music.ui.component.BlendIcon(
+                modifier = Modifier.size(24.dp),
+                contentDescription = stringResource(R.string.blend),
+            )
+        }
+
         // Always visible + button (no scroll hiding)
         FloatingActionButton(
             onClick = { showCreatePlaylistDialog = true },
@@ -709,16 +763,12 @@ fun LibraryPlaylistsScreen(
             )
         }
 
-        // AI playlist generation (server-side Groq, keys never reach the app)
+        // AI curator — single entry point. The old dialog flow (prompt + consent
+        // + generating spinner) now lives as a full screen so the mock's hero +
+        // seed chips have a home; the Library no longer owns AI UI.
         if (aiPlaylistsEnabled) {
             FloatingActionButton(
-                onClick = {
-                    if (aiConsent) {
-                        showAiPromptDialog = true
-                    } else {
-                        showAiConsentDialog = true
-                    }
-                },
+                onClick = { navController.navigate("ai_curator") },
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .windowInsetsPadding(
@@ -734,5 +784,104 @@ fun LibraryPlaylistsScreen(
                 )
             }
         }
+
+        // Slot-freed prompt — a synced playlist was deleted, offer to sync a local one
+        slotFreedPlaylists?.let { unsynced ->
+            androidx.compose.material3.AlertDialog(
+                onDismissRequest = { slotFreedPlaylists = null },
+                title = { androidx.compose.material3.Text(stringResource(R.string.playlist_slot_freed_title)) },
+                text = {
+                    androidx.compose.foundation.layout.Column {
+                        androidx.compose.material3.Text(
+                            stringResource(R.string.playlist_slot_freed_message, unsynced.size),
+                        )
+                        androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(12.dp))
+                        androidx.compose.foundation.lazy.LazyColumn(
+                            modifier = Modifier.heightIn(max = 280.dp),
+                        ) {
+                            items(unsynced.size) { idx ->
+                                val pl = unsynced[idx]
+                                androidx.compose.foundation.layout.Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 6.dp),
+                                    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                                ) {
+                                    androidx.compose.material3.Text(
+                                        pl.name,
+                                        modifier = Modifier.weight(1f),
+                                        maxLines = 1,
+                                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                                    )
+                                    androidx.compose.material3.TextButton(onClick = {
+                                        syncRepository.promoteLocalPlaylist(pl)
+                                        // Remove this item from the shown list; dismiss if empty
+                                        val remaining = unsynced.filter { it.id != pl.id }
+                                        slotFreedPlaylists = if (remaining.isEmpty()) null else remaining
+                                    }) {
+                                        androidx.compose.material3.Text(stringResource(R.string.playlist_slot_freed_sync))
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                confirmButton = {
+                    androidx.compose.material3.TextButton(onClick = { slotFreedPlaylists = null }) {
+                        androidx.compose.material3.Text(stringResource(android.R.string.cancel))
+                    }
+                },
+            )
+        }
+    }
+}
+
+/**
+ * Blend entry row — reusable [BlendIcon] mark (theme-adaptive, no static asset),
+ * taps straight into the create-Blend dialog (same as the Blend FAB).
+ */
+@Composable
+private fun CreateBlendTile(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+    ) {
+        Box(
+            modifier = Modifier
+                .size(56.dp)
+                .clip(androidx.compose.foundation.shape.RoundedCornerShape(8.dp))
+                .background(MaterialTheme.colorScheme.secondaryContainer),
+            contentAlignment = Alignment.Center,
+        ) {
+            com.soundsphere.music.ui.component.BlendIcon(
+                modifier = Modifier.size(44.dp),
+                contentDescription = stringResource(R.string.blend),
+            )
+        }
+        Spacer(Modifier.width(12.dp))
+        androidx.compose.foundation.layout.Column(Modifier.weight(1f)) {
+            Text(
+                stringResource(R.string.blend_create),
+                style = MaterialTheme.typography.bodyLarge,
+                maxLines = 1,
+            )
+            Text(
+                stringResource(R.string.blend_subtitle),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+            )
+        }
+        Icon(
+            painter = painterResource(R.drawable.add),
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }

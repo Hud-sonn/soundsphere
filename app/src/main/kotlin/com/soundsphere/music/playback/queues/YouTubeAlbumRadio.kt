@@ -19,6 +19,11 @@ class YouTubeAlbumRadio(
 ) : Queue {
     override val preloadItem: MediaMetadata? = null
 
+    private var albumTitle: String? = null
+
+    override val sourceInfo: QueueSourceInfo
+        get() = QueueSourceInfo(type = "album", id = playlistId, name = albumTitle)
+
     private val endpoint: WatchEndpoint
         get() = WatchEndpoint(
             playlistId = playlistId
@@ -34,6 +39,7 @@ class YouTubeAlbumRadio(
     override suspend fun getInitialStatus(): Queue.Status = withContext(IO) {
         val albumSongs = YouTube.albumSongs(playlistId).getOrThrow()
         albumSongCount = albumSongs.size
+        albumTitle = albumSongs.firstOrNull()?.album?.name
         Queue.Status(
             title = albumSongs.firstOrNull()?.album?.name.orEmpty(),
             items = albumSongs.map { it.toMediaItem() },

@@ -56,6 +56,7 @@ fun YouTubeArtistMenu(
 ) {
     val context = LocalContext.current
     val database = LocalDatabase.current
+    val syncRepository = com.soundsphere.music.LocalSyncRepository.current
     val playerConnection = LocalPlayerConnection.current ?: return
     val libraryArtist by database.artist(artist.id).collectAsStateWithLifecycle(initialValue = null)
     val listenTogetherManager = LocalListenTogetherManager.current
@@ -180,6 +181,9 @@ fun YouTubeArtistMenu(
                             )
                         },
                         onClick = {
+                            val wasFollowed = libraryArtist?.artist?.bookmarkedAt != null
+                            val artistId = artist.id
+                            val artistName = artist.title
                             database.query {
                                 val libraryArtist = libraryArtist
                                 if (libraryArtist != null) {
@@ -195,6 +199,8 @@ fun YouTubeArtistMenu(
                                     )
                                 }
                             }
+                            // Sync to Soundsphere account (fire-and-forget, handles 200 cap)
+                            syncRepository.artistFollowChanged(artistId, artistName, !wasFollowed)
                         }
                     )
                 )

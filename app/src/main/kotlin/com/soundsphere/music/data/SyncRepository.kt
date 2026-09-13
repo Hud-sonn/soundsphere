@@ -22,12 +22,14 @@ import com.soundsphere.music.constants.PauseListenHistoryKey
 import com.soundsphere.music.constants.PauseSearchHistoryKey
 import com.soundsphere.music.constants.PureBlackKey
 import com.soundsphere.music.constants.SelectedThemeColorKey
+import com.soundsphere.music.constants.SoundsphereAvatarUrlKey
 import com.soundsphere.music.constants.SoundsphereEmailKey
 import com.soundsphere.music.constants.SoundsphereUsernameKey
 import com.soundsphere.music.db.MusicDatabase
 import com.soundsphere.music.db.entities.Event
 import com.soundsphere.music.db.entities.PlaylistEntity
 import com.soundsphere.music.db.entities.PlaylistSongMap
+import com.soundsphere.music.db.entities.RecentlyPlayedEntity
 import com.soundsphere.music.db.entities.SongEntity
 import com.soundsphere.music.utils.dataStore
 import com.soundsphere.music.utils.safeDataStoreEdit
@@ -86,11 +88,32 @@ class SyncRepository @Inject constructor(
     val lastSyncError: StateFlow<String?> = _lastSyncError.asStateFlow()
 
     private val _serverPlaylistIds = MutableStateFlow<Map<String, String>>(emptyMap())
+    private val _deletedServerPlaylistIds = MutableStateFlow<Set<String>>(emptySet())
+    private val _notifications = MutableStateFlow<List<SyncService.AppNotification>>(emptyList())
+    val notifications: kotlinx.coroutines.flow.StateFlow<List<SyncService.AppNotification>> = _notifications.asStateFlow()
+
+    /** Emits when a synced playlist was deleted and a slot freed; value = current unsynced local playlists. */
+    private val _playlistSlotFreed = kotlinx.coroutines.flow.MutableSharedFlow<List<PlaylistEntity>>(
+        extraBufferCapacity = 1,
+    )
+    val playlistSlotFreed: kotlinx.coroutines.flow.SharedFlow<List<PlaylistEntity>> = _playlistSlotFreed
+
+    fun canSyncNewPlaylist(): Boolean = _serverPlaylistIds.value.size < PLAYLIST_SYNC_LIMIT
+
+    suspend fun getUnsyncedPlaylists(): List<PlaylistEntity> {
+        val syncedIds = _serverPlaylistIds.value.keys
+        return database.playlistEntitiesByNameAsc().filter { it.id !in syncedIds }
+    }
 
     // Songs whose like/unlike state failed to reach the server. Pulls skip these so
     // an offline like/unlike is never silently reverted by stale server data; they
     // are re-pushed on the next full sync (see retryPendingLikes).
     private val _pendingLikePushes = MutableStateFlow<Set<String>>(emptySet())
+
+    // Playlist tracks whose removal failed to reach the server. Same durability as likes:
+    // local delete is kept, pull skips re-adding, and they are retried on next full sync.
+    // Stored as "playlistId|songId" strings.
+    private val _pendingPlaylistTrackRemoves = MutableStateFlow<Set<String>>(emptySet())
 
     /**
      * Account-level settings that follow the user across devices. Playback and
@@ -117,6 +140,14 @@ class SyncRepository @Inject constructor(
             val json = context.dataStore.data.first()[PENDING_LIKES_KEY]
             _pendingLikePushes.value = parseIdSet(json)
         }
+        scope.launch {
+            val json = context.dataStore.data.first()[DELETED_PLAYLISTS_KEY]
+            _deletedServerPlaylistIds.value = parseIdSet(json)
+        }
+        scope.launch {
+            val json = context.dataStore.data.first()[PENDING_PLAYLIST_TRACK_REMOVES_KEY]
+            _pendingPlaylistTrackRemoves.value = parseIdSet(json)
+        }
         // Watch the key settings and push changes to the server (debounced).
         // The last-pushed snapshot is only recorded while signed in, so the
         // current values are re-pushed after a fresh login.
@@ -141,12 +172,34 @@ class SyncRepository @Inject constructor(
                     if (!loggedIn) {
                         _serverPlaylistIds.value = emptyMap()
                         _pendingLikePushes.value = emptySet()
+                        _deletedServerPlaylistIds.value = emptySet()
+                        _pendingPlaylistTrackRemoves.value = emptySet()
+                        _notifications.value = emptyList()
                         context.safeDataStoreEdit { prefs ->
                             prefs.remove(PLAYLIST_MAP_KEY)
                             prefs.remove(PENDING_LIKES_KEY)
+                            prefs.remove(DELETED_PLAYLISTS_KEY)
+                            prefs.remove(PENDING_PLAYLIST_TRACK_REMOVES_KEY)
                         }
                     }
                 }
+        }
+        // Poll in-app notifications (Blend updates) every 30s while logged in
+        scope.launch {
+            authRepository.isLoggedIn.collect { loggedIn ->
+                if (!loggedIn) {
+                    _notifications.value = emptyList()
+                    return@collect
+                }
+                while (authRepository.isLoggedIn.value) {
+                    val token = authRepository.getToken()
+                    if (token != null) {
+                        val result = try { SyncService.getNotifications(token) } catch (e: Exception) { Result.failure(e) }
+                        if (result.isSuccess) _notifications.value = result.getOrNull() ?: emptyList()
+                    }
+                    kotlinx.coroutines.delay(30_000)
+                }
+            }
         }
     }
 
@@ -180,6 +233,16 @@ class SyncRepository @Inject constructor(
     /** Called when a playback event is recorded locally. */
     fun historyAdded(songId: String) {
         scope.launch { pushHistory(songId) }
+    }
+
+    /**
+     * Called when a "recently played" entry is recorded locally (a song that was
+     * actually listened to, or a playlist/album/artist playback started from).
+     * Fire-and-forget; the server upserts on (user, type, id) so replaying the
+     * same item just moves it to the top.
+     */
+    fun recentlyPlayedAdded(entry: RecentlyPlayedEntity) {
+        scope.launch { pushRecentlyPlayed(entry) }
     }
 
     fun playlistCreated(playlist: PlaylistEntity) {
@@ -218,9 +281,11 @@ class SyncRepository @Inject constructor(
                 runPullStage("likes") { pullLikes(token) }
                 runPullStage("playlists") { pullPlaylists(token) }
                 runPullStage("history") { pullHistory(token) }
+                runPullStage("recently played") { pullRecentlyPlayed(token) }
                 runPullStage("followed artists") { pullFollowedArtists(token) }
                 runPullStage("settings") { pullSettings(token) }
                 runPullStage("pending likes") { retryPendingLikes(token) }
+                runPullStage("pending playlist removes") { retryPendingPlaylistTrackRemoves(token) }
             } finally {
                 _isSyncing.value = false
             }
@@ -252,6 +317,33 @@ class SyncRepository @Inject constructor(
                 clearPendingLike(songId)
             } else {
                 handleFailure(result.exceptionOrNull())
+            }
+        }
+    }
+
+    private suspend fun retryPendingPlaylistTrackRemoves(token: String) {
+        for (key in _pendingPlaylistTrackRemoves.value.toList()) {
+            val parts = key.split("|", limit = 2)
+            if (parts.size != 2) {
+                clearPendingPlaylistTrackRemove(parts[0], parts.getOrElse(1) { "" })
+                continue
+            }
+            val playlistId = parts[0]
+            val songId = parts[1]
+            val serverId = _serverPlaylistIds.value[playlistId] ?: run {
+                clearPendingPlaylistTrackRemove(playlistId, songId)
+                continue
+            }
+            val result = retryNetwork { SyncService.removePlaylistTrack(token, serverId, songId) }
+            if (result.isSuccess) {
+                clearPendingPlaylistTrackRemove(playlistId, songId)
+            } else {
+                if (handleFailure(result.exceptionOrNull())) return
+                // Keep pending for next retry; also handle 404 as success (already deleted)
+                val msg = result.exceptionOrNull()?.message ?: ""
+                if (msg.contains("not found", ignoreCase = true)) {
+                    clearPendingPlaylistTrackRemove(playlistId, songId)
+                }
             }
         }
     }
@@ -296,6 +388,8 @@ class SyncRepository @Inject constructor(
         val serverIdToLocalId =
             _serverPlaylistIds.value.entries.associate { (localId, serverId) -> serverId to localId }.toMutableMap()
         for (server in result.getOrThrow()) {
+            // Tombstone: skip playlists the user explicitly deleted on this device
+            if (server.id in _deletedServerPlaylistIds.value) continue
             // 1) Exact match through the persisted mapping. This is the primary
             //    key: it keeps a renamed remote playlist bound to the same local
             //    copy and stops two same-named server playlists (e.g. "nf home"
@@ -318,14 +412,18 @@ class SyncRepository @Inject constructor(
                         name = server.name,
                         bookmarkedAt = LocalDateTime.now(),
                         isLocal = true,
+                        isCollaborative = server.isCollaborative,
+                        thumbnailUrl = server.coverUrl,
                     )
                 database.insert(local)
                 localPlaylists.add(local)
             } else {
                 local = existing
-                if (local.name != server.name) {
-                    database.update(local.copy(name = server.name, lastUpdateTime = LocalDateTime.now()))
-                }
+                var updated = local
+                if (local.name != server.name) updated = updated.copy(name = server.name, lastUpdateTime = LocalDateTime.now())
+                if (local.isCollaborative != server.isCollaborative) updated = updated.copy(isCollaborative = server.isCollaborative)
+                if (local.thumbnailUrl != server.coverUrl) updated = updated.copy(thumbnailUrl = server.coverUrl)
+                if (updated != local) database.update(updated)
             }
             savePlaylistMapping(local.id, server.id)
             serverIdToLocalId[server.id] = local.id
@@ -333,6 +431,17 @@ class SyncRepository @Inject constructor(
             val existingSongIds = database.playlistSongIds(local.id).toSet()
             for (playlistTrack in server.tracks) {
                 val remote = playlistTrack.track
+                if (remote.id in existingSongIds) {
+                    // Heal attribution on rows saved before added_by existed.
+                    val remoteAddedBy = playlistTrack.addedByUserId
+                    if (remoteAddedBy != null) {
+                        database.backfillTrackAddedBy(local.id, remote.id, remoteAddedBy)
+                    }
+                    continue
+                }
+                // Offline delete wins — don't re-add a track that is pending delete
+                val pendingKey = pendingPlaylistTrackKey(local.id, remote.id)
+                if (pendingKey in _pendingPlaylistTrackRemoves.value) continue
                 if (database.songEntity(remote.id) == null) {
                     database.insertSongWithArtists(
                         remote.toSongEntity(liked = false, likedDate = null),
@@ -345,6 +454,7 @@ class SyncRepository @Inject constructor(
                             playlistId = local.id,
                             songId = remote.id,
                             position = playlistTrack.position,
+                            addedByUserId = playlistTrack.addedByUserId,
                         ),
                     )
                 }
@@ -381,6 +491,39 @@ class SyncRepository @Inject constructor(
 
     // ===== Push (local -> server, write-through) =====
 
+    /**
+     * Replace-with-latest pull: unlike the union-merge stages, recently played is
+     * a bounded recency list, so the local table is fully replaced by the server's
+     * most recent snapshot. Old entries fall away on every device instead of
+     * accumulating forever.
+     */
+    private suspend fun pullRecentlyPlayed(token: String) {
+        val result = retryNetwork { SyncService.getRecentlyPlayed(token) }
+        if (result.isFailure) {
+            if (handleFailure(result.exceptionOrNull())) return
+            reportError("Pull recently played failed", result.exceptionOrNull())
+            return
+        }
+        val remote = result.getOrThrow()
+            .filter { it.sourceType.isNotBlank() && it.sourceId.isNotBlank() }
+            .map { entry ->
+                RecentlyPlayedEntity(
+                    id = java.util.UUID.randomUUID().toString(),
+                    sourceType = entry.sourceType,
+                    sourceId = entry.sourceId,
+                    sourceName = entry.sourceName,
+                    sourceThumbnail = entry.sourceThumbnail,
+                    playedAt = parseTimestamp(entry.playedAt) ?: LocalDateTime.now(),
+                )
+            }
+        database.withTransaction {
+            // Replace-with-latest: the whole local table mirrors the server's
+            // most recent snapshot; old entries fall away on every device.
+            database.clearRecentlyPlayed()
+            database.insertRecentlyPlayed(remote)
+        }
+    }
+
     private suspend fun pushLike(song: SongEntity) {
         val token = authRepository.getToken() ?: return
         val result =
@@ -393,8 +536,14 @@ class SyncRepository @Inject constructor(
             }
         if (result.isFailure) {
             if (handleFailure(result.exceptionOrNull())) return
+            val err = result.exceptionOrNull()
+            if (err?.message?.contains("limit reached", ignoreCase = true) == true) {
+                _lastSyncError.value = err.message
+                Timber.w("Like limit reached for ${song.id}")
+                return
+            }
             markPendingLike(song.id)
-            reportError("Push like failed for ${song.id}", result.exceptionOrNull())
+            reportError("Push like failed for ${song.id}", err)
         } else {
             clearPendingLike(song.id)
         }
@@ -413,6 +562,27 @@ class SyncRepository @Inject constructor(
         }
     }
 
+    private suspend fun pushRecentlyPlayed(entry: RecentlyPlayedEntity) {
+        val token = authRepository.getToken() ?: return
+        val result =
+            retryNetwork {
+                SyncService.addRecentlyPlayed(
+                    token = token,
+                    sourceType = entry.sourceType,
+                    sourceId = entry.sourceId,
+                    sourceName = entry.sourceName,
+                    sourceThumbnail = entry.sourceThumbnail,
+                    playedAt = LocalDateTime.now().toString(),
+                )
+            }
+        if (result.isFailure) {
+            // Best-effort: a missed recently-played push is harmless, the next
+            // play of the same item re-upserts it. Never queue retries.
+            if (handleFailure(result.exceptionOrNull())) return
+            reportError("Push recently played failed for ${entry.sourceType}:${entry.sourceId}", result.exceptionOrNull())
+        }
+    }
+
     private suspend fun pushPlaylist(playlist: PlaylistEntity) {
         val token = authRepository.getToken() ?: return
         val serverId = _serverPlaylistIds.value[playlist.id]
@@ -424,10 +594,16 @@ class SyncRepository @Inject constructor(
             }
             return
         }
-        val created = retryNetwork { SyncService.createPlaylist(token, playlist.name) }
+        val created = retryNetwork { SyncService.createPlaylist(token, playlist.name, playlist.isCollaborative) }
         if (created.isFailure) {
             if (handleFailure(created.exceptionOrNull())) return
-            reportError("Create playlist failed for ${playlist.id}", created.exceptionOrNull())
+            val err = created.exceptionOrNull()
+            if (err?.message?.contains("limit reached", ignoreCase = true) == true) {
+                _lastSyncError.value = err.message
+                Timber.w("Playlist sync limit reached for ${playlist.id}")
+                return
+            }
+            reportError("Create playlist failed for ${playlist.id}", err)
             return
         }
         savePlaylistMapping(playlist.id, created.getOrThrow().id)
@@ -444,22 +620,39 @@ class SyncRepository @Inject constructor(
                 }
             if (result.isFailure) {
                 if (handleFailure(result.exceptionOrNull())) return
-                reportError("Push playlist song failed for $songId", result.exceptionOrNull())
+                val err = result.exceptionOrNull()
+                if (err?.message?.contains("limit reached", ignoreCase = true) == true) {
+                    _lastSyncError.value = err.message
+                    Timber.w("Playlist track limit reached for $serverId")
+                    return
+                }
+                reportError("Push playlist song failed for $songId", err)
             }
         }
     }
 
     private suspend fun pushPlaylistTrackAdded(playlistId: String, songId: String) {
         val token = authRepository.getToken() ?: return
-        val serverId = _serverPlaylistIds.value[playlistId] ?: return
+        // Same joined-Blend gap as covers: no mapping entry, so use the id itself
+        // (joined Blends store the server id locally). Previously silently dropped.
+        val serverId = _serverPlaylistIds.value[playlistId] ?: playlistId
         val song = database.songEntity(songId) ?: return
+        // Forward the LOCAL position so the server order matches what the user
+        // sees (Top/bottom setting). Previously always appended → order diverged.
+        val position = database.playlistTrackPosition(playlistId, songId)
         val result =
             retryNetwork {
-                SyncService.addPlaylistTrack(token, serverId, song.toSyncTrack())
+                SyncService.addPlaylistTrack(token, serverId, song.toSyncTrack(), position)
             }
         if (result.isFailure) {
             if (handleFailure(result.exceptionOrNull())) return
-            reportError("Push playlist track failed for $songId", result.exceptionOrNull())
+            val err = result.exceptionOrNull()
+            if (err?.message?.contains("limit reached", ignoreCase = true) == true) {
+                _lastSyncError.value = err.message
+                Timber.w("Playlist track limit reached for $serverId")
+                return
+            }
+            reportError("Push playlist track failed for $songId", err)
         }
     }
 
@@ -472,7 +665,15 @@ class SyncRepository @Inject constructor(
             }
         if (result.isFailure) {
             if (handleFailure(result.exceptionOrNull())) return
+            val msg = result.exceptionOrNull()?.message ?: ""
+            if (msg.contains("not found", ignoreCase = true)) {
+                clearPendingPlaylistTrackRemove(playlistId, songId)
+                return
+            }
+            markPendingPlaylistTrackRemove(playlistId, songId)
             reportError("Remove playlist track failed for $songId", result.exceptionOrNull())
+        } else {
+            clearPendingPlaylistTrackRemove(playlistId, songId)
         }
     }
 
@@ -482,10 +683,87 @@ class SyncRepository @Inject constructor(
         val result = retryNetwork { SyncService.deletePlaylist(token, serverId) }
         if (result.isFailure) {
             if (handleFailure(result.exceptionOrNull())) return
-            reportError("Delete playlist failed for ${playlist.id}", result.exceptionOrNull())
+            // The server row is already gone (deleted on another device, or a
+            // stale mapping after a reinstall): drop the dead mapping instead of
+            // failing every future edit of this orphaned local copy.
+            val error = result.exceptionOrNull()
+            if (error?.message?.contains("not found", ignoreCase = true) == true) {
+                removePlaylistMapping(playlist.id)
+                addDeletedTombstone(serverId)
+                // Still free a slot — prompt to sync a local playlist.
+                val unsynced = getUnsyncedPlaylists()
+                if (unsynced.isNotEmpty()) _playlistSlotFreed.tryEmit(unsynced)
+                return
+            }
+            reportError("Delete playlist failed for ${playlist.id}", error)
             return
         }
         removePlaylistMapping(playlist.id)
+        addDeletedTombstone(serverId)
+        // Slot freed — prompt user to promote a local playlist.
+        val unsynced = getUnsyncedPlaylists()
+        if (unsynced.isNotEmpty()) _playlistSlotFreed.tryEmit(unsynced)
+    }
+
+    fun playlistCoverChanged(playlistId: String, coverUrl: String) {
+        scope.launch { pushPlaylistCover(playlistId, coverUrl) }
+    }
+
+    private suspend fun pushPlaylistCover(playlistId: String, coverUrl: String) {
+        val token = authRepository.getToken() ?: return
+        // Joined Blends store the server id locally but never got a mapping entry —
+        // fall back to the id itself instead of silently dropping the push.
+        val serverId = _serverPlaylistIds.value[playlistId] ?: playlistId
+        val result = retryNetwork { SyncService.updatePlaylist(token, serverId, coverUrl = coverUrl) }
+        if (result.isFailure) {
+            if (handleFailure(result.exceptionOrNull())) return
+            reportError("Push playlist cover failed for $playlistId", result.exceptionOrNull())
+        }
+    }
+
+    fun makeBlend(playlistId: String) {
+        scope.launch { pushMakeBlend(playlistId) }
+    }
+
+    suspend fun getBlendCollaborators(playlistId: String): Result<List<SyncService.BlendCollaborator>> {
+        val token = authRepository.getToken() ?: return Result.failure(Exception("Not logged in"))
+        // Callers pass the LOCAL id; the backends only know the SERVER id.
+        // Joined Blends use the server id locally already, so passthrough is safe.
+        val serverId = _serverPlaylistIds.value[playlistId] ?: playlistId
+        // All Blend data lives on the primary backend. The blend backend is an
+        // empty spare until replication exists — main first, blend as fallback.
+        val primary = SyncService.getCollaborators(token, serverId)
+        if (primary.isSuccess) return primary
+        if (!com.soundsphere.music.api.BlendEndpoint.isConfigured()) return primary
+        return com.soundsphere.music.api.BlendService.getCollaborators(token, serverId)
+    }
+
+    /** Owner removes a member, or a member leaves (self). Server enforces owner-or-self. */
+    suspend fun removeBlendMember(playlistId: String, targetUserId: String): Result<Unit> {
+        val token = authRepository.getToken() ?: return Result.failure(Exception("Not logged in"))
+        val serverId = _serverPlaylistIds.value[playlistId] ?: playlistId
+        return SyncService.removeCollaborator(token, serverId, targetUserId)
+    }
+
+    private suspend fun pushMakeBlend(playlistId: String) {
+        val token = authRepository.getToken() ?: return
+        val serverId = _serverPlaylistIds.value[playlistId]
+        if (serverId != null) {
+            val result = retryNetwork { SyncService.updatePlaylist(token, serverId, isCollaborative = true) }
+            if (result.isFailure) {
+                if (handleFailure(result.exceptionOrNull())) return
+                reportError("Make Blend failed for $playlistId", result.exceptionOrNull())
+            }
+        } else {
+            // Not yet synced — fetch local and push as new Blend
+            val playlist = database.playlist(playlistId).first()?.playlist ?: return
+            pushPlaylist(playlist.copy(isCollaborative = true))
+        }
+    }
+
+    /** Promote a local-only playlist into the freed sync slot. */
+    fun promoteLocalPlaylist(playlist: PlaylistEntity) {
+        scope.launch { pushPlaylist(playlist) }
     }
 
     // ===== Playlist id mapping (local "LP..." id <-> server uuid) =====
@@ -500,6 +778,12 @@ class SyncRepository @Inject constructor(
         val updated = _serverPlaylistIds.value - localId
         _serverPlaylistIds.value = updated
         context.safeDataStoreEdit { it[PLAYLIST_MAP_KEY] = mapToJson(updated) }
+    }
+
+    private suspend fun addDeletedTombstone(serverId: String) {
+        val updated = _deletedServerPlaylistIds.value + serverId
+        _deletedServerPlaylistIds.value = updated
+        context.safeDataStoreEdit { it[DELETED_PLAYLISTS_KEY] = setIdToJson(updated) }
     }
 
     /** Server id of a synced playlist, or null when the playlist is not synced yet. */
@@ -530,6 +814,22 @@ class SyncRepository @Inject constructor(
         val updated = _pendingLikePushes.value - songId
         _pendingLikePushes.value = updated
         context.safeDataStoreEdit { it[PENDING_LIKES_KEY] = setIdToJson(updated) }
+    }
+
+    private fun pendingPlaylistTrackKey(playlistId: String, songId: String) = "$playlistId|$songId"
+
+    private suspend fun markPendingPlaylistTrackRemove(playlistId: String, songId: String) {
+        val key = pendingPlaylistTrackKey(playlistId, songId)
+        val updated = _pendingPlaylistTrackRemoves.value + key
+        _pendingPlaylistTrackRemoves.value = updated
+        context.safeDataStoreEdit { it[PENDING_PLAYLIST_TRACK_REMOVES_KEY] = setIdToJson(updated) }
+    }
+
+    private suspend fun clearPendingPlaylistTrackRemove(playlistId: String, songId: String) {
+        val key = pendingPlaylistTrackKey(playlistId, songId)
+        val updated = _pendingPlaylistTrackRemoves.value - key
+        _pendingPlaylistTrackRemoves.value = updated
+        context.safeDataStoreEdit { it[PENDING_PLAYLIST_TRACK_REMOVES_KEY] = setIdToJson(updated) }
     }
 
     // ===== Helpers =====
@@ -647,7 +947,13 @@ class SyncRepository @Inject constructor(
         }
         if (result.isFailure) {
             if (handleFailure(result.exceptionOrNull())) return
-            reportError("Push artist follow failed for $artistId", result.exceptionOrNull())
+            val err = result.exceptionOrNull()
+            if (err?.message?.contains("limit reached", ignoreCase = true) == true) {
+                _lastSyncError.value = err.message
+                Timber.w("Follow limit reached for $artistId")
+                return
+            }
+            reportError("Push artist follow failed for $artistId", err)
         }
     }
 
@@ -776,7 +1082,10 @@ class SyncRepository @Inject constructor(
     private companion object {
         const val MAX_RETRIES = 3
         const val RETRY_DELAY_MS = 1_000L
+        const val PLAYLIST_SYNC_LIMIT = 20
         val PLAYLIST_MAP_KEY = stringPreferencesKey("sync_playlist_map")
         val PENDING_LIKES_KEY = stringPreferencesKey("sync_pending_like_pushes")
+        val DELETED_PLAYLISTS_KEY = stringPreferencesKey("sync_deleted_playlists")
+        val PENDING_PLAYLIST_TRACK_REMOVES_KEY = stringPreferencesKey("sync_pending_playlist_removes")
     }
 }

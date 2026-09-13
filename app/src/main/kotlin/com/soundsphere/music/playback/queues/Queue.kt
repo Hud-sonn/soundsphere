@@ -12,6 +12,14 @@ import com.soundsphere.music.models.MediaMetadata
 interface Queue {
     val preloadItem: MediaMetadata?
 
+    /**
+     * What container playback was started from (playlist/album/artist), used to
+     * record "recently played" entries for containers, not just songs.
+     * Null when the queue has no meaningful container context (search, radio...).
+     */
+    val sourceInfo: QueueSourceInfo?
+        get() = null
+
     suspend fun getInitialStatus(): Status
 
     fun hasNextPage(): Boolean
@@ -43,6 +51,16 @@ interface Queue {
             }
     }
 }
+
+/**
+ * Container context a queue was created from. [type] is one of
+ * 'playlist' | 'album' | 'artist'; [id] is the local or YouTube container id.
+ */
+data class QueueSourceInfo(
+    val type: String,
+    val id: String,
+    val name: String? = null,
+)
 
 fun List<MediaItem>.filterExplicit(enabled: Boolean = true) =
     if (enabled) {

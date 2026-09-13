@@ -39,11 +39,14 @@ import com.soundsphere.innertube.models.SongItem
 import com.soundsphere.music.LocalDatabase
 import com.soundsphere.music.R
 import com.soundsphere.music.constants.AddToPlaylistSortDescendingKey
+import com.soundsphere.music.constants.AddToPlaylistPosition
+import com.soundsphere.music.constants.AddToPlaylistPositionKey
 import com.soundsphere.music.constants.AddToPlaylistSortTypeKey
 import com.soundsphere.music.constants.ListThumbnailSize
 import com.soundsphere.music.constants.PlaylistSortType
 import com.soundsphere.music.db.entities.Playlist
 import com.soundsphere.music.db.entities.Song
+import com.soundsphere.music.db.playlistDuplicatesBatched
 import com.soundsphere.music.models.ItemsPage
 import com.soundsphere.music.models.toMediaMetadata
 import com.soundsphere.music.ui.component.CreatePlaylistDialog
@@ -103,6 +106,10 @@ fun AddToPlaylistDialogOnline(
     val database = LocalDatabase.current
     val coroutineScope = rememberCoroutineScope()
     val viewStateMap = remember { mutableStateMapOf<String, ItemsPage?>() }
+    val (addToPlaylistPosition) = rememberEnumPreference(
+        AddToPlaylistPositionKey,
+        AddToPlaylistPosition.BEGINNING,
+    )
     val (sortType, onSortTypeChange) = rememberEnumPreference(
         AddToPlaylistSortTypeKey,
         PlaylistSortType.NAME
@@ -144,7 +151,7 @@ fun AddToPlaylistDialogOnline(
                 val ids = songs.map { it.id }
                 playlistsContainingSong = playlists
                     .filter { playlist ->
-                        database.playlistDuplicates(playlist.id, ids).isNotEmpty()
+                        database.playlistDuplicatesBatched(playlist.id, ids).isNotEmpty()
                     }
                     .map { it.id }
                     .toSet()
@@ -452,15 +459,15 @@ fun AddToPlaylistDialogOnline(
                 TextButton(
                     onClick = {
                         showDuplicateDialog = false
-                        onDismiss()
-                         database.transaction {
-                            addSongsToPlaylist(
+                        coroutineScope.launch(Dispatchers.IO) {
+                            database.addSongsToPlaylist(
                                 selectedPlaylist!!,
                                 songIds!!.filter {
                                     !duplicates.contains(it)
                                 }.map { it to null },
-                                prepend = true,
+                                prepend = addToPlaylistPosition.prepend,
                             )
+                            withContext(Dispatchers.Main) { onDismiss() }
                         }
                     }
                 ) {
@@ -470,9 +477,9 @@ fun AddToPlaylistDialogOnline(
                 TextButton(
                     onClick = {
                         showDuplicateDialog = false
-                        onDismiss()
-                         database.transaction {
-                            addSongsToPlaylist(selectedPlaylist!!, songIds!!.map { it to null }, prepend = true)
+                        coroutineScope.launch(Dispatchers.IO) {
+                            database.addSongsToPlaylist(selectedPlaylist!!, songIds!!.map { it to null }, prepend = addToPlaylistPosition.prepend)
+                            withContext(Dispatchers.Main) { onDismiss() }
                         }
                     }
                 ) {

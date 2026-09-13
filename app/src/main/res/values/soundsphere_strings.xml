@@ -66,6 +66,13 @@
     <string name="shared_playlist_song_count">%1$d songs</string>
     <string name="shared_playlist_by_owner">by %1$s</string>
     <string name="create_playlist_with_ai">Create with AI</string>
+    <string name="ai_curator_title">Curate with Language</string>
+    <string name="ai_curator_hero">Curate with Language</string>
+    <string name="ai_curator_sub">Describe a time, feeling, or sonic landscape — we turn it into a playlist.</string>
+    <string name="ai_curator_prompt_label">Sonic Prompt</string>
+    <string name="ai_curator_seeds">Aesthetic Seeds</string>
+    <string name="ai_curator_surprise">Surprise Me</string>
+    <string name="ai_curator_synthesize">Synthesize</string>
     <string name="ai_playlist_prompt_title">Create a playlist with AI</string>
     <string name="ai_playlist_prompt_hint">Describe the vibe — e.g. rainy night lofi, 80s synthpop classics</string>
     <string name="ai_playlist_generating">Generating your playlist…</string>
@@ -208,6 +215,11 @@
     <string name="shuffle_playlist_first_desc">When shuffling, play all songs from the current playlist or album before moving to similar content</string>
     <string name="prevent_duplicate_tracks_in_queue">Prevent duplicate tracks in queue</string>
     <string name="prevent_duplicate_tracks_in_queue_desc">When adding a track that\'s already in the queue, it will be moved from its previous position rather than added again</string>
+    <string name="add_to_playlist_position">Add to playlist position</string>
+    <string name="playlist_position_beginning">Beginning of playlist</string>
+    <string name="playlist_position_beginning_desc">Newly added songs appear before existing songs</string>
+    <string name="playlist_position_end">End of playlist</string>
+    <string name="playlist_position_end_desc">Newly added songs appear after existing songs</string>
     <string name="show_wrapped_card">Show Wrapped card</string>
     <string name="skip_silence_desc">Fast-forward through silent parts of songs</string>
     <string name="skip_silence_instant">Instantly skip silence</string>
@@ -573,6 +585,19 @@
     <string name="wrapped_create_playlist">Create playlist</string>
     <string name="wrapped_playlist_saved">Playlist saved</string>
 
+    <!-- Playlist sync caps -->
+    <string name="playlist_created_locally">Playlist created locally — YouTube sync failed</string>
+    <string name="playlist_sync_limit_title">Sync limit reached</string>
+    <string name="playlist_sync_limit_message">You have 20 synced playlists — the maximum for your account. This new playlist will stay on this device only and won\'t sync. Delete a synced playlist to free a slot. Create it locally anyway?</string>
+    <string name="playlist_sync_limit_keep_local">Keep local</string>
+    <string name="playlist_sync_limit_manage">Manage playlists</string>
+    <string name="playlist_slot_freed_title">Slot freed — sync a local playlist?</string>
+    <string name="playlist_slot_freed_message">A synced playlist was deleted. You have %d local playlists that aren\'t synced. Choose one to sync now:</string>
+    <string name="playlist_slot_freed_sync">Sync</string>
+    <string name="liked_limit_reached">Like limit reached (2000). Unlike something to like more.</string>
+    <string name="follow_limit_reached">Follow limit reached (200). Unfollow an artist to follow more.</string>
+    <string name="playlist_track_limit_reached">Playlist is full (500 tracks).</string>
+
     <!-- Equalizer UI -->
     <plurals name="profiles_count">
         <item quantity="one">%d profile</item>
@@ -906,6 +931,7 @@
     <string name="column_label">Column %d</string>
 
     <string name="speed_dial">Speed dial</string>
+    <string name="recently_played">Recently played</string>
     <string name="pin_to_speed_dial">Pin to speed dial</string>
     <string name="unpin_from_speed_dial">Unpin from speed dial</string>
     <string name="pin">Pin</string>
@@ -1031,6 +1057,9 @@
     <string name="android_auto_target_playlist_auto">Not set</string>
     <string name="added_to_playlist">Added to playlist</string>
     <string name="android_auto_target_playlist_not_set">No playlist selected. Choose one in Android Auto settings</string>
+    <string name="android_auto_search_options">Search options</string>
+    <string name="android_auto_search_local_songs_limit">Songs search limit</string>
+    <string name="android_auto_search_local_songs_limit_desc">Limit the number of local songs shown in the search results. It is recommended to not set unlimited to prevent memory crashes</string>
 
     <!-- Stats time transfer -->
     <string name="time_transfer_title">Time transfer</string>
@@ -1121,6 +1150,51 @@
     <string name="auth_back_to_login">← Back to Log In</string>
     <string name="auth_reset_password_title">Reset Password</string>
     <string name="auth_reset_password_subtitle">Enter the code sent to %1$s and your new password.</string>
+
+    <!-- Blend + user info -->
+    <string name="user_info">User info</string>
+    <string name="unknown_user">Unknown user</string>
+    <string name="blend">Blend</string>
+    <string name="blend_join">Join Blend</string>
+    <string name="joining">Joining…</string>
+    <string name="blend_invite">Invite to Blend</string>
+    <string name="blend_added_by">Added by %1$s</string>
+    <string name="blend_members">%1$d members</string>
+    <string name="blend_create">Create Blend</string>
+    <string name="blend_hero_title">Blend Your Frequencies</string>
+    <string name="blend_hero_sub">A shared mixtape that merges your sonic palette with friends.</string>
+    <string name="blend_how_it_works">How Blend Works</string>
+    <string name="blend_step1_title">Invite Friends</string>
+    <string name="blend_step1_desc">Mix your taste with up to 10 listeners into one unified library.</string>
+    <string name="blend_step2_title">Live Updates</string>
+    <string name="blend_step2_desc">New songs appear for everyone as members add them.</string>
+    <string name="blend_name_label">Blend Name</string>
+    <string name="blend_name_hint">e.g. Midnight Reverie</string>
+    <string name="blend_create_invite">Create Blend &amp; Invite Friends</string>
+    <string name="blend_footer">Blend members need an active SoundSphere account to contribute.</string>
+    <string name="blend_start_choice">How should this Blend start? Use listening history to fill it, or start fresh?</string>
+    <string name="blend_fill_history">Fill from history</string>
+    <string name="blend_start_fresh">Start fresh</string>
+    <string name="blend_owner">Owner</string>
+    <string name="blend_member">Member</string>
+    <string name="blend_contributions">Contributions</string>
+    <string name="blend_curated_for">Curated for %1$s</string>
+    <string name="blend_updated_live">Updated live</string>
+    <string name="tracklist">Tracklist</string>
+    <string name="blend_invite_title">Invite to Blend</string>
+    <string name="blend_invite_sub">Share this link to sync listening tastes and uncover your shared soundtrack.</string>
+    <string name="blend_capacity">%1$d of 10 spots filled</string>
+    <string name="blend_slots_open">%1$d slots open</string>
+    <string name="blend_leave">Leave</string>
+    <string name="blend_remove_member">Remove member</string>
+    <string name="blend_done">Done</string>
+    <string name="blend_invited_by">%1$s invited you</string>
+    <string name="blend_join_step1_title">Accept the invite</string>
+    <string name="blend_join_step1_desc">The Blend saves to your library and stays in sync.</string>
+    <string name="blend_join_step2_title">Adds carry your name</string>
+    <string name="blend_join_step2_desc">Every song you add shows who brought it.</string>
+    <string name="blend_accept_join">Accept &amp; Join Blend</string>
+    <string name="blend_subtitle">Collaborative playlist</string>
     <string name="auth_new_password">NEW PASSWORD</string>
     <string name="auth_reset_password">RESET PASSWORD</string>
     <string name="auth_reset_code_placeholder">------</string>

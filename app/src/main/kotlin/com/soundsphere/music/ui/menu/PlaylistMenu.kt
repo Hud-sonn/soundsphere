@@ -41,9 +41,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import androidx.core.net.toUri
 import androidx.media3.exoplayer.offline.Download
-import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
 import com.soundsphere.innertube.YouTube
 import com.soundsphere.music.LocalDatabase
@@ -252,6 +250,10 @@ fun PlaylistMenu(
                             // Then delete the playlist
                             delete(playlist.playlist)
                         }
+
+                        // Propagate the deletion to the Soundsphere backend so the
+                        // playlist does not reappear on other devices via sync.
+                        syncRepository.playlistDeleted(playlist.playlist)
 
                         coroutineScope.launch(Dispatchers.IO) {
                             playlist.playlist.browseId?.let { YouTube.deletePlaylist(it) }
@@ -514,6 +516,27 @@ fun PlaylistMenu(
                                 ),
                             )
                         }
+                        if (!playlist.playlist.isCollaborative && !isGuest) {
+                            add(
+                                Material3MenuItemData(
+                                    title = { Text(text = stringResource(R.string.blend)) },
+                                    description = { Text(text = stringResource(R.string.blend_subtitle)) },
+                                    icon = {
+                                        Icon(
+                                            painter = painterResource(R.drawable.add),
+                                            contentDescription = null,
+                                        )
+                                    },
+                                    onClick = {
+                                        coroutineScope.launch(Dispatchers.IO) {
+                                            database.query { update(playlist.playlist.copy(isCollaborative = true)) }
+                                            syncRepository.makeBlend(playlist.playlist.id)
+                                        }
+                                        onDismiss()
+                                    },
+                                ),
+                            )
+                        }
                         add(
                             Material3MenuItemData(
                                 title = {
@@ -596,20 +619,7 @@ fun PlaylistMenu(
                                                 )
                                             },
                                             onClick = {
-                                                songs.forEach { song ->
-                                                    val downloadRequest =
-                                                        DownloadRequest
-                                                            .Builder(song.id, song.id.toUri())
-                                                            .setCustomCacheKey(song.id)
-                                                            .setData(song.song.title.toByteArray())
-                                                            .build()
-                                                    DownloadService.sendAddDownload(
-                                                        context,
-                                                        ExoDownloadService::class.java,
-                                                        downloadRequest,
-                                                        false,
-                                                    )
-                                                }
+                                                songs.forEach { downloadUtil.download(it) }
                                             },
                                         )
                                     }

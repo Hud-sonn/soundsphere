@@ -33,4 +33,5 @@ data class PlaylistSongMap(
     @ColumnInfo(index = true) val songId: String,
     val position: Int = 0,
     val setVideoId: String? = null,
+    @ColumnInfo(name = "addedByUserId") val addedByUserId: String? = null,
 )

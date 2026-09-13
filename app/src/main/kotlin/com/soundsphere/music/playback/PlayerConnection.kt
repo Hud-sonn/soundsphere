@@ -24,11 +24,14 @@ import com.soundsphere.music.constants.SleepTimerEndTimeKey
 import com.soundsphere.music.constants.SleepTimerRepeatKey
 import com.soundsphere.music.constants.SleepTimerStartTimeKey
 import com.soundsphere.music.db.MusicDatabase
+import com.soundsphere.music.db.entities.Song
 import com.soundsphere.music.extensions.currentMetadata
 import com.soundsphere.music.extensions.getCurrentQueueIndex
 import com.soundsphere.music.extensions.getQueueWindows
 import com.soundsphere.music.extensions.metadata
 import com.soundsphere.music.extensions.togglePlayPause
+import com.soundsphere.music.extensions.withUpdatedMetadata
+import com.soundsphere.music.models.toMediaMetadata
 import com.soundsphere.music.playback.MusicService.MusicBinder
 import com.soundsphere.music.playback.queues.Queue
 import com.soundsphere.music.utils.dataStore
@@ -324,6 +327,18 @@ class PlayerConnection(
         } catch (e: Exception) {
             Timber.tag(TAG).e(e, "Error in toggleLibrary")
         }
+    }
+
+    fun refreshSongMetadata(song: Song) {
+        val player = getPlayerOrNull() ?: return
+        val updatedMetadata = song.toMediaMetadata()
+        repeat(player.mediaItemCount) { index ->
+            val mediaItem = player.getMediaItemAt(index)
+            if (mediaItem.mediaId == song.id) {
+                player.replaceMediaItem(index, mediaItem.withUpdatedMetadata(updatedMetadata))
+            }
+        }
+        mediaMetadata.value = player.currentMetadata
     }
 
     /**

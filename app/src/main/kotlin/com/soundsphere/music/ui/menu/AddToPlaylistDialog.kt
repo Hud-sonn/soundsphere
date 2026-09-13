@@ -34,11 +34,14 @@ import com.soundsphere.innertube.utils.parseCookieString
 import com.soundsphere.music.LocalDatabase
 import com.soundsphere.music.R
 import com.soundsphere.music.constants.AddToPlaylistSortDescendingKey
+import com.soundsphere.music.constants.AddToPlaylistPosition
+import com.soundsphere.music.constants.AddToPlaylistPositionKey
 import com.soundsphere.music.constants.AddToPlaylistSortTypeKey
 import com.soundsphere.music.constants.InnerTubeCookieKey
 import com.soundsphere.music.constants.ListThumbnailSize
 import com.soundsphere.music.constants.PlaylistSortType
 import com.soundsphere.music.db.entities.Playlist
+import com.soundsphere.music.db.playlistDuplicatesBatched
 import com.soundsphere.music.ui.component.CreatePlaylistDialog
 import com.soundsphere.music.ui.component.DefaultDialog
 import com.soundsphere.music.ui.component.ListDialog
@@ -81,7 +84,7 @@ fun AddToPlaylistDialog(
     isVisible: Boolean,
     allowSyncing: Boolean = true,
     initialTextFieldValue: String? = null,
-    onGetSong: suspend (Playlist) -> List<String>, // list of song ids. Songs should be inserted to database in this function.
+    onGetSong: suspend () -> List<String>, // list of song ids. Songs should be inserted to database in this function.
     onGetSongIds: (suspend () -> List<String>)? = null,
     onDismiss: () -> Unit,
     viewModel: PlaylistsViewModel = hiltViewModel()
@@ -123,12 +126,19 @@ fun AddToPlaylistDialog(
         mutableStateOf<Set<String>>(emptySet())
     }
 
+    val (addToPlaylistPosition) = rememberEnumPreference(
+        AddToPlaylistPositionKey,
+        AddToPlaylistPosition.BEGINNING,
+    )
+
     suspend fun addSongsAndSync(targetPlaylist: Playlist, ids: List<String>) {
-        database.addSongsToPlaylist(targetPlaylist, ids.map { it to null }, prepend = true)
-        targetPlaylist.playlist.browseId?.let { plist ->
-            ids.forEach { songId ->
-                syncUtils.addToPlaylist(plist, targetPlaylist.id, songId)
-            }
+        database.addSongsToPlaylist(
+            targetPlaylist,
+            ids.map { it to null },
+            prepend = addToPlaylistPosition.prepend,
+        )
+        targetPlaylist.playlist.browseId?.let { browseId ->
+            syncUtils.scheduleAddToPlaylist(browseId, targetPlaylist.id, ids)
         } ?: ids.forEach { songId ->
             syncRepository.playlistTrackAdded(targetPlaylist.playlist.id, songId)
         }
@@ -138,18 +148,19 @@ fun AddToPlaylistDialog(
         if (!isVisible || playlists.isEmpty()) return@LaunchedEffect
         if (songIds != null) return@LaunchedEffect
         withContext(Dispatchers.IO) {
-            songIds = onGetSongIds?.invoke() ?: onGetSong(playlists.first())
+            songIds = onGetSongIds?.invoke() ?: onGetSong()
         }
     }
     LaunchedEffect(isVisible, songIds, playlists) {
         if (!isVisible) {
+            songIds = null
             playlistsContainingSong = emptySet()
             return@LaunchedEffect
         }
         val ids = songIds ?: return@LaunchedEffect
         withContext(Dispatchers.IO) {
             playlistsContainingSong = playlists
-                .filter { database.playlistDuplicates(it.id, ids).isNotEmpty() }
+                .filter { database.playlistDuplicatesBatched(it.id, ids).isNotEmpty() }
                 .map { it.id }
                 .toSet()
         }
@@ -298,17 +309,13 @@ fun AddToPlaylistDialog(
                     .clickable {
                         selectedPlaylist = playlist
                         coroutineScope.launch(Dispatchers.IO) {
-                            if (songIds == null) {
-                                songIds = onGetSong(playlist)
-                            } else {
-                                onGetSong(playlist)
-                            }
-                            duplicates = database.playlistDuplicates(playlist.id, songIds!!)
+                            songIds = onGetSong()
+                            duplicates = database.playlistDuplicatesBatched(playlist.id, songIds!!)
                             if (duplicates.isNotEmpty()) {
                                 showDuplicateDialog = true
                             } else {
-                                onDismiss()
                                 addSongsAndSync(playlist, songIds!!)
+                                withContext(Dispatchers.Main) { onDismiss() }
                             }
                         }
                     }
@@ -333,12 +340,12 @@ fun AddToPlaylistDialog(
                     TextButton(
                         onClick = {
                             showDuplicateDialog = false
-                            onDismiss()
                             coroutineScope.launch(Dispatchers.IO) {
                                 addSongsAndSync(
                                     selectedPlaylist!!,
                                     songIds!!.filter { !duplicates.contains(it) }
                                 )
+                                withContext(Dispatchers.Main) { onDismiss() }
                             }
                         }
                     ) {
@@ -348,9 +355,9 @@ fun AddToPlaylistDialog(
                     TextButton(
                         onClick = {
                             showDuplicateDialog = false
-                            onDismiss()
                             coroutineScope.launch(Dispatchers.IO) {
                                 addSongsAndSync(selectedPlaylist!!, songIds!!)
+                                withContext(Dispatchers.Main) { onDismiss() }
                             }
                         }
                     ) {

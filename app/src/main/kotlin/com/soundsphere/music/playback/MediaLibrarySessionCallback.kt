@@ -33,6 +33,7 @@ import com.soundsphere.innertube.models.SongItem
 import com.soundsphere.innertube.models.filterExplicit
 import com.soundsphere.innertube.models.filterVideoSongs
 import com.soundsphere.music.R
+import com.soundsphere.music.constants.AndroidAutoSearchLocalLimitKey
 import com.soundsphere.music.constants.HideExplicitKey
 import com.soundsphere.music.constants.HideVideoSongsKey
 import com.soundsphere.music.constants.MediaSessionConstants
@@ -492,28 +493,10 @@ constructor(
 
             try {
                 val searchResults = mutableListOf<MediaItem>()
+                val limit = context.dataStore.get(AndroidAutoSearchLocalLimitKey, 75)
 
-                val localSongs = database.allSongs().first().filter { song ->
-                    song.song.title.contains(query, ignoreCase = true) ||
-                    song.artists.any { it.name.contains(query, ignoreCase = true) } ||
-                    song.album?.title?.contains(query, ignoreCase = true) == true
-                }
-                
-                val artistSongs = database.searchArtists(query).first().flatMap { artist ->
-                    database.artistSongsByCreateDateAsc(artist.id).first()
-                }
-                
-                val albumSongs = database.searchAlbums(query).first().flatMap { album ->
-                    database.albumSongs(album.id).first()
-                }
-                
-                val playlistSongs = database.searchPlaylists(query).first().flatMap { playlist ->
-                    database.playlistSongs(playlist.id).first().map { it.song }
-                }
+                val allLocalSongs = database.searchSongsExtended(query, limit).first()
 
-                val allLocalSongs = (localSongs + artistSongs + albumSongs + playlistSongs)
-                    .distinctBy { it.id }
-                
                 allLocalSongs.forEach { song ->
                     searchResults.add(song.toMediaItem(
                         path = "${MusicService.SEARCH}/$query",
@@ -701,31 +684,17 @@ constructor(
                 MusicService.SEARCH -> {
                     val songId = path.getOrNull(2) ?: return@future defaultResult
                     val searchQuery = path.getOrNull(1) ?: return@future defaultResult
-                    
+
+                    val isVoiceSearch = songId.isBlank() && searchQuery.isNotBlank()
+
                     val searchResults = mutableListOf<Song>()
+                    val limit = context.dataStore.get(AndroidAutoSearchLocalLimitKey, 75)
 
-                    val localSongs = database.allSongs().first().filter { song ->
-                        song.song.title.contains(searchQuery, ignoreCase = true) ||
-                        song.artists.any { it.name.contains(searchQuery, ignoreCase = true) } ||
-                        song.album?.title?.contains(searchQuery, ignoreCase = true) == true
-                    }
-                    
-                    val artistSongs = database.searchArtists(searchQuery).first().flatMap { artist ->
-                        database.artistSongsByCreateDateAsc(artist.id).first()
-                    }
-                    
-                    val albumSongs = database.searchAlbums(searchQuery).first().flatMap { album ->
-                        database.albumSongs(album.id).first()
-                    }
-                    
-                    val playlistSongs = database.searchPlaylists(searchQuery).first().flatMap { playlist ->
-                        database.playlistSongs(playlist.id).first().map { it.song }
-                    }
-
-                    val allLocalSongs = (localSongs + artistSongs + albumSongs + playlistSongs)
-                        .distinctBy { it.id }
-                    
+                    val allLocalSongs = database.searchSongsExtended(searchQuery, limit).first()
                     searchResults.addAll(allLocalSongs)
+                    if (!isVoiceSearch && songId.isNotBlank() && searchResults.indexOfFirst { it.id == songId } == -1) {
+                        database.song(songId).first()?.let { searchResults.add(it) }
+                    }
                     
                     try {
                         val onlineResults = YouTube.search(searchQuery, YouTube.SearchFilter.FILTER_SONG)

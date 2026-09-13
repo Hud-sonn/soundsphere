@@ -1,5 +1,11 @@
 [
   {
+    "id": "announcement-2026-09-12",
+    "title": "Blend is here — playlists you build together (Beta)",
+    "body": "You can now create Blend playlists — shared collections where you and your friends add songs together.\n\nBlend is currently in beta, so you might see a few rough edges. We're actively fixing things and polishing the experience based on your feedback.\n\nHow to create a Blend:\n1. Go to your Library tab\n2. Tap the Blend button (the three-rings icon) in the bottom-right corner\n3. Give your Blend a name\n4. Choose whether to start fresh or pull in songs from your listening history\n5. Hit \"Create Blend\" — done!\n\nHow to invite someone:\n1. Open your Blend from the Library\n2. Tap \"Invite\" on the Blend header\n3. Copy the invite link and send it to your friend\n4. They tap the link to join\n\nWhat you can do in a Blend:\n- See who added each song — each track shows the contributor's name\n- Browse the contribution bar to see who added the most\n- Filter the tracklist to see just one person's picks\n- Remove songs you don't want in there\n- Leave the Blend anytime from the Invite screen\n\nA few notes:\n- You can create up to 3 Blends for free\n- Each Blend can hold up to 10 members and 500 songs\n- Songs that get added to a Blend are shared with everyone in it\n\nWe also fixed a bunch of things behind the scenes — sync is more reliable, playback is smoother, and the app runs better overall.\n\nThanks for all the feedback — keep it coming!",
+    "dismissable": true
+  },
+  {
     "id": "announcement-2026-08-21",
     "title": "Two more things fixed: Recognize Music & YouTube playback",
     "body": "Following up on the last update — two of the issues we flagged as still being worked on are now fixed.\n\n- \"Recognize music\" no longer crashes — it works reliably now, including when the microphone isn't immediately ready\n- Playback no longer gets interrupted by YouTube's \"not a bot\" check when you're signed into a YouTube account\n\nOne thing still open: playlists synced from a previous session don't always populate correctly on first load. We know about it and we're on it — for now, a manual refresh on the playlist screen should bring them in.\n\nThanks for bearing with us and for all the reports — keep them coming.",

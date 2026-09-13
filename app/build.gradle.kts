@@ -119,8 +119,8 @@ android {
         applicationId = applicationIdOverride ?: baseApplicationId
         minSdk = 26
         targetSdk = 36
-        versionCode = 11
-        versionName = "1.2.1"
+        versionCode = 12
+        versionName = "1.3.0"
         resValue("string", "app_name", appNameOverride ?: "Soundsphere")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -144,6 +144,7 @@ android {
         // automatically when the primary is unreachable (see BackendEndpoint).
         buildConfigField("String", "API_BASE_URL", "\"https://api.soundsphere.name.ng\"")
         buildConfigField("String", "API_FALLBACK_BASE_URL", "\"https://soundsphere-auth.onrender.com\"")
+        buildConfigField("String", "BLEND_BASE_URL", "\"https://soundsphere-blend.onrender.com\"")
     }
 
     flavorDimensions += listOf("variant")

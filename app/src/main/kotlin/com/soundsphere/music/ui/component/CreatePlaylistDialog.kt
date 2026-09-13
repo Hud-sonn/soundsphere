@@ -27,19 +27,19 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import com.soundsphere.innertube.YouTube
 import com.soundsphere.music.LocalDatabase
 import com.soundsphere.music.LocalSyncRepository
+import com.soundsphere.music.LocalSyncUtils
 import com.soundsphere.music.R
 import com.soundsphere.music.constants.InnerTubeCookieKey
 import com.soundsphere.music.db.entities.PlaylistEntity
 import com.soundsphere.music.extensions.isSyncEnabled
 import com.soundsphere.music.utils.rememberPreference
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.LocalDateTime
-import java.util.logging.Logger
 
 @Composable
 fun CreatePlaylistDialog(
@@ -50,6 +50,7 @@ fun CreatePlaylistDialog(
 ) {
     val database = LocalDatabase.current
     val syncRepository = LocalSyncRepository.current
+    val syncUtils = LocalSyncUtils.current
     val coroutineScope = rememberCoroutineScope()
     var syncedPlaylist by remember { mutableStateOf(false) }
     val context = LocalContext.current
@@ -59,6 +60,42 @@ fun CreatePlaylistDialog(
 
     val notLoggedInYoutubeStr = stringResource(R.string.not_logged_in_youtube)
     val syncDisabledStr = stringResource(R.string.sync_disabled)
+    val playlistCreatedLocallyStr = stringResource(R.string.playlist_created_locally)
+
+    var showSyncCapDialog by remember { mutableStateOf(false) }
+    var pendingPlaylistName by remember { mutableStateOf<String?>(null) }
+
+    if (showSyncCapDialog) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { showSyncCapDialog = false },
+            title = { androidx.compose.material3.Text(stringResource(R.string.playlist_sync_limit_title)) },
+            text = { androidx.compose.material3.Text(stringResource(R.string.playlist_sync_limit_message)) },
+            confirmButton = {
+                androidx.compose.material3.TextButton(onClick = {
+                    showSyncCapDialog = false
+                    val name = pendingPlaylistName ?: return@TextButton
+                    syncUtils.createPlaylist(
+                        playlist = PlaylistEntity(name = name, bookmarkedAt = LocalDateTime.now(), isEditable = true),
+                        syncWithYouTube = syncedPlaylist,
+                    ) { playlistId, remoteCreated ->
+                        if (syncedPlaylist && !remoteCreated) {
+                            Toast.makeText(context, playlistCreatedLocallyStr, Toast.LENGTH_LONG).show()
+                        }
+                        coroutineScope.launch(Dispatchers.IO) {
+                            database.playlist(playlistId).first()?.playlist?.let { syncRepository.playlistCreated(it) }
+                        }
+                        onPlaylistCreated?.invoke(playlistId)
+                    }
+                    onDismiss()
+                }) { androidx.compose.material3.Text(stringResource(R.string.playlist_sync_limit_keep_local)) }
+            },
+            dismissButton = {
+                androidx.compose.material3.TextButton(onClick = { showSyncCapDialog = false }) {
+                    androidx.compose.material3.Text(stringResource(android.R.string.cancel))
+                }
+            },
+        )
+    }
 
     TextFieldDialog(
         icon = { Icon(painter = painterResource(R.drawable.add), contentDescription = null) },
@@ -66,33 +103,27 @@ fun CreatePlaylistDialog(
         initialTextFieldValue = TextFieldValue(initialTextFieldValue ?: ""),
         onDismiss = onDismiss,
         onDone = { playlistName ->
-            coroutineScope.launch(Dispatchers.IO) {
-                val browseId =
-                    if (syncedPlaylist && isSignedIn) {
-                        YouTube.createPlaylist(playlistName)
-                    } else if (syncedPlaylist) {
-                        Logger.getLogger("CreatePlaylistDialog").warning("Not signed in")
-                        return@launch
-                    } else {
-                        null
-                    }
-
-                val playlistEntity =
-                    PlaylistEntity(
-                        name = playlistName,
-                        browseId = browseId,
-                        bookmarkedAt = LocalDateTime.now(),
-                        isEditable = true,
-                    )
-
-                database.query {
-                    insert(playlistEntity)
+            // Soundsphere sync cap — 20/account. If full, prompt before creating.
+            if (syncRepository.isLoggedIn && !syncRepository.canSyncNewPlaylist()) {
+                pendingPlaylistName = playlistName
+                showSyncCapDialog = true
+                return@TextFieldDialog
+            }
+            syncUtils.createPlaylist(
+                playlist = PlaylistEntity(
+                    name = playlistName,
+                    bookmarkedAt = LocalDateTime.now(),
+                    isEditable = true,
+                ),
+                syncWithYouTube = syncedPlaylist,
+            ) { playlistId, remoteCreated ->
+                if (syncedPlaylist && !remoteCreated) {
+                    Toast.makeText(context, playlistCreatedLocallyStr, Toast.LENGTH_LONG).show()
                 }
-                syncRepository.playlistCreated(playlistEntity)
-
-                withContext(Dispatchers.Main) {
-                    onPlaylistCreated?.invoke(playlistEntity.id)
+                coroutineScope.launch(Dispatchers.IO) {
+                    database.playlist(playlistId).first()?.playlist?.let { syncRepository.playlistCreated(it) }
                 }
+                onPlaylistCreated?.invoke(playlistId)
             }
         },
         extraContent = {

@@ -253,6 +253,7 @@ val PlaylistSortTypeKey = stringPreferencesKey("playlistSortType")
 val PlaylistSortDescendingKey = booleanPreferencesKey("playlistSortDescending")
 val AddToPlaylistSortTypeKey = stringPreferencesKey("addToPlaylistSortType")
 val AddToPlaylistSortDescendingKey = booleanPreferencesKey("addToPlaylistSortDescending")
+val AddToPlaylistPositionKey = stringPreferencesKey("addToPlaylistPosition")
 val ArtistSongSortTypeKey = stringPreferencesKey("artistSongSortType")
 val ArtistSongSortDescendingKey = booleanPreferencesKey("artistSongSortDescending")
 val MixSortTypeKey = stringPreferencesKey("mixSortType")
@@ -383,6 +384,13 @@ enum class PlaylistSortType {
     NAME,
     SONG_COUNT,
     LAST_UPDATED,
+}
+
+enum class AddToPlaylistPosition(
+    val prepend: Boolean,
+) {
+    BEGINNING(true),
+    END(false),
 }
 
 enum class MixSortType {
@@ -548,6 +556,7 @@ val DataSyncIdKey = stringPreferencesKey("dataSyncId")
 val AndroidAutoYouTubePlaylistsKey = booleanPreferencesKey("androidAutoYoutubePlaylists")
 val AndroidAutoSectionsOrderKey = stringPreferencesKey("androidAutoSectionsOrder")
 val AndroidAutoTargetPlaylistKey = stringPreferencesKey("androidAutoTargetPlaylist")
+val AndroidAutoSearchLocalLimitKey = intPreferencesKey("androidAutoSearchLocalLimit")
 val InnerTubeCookieKey = stringPreferencesKey("innerTubeCookie")
 val AccountNameKey = stringPreferencesKey("accountName")
 val AccountEmailKey = stringPreferencesKey("accountEmail")

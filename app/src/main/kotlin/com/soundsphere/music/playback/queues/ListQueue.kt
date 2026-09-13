@@ -13,8 +13,13 @@ class ListQueue(
     val items: List<MediaItem>,
     val startIndex: Int = 0,
     val position: Long = 0L,
+    val sourceType: String? = null,
+    val sourceId: String? = null,
 ) : Queue {
     override val preloadItem: MediaMetadata? = null
+
+    override val sourceInfo: QueueSourceInfo?
+        get() = sourceId?.let { QueueSourceInfo(type = sourceType ?: "playlist", id = it, name = title) }
 
     override suspend fun getInitialStatus() = Queue.Status(title, items, startIndex, position)
 

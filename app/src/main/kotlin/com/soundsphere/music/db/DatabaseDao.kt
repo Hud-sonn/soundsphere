@@ -42,6 +42,7 @@ import com.soundsphere.music.db.entities.PlaylistEntity
 import com.soundsphere.music.db.entities.PlaylistSong
 import com.soundsphere.music.db.entities.PlaylistSongMap
 import com.soundsphere.music.db.entities.PodcastEntity
+import com.soundsphere.music.db.entities.RecentlyPlayedEntity
 import com.soundsphere.music.db.entities.RecognitionHistory
 import com.soundsphere.music.db.entities.RelatedSongMap
 import com.soundsphere.music.db.entities.SearchHistory
@@ -98,6 +99,52 @@ interface DatabaseDao {
         """,
     )
     suspend fun playlistSongIds(playlistId: String): List<String>
+
+    @Query(
+        """
+        SELECT id FROM song
+        WHERE id IN (:songIds)
+          AND NOT EXISTS (
+              SELECT 1 FROM song_artist_map WHERE song_artist_map.songId = song.id
+          )
+        """,
+    )
+    fun songIdsWithoutArtists(songIds: List<String>): List<String>
+
+    @Query(
+        """
+        SELECT song.id FROM song
+        JOIN playlist_song_map ON playlist_song_map.songId = song.id
+        WHERE playlist_song_map.playlistId = :playlistId
+          AND NOT EXISTS (
+              SELECT 1 FROM song_artist_map WHERE song_artist_map.songId = song.id
+          )
+        """,
+    )
+    suspend fun playlistSongIdsWithoutArtists(playlistId: String): List<String>
+
+    @Query("SELECT position FROM playlist_song_map WHERE playlistId = :playlistId AND songId = :songId LIMIT 1")
+    suspend fun playlistTrackPosition(playlistId: String, songId: String): Int?
+
+    /** Top library songs by all-time play time — feeds Blend "fill from history". */
+    @Query("SELECT * FROM song WHERE inLibrary IS NOT NULL AND totalPlayTime > 0 ORDER BY totalPlayTime DESC LIMIT :limit")
+    suspend fun topSongsByPlayTime(limit: Int): List<SongEntity>
+
+    @Query("SELECT COUNT(*) FROM playlist_song_map WHERE playlistId = :playlistId AND addedByUserId = :userId")
+    suspend fun countTracksAddedBy(playlistId: String, userId: String): Int
+
+    /**
+     * Heals Blend attribution for rows saved before attribution existed (or before
+     * the writer's app version sent it). Only fills NULL — never overwrites, never
+     * resurrects (no insert), so offline-delete tombstones are unaffected.
+     */
+    @Query(
+        """
+        UPDATE playlist_song_map SET addedByUserId = :addedBy
+        WHERE playlistId = :playlistId AND songId = :songId AND addedByUserId IS NULL
+        """,
+    )
+    suspend fun backfillTrackAddedBy(playlistId: String, songId: String, addedBy: String)
 
     @Query("SELECT * FROM album WHERE id = :albumId LIMIT 1")
     suspend fun albumEntity(albumId: String): AlbumEntity?
@@ -1089,6 +1136,10 @@ interface DatabaseDao {
     @Query("SELECT *, (SELECT COUNT(*) FROM playlist_song_map WHERE playlistId = playlist.id) AS songCount FROM playlist WHERE bookmarkedAt IS NOT NULL ORDER BY songCount")
     fun playlistsBySongCountAsc(): Flow<List<Playlist>>
 
+    @Transaction
+    @Query("SELECT *, (SELECT COUNT(*) FROM playlist_song_map WHERE playlistId = playlist.id) AS songCount FROM playlist WHERE isCollaborative = 1 AND bookmarkedAt IS NOT NULL ORDER BY lastUpdateTime DESC LIMIT 20")
+    fun blendPlaylists(): Flow<List<Playlist>>
+
     fun playlists(
         sortType: PlaylistSortType,
         descending: Boolean,
@@ -1441,6 +1492,39 @@ interface DatabaseDao {
     ): Flow<List<Song>>
 
     @Transaction
+    @Query(
+        """
+    SELECT * FROM song
+    WHERE (
+        title LIKE '%' || :query || '%'
+        OR EXISTS (
+            SELECT 1 FROM song_artist_map
+            JOIN artist ON song_artist_map.artistId = artist.id
+            WHERE song_artist_map.songId = song.id
+            AND artist.name LIKE '%' || :query || '%'
+        )
+        OR EXISTS (
+            SELECT 1 FROM album
+            WHERE album.id = song.albumId
+            AND album.title LIKE '%' || :query || '%'
+        )
+        OR EXISTS (
+            SELECT 1 FROM playlist_song_map
+            JOIN playlist ON playlist_song_map.playlistId = playlist.id
+            WHERE playlist_song_map.songId = song.id
+            AND playlist.name LIKE '%' || :query || '%'
+        )
+    )
+    ORDER BY totalPlayTime DESC, id ASC
+    LIMIT :previewSize
+    """
+    )
+    fun searchSongsExtended(
+        query: String,
+        previewSize: Int = Int.MAX_VALUE,
+    ): Flow<List<Song>>
+
+    @Transaction
     @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
     @Query(
         "SELECT *, (SELECT COUNT(1) FROM song_artist_map JOIN song ON song_artist_map.songId = song.id WHERE artistId = artist.id AND song.inLibrary IS NOT NULL) AS songCount FROM artist WHERE name LIKE '%' || :query || '%' AND songCount > 0 LIMIT :previewSize",
@@ -1483,6 +1567,20 @@ interface DatabaseDao {
     @Transaction
     @Query("DELETE FROM event")
     fun clearListenHistory()
+
+    // Recently played (bounded recency list, replace-with-latest sync)
+    @Query("SELECT * FROM recently_played ORDER BY playedAt DESC LIMIT :limit")
+    fun recentlyPlayed(limit: Int = 50): Flow<List<RecentlyPlayedEntity>>
+
+    @Upsert
+    fun upsertRecentlyPlayed(entry: RecentlyPlayedEntity)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insertRecentlyPlayed(entries: List<RecentlyPlayedEntity>)
+
+    @Transaction
+    @Query("DELETE FROM recently_played")
+    fun clearRecentlyPlayed()
 
     @Transaction
     @Query("SELECT * FROM search_history WHERE `query` LIKE :query || '%' ORDER BY id DESC")
@@ -1630,6 +1728,24 @@ interface DatabaseDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     fun insert(map: SongArtistMap)
 
+    @Transaction
+    fun replaceSongArtists(
+        songId: String,
+        artists: List<ArtistEntity>,
+    ) {
+        songArtistMap(songId).forEach(::delete)
+        artists.distinctBy { it.id }.forEachIndexed { index, artist ->
+            insert(artist)
+            insert(
+                SongArtistMap(
+                    songId = songId,
+                    artistId = artist.id,
+                    position = index,
+                ),
+            )
+        }
+    }
+
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     fun insert(map: SongAlbumMap)
 
@@ -1734,7 +1850,12 @@ interface DatabaseDao {
             .onEach {
                 val existingSong = getSongByIdBlocking(it.id)
                 if (existingSong != null) {
-                    update(existingSong, it)
+                    update(
+                        song = existingSong,
+                        mediaMetadata = it,
+                        overwriteTitle = false,
+                        overwriteArtists = false,
+                    )
                 }
             }.mapIndexed { index, song ->
                 SongAlbumMap(
@@ -1764,10 +1885,12 @@ interface DatabaseDao {
     fun update(
         song: Song,
         mediaMetadata: MediaMetadata,
+        overwriteTitle: Boolean = true,
+        overwriteArtists: Boolean = true,
     ) {
         update(
             song.song.copy(
-                title = mediaMetadata.title,
+                title = if (overwriteTitle) mediaMetadata.title else song.song.title,
                 duration = mediaMetadata.duration,
                 thumbnailUrl = mediaMetadata.thumbnailUrl,
                 albumId = mediaMetadata.album?.id,
@@ -1776,6 +1899,8 @@ interface DatabaseDao {
                 libraryRemoveToken = mediaMetadata.libraryRemoveToken
             ),
         )
+        if (!overwriteArtists || mediaMetadata.artists.isEmpty()) return
+
         songArtistMap(song.id).forEach(::delete)
         mediaMetadata.artists.forEachIndexed { index, artist ->
             val artistId = artist.id ?: artistByName(artist.name)?.id ?: ArtistEntity.generateArtistId()
@@ -1853,7 +1978,12 @@ interface DatabaseDao {
             .onEach {
                 val existingSong = getSongByIdBlocking(it.id)
                 if (existingSong != null) {
-                    update(existingSong, it)
+                    update(
+                        song = existingSong,
+                        mediaMetadata = it,
+                        overwriteTitle = false,
+                        overwriteArtists = false,
+                    )
                 }
             }.mapIndexed { index, song ->
                 SongAlbumMap(
@@ -2000,3 +2130,18 @@ interface DatabaseDao {
     @Delete
     fun delete(podcast: PodcastEntity)
 }
+
+internal const val MAX_PLAYLIST_DUPLICATES_BATCH_SIZE = 500
+
+internal fun DatabaseDao.playlistDuplicatesBatched(
+    playlistId: String,
+    songIds: List<String>,
+): List<String> =
+    if (songIds.size <= MAX_PLAYLIST_DUPLICATES_BATCH_SIZE) {
+        playlistDuplicates(playlistId, songIds)
+    } else {
+        songIds
+            .distinct()
+            .chunked(MAX_PLAYLIST_DUPLICATES_BATCH_SIZE)
+            .flatMap { playlistDuplicates(playlistId, it) }
+    }

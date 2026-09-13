@@ -43,9 +43,9 @@ internal class ServerClock(
         position: Long,
         effectiveAtServerTime: Long?,
         isPlaying: Boolean,
-    ): Long {
+    ): Long? {
         if (!isPlaying || effectiveAtServerTime == null || effectiveAtServerTime <= 0L) return position
-        val serverNow = now() ?: return position
+        val serverNow = now() ?: return null
         return position + max(0L, serverNow - effectiveAtServerTime)
     }
 

@@ -67,13 +67,12 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEachReversed
-import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.media3.exoplayer.offline.Download
-import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
+import com.soundsphere.music.LocalDownloadUtil
 import com.soundsphere.music.LocalPlayerAwareWindowInsets
 import com.soundsphere.music.LocalPlayerConnection
 import com.soundsphere.music.R
@@ -108,6 +107,7 @@ fun CachePlaylistScreen(
 ) {
     val context = LocalContext.current
     val menuState = LocalMenuState.current
+    val downloadUtil = LocalDownloadUtil.current
     val playerConnection = LocalPlayerConnection.current ?: return
     val haptic = LocalHapticFeedback.current
     val focusManager = LocalFocusManager.current
@@ -438,11 +438,15 @@ fun CachePlaylistScreen(
                     IconButton(
                         enabled = selection.isNotEmpty(),
                         onClick = {
+                            val selectedSongs = filteredSongs.filter { it.id in selection }
                             menuState.show {
                                 SelectionSongMenu(
-                                    songSelection = filteredSongs.filter { it.id in selection },
+                                    songSelection = selectedSongs,
                                     onDismiss = menuState::dismiss,
-                                    clearAction = onExitSelectionMode
+                                    clearAction = onExitSelectionMode,
+                                    onRemoveFromCache = {
+                                        viewModel.removeSongsFromCache(selectedSongs.map { it.id })
+                                    },
                                 )
                             }
                         }
@@ -473,7 +477,8 @@ private fun CachePlaylistHeader(
     modifier: Modifier = Modifier
 ) {
     val playerConnection = LocalPlayerConnection.current ?: return
-    
+    val downloadUtil = LocalDownloadUtil.current
+
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -599,19 +604,7 @@ private fun CachePlaylistHeader(
                             },
                             onDownload = {
                                 // Download all cached songs
-                                songs.forEach { song ->
-                                    val downloadRequest = DownloadRequest
-                                        .Builder(song.song.id, song.song.id.toUri())
-                                        .setCustomCacheKey(song.song.id)
-                                        .setData(song.song.title.toByteArray())
-                                        .build()
-                                    DownloadService.sendAddDownload(
-                                        context,
-                                        ExoDownloadService::class.java,
-                                        downloadRequest,
-                                        false,
-                                    )
-                                }
+                                songs.forEach { downloadUtil.download(it) }
                             },
                             onDismiss = { menuState.dismiss() }
                         )

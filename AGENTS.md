@@ -1,8 +1,8 @@
 # Working with Soundsphere as an AI agent
 
-**Date:** 2026-09-01
+**Date:** 2026-09-12
 **Status:** Live
-**Why:** Added date rule for MDs — every MD must start with Date/Status/Why and HTML docs are served from backend /docs.
+**Why:** Added redesign-completeness rule (mock section inventory before coding) — every MD must start with Date/Status/Why and HTML docs are served from backend /docs.
 
 Soundsphere is a 3rd party YouTube Music client written in Kotlin. It follows material 3 design guidelines closely.
 
@@ -48,9 +48,33 @@ If any such column exists on a table with a user-writable policy, one of the fol
 
 This check must be performed as a standard step whenever a new table is created, not only during a dedicated security audit — treat it as part of the table's initial design, the same way choosing a primary key or foreign key is.
 
+## Account-level caps — server-enforced, premium raises them
+
+All usage caps MUST be enforced account-level (keyed by `user_id` on the backend, never by device, install, or app cache) so clearing app data / reinstalling / switching devices cannot reset them. Client-side checks are UX hints only; the backend is the real lock (same principle as premium gating — rooted clients bypass UI).
+
+Current caps (free tier) live in `backend-auth/routers/user.py` (`_PLAYLIST_SYNC_LIMIT = 20`, `_LIKED_LIMIT = 2000`, `_FOLLOWED_ARTIST_LIMIT = 200`, `_PLAYLIST_TRACK_LIMIT = 500`, history prune 500, AI generation 2/day):
+- **Blend (collaborative) playlists: 3 per user** on free. Count owned playlists with `is_collaborative = true`; reject creation above the cap with 409.
+- When Premium launches, EVERY cap gets a higher premium value (Blend 3 → 10; playlists, liked, follows, tracks, history, AI quota all raised). Tier source is the `subscriptions` table (`expires_at > now()`), never `users.role` (trigger-protected) and never anything the client asserts. Until billing ships, everyone is free tier — do not invent ad-hoc exceptions.
+
 ## Architectural rule — no direct Supabase writes with backend JWT
 
 Confirm no current or planned code path will ever cause the app to send `Authorization: Bearer <backend-JWT>` directly to `*.supabase.co` with the `anon` key. Document this explicitly as an architectural rule rather than relying on it remaining true by coincidence. If Blend or Listen Together's real-time sync needs ever introduce a `supabase-js`/`realtime` client on the app side, that client must use its own, separately-issued Supabase Auth session — never the backend's custom JWT — precisely so the `role: authenticated` mismatch that's accidentally protecting these tables today isn't silently removed by a future feature.
+
+## Redesign completeness — mock section inventory before calling it done
+
+When the user orders a redesign from a mock/design file: FIRST enumerate every section of the mock (header, nav, hero, artwork, cards, rows, lists, buttons, badges, footers) and mark each KEEP / CUT / ADAPT with a one-line reason — present that strip list before coding whenever the user asked for strip-first review. THEN code. The body (cards, rows, list items) is part of the redesign: converting only chrome/headers/tiles while leaving the old body structure is an INCOMPLETE redesign and must never be reported as finished. Verify each mapped element exists in the edited screen before reporting done, and record the section mapping (with cut reasons) in the design doc. Applies to every coming screen in a design series, not just the first.
+
+## Upstream tracking — watch external InnerTubeX and source repos weekly
+
+Metrolist has moved its `innertube` to the external artifact `InnerTubeX` (`com.github.MetrolistGroup:InnerTubeX`) while Soundsphere keeps a vendored `innertube` module (`innertube/src/main/kotlin/com/soundsphere/innertube`). Any change in `InnerTubeX` can contain parsing, stream-source, or auth fixes that Soundsphere needs. Treat `https://github.com/MetrolistGroup/Metrolist` (and its `gradle/libs.versions.toml` `innertubex` version) and `https://github.com/MetrolistGroup/Metrolist.git` commits that touch `innertube`/`InnerTubeX` as an upstream to watch.
+
+Check at least once a week (and before any release):
+
+1. `git -C /tmp/metrolist fetch origin` + `git log --oneline --since="1 week ago"` on that clone (kept at `/tmp/metrolist` on the dev machine) and compare to `git log --oneline --since="1 week ago"` on `soundsphere`.
+2. `gradle/libs.versions.toml` `innertubex` vs local `innertube` — if Metrolist bumped `innertubex`, inspect the `InnerTubeX` release notes and the `innertube/src` diff in that Metrolist commit range for `YouTubeQueue`, `InnerTube`, `YouTube` parsing/stream changes that need to be cherry-picked into the local `innertube` module.
+3. The same weekly sweep must also cover the other source repos that were forked: `https://github.com/MetrolistGroup/Metrolist.git` commits beyond `InnerTubeX` (e.g. `SyncUtils`, `UploadManager`, `Queue`, `Player`) — use `git log --oneline --since="1 week ago" | grep -v "Translated using Weblate"` as the triage list.
+
+Do not skip the translation batch (`Translated using Weblate`) when strings are allowed — those are safe `values-*/strings.xml` additions with no `metrolist` mention (commit message says `Translated using Weblate`, the diff is just `<string name="…">`). When `AGENTS.md:3` would otherwise block non-English edits, the weekly upstream sweep is an explicit exception for those `values-*/` translation commits.
 
 ## Building and testing your changes
 

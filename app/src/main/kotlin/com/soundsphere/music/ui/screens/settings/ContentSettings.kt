@@ -78,6 +78,8 @@ import com.soundsphere.music.constants.ProxyUrlKey
 import com.soundsphere.music.constants.ProxyUsernameKey
 import com.soundsphere.music.constants.QuickPicks
 import com.soundsphere.music.constants.QuickPicksKey
+import com.soundsphere.music.constants.AddToPlaylistPosition
+import com.soundsphere.music.constants.AddToPlaylistPositionKey
 import com.soundsphere.music.constants.RandomizeHomeOrderKey
 import com.soundsphere.music.constants.SYSTEM_DEFAULT
 import com.soundsphere.music.constants.ShowArtistDescriptionKey
@@ -140,6 +142,10 @@ fun ContentSettings(
     val (randomizeHomeOrder, onRandomizeHomeOrderChange) = rememberPreference(
         RandomizeHomeOrderKey,
         defaultValue = true
+    )
+    val (addToPlaylistPosition, onAddToPlaylistPositionChange) = rememberEnumPreference(
+        AddToPlaylistPositionKey,
+        AddToPlaylistPosition.BEGINNING,
     )
 
     LaunchedEffect(showMostStatsPlaylists) {
@@ -619,6 +625,35 @@ fun ContentSettings(
         )
     }
 
+    var showAddToPlaylistPositionDialog by rememberSaveable {
+        mutableStateOf(false)
+    }
+
+    if (showAddToPlaylistPositionDialog) {
+        EnumDialog(
+            onDismiss = { showAddToPlaylistPositionDialog = false },
+            onSelect = {
+                onAddToPlaylistPositionChange(it)
+                showAddToPlaylistPositionDialog = false
+            },
+            title = stringResource(R.string.add_to_playlist_position),
+            current = addToPlaylistPosition,
+            values = AddToPlaylistPosition.entries,
+            valueText = {
+                when (it) {
+                    AddToPlaylistPosition.BEGINNING -> stringResource(R.string.playlist_position_beginning)
+                    AddToPlaylistPosition.END -> stringResource(R.string.playlist_position_end)
+                }
+            },
+            valueDescription = {
+                when (it) {
+                    AddToPlaylistPosition.BEGINNING -> stringResource(R.string.playlist_position_beginning_desc)
+                    AddToPlaylistPosition.END -> stringResource(R.string.playlist_position_end_desc)
+                }
+            },
+        )
+    }
+
     var showTopLengthDialog by rememberSaveable {
         mutableStateOf(false)
     }
@@ -824,6 +859,27 @@ fun ContentSettings(
                     onClick = { onHideYoutubeShortsChange(!hideYoutubeShorts) }
                 )
             )
+        )
+
+        Spacer(modifier = Modifier.height(27.dp))
+
+        Material3SettingsGroup(
+            title = stringResource(R.string.playlists),
+            items = listOf(
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.playlist_add),
+                    title = { Text(stringResource(R.string.add_to_playlist_position)) },
+                    description = {
+                        Text(
+                            when (addToPlaylistPosition) {
+                                AddToPlaylistPosition.BEGINNING -> stringResource(R.string.playlist_position_beginning)
+                                AddToPlaylistPosition.END -> stringResource(R.string.playlist_position_end)
+                            }
+                        )
+                    },
+                    onClick = { showAddToPlaylistPositionDialog = true },
+                )
+            ),
         )
 
         Spacer(modifier = Modifier.height(27.dp))

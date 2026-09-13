@@ -316,6 +316,7 @@
     <button data-tab="errors">Error log</button>
     <button data-tab="users">Users</button>
     <button data-tab="crashes">Crashes</button>
+    <button data-tab="docs">Docs</button>
   </nav>
   <main>
     <section id="tab-overview"></section>
@@ -323,6 +324,21 @@
     <section id="tab-errors" class="hidden"></section>
     <section id="tab-users" class="hidden"></section>
     <section id="tab-crashes" class="hidden"></section>
+    <section id="tab-docs" class="hidden">
+      <h2>Docs</h2>
+      <p class="detail">All project docs are HTML renderings of the MDs, with <code>Date / Status / Why</code> per AGENTS.md, viewable only from the backend domain at <code>/docs</code>.</p>
+      <ul style="margin:12px 0 0 18px; line-height:1.8">
+        <li><a href="/docs/" target="_blank">Docs index</a> — central list</li>
+        <li><a href="/docs/AGENTS.html" target="_blank">AGENTS.md</a> — AI rules + date rule</li>
+        <li><a href="/docs/CHANGES.html" target="_blank">CHANGES.md</a> — running log</li>
+        <li><a href="/docs/INVESTIGATION_BLEND.html" target="_blank">INVESTIGATION_BLEND.md</a></li>
+        <li><a href="/docs/BLEND_UI_PLAN.html" target="_blank">BLEND_UI_PLAN.md</a></li>
+        <li><a href="/docs/BLEND_IMPLEMENTATION_REPORT.html" target="_blank">BLEND_IMPLEMENTATION_REPORT.md</a></li>
+        <li><a href="/docs/SECURITY_AUDIT_RLS.html" target="_blank">SECURITY_AUDIT_RLS.md</a></li>
+        <li><a href="/docs/INVESTIGATION_LISTEN_TOGETHER.html" target="_blank">INVESTIGATION_LISTEN_TOGETHER.md</a></li>
+        <li><a href="/docs/INVESTIGATION_QUEUE.html" target="_blank">INVESTIGATION_QUEUE.md</a></li>
+      </ul>
+    </section>
   </main>
 </div>
 
@@ -547,6 +563,7 @@ async function loadErrors() {
         <input id="f-path" placeholder="Filter path" value="${esc(errorFilter.path)}">
         <button class="secondary" id="apply-errors">Apply</button>
         <button class="ghost" id="clear-errors">Clear</button>
+        <button class="ghost" id="cleanup-errors" style="margin-left:auto; border-color:var(--danger); color:var(--danger)">Clean up &gt;7d</button>
       </div>
       <table>
         <thead><tr><th>Time</th><th>Status</th><th>Method</th><th>Path</th><th>IP</th></tr></thead>
@@ -570,6 +587,11 @@ async function loadErrors() {
     document.getElementById('clear-errors').onclick = () => {
       errorFilter = { status: '', ip: '', path: '' };
       loadErrors();
+    };
+    const cleanupBtn = document.getElementById('cleanup-errors');
+    if (cleanupBtn) cleanupBtn.onclick = async () => {
+      if (!confirm('Delete api_error_logs older than 7 days?')) return;
+      try { await api('/admin/errors/cleanup', {method: 'DELETE'}); toast('Cleaned up old errors'); loadErrors(); } catch(e){ toast(e.message); }
     };
   } catch (e) {
     tab.innerHTML = `<p class="empty">Failed to load: ${esc(e.message)}</p>`;
@@ -693,8 +715,9 @@ document.querySelectorAll('nav button[data-tab]').forEach(btn => {
   btn.onclick = () => {
     document.querySelectorAll('nav button[data-tab]').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    ['overview', 'live', 'errors', 'users', 'crashes'].forEach(t => {
-      document.getElementById('tab-' + t).classList.toggle('hidden', t !== btn.dataset.tab);
+    ['overview', 'live', 'errors', 'users', 'crashes', 'docs'].forEach(t => {
+      const el = document.getElementById('tab-' + t);
+      if (el) el.classList.toggle('hidden', t !== btn.dataset.tab);
     });
     if (btn.dataset.tab === 'live') startActivityPoll();
     else stopActivityPoll();

@@ -60,6 +60,13 @@ internal fun <T> upcomingQueueItems(
     currentIndex: Int,
 ): List<T> = if (currentIndex in queue.indices) queue.drop(currentIndex + 1) else emptyList()
 
+private const val ACTIVE_PLAYBACK_SYNC_TOLERANCE_MS = 2_000L
+
+internal fun shouldSeekDuringActivePlayback(
+    positionDifferenceMs: Long,
+    playbackReady: Boolean,
+): Boolean = playbackReady && positionDifferenceMs > ACTIVE_PLAYBACK_SYNC_TOLERANCE_MS
+
 /**
  * Manager that bridges the Listen Together WebSocket client with the music player.
  * Handles syncing playback actions between connected users.
@@ -120,7 +127,11 @@ class ListenTogetherManager
         private var driftAppliedPlaybackParameters: PlaybackParameters? = null
         private var driftCorrectedPlayer: Player? = null
         private var driftCorrectionGeneration = 0
+        private var latestDriftPosition: Long = 0L
+        private var latestDriftEffectiveAt: Long? = null
+        private var latestDriftTrackId: String? = null
         private var lastAppliedRevision = 0L
+        private var lastAppliedServerTime = 0L
         private var queueSyncGeneration = 0
         private var queueMutationJob: Job? = null
         private var applyNextHostSnapshot = false
@@ -715,6 +726,10 @@ class ListenTogetherManager
             lastRole = RoomRole.NONE
             lastSyncActionTime = 0L // Reset sync debouncing
             lastAppliedRevision = 0L
+            lastAppliedServerTime = 0L
+            latestDriftPosition = 0L
+            latestDriftEffectiveAt = null
+            latestDriftTrackId = null
             applyNextHostSnapshot = false
             invalidatePendingQueueMutations()
             ++currentTrackGeneration // Increment to invalidate any pending track-change coroutines
@@ -874,6 +889,9 @@ class ListenTogetherManager
             val baseParameters = player.playbackParameters
             driftBasePlaybackParameters = baseParameters
             driftCorrectedPlayer = player
+            latestDriftPosition = position
+            latestDriftEffectiveAt = effectiveAtServerTime
+            latestDriftTrackId = trackId
             val generation = driftCorrectionGeneration
             driftCorrectionJob =
                 scope.launch {
@@ -882,9 +900,18 @@ class ListenTogetherManager
                         playerConnection === connection &&
                         !isHost &&
                         player.playWhenReady &&
-                        (trackId == null || player.currentMediaItem?.mediaId == trackId)
+                        (latestDriftTrackId == null || player.currentMediaItem?.mediaId == latestDriftTrackId)
                     ) {
-                        val target = client.positionAtServerTime(position, effectiveAtServerTime, isPlaying = true)
+                        val targetOrNull = client.positionAtServerTime(
+                            latestDriftPosition,
+                            latestDriftEffectiveAt,
+                            isPlaying = true,
+                        )
+                        if (targetOrNull == null) {
+                            Timber.tag(TAG).w("Drift: clock stale, pausing correction until fresh ping")
+                            break
+                        }
+                        val target = targetOrNull
                         val drift = target - player.currentPosition
                         val absoluteDrift = kotlin.math.abs(drift)
                         if (absoluteDrift <= SOFT_SYNC_THRESHOLD_MS) break
@@ -922,22 +949,26 @@ class ListenTogetherManager
             Timber.tag(TAG).d("Applying pending sync: track=$pendingTrackId, pos=${pending.position}, play=${pending.isPlaying}")
             isSyncing = true
 
-            val targetPos =
+            val targetPosOrNull =
                 client.positionAtServerTime(
                     pending.position,
                     pending.lastUpdate.takeIf { it > 0L },
                     pending.isPlaying,
                 )
-            val posDiff = kotlin.math.abs(player.currentPosition - targetPos)
-            val willPlay = pending.isPlaying
-
-            if (posDiff > SOFT_SYNC_THRESHOLD_MS) {
-                Timber
-                    .tag(
-                        TAG,
-                    ).d("Applying pending sync: seeking ${player.currentPosition} -> $targetPos (diff ${posDiff}ms)")
-                connection.seekTo(targetPos)
+            if (targetPosOrNull == null) {
+                Timber.tag(TAG).w("Clock stale in pending sync — skipping seek, keeping current position ${player.currentPosition}")
+            } else {
+                val targetPos = targetPosOrNull
+                val posDiff = kotlin.math.abs(player.currentPosition - targetPos)
+                if (posDiff > SOFT_SYNC_THRESHOLD_MS) {
+                    Timber
+                        .tag(
+                            TAG,
+                        ).d("Applying pending sync: seeking ${player.currentPosition} -> $targetPos (diff ${posDiff}ms)")
+                    connection.seekTo(targetPos)
+                }
             }
+            val willPlay = pending.isPlaying
 
             // Apply play/pause state only if it needs to change
             if (willPlay && !player.playWhenReady) {
@@ -1012,7 +1043,16 @@ class ListenTogetherManager
                 Timber.tag(TAG).d("Ignoring stale playback revision ${action.revision} < $lastAppliedRevision")
                 return
             }
+            // Fix 5: staleness guard for serverTime (defense in depth alongside clock staleness)
+            val incomingServerTime = action.serverTime
+            if (incomingServerTime != null && incomingServerTime > 0L && lastAppliedServerTime > 0L && incomingServerTime < lastAppliedServerTime) {
+                Timber.tag(TAG).d("Ignoring stale serverTime $incomingServerTime < $lastAppliedServerTime (rev ${action.revision})")
+                return
+            }
             lastAppliedRevision = maxOf(lastAppliedRevision, action.revision)
+            if (incomingServerTime != null && incomingServerTime > 0L) {
+                lastAppliedServerTime = maxOf(lastAppliedServerTime, incomingServerTime)
+            }
             val connection = playerConnection
             if (connection == null) {
                 Timber.tag(TAG).w("Cannot sync playback - no player connection")
@@ -1030,6 +1070,15 @@ class ListenTogetherManager
                         val basePos = action.position ?: 0L
                         val now = SystemClock.elapsedRealtime()
                         val adjustedPos = client.positionAtServerTime(basePos, action.serverTime, isPlaying = true)
+
+                        // Fix 1+2: stale clock → skip seek for this cycle (don't act on bad data)
+                        if (adjustedPos == null) {
+                            Timber.tag(TAG).w("Guest: clock stale, skipping PLAY seek (basePos=$basePos)")
+                            if (!player.playWhenReady) connection.play()
+                            cancelDriftCorrection()
+                            lastSyncActionTime = now
+                            return
+                        }
 
                         Timber.tag(TAG).d("Guest: PLAY at position $adjustedPos, currently playing=${player.playWhenReady}")
 
@@ -1075,23 +1124,25 @@ class ListenTogetherManager
                             return
                         }
 
-                        val posDiff = kotlin.math.abs(player.currentPosition - adjustedPos)
+                        val drift = adjustedPos - player.currentPosition
+                        val posDiff = kotlin.math.abs(drift)
                         val alreadyPlaying = player.playWhenReady
                         if (alreadyPlaying) {
-                            if (posDiff >= HARD_SYNC_THRESHOLD_MS) {
-                                Timber.tag(TAG).d("Guest: hard sync ${player.currentPosition} -> $adjustedPos (diff ${posDiff}ms)")
+                            // PLAY is also the host heartbeat, so ordinary drift must not interrupt playback.
+                            // Forward-only: never seek backward on a heartbeat (stale-clock loop guard).
+                            if (shouldSeekDuringActivePlayback(drift, player.playbackState == Player.STATE_READY)) {
+                                cancelDriftCorrection()
+                                Timber.tag(TAG).d("Guest: hard sync forward ${player.currentPosition} -> $adjustedPos (drift ${drift}ms)")
                                 connection.seekTo(adjustedPos)
+                            } else if (drift <= -HARD_SYNC_THRESHOLD_MS) {
+                                Timber.tag(TAG).w("Guest: skipping backward hard seek $drift ms (host behind guest) — letting drift handle it")
                             }
                         } else {
+                            cancelDriftCorrection()
                             if (posDiff > SOFT_SYNC_THRESHOLD_MS) {
                                 connection.seekTo(adjustedPos)
                             }
                             connection.play()
-                        }
-                        if (posDiff > SOFT_SYNC_THRESHOLD_MS && posDiff < HARD_SYNC_THRESHOLD_MS) {
-                            startDriftCorrection(connection, playTarget, basePos, action.serverTime)
-                        } else {
-                            cancelDriftCorrection()
                         }
                         lastSyncActionTime = now
                     }
@@ -1159,7 +1210,11 @@ class ListenTogetherManager
                         val pos = action.position ?: 0L
                         val now = SystemClock.elapsedRealtime()
                         val playing = roomState.value?.isPlaying == true
-                        val adjustedPos = client.positionAtServerTime(pos, action.serverTime, playing)
+                        val adjustedPosOrNull = client.positionAtServerTime(pos, action.serverTime, playing)
+                        val adjustedPos = adjustedPosOrNull ?: run {
+                            Timber.tag(TAG).w("Guest: clock stale on SEEK, using raw pos $pos")
+                            pos
+                        }
 
                         val seekTarget = action.trackId?.takeIf { it.isNotEmpty() }
                         if (bufferingTrackId != null && (seekTarget == null || seekTarget == bufferingTrackId)) {
@@ -1420,7 +1475,14 @@ class ListenTogetherManager
                 Timber.tag(TAG).d("Ignoring stale sync revision ${state.revision} < $lastAppliedRevision")
                 return
             }
+            if (state.lastUpdate > 0L && lastAppliedServerTime > 0L && state.lastUpdate < lastAppliedServerTime) {
+                Timber.tag(TAG).d("Ignoring stale sync serverTime ${state.lastUpdate} < $lastAppliedServerTime (rev ${state.revision})")
+                return
+            }
             lastAppliedRevision = maxOf(lastAppliedRevision, state.revision)
+            if (state.lastUpdate > 0L) {
+                lastAppliedServerTime = maxOf(lastAppliedServerTime, state.lastUpdate)
+            }
             Timber.tag(TAG).d("handleSyncState: playing=${state.isPlaying}, pos=${state.position}, track=${state.currentTrack?.id}")
             if (!forceFullState && state.currentTrack != null && bufferingTrackId == state.currentTrack.id) {
                 pendingSyncState = state
@@ -1470,7 +1532,11 @@ class ListenTogetherManager
             }
             val player = connection.player
             cancelDriftCorrection()
-            val initialPosition = client.positionAtServerTime(position, effectiveAtServerTime, isPlaying)
+            val initialPositionOrNull = client.positionAtServerTime(position, effectiveAtServerTime, isPlaying)
+            val initialPosition = initialPositionOrNull ?: run {
+                Timber.tag(TAG).w("Clock stale in applyPlaybackState — using raw position $position")
+                position
+            }
 
             Timber
                 .tag(
@@ -1564,7 +1630,11 @@ class ListenTogetherManager
                             attempts++
                         }
                         if (player.playbackState == Player.STATE_READY) {
-                            val readyPosition = client.positionAtServerTime(position, effectiveAtServerTime, isPlaying)
+                            val readyPositionOrNull = client.positionAtServerTime(position, effectiveAtServerTime, isPlaying)
+                            val readyPosition = readyPositionOrNull ?: run {
+                                Timber.tag(TAG).w("Clock stale in bypass sync — using raw position $position")
+                                position
+                            }
                             Timber.tag(TAG).d("Player ready after ${attempts * 50}ms, seeking to $readyPosition")
                             player.seekTo(readyPosition)
                             if (isPlaying) {
@@ -2045,7 +2115,7 @@ class ListenTogetherManager
             heartbeatJob =
                 scope.launch {
                     while (heartbeatJob?.isActive == true && isInRoom && isHost) {
-                        delay(4000L)
+                        delay(8000L)
                         playerConnection?.player?.let { player ->
                             if (player.playWhenReady && player.playbackState == Player.STATE_READY) {
                                 val pos = player.currentPosition
@@ -2060,7 +2130,7 @@ class ListenTogetherManager
                         }
                     }
                 }
-            Timber.tag(TAG).d("Host heartbeat started (4s interval)")
+            Timber.tag(TAG).d("Host heartbeat started (8s interval)")
         }
 
         private fun stopHeartbeat() {

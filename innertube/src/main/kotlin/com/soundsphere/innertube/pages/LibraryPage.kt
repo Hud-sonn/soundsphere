@@ -11,7 +11,6 @@ import com.soundsphere.innertube.models.PodcastItem
 import com.soundsphere.innertube.models.Run
 import com.soundsphere.innertube.models.SongItem
 import com.soundsphere.innertube.models.YTItem
-import com.soundsphere.innertube.models.oddElements
 import com.soundsphere.innertube.models.splitBySeparator
 import com.soundsphere.innertube.utils.parseTime
 import timber.log.Timber
@@ -168,14 +167,13 @@ data class LibraryPage(
                         ?.musicResponsiveListItemFlexColumnRenderer?.text
                         ?.runs?.firstOrNull()?.text ?: return null
 
-                    val artistRuns = renderer.flexColumns.getOrNull(1)?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.oddElements()
-
-                    // For uploaded songs, artists may not have browseEndpoint - make it optional
-                    val artists = artistRuns?.mapNotNull {
-                        val browseId = it.navigationEndpoint?.browseEndpoint?.browseId
-                        // For uploaded songs, use empty string for artist ID if not available
-                        Artist(name = it.text, id = browseId ?: "")
-                    } ?: emptyList()
+                    val artists = PageHelper.extractArtists(
+                        renderer.flexColumns
+                            .getOrNull(1)
+                            ?.musicResponsiveListItemFlexColumnRenderer
+                            ?.text
+                            ?.runs
+                    )
 
                     val albumRun = renderer.flexColumns.getOrNull(2)?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.firstOrNull()
 

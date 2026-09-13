@@ -52,9 +52,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.net.toUri
 import androidx.media3.exoplayer.offline.Download
-import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
 import com.soundsphere.innertube.YouTube
 import com.soundsphere.music.LocalNavController
@@ -153,16 +151,7 @@ fun YouTubeAlbumMenu(
 
     AddToPlaylistDialog(
         isVisible = showChoosePlaylistDialog,
-        onGetSong = { playlist ->
-            coroutineScope.launch(Dispatchers.IO) {
-                playlist.playlist.browseId?.let { playlistId ->
-                    album?.album?.playlistId?.let { addPlaylistId ->
-                        YouTube.addPlaylistToPlaylist(playlistId, addPlaylistId)
-                    }
-                }
-            }
-            album?.songs?.map { it.id }.orEmpty()
-        },
+        onGetSong = { album?.songs?.map { it.id }.orEmpty() },
         onGetSongIds = { album?.songs?.map { it.id }.orEmpty() },
         onDismiss = { showChoosePlaylistDialog = false }
     )
@@ -503,20 +492,7 @@ fun YouTubeAlbumMenu(
                                         )
                                     },
                                     onClick = {
-                                        album?.songs?.forEach { song ->
-                                            val downloadRequest =
-                                                DownloadRequest
-                                                    .Builder(song.id, song.id.toUri())
-                                                    .setCustomCacheKey(song.id)
-                                                    .setData(song.song.title.toByteArray())
-                                                    .build()
-                                            DownloadService.sendAddDownload(
-                                                context,
-                                                ExoDownloadService::class.java,
-                                                downloadRequest,
-                                                false,
-                                            )
-                                        }
+                                        album?.songs?.forEach { downloadUtil.download(it) }
                                     },
                                 )
                             }

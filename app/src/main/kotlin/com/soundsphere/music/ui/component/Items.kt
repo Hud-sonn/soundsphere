@@ -577,7 +577,10 @@ fun SongListItem(
              },
              thumbnailContent = {
                  ItemThumbnail(
-                     thumbnailUrl = song.song.thumbnailUrl?.resize(200, 200),
+                     thumbnailUrl =
+                         song.song.thumbnailUrl?.let { thumbnailUrl ->
+                             if (song.isDownloaded) thumbnailUrl else thumbnailUrl.resize(200, 200)
+                         },
                      albumIndex = albumIndex,
                      isSelected = isSelected,
                      isActive = isActive,
@@ -963,22 +966,31 @@ fun PlaylistListItem(
     thumbnailContent = {
         PlaylistThumbnail(
             thumbnails = playlist.thumbnails,
+            customUrl = playlist.playlist.thumbnailUrl,
             size = ListThumbnailSize,
             placeHolder = {
-                val painter = when (playlist.playlist.name) {
-                    stringResource(R.string.liked) -> R.drawable.favorite_border
-                    stringResource(R.string.offline) -> R.drawable.offline
-                    stringResource(R.string.cached_playlist) -> R.drawable.cached
-                    // R.drawable.backup as placeholder
-                    stringResource(R.string.uploaded_playlist) -> R.drawable.backup
-                    else -> if (autoPlaylist) R.drawable.trending_up else R.drawable.queue_music
+                // Blends without art get the reusable theme-adaptive mark.
+                if (playlist.playlist.isCollaborative) {
+                    BlendIcon(
+                        modifier = Modifier.size(ListThumbnailSize).padding(8.dp),
+                        contentDescription = stringResource(R.string.blend),
+                    )
+                } else {
+                    val painter = when (playlist.playlist.name) {
+                        stringResource(R.string.liked) -> R.drawable.favorite_border
+                        stringResource(R.string.offline) -> R.drawable.offline
+                        stringResource(R.string.cached_playlist) -> R.drawable.cached
+                        // R.drawable.backup as placeholder
+                        stringResource(R.string.uploaded_playlist) -> R.drawable.backup
+                        else -> if (autoPlaylist) R.drawable.trending_up else R.drawable.queue_music
+                    }
+                    Icon(
+                        painter = painterResource(painter),
+                        contentDescription = null,
+                        tint = LocalContentColor.current.copy(alpha = 0.8f),
+                        modifier = Modifier.size(ListThumbnailSize / 2)
+                    )
                 }
-                Icon(
-                    painter = painterResource(painter),
-                    contentDescription = null,
-                    tint = LocalContentColor.current.copy(alpha = 0.8f),
-                    modifier = Modifier.size(ListThumbnailSize / 2)
-                )
             },
             shape = RoundedCornerShape(thumbnailCornerRadius())
         )
@@ -1018,6 +1030,18 @@ fun PlaylistGridItem(
             )
         }
 
+        if (playlist.playlist.isCollaborative) {
+            androidx.compose.foundation.layout.Box(
+                modifier = Modifier
+                    .size(20.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primaryContainer),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(painter = painterResource(R.drawable.add), contentDescription = null, modifier = Modifier.size(12.dp), tint = MaterialTheme.colorScheme.onPrimaryContainer)
+            }
+            androidx.compose.foundation.layout.Spacer(modifier = Modifier.width(4.dp))
+        }
         Icon.Download(downloadState)
     },
     fillMaxWidth: Boolean = false,
@@ -1033,7 +1057,7 @@ fun PlaylistGridItem(
         )
     },
     subtitle = {
-        val subtitle = if (autoPlaylist) {
+        val base = if (autoPlaylist) {
             ""
         } else {
             if (playlist.songCount == 0 && playlist.playlist.remoteSongCount != null) {
@@ -1050,8 +1074,9 @@ fun PlaylistGridItem(
                 )
             }
         }
+        val blendSuffix = if (playlist.playlist.isCollaborative) " • Blend" else ""
         Text(
-            text = subtitle,
+            text = base + blendSuffix,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.secondary,
             maxLines = 2,
@@ -1063,26 +1088,39 @@ fun PlaylistGridItem(
         val width = maxWidth
         PlaylistThumbnail(
             thumbnails = playlist.thumbnails,
+            customUrl = playlist.playlist.thumbnailUrl,
             size = width,
             placeHolder = {
-                val painter = when (playlist.playlist.name) {
-                    stringResource(R.string.liked) -> R.drawable.favorite_border
-                    stringResource(R.string.offline) -> R.drawable.offline
-                    stringResource(R.string.cached_playlist) -> R.drawable.cached
-                    // R.drawable.backup as placeholder
-                    stringResource(R.string.uploaded_playlist) -> R.drawable.backup
-                    else -> if (autoPlaylist) R.drawable.trending_up else R.drawable.queue_music
-                }
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    Icon(
-                        painter = painterResource(painter),
-                        contentDescription = null,
-                        tint = LocalContentColor.current.copy(alpha = 0.8f),
-                        modifier = Modifier.size(width / 2)
-                    )
+                if (playlist.playlist.isCollaborative) {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        BlendIcon(
+                            modifier = Modifier.size(width / 2),
+                            contentDescription = stringResource(R.string.blend),
+                        )
+                    }
+                } else {
+                    val painter = when (playlist.playlist.name) {
+                        stringResource(R.string.liked) -> R.drawable.favorite_border
+                        stringResource(R.string.offline) -> R.drawable.offline
+                        stringResource(R.string.cached_playlist) -> R.drawable.cached
+                        // R.drawable.backup as placeholder
+                        stringResource(R.string.uploaded_playlist) -> R.drawable.backup
+                        else -> if (autoPlaylist) R.drawable.trending_up else R.drawable.queue_music
+                    }
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        Icon(
+                            painter = painterResource(painter),
+                            contentDescription = null,
+                            tint = LocalContentColor.current.copy(alpha = 0.8f),
+                            modifier = Modifier.size(width / 2)
+                        )
+                    }
                 }
             },
             shape = RoundedCornerShape(thumbnailCornerRadius())
@@ -1647,10 +1685,32 @@ fun PlaylistThumbnail(
     size: Dp,
     placeHolder: @Composable () -> Unit,
     shape: Shape,
-    cacheKey: String? = null
+    cacheKey: String? = null,
+    // Custom uploaded cover (Blend covers, YT playlist art). When set it wins
+    // over the song-art mosaic so Library tiles match Home + detail header.
+    customUrl: String? = null,
 ) {
     val cropAlbumArt by rememberPreference(CropAlbumArtKey, false)
-    
+
+    if (customUrl != null) {
+        AsyncImage(
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(customUrl)
+                .memoryCachePolicy(coil3.request.CachePolicy.ENABLED)
+                .diskCachePolicy(coil3.request.CachePolicy.ENABLED)
+                .networkCachePolicy(coil3.request.CachePolicy.ENABLED)
+                .build(),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            placeholder = painterResource(R.drawable.queue_music),
+            error = painterResource(R.drawable.queue_music),
+            modifier = Modifier
+                .size(size)
+                .clip(shape)
+        )
+        return
+    }
+
     when (thumbnails.size) {
         0 -> Box(
             contentAlignment = Alignment.Center,

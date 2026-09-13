@@ -126,6 +126,7 @@ import com.soundsphere.music.db.entities.LocalItem
 import com.soundsphere.music.db.entities.Playlist
 import com.soundsphere.music.db.entities.PlaylistEntity
 import com.soundsphere.music.db.entities.PlaylistSongMap
+import com.soundsphere.music.db.entities.RecentlyPlayedEntity
 import com.soundsphere.music.db.entities.Song
 import com.soundsphere.music.extensions.toMediaItem
 import com.soundsphere.music.models.toMediaMetadata
@@ -179,6 +180,10 @@ sealed class HomeSection(
 ) {
     data object SpeedDial : HomeSection("speed_dial", 100)
 
+    data object RecentlyPlayed : HomeSection("recently_played", 95)
+
+    data object BlendPlaylists : HomeSection("blend_playlists", 85)
+
     data object QuickPicks : HomeSection("quick_picks", 90)
 
     data object DailyDiscover : HomeSection("daily_discover", 80)
@@ -201,6 +206,50 @@ sealed class HomeSection(
 
     data object MoodAndGenres : HomeSection("mood_and_genres", 5)
 }
+
+/** Maps a stored recency entry to the renderable YouTube item it refers to. */
+private fun RecentlyPlayedEntity.toRecentlyPlayedYtItem(): YTItem? =
+    when (sourceType) {
+        "song" ->
+            SongItem(
+                id = sourceId,
+                title = sourceName.orEmpty(),
+                artists = emptyList(),
+                thumbnail = sourceThumbnail.orEmpty(),
+            )
+
+        "album" ->
+            AlbumItem(
+                browseId = sourceId,
+                playlistId = sourceId,
+                title = sourceName.orEmpty(),
+                artists = null,
+                thumbnail = sourceThumbnail.orEmpty(),
+            )
+
+        "artist" ->
+            ArtistItem(
+                id = sourceId,
+                title = sourceName.orEmpty(),
+                thumbnail = sourceThumbnail,
+                shuffleEndpoint = null,
+                radioEndpoint = null,
+            )
+
+        "playlist" ->
+            PlaylistItem(
+                id = sourceId,
+                title = sourceName.orEmpty(),
+                author = null,
+                songCountText = null,
+                thumbnail = sourceThumbnail,
+                playEndpoint = null,
+                shuffleEndpoint = null,
+                radioEndpoint = null,
+            )
+
+        else -> null
+    }
 
 @Composable
 fun CommunityPlaylistCard(
@@ -658,6 +707,8 @@ fun HomeScreen(
     val allYtItems by viewModel.allYtItems.collectAsStateWithLifecycle()
     val speedDialItems by viewModel.speedDialItems.collectAsStateWithLifecycle()
     val pinnedSpeedDialItems by viewModel.pinnedSpeedDialItems.collectAsStateWithLifecycle()
+    val recentlyPlayed by viewModel.recentlyPlayed.collectAsStateWithLifecycle()
+    val blendPlaylists by viewModel.blendPlaylists.collectAsStateWithLifecycle()
     val selectedChip by viewModel.selectedChip.collectAsStateWithLifecycle()
 
     // Official podcast API data
@@ -1010,12 +1061,14 @@ fun HomeScreen(
     }
 
     val homeSections =
-        remember(
-            randomizeHomeOrder,
-            randomSeed,
-            selectedChip,
-            speedDialItems,
-            quickPicks,
+            remember(
+                randomizeHomeOrder,
+                randomSeed,
+                selectedChip,
+                speedDialItems,
+                recentlyPlayed,
+                blendPlaylists,
+                quickPicks,
             dailyDiscover,
             keepListening,
             accountPlaylists,
@@ -1029,6 +1082,8 @@ fun HomeScreen(
             val chipActive = selectedChip != null
 
             if (!chipActive && speedDialItems.isNotEmpty()) list.add(HomeSection.SpeedDial)
+            if (!chipActive && recentlyPlayed.isNotEmpty()) list.add(HomeSection.RecentlyPlayed)
+            if (!chipActive && blendPlaylists.isNotEmpty()) list.add(HomeSection.BlendPlaylists)
             if (!chipActive && quickPicks?.isNotEmpty() == true) list.add(HomeSection.QuickPicks)
             if (!chipActive && communityPlaylists?.isNotEmpty() == true) list.add(HomeSection.FromTheCommunity)
             if (!chipActive && dailyDiscover?.isNotEmpty() == true) list.add(HomeSection.DailyDiscover)
@@ -1059,12 +1114,13 @@ fun HomeScreen(
                     // All "main" sections start closer together
                     val base =
                         when (section) {
-                            HomeSection.SpeedDial,
-                            HomeSection.QuickPicks,
-                            HomeSection.DailyDiscover,
-                            -> 500
+                        HomeSection.SpeedDial,
+                        HomeSection.RecentlyPlayed,
+                        HomeSection.QuickPicks,
+                        HomeSection.DailyDiscover,
+                        -> 500
 
-                            // Top tier starts equal
+                        // Top tier starts equal
 
                             HomeSection.KeepListening,
                             HomeSection.AccountPlaylists,
@@ -1082,6 +1138,7 @@ fun HomeScreen(
                             // Top tier: High variance to allow shuffling among themselves
                             // Range: [500-200, 500+400] = [300, 900]
                             HomeSection.SpeedDial,
+                            HomeSection.RecentlyPlayed,
                             HomeSection.QuickPicks,
                             HomeSection.DailyDiscover,
                             -> sectionRandom.nextInt(-200, 400)
@@ -1101,10 +1158,11 @@ fun HomeScreen(
                     base + modifier
                 }
             } else {
-                val defaultOrder =
-                    mapOf(
-                        HomeSection.SpeedDial to 100,
-                        HomeSection.QuickPicks to 90,
+                    val defaultOrder =
+                        mapOf(
+                            HomeSection.SpeedDial to 100,
+                            HomeSection.RecentlyPlayed to 95,
+                            HomeSection.QuickPicks to 90,
                         HomeSection.FromTheCommunity to 80,
                         HomeSection.DailyDiscover to 70,
                         HomeSection.KeepListening to 60,
@@ -1280,15 +1338,6 @@ fun HomeScreen(
                                     ytGridItem(podcast)
                                 }
                             }
-                        }
-                    }
-
-                    // Add "Latest Episodes" header before episode sections (if we have any sections)
-                    if (homeSections.filterIsInstance<HomeSection.HomePageSection>().isNotEmpty()) {
-                        item(key = "0_latest_episodes_title") {
-                            NavigationTitle(
-                                title = stringResource(R.string.latest_episodes),
-                            )
                         }
                     }
 
@@ -1749,6 +1798,119 @@ fun HomeScreen(
                                                                 .size(8.dp),
                                                     )
                                                 }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        HomeSection.RecentlyPlayed -> {
+                            recentlyPlayed.takeIf { it.isNotEmpty() }?.let { entries ->
+                                item(key = "recently_played_title") {
+                                    NavigationTitle(
+                                        title = stringResource(R.string.recently_played),
+                                    )
+                                }
+
+                                item(key = "recently_played_list") {
+                                    LazyRow(
+                                        contentPadding =
+                                            WindowInsets.systemBars
+                                                .only(WindowInsetsSides.Horizontal)
+                                                .asPaddingValues(),
+                                    ) {
+                                        items(
+                                            items = entries.distinctBy { it.sourceType to it.sourceId },
+                                            key = { "home_recently_played_${it.sourceType}_${it.sourceId}" },
+                                        ) { entry ->
+                                            val ytItem = entry.toRecentlyPlayedYtItem() ?: return@items
+                                            if (entry.sourceType == "playlist") {
+                                                // Local playlists must open their local screen; only
+                                                // unknown ids fall through to the online route.
+                                                val localPlaylist by database
+                                                    .playlist(entry.sourceId)
+                                                    .collectAsStateWithLifecycle(initialValue = null)
+
+                                                YouTubeGridItem(
+                                                    item = ytItem,
+                                                    isActive = false,
+                                                    isPlaying = isPlaying,
+                                                    coroutineScope = scope,
+                                                    thumbnailRatio = 1f,
+                                                    modifier =
+                                                        Modifier.combinedClickable(
+                                                            onClick = {
+                                                                val id = entry.sourceId.removePrefix("VL")
+                                                                if (localPlaylist != null) {
+                                                                    navController.navigate("local_playlist/$id")
+                                                                } else {
+                                                                    navController.navigate("online_playlist/$id")
+                                                                }
+                                                            },
+                                                        ),
+                                                )
+                                            } else {
+                                                ytGridItem(ytItem)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        HomeSection.BlendPlaylists -> {
+                            blendPlaylists.takeIf { it.isNotEmpty() }?.let { blends ->
+                                item(key = "blend_title") {
+                                    NavigationTitle(
+                                        title = stringResource(R.string.blend),
+                                        onClick = { navController.navigate("library/playlists") },
+                                    )
+                                }
+                                item(key = "blend_list") {
+                                    androidx.compose.foundation.lazy.LazyRow(
+                                        contentPadding = WindowInsets.systemBars.only(WindowInsetsSides.Horizontal).asPaddingValues(),
+                                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                        modifier = Modifier.padding(horizontal = 16.dp),
+                                    ) {
+                                        items(blends, key = { "home_blend_${it.playlist.id}" }) { blend ->
+                                            Column(
+                                                modifier = Modifier
+                                                    .width(140.dp)
+                                                    .combinedClickable(onClick = { navController.navigate("local_playlist/${blend.playlist.id}") }),
+                                                horizontalAlignment = Alignment.CenterHorizontally,
+                                            ) {
+                                                Box(modifier = Modifier.size(140.dp).clip(RoundedCornerShape(8.dp)).background(MaterialTheme.colorScheme.surfaceVariant)) {
+                                                    // Reusable theme-adaptive Blend mark when no art exists yet.
+                                                    val blendArt = blend.playlist.thumbnailUrl ?: blend.thumbnails.firstOrNull()
+                                                    if (blendArt != null) {
+                                                        AsyncImage(
+                                                            model = blendArt,
+                                                            contentDescription = null,
+                                                            modifier = Modifier.fillMaxSize(),
+                                                            contentScale = ContentScale.Crop,
+                                                        )
+                                                    } else {
+                                                        com.soundsphere.music.ui.component.BlendIcon(
+                                                            modifier = Modifier.fillMaxSize().padding(20.dp),
+                                                            contentDescription = stringResource(R.string.blend),
+                                                        )
+                                                    }
+                                                    Box(
+                                                        modifier = Modifier
+                                                            .align(Alignment.BottomEnd)
+                                                            .padding(4.dp)
+                                                            .size(20.dp)
+                                                            .clip(CircleShape)
+                                                            .background(MaterialTheme.colorScheme.primaryContainer),
+                                                        contentAlignment = Alignment.Center,
+                                                    ) {
+                                                        Icon(painter = painterResource(R.drawable.add), contentDescription = null, modifier = Modifier.size(12.dp), tint = MaterialTheme.colorScheme.onPrimaryContainer)
+                                                    }
+                                                }
+                                                Spacer(modifier = Modifier.height(4.dp))
+                                                Text(blend.playlist.name, style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+                                                Text("${blend.songCount} songs • Blend", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
                                             }
                                         }
                                     }
