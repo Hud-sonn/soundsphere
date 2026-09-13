@@ -26,7 +26,13 @@ fun String.resize(
         return "${split("=w")[0]}=w$w-h$h-p-l90-rj"
     }
     if (this matches "https://yt3\\.ggpht\\.com/.*=s(\\d+)".toRegex()) {
-        return "$this-s${width ?: height}"
+        // Replace the =sNN size param — appending would yield malformed "=s88-s544".
+        val base = split("=s")[0]
+        return if (width != null && height != null) {
+            "$base=w$width-h$height-p-l90-rj"
+        } else {
+            "$base=s${width ?: height}-p-l90-rj"
+        }
     }
     return this
 }

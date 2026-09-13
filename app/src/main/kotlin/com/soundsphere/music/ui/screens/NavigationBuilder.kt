@@ -326,6 +326,50 @@ fun NavGraphBuilder.navigationBuilder(
     }
 
     composable(
+        route = "user/{userId}?playlistId={playlistId}",
+        arguments =
+            listOf(
+                navArgument("userId") {
+                    type = NavType.StringType
+                },
+                navArgument("playlistId") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                },
+            ),
+    ) { backStackEntry ->
+        UserProfileScreen(
+            navController,
+            userId = backStackEntry.arguments?.getString("userId") ?: return@composable,
+            playlistId = backStackEntry.arguments?.getString("playlistId"),
+        )
+    }
+
+    composable("create_blend") {
+        CreateBlendScreen(navController)
+    }
+
+    composable("ai_curator") {
+        AiCuratorScreen(navController)
+    }
+
+    composable(
+        route = "blend_invite/{playlistId}",
+        arguments =
+            listOf(
+                navArgument("playlistId") {
+                    type = NavType.StringType
+                },
+            ),
+    ) { backStackEntry ->
+        BlendInviteScreen(
+            navController,
+            playlistId = backStackEntry.arguments?.getString("playlistId") ?: return@composable,
+        )
+    }
+
+    composable(
         route = "auto_playlist/{playlist}",
         arguments =
             listOf(
@@ -477,6 +521,6 @@ fun NavGraphBuilder.navigationBuilder(
         RecognitionHistoryScreen(navController)
     }
     composable("settings/android_auto") {
-        AndroidAutoSettings(navController, scrollBehavior)
+        AndroidAutoSettings(navController)
     }
 }

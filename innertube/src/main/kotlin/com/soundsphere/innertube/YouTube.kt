@@ -76,7 +76,6 @@ import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonPrimitive
@@ -1199,10 +1198,8 @@ object YouTube {
 
             val appendedContents: List<MusicShelfRenderer.Content> =
                 response.onResponseReceivedActions
-                    ?.firstOrNull()
-                    ?.appendContinuationItemsAction
-                    ?.continuationItems
                     .orEmpty()
+                    .flatMap { it.appendContinuationItemsAction?.continuationItems.orEmpty() }
 
             val allContents = mainContents + shelfContents + musicShelfContinuationContents + appendedContents
 
@@ -1212,27 +1209,19 @@ object YouTube {
                     .mapNotNull { renderer -> PlaylistPage.fromMusicResponsiveListItemRenderer(renderer) }
 
             val nextContinuation =
-                if (songs.isEmpty()) {
-                    null
-                } else {
-                    response.continuationContents
-                        ?.sectionListContinuation
+                response.continuationContents
+                    ?.sectionListContinuation
+                    ?.continuations
+                    ?.getContinuation()
+                    ?: response.continuationContents
+                        ?.musicPlaylistShelfContinuation
                         ?.continuations
                         ?.getContinuation()
-                        ?: response.continuationContents
-                            ?.musicPlaylistShelfContinuation
-                            ?.continuations
-                            ?.getContinuation()
-                        ?: response.continuationContents
-                            ?.musicShelfContinuation
-                            ?.continuations
-                            ?.getContinuation()
-                        ?: response.onResponseReceivedActions
-                            ?.firstOrNull()
-                            ?.appendContinuationItemsAction
-                            ?.continuationItems
-                            ?.getContinuation()
-                }
+                    ?: response.continuationContents
+                        ?.musicShelfContinuation
+                        ?.continuations
+                        ?.getContinuation()
+                    ?: appendedContents.getContinuation()
 
             PlaylistContinuationPage(
                 songs = songs,
@@ -3007,10 +2996,8 @@ object YouTube {
         innerTube.moveSongPlaylist(WEB_REMIX, playlistId, setVideoId, successorSetVideoId)
     }
 
-    fun createPlaylist(title: String) =
-        runBlocking {
-            innerTube.createPlaylist(WEB_REMIX, title).body<CreatePlaylistResponse>().playlistId
-        }
+    suspend fun createPlaylist(title: String) =
+        innerTube.createPlaylist(WEB_REMIX, title).body<CreatePlaylistResponse>().playlistId
 
     suspend fun renamePlaylist(
         playlistId: String,
@@ -3557,9 +3544,9 @@ object YouTube {
         onProgress: ((Float) -> Unit)? = null,
     ): Result<Boolean> =
         runCatching {
+            require(data.size.toLong() in 1 until MAX_UPLOAD_SIZE)
             onProgress?.invoke(0f)
 
-            // Step 1: Initialize upload (5% of progress)
             val initResponse = innerTube.initSongUpload(filename, data.size.toLong())
             val uploadUrl =
                 initResponse.headers["X-Goog-Upload-URL"]
@@ -3567,19 +3554,19 @@ object YouTube {
 
             onProgress?.invoke(0.05f)
 
-            // Step 2: Upload file data (5% to 100% of progress)
             val uploadResponse =
                 innerTube.uploadSongData(
                     uploadUrl = uploadUrl,
                     data = data,
                     onProgress = { uploadProgress ->
-                        // Map upload progress (0-1) to overall progress (0.05-1.0)
                         onProgress?.invoke(0.05f + uploadProgress * 0.95f)
                     },
                 )
 
             val status = uploadResponse.headers["X-Goog-Upload-Status"]
-            status == "final"
+            val uploaded = status == "final"
+            if (uploaded) onProgress?.invoke(1f)
+            uploaded
         }
 
     /**
@@ -3692,5 +3679,32 @@ object YouTube {
                 }
             }.awaitAll().filterNotNull().toMap()
         }
+    }
+}
+
+internal class UploadProgressInputStream(
+    input: java.io.InputStream,
+    private val contentLength: Long,
+    private val onProgress: (Float) -> Unit,
+) : java.io.FilterInputStream(input) {
+    private var bytesRead = 0L
+
+    override fun read(): Int =
+        super.read().also { value ->
+            if (value >= 0) reportBytesRead(1)
+        }
+
+    override fun read(
+        buffer: ByteArray,
+        offset: Int,
+        length: Int,
+    ): Int =
+        super.read(buffer, offset, length).also { count ->
+            if (count > 0) reportBytesRead(count)
+        }
+
+    private fun reportBytesRead(count: Int) {
+        bytesRead += count
+        onProgress((bytesRead.toFloat() / contentLength).coerceAtMost(1f))
     }
 }

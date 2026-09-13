@@ -51,9 +51,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.net.toUri
 import androidx.media3.exoplayer.offline.Download
-import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
 import coil3.compose.AsyncImage
 import com.soundsphere.music.LocalNavController
@@ -97,7 +95,8 @@ fun QueueMenu(
     val syncUtils = LocalSyncUtils.current
 
     val librarySong by database.song(mediaMetadata.id).collectAsStateWithLifecycle(initialValue = null)
-    val download by LocalDownloadUtil.current.getDownload(mediaMetadata.id)
+    val downloadUtil = LocalDownloadUtil.current
+    val download by downloadUtil.getDownload(mediaMetadata.id)
         .collectAsStateWithLifecycle(initialValue = null)
 
     var refetchIconDegree by remember { mutableFloatStateOf(0f) }
@@ -117,12 +116,9 @@ fun QueueMenu(
 
     AddToPlaylistDialog(
         isVisible = showChoosePlaylistDialog,
-        onGetSong = { playlist ->
+        onGetSong = {
             database.withTransaction {
                 insert(mediaMetadata)
-            }
-            coroutineScope.launch(Dispatchers.IO) {
-                playlist.playlist.browseId?.let { YouTube.addToPlaylist(it, mediaMetadata.id) }
             }
             listOf(mediaMetadata.id)
         },
@@ -452,21 +448,7 @@ fun QueueMenu(
                                     )
                                 },
                                 onClick = {
-                                    database.transaction {
-                                        insert(mediaMetadata)
-                                    }
-                                    val downloadRequest =
-                                        DownloadRequest
-                                            .Builder(mediaMetadata.id, mediaMetadata.id.toUri())
-                                            .setCustomCacheKey(mediaMetadata.id)
-                                            .setData(mediaMetadata.title.toByteArray())
-                                            .build()
-                                    DownloadService.sendAddDownload(
-                                        context,
-                                        ExoDownloadService::class.java,
-                                        downloadRequest,
-                                        false,
-                                    )
+                                    downloadUtil.download(mediaMetadata)
                                 }
                             )
                         }

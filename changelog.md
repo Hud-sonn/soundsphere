@@ -1,3 +1,49 @@
+---v1.3.0
+# Soundsphere v1.3.0 — Blend: Playlists You Build Together (Beta)
+
+The headline feature this release is Blend — shared playlists where you and your friends add songs together. **Blend is currently in beta** — we're actively fixing things and polishing the experience, so you might see a few rough edges. We'd love your feedback.
+
+# What's new
+
+**Blend — collaborative playlists**
+- Create a Blend from the Library tab (tap the three-rings icon in the bottom-right corner)
+- Give your Blend a name, then choose to start fresh or pull in songs you've been listening to
+- Invite friends by sharing a link — they tap to join
+- See who added each song — every track shows the contributor's name
+- Browse a contribution bar that shows who added the most music
+- Filter the tracklist to see just one person's picks
+- Remove songs you don't want in the Blend
+- Leave the Blend anytime from the Invite screen
+- You can create up to 3 Blends on the free plan, with up to 10 members and 500 songs each
+
+**AI Curator — a full-screen experience**
+- The "Create with AI" button now opens a dedicated screen instead of a small popup
+- Write a short description of the vibe you want (e.g. "late-night rainy drive in Tokyo")
+- Use the "Surprise Me" button for random inspiration
+- Pick from mood seed chips to get started quickly
+
+# What's fixed
+- Playlists you create from a Blend are now marked as collaborative — they show the Blend icon and sync correctly
+- Songs no longer get added to a Blend twice when multiple people are editing at the same time
+- The Blend invite screen now shows a real count of how many members are in the playlist
+- Track attribution (who added what) now shows up correctly for songs added before the feature was ready
+- Cover art syncs properly when the playlist owner and a joined member both make changes
+- Song order now stays in sync across devices
+- Joining a Blend no longer causes a black screen
+- Playback cache now correctly marks downloaded songs and handles repeat/end-of-queue states
+- Search now looks through song titles, artist names, and album names at the same time
+- The Android Auto settings screen has a slider to control how many songs appear in search results
+
+# Behind the scenes
+- Improved how the app talks to the server when syncing playlists — errors in one part no longer break the whole sync
+- The app now falls back to a backup server if the main one is slow or unreachable
+- Better memory handling during builds (no change for users)
+- Added unit tests for playlist sync logic, cache behavior, and server communication
+
+## Downloads
+- FOSS: `Soundsphere.apk` (universal) and `app-<arch>-release.apk`
+- With Google Cast (GMS): `Soundsphere-with-Google-Cast.apk` (universal) and `app-<arch>-with-Google-Cast.apk`
+
 ---v1.2.0
 # Soundsphere v1.2.0
 The biggest update since the Soundsphere rebrand. This release is built around what you asked for: a real profile with your own avatar, more lyrics sources, a look you can make your own, and a calmer, more reliable experience.

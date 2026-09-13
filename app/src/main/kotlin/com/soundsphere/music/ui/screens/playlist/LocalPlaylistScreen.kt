@@ -15,7 +15,10 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -23,7 +26,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -94,18 +100,14 @@ import androidx.compose.ui.util.fastForEachIndexed
 import androidx.compose.ui.util.fastForEachReversed
 import androidx.compose.ui.util.fastSumBy
 import androidx.core.content.FileProvider
-import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.exoplayer.offline.Download
-import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.soundsphere.innertube.YouTube
 import com.soundsphere.innertube.models.PlaylistItem
-import com.soundsphere.innertube.models.SongItem
-import com.soundsphere.innertube.utils.completed
 import com.soundsphere.music.LocalDatabase
 import com.soundsphere.music.LocalDownloadUtil
 import com.soundsphere.music.LocalNavController
@@ -125,7 +127,6 @@ import com.soundsphere.music.db.entities.PlaylistSong
 import com.soundsphere.music.db.entities.PlaylistSongMap
 import com.soundsphere.music.extensions.move
 import com.soundsphere.music.extensions.toMediaItem
-import com.soundsphere.music.models.toMediaMetadata
 import com.soundsphere.music.playback.ExoDownloadService
 import com.soundsphere.music.playback.queues.ListQueue
 import com.soundsphere.music.ui.component.ActionPromptDialog
@@ -179,6 +180,38 @@ fun LocalPlaylistScreen(
     val playlist by viewModel.playlist.collectAsStateWithLifecycle()
     val songs by viewModel.playlistSongs.collectAsStateWithLifecycle()
     val onlinePlaylist by viewModel.onlinePlaylist.collectAsStateWithLifecycle()
+    // Blend members hoisted here (not in the header) so BOTH the member strip
+    // and per-track "Added by" rows resolve ids to names from one fetch.
+    // Polls every 30s while a Blend is open — same cadence as the notification
+    // poll — so the owner sees a joiner appear without reopening the screen.
+    var blendMembers by remember { mutableStateOf<List<com.soundsphere.music.api.SyncService.BlendCollaborator>>(emptyList()) }
+    // Per-member track counts power the contributions bar (header). Refreshed with members.
+    var blendMemberTrackCounts by remember { mutableStateOf<Map<String, Int>>(emptyMap()) }
+    val blendMembersPlaylistId = playlist?.playlist?.takeIf { it.isCollaborative }?.id
+    androidx.compose.runtime.LaunchedEffect(blendMembersPlaylistId) {
+        if (blendMembersPlaylistId == null) {
+            blendMembers = emptyList()
+            blendMemberTrackCounts = emptyMap()
+            return@LaunchedEffect
+        }
+        while (true) {
+            try {
+                syncRepository.getBlendCollaborators(blendMembersPlaylistId).onSuccess { members ->
+                    blendMembers = members
+                    blendMemberTrackCounts = members.associate { m ->
+                        m.userId to database.countTracksAddedBy(blendMembersPlaylistId, m.userId)
+                    }
+                }
+            } catch (e: Exception) { /* keep last good list */ }
+            delay(30_000)
+        }
+    }
+    // Contributor filter — null = everyone. Nulls (pre-attribution rows) always show.
+    var contributorFilter by rememberSaveable { mutableStateOf<String?>(null) }
+    if (blendMembersPlaylistId == null && contributorFilter != null) contributorFilter = null
+    val blendMemberNames = remember(blendMembers) {
+        blendMembers.associate { it.userId to it.username.ifBlank { it.userId.take(8) } }
+    }
     val mutableSongs = remember { mutableStateListOf<PlaylistSong>() }
     val playlistLength =
         remember(songs) {
@@ -509,6 +542,8 @@ fun LocalPlaylistScreen(
                                 onStartSearch = { isSearching = true },
                                 snackbarHostState = snackbarHostState,
                                 modifier = Modifier.animateItem(),
+                                blendMembers = blendMembers,
+                                blendMemberTrackCounts = blendMemberTrackCounts,
                             )
                         }
                     }
@@ -553,7 +588,61 @@ fun LocalPlaylistScreen(
                 }
             }
 
-            val displayedSongs = if (isSearching) filteredSongs else mutableSongs
+            // Tracklist section title (mock) + contributor filter (Blends only).
+            if (blendMembersPlaylistId != null && !isSearching) {
+                item(key = "tracklist_title") {
+                    androidx.compose.material3.Text(
+                        text = stringResource(R.string.tracklist),
+                        style = MaterialTheme.typography.headlineSmall,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 16.dp, top = 8.dp)
+                            .animateItem(),
+                    )
+                }
+            }
+            // Filter by contributor (Blends only) — null = everyone.
+            if (blendMembersPlaylistId != null && blendMembers.isNotEmpty() && !isSearching) {
+                item(key = "contributor_filter") {
+                    androidx.compose.foundation.layout.Row(
+                        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .horizontalScroll(androidx.compose.foundation.rememberScrollState())
+                            .padding(horizontal = 16.dp, vertical = 4.dp)
+                            .animateItem(),
+                    ) {
+                        androidx.compose.material3.FilterChip(
+                            selected = contributorFilter == null,
+                            onClick = { contributorFilter = null },
+                            label = { androidx.compose.material3.Text(stringResource(R.string.filter_all)) },
+                        )
+                        blendMembers.forEach { member ->
+                            androidx.compose.material3.FilterChip(
+                                selected = contributorFilter == member.userId,
+                                onClick = {
+                                    contributorFilter = if (contributorFilter == member.userId) null else member.userId
+                                },
+                                label = {
+                                    androidx.compose.material3.Text(
+                                        member.username.ifBlank { member.userId.take(8) },
+                                    )
+                                },
+                            )
+                        }
+                    }
+                }
+            }
+
+            // Contributor filter stacks on top of search: unknown-attribution rows
+            // always stay visible so the filter never hides pre-attribution history.
+            val contributorFiltered =
+                if (!isSearching && contributorFilter != null) {
+                    mutableSongs.filter { it.map.addedByUserId == null || it.map.addedByUserId == contributorFilter }
+                } else {
+                    mutableSongs
+                }
+            val displayedSongs = if (isSearching) filteredSongs else contributorFiltered
 
             itemsIndexed(
                 items = displayedSongs,
@@ -618,7 +707,10 @@ fun LocalPlaylistScreen(
                         }
                     }
 
+                    val isBlend = playlist?.playlist?.isCollaborative == true
+                    val addedBy = song.map.addedByUserId
                     val content: @Composable () -> Unit = {
+                        androidx.compose.foundation.layout.Column {
                         SongListItem(
                             song = song.song,
                             isActive = song.song.id == mediaMetadata?.id,
@@ -631,6 +723,13 @@ fun LocalPlaylistScreen(
                                         onCheckedChange = onCheckedChange,
                                     )
                                 } else {
+                                    // Per-row duration (mock track rows show it).
+                                    androidx.compose.material3.Text(
+                                        text = makeTimeString(song.song.song.duration * 1000L),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.padding(end = 4.dp),
+                                    )
                                     IconButton(
                                         onClick = {
                                             menuState.show {
@@ -677,6 +776,8 @@ fun LocalPlaylistScreen(
                                                         title = playlist?.playlist?.name.orEmpty(),
                                                         items = songs.map { it.song.toMediaItem() },
                                                         startIndex = songs.indexOfFirst { it.map.id == song.map.id },
+                                                        sourceType = "playlist",
+                                                        sourceId = playlist?.playlist?.id,
                                                     ),
                                                 )
                                             }
@@ -709,11 +810,54 @@ fun LocalPlaylistScreen(
                                         },
                                     ),
                         )
+                            // Blend attribution chip — pill with avatar dot + name, merged
+                            // into the row card (mock style). Taps to the member profile.
+                            val addedByName = addedBy?.let { blendMemberNames[it] ?: it.take(8) }
+                            if (isBlend && addedBy != null && addedByName != null) {
+                                androidx.compose.foundation.layout.Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(start = 56.dp, end = 16.dp, top = 2.dp, bottom = 8.dp),
+                                    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                                ) {
+                                    androidx.compose.foundation.layout.Row(
+                                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                                        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(6.dp),
+                                        modifier = Modifier
+                                            .clip(CircleShape)
+                                            .background(MaterialTheme.colorScheme.surfaceContainerHighest)
+                                            .clickable {
+                                                navController.navigate("user/$addedBy?playlistId=${playlist?.playlist?.id}")
+                                            }
+                                            .padding(horizontal = 10.dp, vertical = 5.dp),
+                                    ) {
+                                        androidx.compose.foundation.layout.Box(
+                                            modifier = Modifier
+                                                .size(16.dp)
+                                                .clip(CircleShape)
+                                                .background(MaterialTheme.colorScheme.secondaryContainer),
+                                            contentAlignment = androidx.compose.ui.Alignment.Center,
+                                        ) {
+                                            androidx.compose.material3.Text(
+                                                text = addedByName.ifBlank { "?" }.take(1).uppercase(),
+                                                style = MaterialTheme.typography.labelSmall,
+                                                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                            )
+                                        }
+                                        androidx.compose.material3.Text(
+                                            text = stringResource(R.string.blend_added_by, addedByName),
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.onSurface,
+                                        )
+                                    }
+                                }
+                            }
+                        } // Column
                     }
 
                     if (locked || inSelectMode || !swipeRemoveEnabled) {
                         Box(modifier = Modifier.animateItem()) {
-                            content()
+                            BlendRowCard(isBlend) { content() }
                         }
                     } else {
                         SwipeToDismissBox(
@@ -721,7 +865,7 @@ fun LocalPlaylistScreen(
                             backgroundContent = {},
                             modifier = Modifier.animateItem(),
                         ) {
-                            content()
+                            BlendRowCard(isBlend) { content() }
                         }
                     }
                 }
@@ -831,6 +975,7 @@ fun LocalPlaylistScreen(
                                         selection.mapNotNull { mapId ->
                                             songs.find { it.map.id == mapId }?.map
                                         },
+                                    playlistBrowseId = playlist?.playlist?.browseId,
                                     onDismiss = menuState::dismiss,
                                     clearAction = onExitSelectionMode,
                                 )
@@ -877,6 +1022,9 @@ fun LocalPlaylistHeader(
     onStartSearch: () -> Unit,
     snackbarHostState: SnackbarHostState,
     modifier: Modifier,
+    blendMembers: List<com.soundsphere.music.api.SyncService.BlendCollaborator> = emptyList(),
+    // Local track counts per member id — powers the contributions bar.
+    blendMemberTrackCounts: Map<String, Int> = emptyMap(),
 ) {
     val navController = LocalNavController.current
     val playerConnection = LocalPlayerConnection.current ?: return
@@ -884,6 +1032,7 @@ fun LocalPlaylistHeader(
     val database = LocalDatabase.current
     val menuState = LocalMenuState.current
     val syncUtils = LocalSyncUtils.current
+    val syncRepository = LocalSyncRepository.current
     val scope = rememberCoroutineScope()
     val editPlaylistCoverStr = stringResource(R.string.edit_playlist_cover)
     val playlistSyncedStr = stringResource(R.string.playlist_synced)
@@ -901,7 +1050,10 @@ fun LocalPlaylistHeader(
     val liked = playlist.playlist.bookmarkedAt != null
     val editable: Boolean = playlist.playlist.isEditable
 
-    val overrideThumbnail = remember { mutableStateOf<String?>(null) }
+    // Seeded from the DB so an uploaded cover survives reopen — previously this
+    // reset to null every time and the header fell back to song art even though
+    // Home/Library showed the custom cover.
+    val overrideThumbnail = remember(playlist.playlist.thumbnailUrl) { mutableStateOf(playlist.playlist.thumbnailUrl) }
     var isCustomThumbnail: Boolean =
         playlist.thumbnails.firstOrNull()?.let {
             it.contains("studio_square_thumbnail") || it.contains("content://com.soundsphere.music")
@@ -968,6 +1120,27 @@ fun LocalPlaylistHeader(
         val uri = result.value ?: return@LaunchedEffect
         withContext(Dispatchers.IO) {
             when {
+                playlist.playlist.isCollaborative -> {
+                    // Blend: upload to Cloudinary, sync cover_url across devices
+                    try {
+                        val inputStream = context.contentResolver.openInputStream(uri) ?: return@withContext
+                        val bytes = inputStream.readBytes()
+                        inputStream.close()
+                        val tmpFile = java.io.File.createTempFile("blend_cover_", ".jpg", context.cacheDir)
+                        tmpFile.writeBytes(bytes)
+                        val uploadResult = com.soundsphere.music.api.CloudinaryUploader.uploadBlendCover(tmpFile)
+                        tmpFile.delete()
+                        uploadResult.onSuccess { secureUrl ->
+                            overrideThumbnail.value = secureUrl
+                            isCustomThumbnail = true
+                            database.query { update(playlist.playlist.copy(thumbnailUrl = secureUrl)) }
+                            // Sync to backend — push cover_url via SyncRepository
+                            try {
+                                syncRepository.playlistCoverChanged(playlist.playlist.id, secureUrl)
+                            } catch (e: Exception) { reportException(e) }
+                        }.onFailure { reportException(it); snackbarHostState.showSnackbar("Cover upload failed") }
+                    } catch (e: Exception) { reportException(e) }
+                }
                 playlist.playlist.browseId == null -> {
                     overrideThumbnail.value = uri.toString()
                     isCustomThumbnail = true
@@ -1059,48 +1232,68 @@ fun LocalPlaylistHeader(
                 )
             }
         }
-        // Playlist Thumbnail(s) - Large centered with shadow
+        // Playlist Thumbnail(s) - Large centered with shadow.
+        // Blends get the ambient glow + reusable mark as default art (mock hero).
         Box(
             modifier = Modifier.padding(top = 8.dp, bottom = 20.dp),
+            contentAlignment = Alignment.Center,
         ) {
+            if (playlist.playlist.isCollaborative) {
+                Box(
+                    modifier = Modifier
+                        .size(280.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.35f)),
+                )
+            }
             when (playlist.thumbnails.size) {
                 0 -> {
+                    // Blends use the card radius from the mock; regular playlists unchanged.
+                    val artShape = if (playlist.playlist.isCollaborative) RoundedCornerShape(12.dp) else RoundedCornerShape(3.dp)
                     Surface(
                         modifier =
                             Modifier
                                 .size(240.dp)
                                 .shadow(
                                     elevation = 16.dp,
-                                    shape = RoundedCornerShape(3.dp),
+                                    shape = artShape,
                                 ),
-                        shape = RoundedCornerShape(3.dp),
+                        shape = artShape,
                         color = MaterialTheme.colorScheme.surfaceVariant,
                     ) {
                         Box(
                             modifier = Modifier.fillMaxSize(),
                             contentAlignment = Alignment.Center,
                         ) {
-                            Icon(
-                                painter = painterResource(R.drawable.queue_music),
-                                contentDescription = null,
-                                modifier = Modifier.size(80.dp),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
+                            if (playlist.playlist.isCollaborative) {
+                                com.soundsphere.music.ui.component.BlendIcon(
+                                    modifier = Modifier.size(120.dp),
+                                    contentDescription = stringResource(R.string.blend),
+                                )
+                            } else {
+                                Icon(
+                                    painter = painterResource(R.drawable.queue_music),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(80.dp),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
                         }
                     }
                 }
 
                 1 -> {
+                    val artShape1 = if (playlist.playlist.isCollaborative) RoundedCornerShape(12.dp) else RoundedCornerShape(3.dp)
                     Surface(
                         modifier =
                             Modifier
                                 .size(240.dp)
                                 .shadow(
                                     elevation = 24.dp,
-                                    shape = RoundedCornerShape(3.dp),
+                                    shape = artShape1,
                                     spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
                                 ),
-                        shape = RoundedCornerShape(3.dp),
+                        shape = artShape1,
                     ) {
                         AsyncImage(
                             model = overrideThumbnail.value ?: playlist.thumbnails[0],
@@ -1265,6 +1458,11 @@ fun LocalPlaylistHeader(
         val nSongs = pluralStringResource(R.plurals.n_song, songCount, songCount)
         val durationText = if (playlistLength > 0) makeTimeString(playlistLength * 1000L) else null
         val metadataString = buildString {
+            // Honest version of the mock's "Updated Daily" — our Blends update live.
+            if (playlist.playlist.isCollaborative) {
+                append(stringResource(R.string.blend_updated_live))
+                append(" • ")
+            }
             append(nSongs)
             if (durationText != null) {
                 append(" ")
@@ -1276,6 +1474,165 @@ fun LocalPlaylistHeader(
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
         )
+
+        if (playlist.playlist.isCollaborative) {
+            // "Curated for A, B & C" — real member names, no fake taste claims.
+            if (blendMembers.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    stringResource(
+                        R.string.blend_curated_for,
+                        blendMembers.take(3).joinToString(", ") { it.username.ifBlank { it.userId.take(8) } },
+                    ),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(MaterialTheme.colorScheme.secondaryContainer)
+                    .padding(horizontal = 12.dp, vertical = 6.dp)
+                    .clickable {
+                        scope.launch {
+                            snackbarHostState.showSnackbar("Share this Blend via Invite to Blend in menu")
+                        }
+                    },
+            ) {
+                Icon(painter = painterResource(R.drawable.add), contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onSecondaryContainer)
+                Text("Blend • Collaborative", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSecondaryContainer)
+            }
+            // Member avatars strip — fed by the screen-level poll (see LocalPlaylistScreen),
+            // so the strip, the count, and track attribution all share one member list.
+            Spacer(modifier = Modifier.height(8.dp))
+            androidx.compose.foundation.layout.Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy((-8).dp),
+            ) {
+                val list = blendMembers
+                if (list.isEmpty()) {
+                    // Placeholder until first fetch succeeds — shows 1 avatar + Invite
+                    androidx.compose.foundation.layout.Box(
+                        modifier = Modifier
+                            .size(32.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
+                            .padding(2.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primaryContainer),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(painter = painterResource(R.drawable.person), contentDescription = null, modifier = Modifier.size(16.dp))
+                    }
+                } else {
+                    list.take(5).forEach { member ->
+                        androidx.compose.foundation.layout.Box(
+                            modifier = Modifier
+                                .size(32.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.surfaceVariant)
+                                .padding(2.dp)
+                                .clip(CircleShape)
+                                .clickable {
+                                    navController.navigate("user/${member.userId}?playlistId=${playlist.playlist.id}")
+                                },
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            if (member.avatarUrl != null) {
+                                coil3.compose.AsyncImage(
+                                    model = member.avatarUrl,
+                                    contentDescription = null,
+                                    modifier = Modifier.fillMaxSize().clip(CircleShape),
+                                    contentScale = ContentScale.Crop,
+                                )
+                            } else {
+                                Text(
+                                    member.username.ifBlank { "?" }.take(1).uppercase(),
+                                    style = MaterialTheme.typography.labelSmall,
+                                )
+                            }
+                        }
+                    }
+                    if (list.size > 5) {
+                        androidx.compose.foundation.layout.Box(
+                            modifier = Modifier.size(32.dp).clip(CircleShape).background(MaterialTheme.colorScheme.secondaryContainer),
+                            contentAlignment = Alignment.Center,
+                        ) { Text("+${list.size - 5}", style = MaterialTheme.typography.labelSmall) }
+                    }
+                    // Member count — owner included, so "nf home" reads 2 members.
+                    Text(
+                        stringResource(R.string.blend_members, list.size),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                androidx.compose.material3.AssistChip(
+                    // Opens the full Invite screen (members, capacity, link, share).
+                    onClick = { navController.navigate("blend_invite/${playlist.playlist.id}") },
+                    label = { Text("Invite") },
+                    leadingIcon = { Icon(painter = painterResource(R.drawable.add), contentDescription = null, modifier = Modifier.size(16.dp)) },
+                )
+            }
+            // Contributions bar — real per-member track shares (no genre labels:
+            // we don't store genre anywhere). Only when counts are known.
+            val contributionTotal = songs.size
+            if (blendMembers.isNotEmpty() && contributionTotal > 0 && blendMemberTrackCounts.isNotEmpty()) {
+                val barColors = listOf(
+                    MaterialTheme.colorScheme.primary,
+                    MaterialTheme.colorScheme.secondary,
+                    MaterialTheme.colorScheme.tertiary,
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    stringResource(R.string.blend_contributions),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                androidx.compose.foundation.layout.Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(8.dp)
+                        .clip(androidx.compose.foundation.shape.RoundedCornerShape(4.dp)),
+                ) {
+                    blendMembers.forEachIndexed { index, member ->
+                        val fraction = (blendMemberTrackCounts[member.userId] ?: 0).toFloat() / contributionTotal
+                        if (fraction > 0f) {
+                            androidx.compose.foundation.layout.Box(
+                                modifier = Modifier
+                                    .weight(fraction)
+                                    .fillMaxHeight()
+                                    .background(barColors[index % barColors.size]),
+                            )
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(4.dp))
+                blendMembers.forEachIndexed { index, member ->
+                    val count = blendMemberTrackCounts[member.userId] ?: 0
+                    androidx.compose.foundation.layout.Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(6.dp),
+                    ) {
+                        androidx.compose.foundation.layout.Box(
+                            modifier = Modifier
+                                .size(8.dp)
+                                .clip(CircleShape)
+                                .background(barColors[index % barColors.size]),
+                        )
+                        Text(
+                            "${member.username.ifBlank { member.userId.take(8) }} ($count)",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+            }
+        }
 
         val onlineAuthor = onlinePlaylist?.author
         if (onlineAuthor != null) {
@@ -1341,6 +1698,8 @@ fun LocalPlaylistHeader(
                         ListQueue(
                             title = playlist.playlist.name,
                             items = songs.shuffled().map { it.song.toMediaItem() },
+                            sourceType = "playlist",
+                            sourceId = playlist.playlist.id,
                         ),
                     )
                 },
@@ -1367,6 +1726,8 @@ fun LocalPlaylistHeader(
                         ListQueue(
                             title = playlist.playlist.name,
                             items = songs.map { it.song.toMediaItem() },
+                            sourceType = "playlist",
+                            sourceId = playlist.playlist.id,
                         ),
                     )
                 },
@@ -1400,19 +1761,10 @@ fun LocalPlaylistHeader(
                             onEdit = onShowEditDialog,
                             onSync = {
                                 scope.launch(Dispatchers.IO) {
-                                    val playlistPage =
-                                        YouTube
-                                            .playlist(playlist.playlist.browseId!!)
-                                            .completed()
-                                            .getOrNull() ?: return@launch
-                                    database.transaction {
-                                        clearPlaylist(playlist.id)
-                                        val songIds = playlistPage.songs
-                                            .map(SongItem::toMediaMetadata)
-                                            .onEach(::insert)
-                                            .map { it.id to it.setVideoId }
-                                        addSongsToPlaylist(playlist, songIds)
-                                    }
+                                    syncUtils.syncPlaylistSuspend(
+                                        playlist.playlist.browseId!!,
+                                        playlist.id,
+                                    )
                                     withContext(Dispatchers.Main) {
                                         snackbarHostState.showSnackbar(playlistSyncedStr)
                                     }
@@ -1438,20 +1790,7 @@ fun LocalPlaylistHeader(
 
                                     else -> {
                                         songs.forEach { song ->
-                                            val downloadRequest =
-                                                DownloadRequest
-                                                    .Builder(song.song.id, song.song.id.toUri())
-                                                    .setCustomCacheKey(song.song.id)
-                                                    .setData(
-                                                        song.song.song.title
-                                                            .toByteArray(),
-                                                    ).build()
-                                            DownloadService.sendAddDownload(
-                                                context,
-                                                ExoDownloadService::class.java,
-                                                downloadRequest,
-                                                false,
-                                            )
+                                            downloadUtil.download(song.song)
                                         }
                                     }
                                 }
@@ -1529,3 +1868,25 @@ fun uriToByteArray(
             throw e
         }
     }
+
+/**
+ * Blend track-row card (mock tracklist style). Non-Blends render bare content
+ * so regular playlists keep their exact current look.
+ */
+@Composable
+private fun BlendRowCard(
+    isBlend: Boolean,
+    content: @Composable () -> Unit,
+) {
+    if (!isBlend) {
+        content()
+        return
+    }
+    Surface(
+        color = MaterialTheme.colorScheme.surfaceContainer,
+        shape = RoundedCornerShape(12.dp),
+        modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+    ) {
+        content()
+    }
+}

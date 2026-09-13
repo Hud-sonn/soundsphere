@@ -54,6 +54,8 @@ class ServerClockTest {
         elapsedRealtime += 100L
 
         assertNull(clock.now())
-        assertEquals(500L, clock.positionAt(500L, 10_000L, isPlaying = true))
+        // No clock mapping after reset -> null (stale), so callers skip the seek
+        // instead of snapping to a raw position. See Listen Together 5-point fix.
+        assertNull(clock.positionAt(500L, 10_000L, isPlaying = true))
     }
 }

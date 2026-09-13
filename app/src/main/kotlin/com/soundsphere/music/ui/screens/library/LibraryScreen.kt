@@ -15,8 +15,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.soundsphere.music.LocalNavController
 import com.soundsphere.music.R
+import com.soundsphere.music.constants.AlbumViewTypeKey
 import com.soundsphere.music.constants.ChipSortTypeKey
 import com.soundsphere.music.constants.LibraryFilter
+import com.soundsphere.music.constants.LibraryViewType
+import com.soundsphere.music.constants.PlaylistViewTypeKey
 import com.soundsphere.music.ui.component.ChipsRow
 import com.soundsphere.music.utils.rememberEnumPreference
 
@@ -24,6 +27,8 @@ import com.soundsphere.music.utils.rememberEnumPreference
 fun LibraryScreen() {
     val navController = LocalNavController.current
     var filterType by rememberEnumPreference(ChipSortTypeKey, LibraryFilter.LIBRARY)
+    var libraryViewType by rememberEnumPreference(AlbumViewTypeKey, LibraryViewType.GRID)
+    var playlistViewType by rememberEnumPreference(PlaylistViewTypeKey, LibraryViewType.GRID)
 
     val filterContent = @Composable {
         Row {
@@ -46,8 +51,18 @@ fun LibraryScreen() {
 
     Box(modifier = Modifier.fillMaxSize()) {
         when (filterType) {
-            LibraryFilter.LIBRARY -> LibraryMixScreen(navController, filterContent)
-            LibraryFilter.PLAYLISTS -> LibraryPlaylistsScreen(navController, filterContent)
+            LibraryFilter.LIBRARY -> LibraryMixScreen(
+                navController = navController,
+                filterContent = filterContent,
+                viewType = libraryViewType,
+                onViewTypeChange = { libraryViewType = it },
+            )
+            LibraryFilter.PLAYLISTS -> LibraryPlaylistsScreen(
+                navController = navController,
+                filterContent = filterContent,
+                viewType = playlistViewType,
+                onViewTypeChange = { playlistViewType = it },
+            )
             LibraryFilter.SONGS -> LibrarySongsScreen(
                 navController,
                 { filterType = LibraryFilter.LIBRARY },

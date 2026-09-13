@@ -44,10 +44,19 @@ object CloudinaryUploader {
     /**
      * Uploads [imageFile] and returns the secure delivery URL on success.
      */
-    suspend fun uploadAvatar(imageFile: File): Result<String> =
+    suspend fun uploadAvatar(imageFile: File): Result<String> = uploadToCloudinary(imageFile, FOLDER)
+
+    /**
+     * Uploads a Blend (collaborative playlist) cover image.
+     * Uses the same unsigned preset; cover is stored in `soundsphere/blends`.
+     */
+    suspend fun uploadBlendCover(imageFile: File): Result<String> =
+        uploadToCloudinary(imageFile, "soundsphere/blends")
+
+    private suspend fun uploadToCloudinary(imageFile: File, folder: String): Result<String> =
         withContext(Dispatchers.IO) {
             if (!isConfigured()) {
-                return@withContext Result.failure(Exception("Avatar upload is not configured yet"))
+                return@withContext Result.failure(Exception("Upload is not configured yet"))
             }
             try {
                 val request =
@@ -64,7 +73,7 @@ object CloudinaryUploader {
                                     imageFile.asRequestBody("image/jpeg".toMediaType()),
                                 )
                                 .addFormDataPart("upload_preset", UPLOAD_PRESET)
-                                .addFormDataPart("folder", FOLDER)
+                                .addFormDataPart("folder", folder)
                                 .build(),
                         )
                         .build()

@@ -397,6 +397,9 @@ async def create_playlist(
                 "user_id": user_id,
                 "name": body.name,
                 "cover_url": body.cover_url,
+                # Created Blends must BE Blends server-side, or share/join 400s
+                # until someone flips the flag. Defaults False (regular playlists).
+                "is_collaborative": body.is_collaborative,
                 "share_token": secrets.token_urlsafe(16),
             },
             returning="representation",
@@ -470,13 +473,13 @@ async def get_collaborators(
     if owner_id:
         owner_row = db.table("users").select("username, avatar_url").eq("id", owner_id).execute()
         if owner_row.data:
-            owner = {"user_id": owner_id, "username": owner_row.data[0].get("username"), "avatar_url": owner_row.data[0].get("avatar_url"), "is_owner": True}
+            owner = {"user_id": owner_id, "username": owner_row.data[0].get("username"), "avatar_url": owner_row.data[0].get("avatar_url"), "is_owner": True, "is_self": owner_id == user_id}
     members = []
     if owner:
         members.append(owner)
     for r in rows.data:
         u = r.get("users") or {}
-        members.append({"user_id": r["user_id"], "username": u.get("username"), "avatar_url": u.get("avatar_url"), "is_owner": False})
+        members.append({"user_id": r["user_id"], "username": u.get("username"), "avatar_url": u.get("avatar_url"), "is_owner": False, "is_self": r["user_id"] == user_id})
     return {"collaborators": members}
 
 
@@ -588,6 +591,12 @@ async def add_playlist_track(
         raise
     except Exception:
         logger.warning("playlist track cap check failed", exc_info=True)
+    # Blend-only duplicate guard: same track twice is always an accident
+    # (double-tap). Regular playlists stay permissive (YT parity).
+    if playlist.get("is_collaborative"):
+        existing_ids = {t.get("track_id") for t in (playlist.get("playlist_tracks") or [])}
+        if body.track.id in existing_ids:
+            raise HTTPException(status_code=409, detail="Track already in Blend")
     _upsert_track(db, body.track)
     position = body.position
     if position is None:

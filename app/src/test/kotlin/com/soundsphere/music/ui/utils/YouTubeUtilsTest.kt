@@ -9,7 +9,7 @@ class YouTubeUtilsTest {
     fun `lh3 googleusercontent is rewritten to the requested size`() {
         val url = "https://lh3.googleusercontent.com/abc=w120-h120-l90-rj"
         assertEquals(
-            "https://lh3.googleusercontent.com/abc=w544-h544-l90-rj",
+            "https://lh3.googleusercontent.com/abc=w544-h544-p-l90-rj",
             url.resize(544, 544),
         )
     }
@@ -20,18 +20,15 @@ class YouTubeUtilsTest {
         // matching this host, resize() would no-op and the player upscales the 60px image → blur.
         val url = "https://yt3.googleusercontent.com/_zDuDZFnSKmuQwDX=w60-h60-l90-rj"
         assertEquals(
-            "https://yt3.googleusercontent.com/_zDuDZFnSKmuQwDX=w544-h544-l90-rj",
+            "https://yt3.googleusercontent.com/_zDuDZFnSKmuQwDX=w544-h544-p-l90-rj",
             url.resize(544, 544),
         )
     }
 
     @Test
-    fun `i_ytimg url is upgraded to maxresdefault when requesting large size`() {
+    fun `i_ytimg url is returned unchanged (maxresdefault upgrade was dropped in June 2026 simplification)`() {
         val url = "https://i.ytimg.com/vi/abc/hqdefault.jpg?sqp=-oaymwE"
-        assertEquals(
-            "https://i.ytimg.com/vi/abc/maxresdefault.jpg?sqp=-oaymwE",
-            url.resize(544, 544),
-        )
+        assertEquals(url, url.resize(544, 544))
     }
 
     @Test

@@ -40,16 +40,15 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.core.net.toUri
 import androidx.media3.common.Player
 import androidx.media3.common.Timeline
 import androidx.media3.exoplayer.offline.Download
-import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
 import com.soundsphere.innertube.YouTube
 import com.soundsphere.music.LocalDatabase
 import com.soundsphere.music.LocalDownloadUtil
 import com.soundsphere.music.LocalPlayerConnection
+import com.soundsphere.music.LocalSyncRepository
 import com.soundsphere.music.LocalSyncUtils
 import com.soundsphere.music.R
 import com.soundsphere.music.db.entities.PlaylistSongMap
@@ -77,6 +76,8 @@ fun SelectionSongMenu(
     clearAction: () -> Unit,
     songPosition: List<PlaylistSongMap>? = emptyList(),
     isUploadedPlaylist: Boolean = false,
+    playlistBrowseId: String? = null,
+    onRemoveFromCache: (() -> Unit)? = null,
 ) {
     val context = LocalContext.current
     val database = LocalDatabase.current
@@ -84,6 +85,7 @@ fun SelectionSongMenu(
     val coroutineScope = rememberCoroutineScope()
     val playerConnection = LocalPlayerConnection.current ?: return
     val syncUtils = LocalSyncUtils.current
+    val syncRepository = LocalSyncRepository.current
     val deletedNSongsTemplate = stringResource(R.string.deleted_n_songs)
     val listenTogetherManager = com.soundsphere.music.LocalListenTogetherManager.current
     val isGuest = listenTogetherManager?.isInRoom == true && listenTogetherManager.isHost == false
@@ -138,16 +140,7 @@ fun SelectionSongMenu(
 
     AddToPlaylistDialog(
         isVisible = showChoosePlaylistDialog,
-        onGetSong = { playlist ->
-            coroutineScope.launch(Dispatchers.IO) {
-                songSelection.forEach { song ->
-                    playlist.playlist.browseId?.let { browseId ->
-                        YouTube.addToPlaylist(browseId, song.id)
-                    }
-                }
-            }
-            songSelection.map { it.id }
-        },
+        onGetSong = { songSelection.map { it.id } },
         onGetSongIds = { songSelection.map { it.id } },
         onDismiss = {
             showChoosePlaylistDialog = false
@@ -560,20 +553,7 @@ fun SelectionSongMenu(
                                             )
                                         },
                                         onClick = {
-                                            songSelection.forEach { song ->
-                                                val downloadRequest =
-                                                    DownloadRequest
-                                                        .Builder(song.id, song.id.toUri())
-                                                        .setCustomCacheKey(song.id)
-                                                        .setData(song.song.title.toByteArray())
-                                                        .build()
-                                                DownloadService.sendAddDownload(
-                                                    context,
-                                                    ExoDownloadService::class.java,
-                                                    downloadRequest,
-                                                    false,
-                                                )
-                                            }
+                                            songSelection.forEach { downloadUtil.download(it) }
                                         },
                                     )
                                 }
@@ -633,6 +613,13 @@ fun SelectionSongMenu(
                                                 i++
                                             }
                                         }
+                                        // Keep YT and Soundsphere backend in sync — same as swipe path
+                                        songPosition.forEach { cur ->
+                                            playlistBrowseId?.let { browseId ->
+                                                syncUtils.scheduleRemoveFromPlaylist(browseId, cur.songId, cur.playlistId) { cur.setVideoId }
+                                            }
+                                            syncRepository.playlistTrackRemoved(cur.playlistId, cur.songId)
+                                        }
                                         clearAction()
                                     },
                                 ),
@@ -650,6 +637,24 @@ fun SelectionSongMenu(
                                     },
                                     onClick = {
                                         showDeleteUploadedDialog = true
+                                    },
+                                ),
+                            )
+                        }
+                        onRemoveFromCache?.let { removeFromCache ->
+                            add(
+                                Material3MenuItemData(
+                                    title = { Text(text = stringResource(R.string.remove_from_cache)) },
+                                    icon = {
+                                        Icon(
+                                            painter = painterResource(R.drawable.delete),
+                                            contentDescription = null,
+                                        )
+                                    },
+                                    onClick = {
+                                        onDismiss()
+                                        removeFromCache()
+                                        clearAction()
                                     },
                                 ),
                             )
@@ -974,20 +979,7 @@ fun SelectionMediaMetadataMenu(
                                             )
                                         },
                                         onClick = {
-                                            songSelection.forEach { song ->
-                                                val downloadRequest =
-                                                    DownloadRequest
-                                                        .Builder(song.id, song.id.toUri())
-                                                        .setCustomCacheKey(song.id)
-                                                        .setData(song.title.toByteArray())
-                                                        .build()
-                                                DownloadService.sendAddDownload(
-                                                    context,
-                                                    ExoDownloadService::class.java,
-                                                    downloadRequest,
-                                                    false,
-                                                )
-                                            }
+                                            songSelection.forEach { downloadUtil.download(it) }
                                         },
                                     )
                                 }

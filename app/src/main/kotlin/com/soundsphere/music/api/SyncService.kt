@@ -34,6 +34,7 @@ data class SyncPlaylistTrack(
     val position: Int,
     val addedAt: String?,
     val track: SyncTrack,
+    val addedByUserId: String? = null,
 )
 
 data class SyncPlaylist(
@@ -44,6 +45,7 @@ data class SyncPlaylist(
     val updatedAt: String?,
     val trackCount: Int,
     val tracks: List<SyncPlaylistTrack>,
+    val isCollaborative: Boolean = false,
 )
 
 data class SyncLikedEntry(
@@ -52,6 +54,15 @@ data class SyncLikedEntry(
 )data class SyncHistoryEntry(
     val playedAt: String?,
     val track: SyncTrack,
+)
+
+/** One bounded "recently played" recency entry (song or container). */
+data class SyncRecentlyPlayedEntry(
+    val sourceType: String,
+    val sourceId: String,
+    val sourceName: String?,
+    val sourceThumbnail: String?,
+    val playedAt: String?,
 )
 
 /** Detected artist for the AI playlist flow (browse id links to the artist page). */
@@ -74,6 +85,8 @@ data class SharedPlaylist(
     val trackCount: Int,
     val tracks: List<SyncPlaylistTrack>,
     val owner: SharedPlaylistOwner,
+    val isCollaborative: Boolean = false,
+    val memberCount: Int = 1,
 )
 
 /**
@@ -137,6 +150,7 @@ object SyncService {
             updatedAt = json.optString("updated_at").ifBlank { null },
             trackCount = json.optInt("track_count", tracks.size),
             tracks = tracks,
+            isCollaborative = json.optBoolean("is_collaborative", false),
         )
     }
 
@@ -151,6 +165,7 @@ object SyncService {
                     position = item.optInt("position", 0),
                     addedAt = item.optString("added_at").ifBlank { null },
                     track = parseTrack(trackJson),
+                    addedByUserId = item.optString("added_by_user_id").ifBlank { null },
                 ),
             )
         }
@@ -267,14 +282,29 @@ object SyncService {
         }
     }
 
-    suspend fun createPlaylist(token: String, name: String): Result<SyncPlaylist> {
-        val body = JSONObject().put("name", name)
+    suspend fun createPlaylist(token: String, name: String, isCollaborative: Boolean = false): Result<SyncPlaylist> {
+        val body = JSONObject().put("name", name).put("is_collaborative", isCollaborative)
         val response = execute(token, "POST", "/user/playlists", body)
         return response.mapCatching { parsePlaylist(JSONObject(it)) }
     }
 
     suspend fun renamePlaylist(token: String, serverId: String, name: String): Result<Unit> {
         val body = JSONObject().put("name", name)
+        val response = execute(token, "PUT", "/user/playlists/$serverId", body)
+        return response.map { Unit }
+    }
+
+    suspend fun updatePlaylist(
+        token: String,
+        serverId: String,
+        name: String? = null,
+        coverUrl: String? = null,
+        isCollaborative: Boolean? = null,
+    ): Result<Unit> {
+        val body = JSONObject()
+        if (name != null) body.put("name", name)
+        if (coverUrl != null) body.put("cover_url", coverUrl)
+        if (isCollaborative != null) body.put("is_collaborative", isCollaborative)
         val response = execute(token, "PUT", "/user/playlists/$serverId", body)
         return response.map { Unit }
     }
@@ -353,9 +383,90 @@ object SyncService {
                             username = owner?.optString("username").orEmpty(),
                             avatarUrl = owner?.optString("avatar_url").orEmpty().ifBlank { null },
                         ),
+                    isCollaborative = json.optBoolean("is_collaborative", false),
+                    memberCount = json.optInt("member_count", 1),
                 ),
             )
         }
+    }
+
+    suspend fun joinBlend(token: String, shareToken: String): Result<Unit> {
+        val response = execute(token, "POST", "/share/playlists/${shareToken.trim()}/join")
+        return response.map { Unit }
+    }
+
+    suspend fun getCollaborators(token: String, playlistId: String): Result<List<BlendCollaborator>> {
+        val response = execute(token, "GET", "/user/playlists/$playlistId/collaborators")
+        return response.mapCatching { body ->
+            val arr = JSONObject(body).optJSONArray("collaborators") ?: return@mapCatching emptyList()
+            buildList {
+                for (i in 0 until arr.length()) {
+                    val obj = arr.optJSONObject(i) ?: continue
+                    add(
+                        BlendCollaborator(
+                            userId = obj.optString("user_id"),
+                            username = obj.optString("username"),
+                            avatarUrl = obj.optString("avatar_url").ifBlank { null },
+                            isOwner = obj.optBoolean("is_owner", false),
+                            addedAt = obj.optString("added_at").ifBlank { null },
+                            isSelf = obj.optBoolean("is_self", false),
+                        ),
+                    )
+                }
+            }
+        }
+    }
+
+    data class BlendCollaborator(
+        val userId: String,
+        val username: String,
+        val avatarUrl: String?,
+        val isOwner: Boolean,
+        val addedAt: String? = null,
+        val isSelf: Boolean = false,
+    )
+
+    suspend fun removeCollaborator(token: String, serverId: String, targetUserId: String): Result<Unit> {
+        val response = execute(token, "DELETE", "/user/playlists/$serverId/collaborators/$targetUserId")
+        return response.map { Unit }
+    }
+
+    data class AppNotification(
+        val id: String,
+        val title: String,
+        val body: String,
+        val type: String,
+        val read: Boolean,
+        val data: Map<String, String>?,
+    )
+
+    suspend fun getNotifications(token: String): Result<List<AppNotification>> {
+        val response = execute(token, "GET", "/user/notifications")
+        return response.mapCatching { body ->
+            val arr = JSONObject(body).optJSONArray("notifications") ?: return@mapCatching emptyList()
+            buildList {
+                for (i in 0 until arr.length()) {
+                    val obj = arr.optJSONObject(i) ?: continue
+                    val dataObj = obj.optJSONObject("data")
+                    val dataMap = dataObj?.keys()?.asSequence()?.associateWith { dataObj.optString(it) }
+                    add(
+                        AppNotification(
+                            id = obj.optString("id"),
+                            title = obj.optString("title"),
+                            body = obj.optString("body"),
+                            type = obj.optString("type"),
+                            read = obj.optBoolean("read", false),
+                            data = dataMap,
+                        ),
+                    )
+                }
+            }
+        }
+    }
+
+    suspend fun markNotificationRead(token: String, id: String): Result<Unit> {
+        val response = execute(token, "PUT", "/user/notifications/$id/read", JSONObject())
+        return response.map { Unit }
     }
 
     // ===== History =====
@@ -386,6 +497,53 @@ object SyncService {
     ): Result<Unit> {
         val body = JSONObject().put("track", trackJson(track)).put("played_at", playedAt)
         val response = execute(token, "POST", "/user/history", body)
+        return response.map { Unit }
+    }
+
+    // ===== Recently played =====
+
+    suspend fun getRecentlyPlayed(token: String): Result<List<SyncRecentlyPlayedEntry>> {
+        val response = execute(token, "GET", "/user/recently-played")
+        return response.mapCatching { body ->
+            val arr = JSONObject(body).optJSONArray("recently_played") ?: return@mapCatching emptyList()
+            buildList {
+                for (i in 0 until arr.length()) {
+                    val item = arr.optJSONObject(i) ?: continue
+                    add(
+                        SyncRecentlyPlayedEntry(
+                            sourceType = item.optString("source_type"),
+                            sourceId = item.optString("source_id"),
+                            sourceName = item.optString("source_name").ifBlank { null },
+                            sourceThumbnail = item.optString("source_thumbnail").ifBlank { null },
+                            playedAt = item.optString("played_at").ifBlank { null },
+                        ),
+                    )
+                }
+            }
+        }
+    }
+
+    suspend fun addRecentlyPlayed(
+        token: String,
+        sourceType: String,
+        sourceId: String,
+        sourceName: String?,
+        sourceThumbnail: String?,
+        playedAt: String,
+    ): Result<Unit> {
+        val body =
+            JSONObject()
+                .put("source_type", sourceType)
+                .put("source_id", sourceId)
+                .put("source_name", sourceName ?: JSONObject.NULL)
+                .put("source_thumbnail", sourceThumbnail ?: JSONObject.NULL)
+                .put("played_at", playedAt)
+        val response = execute(token, "POST", "/user/recently-played", body)
+        return response.map { Unit }
+    }
+
+    suspend fun clearRecentlyPlayed(token: String): Result<Unit> {
+        val response = execute(token, "DELETE", "/user/recently-played")
         return response.map { Unit }
     }
 

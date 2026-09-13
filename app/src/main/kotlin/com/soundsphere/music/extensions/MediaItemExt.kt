@@ -66,6 +66,26 @@ fun SongItem.toMediaItem() = MediaItem.Builder()
     )
     .build()
 
+fun MediaItem.withUpdatedMetadata(updatedMetadata: MediaMetadata): MediaItem {
+    val artistNames = updatedMetadata.artists.joinToString { it.name }
+    return buildUpon()
+        .setTag(updatedMetadata)
+        .setMediaMetadata(
+            mediaMetadata.buildUpon()
+                .setTitle(updatedMetadata.title)
+                .setDisplayTitle(updatedMetadata.title)
+                .setSubtitle(artistNames)
+                .setArtist(artistNames)
+                .setArtworkUri(updatedMetadata.thumbnailUrl?.toUri())
+                .setAlbumTitle(updatedMetadata.album?.title)
+                .setAlbumArtist(updatedMetadata.artists.firstOrNull()?.name)
+                .setExtras(Bundle().apply {
+                    updatedMetadata.thumbnailUrl?.let { putString("artwork_uri", it) }
+                })
+                .build(),
+        ).build()
+}
+
 fun MediaMetadata.toMediaItem() = MediaItem.Builder()
     .setMediaId(id)
     .setUri(id)

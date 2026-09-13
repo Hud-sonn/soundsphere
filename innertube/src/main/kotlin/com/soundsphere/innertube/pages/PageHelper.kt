@@ -181,7 +181,8 @@ object PageHelper {
                 when {
                     browseId?.startsWith("UC") == true || browseEndpoint?.isArtistEndpoint == true ->
                         Artist(run.text, browseId)
-                    browseId == null && !run.text.isMetadataText() -> Artist(run.text.trim(), null)
+                    browseId == null && run.text.trim() != "," && !run.text.isMetadataText() ->
+                        Artist(run.text.trim(), null)
                     else -> null
                 }
             }

@@ -64,6 +64,7 @@ def _public_playlist_response(playlist: dict) -> dict:
         "share_token": playlist.get("share_token"),
         "is_collaborative": playlist.get("is_collaborative", False),
         "track_count": len(tracks),
+        "member_count": playlist.get("member_count", 1),
         "tracks": tracks,
         "owner": {
             "username": owner.get("username", ""),
@@ -101,6 +102,18 @@ async def get_shared_playlist(request: Request, token: str):
     )
     playlist["owner"] = owner_rows.data[0] if owner_rows.data else {}
     playlist.pop("user_id", None)
+    # Member count (owner + collaborators) so joiners see real capacity.
+    # Privacy-safe: a bare number, no member identities for outsiders.
+    try:
+        members = (
+            db.table("playlist_collaborators")
+            .select("id", count="exact")
+            .eq("playlist_id", playlist["id"])
+            .execute()
+        )
+        playlist["member_count"] = (members.count or len(members.data)) + 1
+    except Exception:
+        playlist["member_count"] = 1
 
     return _public_playlist_response(playlist)
 
@@ -110,7 +123,7 @@ async def get_shared_playlist(request: Request, token: str):
 async def join_blend(request: Request, token: str, user_id: str = Depends(get_current_user)):
     db = get_supabase()
     # Find playlist by token
-    rows = db.table("playlists").select("id, user_id, is_collaborative").eq("share_token", token).execute()
+    rows = db.table("playlists").select("id, user_id, is_collaborative, name").eq("share_token", token).execute()
     if not rows.data:
         raise HTTPException(status_code=404, detail="Playlist not found or sharing disabled")
     playlist = rows.data[0]
@@ -128,4 +141,25 @@ async def join_blend(request: Request, token: str, user_id: str = Depends(get_cu
         raise HTTPException(status_code=409, detail="Blend is full (10 members)")
     db.table("playlist_collaborators").insert({"playlist_id": playlist["id"], "user_id": user_id}).execute()
     log_activity(user_id, "blend_join", f"playlist {playlist['id']}")
+    # Notify owner + existing members (they poll GET /user/notifications every 30s).
+    try:
+        joiner_row = db.table("users").select("username").eq("id", user_id).execute()
+        joiner = joiner_row.data[0].get("username") if joiner_row.data else "Someone"
+        collabs = db.table("playlist_collaborators").select("user_id").eq("playlist_id", playlist["id"]).execute()
+        owner_id = playlist.get("user_id")
+        notify_ids = {r["user_id"] for r in collabs.data} | ({owner_id} if owner_id else set())
+        notify_ids.discard(user_id)
+        for nid in notify_ids:
+            try:
+                db.table("notifications").insert({
+                    "user_id": nid,
+                    "title": "New Blend member",
+                    "body": f"{joiner} joined \"{playlist.get('name')}\"",
+                    "type": "blend_joined",
+                    "data": {"playlist_id": playlist["id"], "user_id": user_id},
+                }).execute()
+            except Exception:
+                pass
+    except Exception:
+        logger.warning("blend join notification failed", exc_info=True)
     return {"status": "joined"}

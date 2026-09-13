@@ -59,6 +59,7 @@ import androidx.media3.datasource.ResolvingDataSource
 import androidx.media3.datasource.cache.Cache
 import androidx.media3.datasource.cache.CacheDataSource
 import androidx.media3.datasource.cache.CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR
+import androidx.media3.datasource.cache.ContentMetadata
 import androidx.media3.datasource.okhttp.OkHttpDataSource
 import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.DefaultRenderersFactory
@@ -97,6 +98,8 @@ import com.soundsphere.innertube.models.WatchEndpoint
 import com.soundsphere.lastfm.LastFM
 import com.soundsphere.music.MainActivity
 import com.soundsphere.music.R
+import com.soundsphere.music.constants.AddToPlaylistPosition
+import com.soundsphere.music.constants.AddToPlaylistPositionKey
 import com.soundsphere.music.constants.AndroidAutoTargetPlaylistKey
 import com.soundsphere.music.data.SyncRepository
 import com.soundsphere.music.constants.AudioNormalizationKey
@@ -152,6 +155,7 @@ import com.soundsphere.music.db.entities.Event
 import com.soundsphere.music.db.entities.FormatEntity
 import com.soundsphere.music.db.entities.LyricsEntity
 import com.soundsphere.music.db.entities.PlaylistEntity
+import com.soundsphere.music.db.entities.RecentlyPlayedEntity
 import com.soundsphere.music.db.entities.RelatedSongMap
 import com.soundsphere.music.db.entities.Song
 import com.soundsphere.music.di.DownloadCache
@@ -257,6 +261,9 @@ class MusicService :
 
     @Inject
     lateinit var syncUtils: SyncUtils
+
+    @Inject
+    lateinit var downloadUtil: DownloadUtil
 
     @Inject
     lateinit var syncRepository: SyncRepository
@@ -1595,14 +1602,21 @@ class MusicService :
      * prefetch can finish downloading a short file in seconds, long before the
      * user has actually listened to it (or even if they skipped away early).
      *
-     * No-op if already marked downloaded, or if we don't yet know the file's
-     * contentLength (FormatEntity not fetched yet).
+     * No-op if already marked downloaded, or if the file's content length is unknown.
      */
     private suspend fun markCachedIfFullyDownloaded(mediaId: String) {
         val song = database.song(mediaId).first() ?: return
         if (song.song.dateDownload != null || song.song.isDownloaded) return
-        val contentLength = song.format?.contentLength ?: return
-        if (!playerCache.isCached(mediaId, 0, contentLength)) return
+        val contentLength =
+            song.format?.contentLength
+                ?: ContentMetadata
+                    .getContentLength(playerCache.getContentMetadata(mediaId))
+                    .takeIf { it > 0L }
+                ?: return
+        if (!playerCache.isCached(mediaId, 0, contentLength)) {
+            delay(1_000)
+            if (!playerCache.isCached(mediaId, 0, contentLength)) return
+        }
         database.query {
             update(song.song.copy(dateDownload = java.time.LocalDateTime.now()))
         }
@@ -2094,18 +2108,7 @@ class MusicService :
                 syncUtils.likeSong(song)
 
                 if (dataStore.get(AutoDownloadOnLikeKey, false) && song.liked) {
-                    val downloadRequest =
-                        androidx.media3.exoplayer.offline.DownloadRequest
-                            .Builder(song.id, song.id.toUri())
-                            .setCustomCacheKey(song.id)
-                            .setData(song.title.toByteArray())
-                            .build()
-                    androidx.media3.exoplayer.offline.DownloadService.sendAddDownload(
-                        this@MusicService,
-                        ExoDownloadService::class.java,
-                        downloadRequest,
-                        false,
-                    )
+                    downloadUtil.download(song.id)
                 }
 
                 // Dispatch notification/widget update to main thread —
@@ -2138,7 +2141,15 @@ class MusicService :
 
             val targetPlaylist = database.playlist(targetPlaylistId).first()
             if (targetPlaylist != null) {
-                database.addSongsToPlaylist(targetPlaylist, listOf(currentSong.id to null), prepend = true)
+                val addToPlaylistPosition =
+                    dataStore
+                        .get(AddToPlaylistPositionKey, AddToPlaylistPosition.BEGINNING.name)
+                        .toEnum(AddToPlaylistPosition.BEGINNING)
+                database.addSongsToPlaylist(
+                    targetPlaylist,
+                    listOf(currentSong.id to null),
+                    prepend = addToPlaylistPosition.prepend,
+                )
             }
         }
     }
@@ -2380,11 +2391,11 @@ class MusicService :
         mediaItem: MediaItem?,
         reason: Int,
     ) {
-        // The track that was playing before this transition only gets marked as
-        // "fully cached" if it advanced AUTOmatically (i.e. it actually finished),
-        // never on a manual skip/seek. lastTransitionedMediaId must be read BEFORE
-        // it gets overwritten below.
-        if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO) {
+        // Only natural completion transitions mark the previous track as fully cached,
+        // never a manual skip or seek. Read lastTransitionedMediaId before replacing it.
+        if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO ||
+            reason == Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT
+        ) {
             lastTransitionedMediaId?.let { previousId ->
                 scope.launch(Dispatchers.IO) { markCachedIfFullyDownloaded(previousId) }
             }
@@ -2483,6 +2494,10 @@ class MusicService :
         @Player.State playbackState: Int,
     ) {
         if (playbackState == Player.STATE_ENDED) {
+            player.currentMediaItem?.mediaId?.let { mediaId ->
+                scope.launch(Dispatchers.IO) { markCachedIfFullyDownloaded(mediaId) }
+            }
+
             // Check sleep timer guard - don't autoplay/repeat if sleep timer will pause
             val timer = sleepTimer ?: return
             if (timer.isActive && timer.pauseWhenSongEnd) {
@@ -3551,6 +3566,7 @@ class MusicService :
                 }
                 syncRepository.historyAdded(mediaItem.mediaId)
             }
+            recordRecentlyPlayed(mediaItem)
         }
 
         if (playbackStats.totalPlayTimeMs >= historyDurationMs) {
@@ -3572,6 +3588,51 @@ class MusicService :
                     .onFailure {
                         reportException(it)
                     }
+            }
+        }
+    }
+
+    /**
+     * Records a "recently played" entry for the listened song plus, when playback
+     * was started from a playlist/album/artist queue, an entry for that container.
+     * Uses the same 30s play-time threshold as listen history so accidental taps
+     * never surface on the Home screen. Fire-and-forget.
+     */
+    private fun recordRecentlyPlayed(mediaItem: MediaItem) {
+        val metadata = mediaItem.metadata ?: return
+        scope.launch(Dispatchers.IO) {
+            try {
+                val now = LocalDateTime.now()
+                val songEntry =
+                    RecentlyPlayedEntity(
+                        id = java.util.UUID.randomUUID().toString(),
+                        sourceType = "song",
+                        sourceId = metadata.id,
+                        sourceName = metadata.title,
+                        sourceThumbnail = metadata.thumbnailUrl,
+                        playedAt = now,
+                    )
+                database.query { upsertRecentlyPlayed(songEntry) }
+                syncRepository.recentlyPlayedAdded(songEntry)
+
+                val sourceInfo = currentQueue.sourceInfo ?: return@launch
+                if (sourceInfo.id == metadata.id && sourceInfo.type != "song") {
+                    // Container id colliding with the song id would be meaningless; skip
+                    return@launch
+                }
+                val containerEntry =
+                    RecentlyPlayedEntity(
+                        id = java.util.UUID.randomUUID().toString(),
+                        sourceType = sourceInfo.type,
+                        sourceId = sourceInfo.id,
+                        sourceName = sourceInfo.name,
+                        sourceThumbnail = null,
+                        playedAt = now,
+                    )
+                database.query { upsertRecentlyPlayed(containerEntry) }
+                syncRepository.recentlyPlayedAdded(containerEntry)
+            } catch (e: Exception) {
+                Timber.tag(TAG).w(e, "Failed to record recently played entry")
             }
         }
     }

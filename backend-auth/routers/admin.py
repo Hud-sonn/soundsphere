@@ -32,6 +32,21 @@ async def admin_health(request: Request, claims: dict = Depends(admin_required))
     return {"status": "ok", "admin": claims["user_id"]}
 
 
+@router.delete("/errors/cleanup")
+@limiter.limit(_READ_LIMIT)
+async def cleanup_old_errors(request: Request, claims: dict = Depends(admin_required)):
+    """Delete api_error_logs older than 7 days — keeps the admin error log from growing unbounded."""
+    try:
+        db = get_supabase()
+        cutoff = (datetime.now(timezone.utc) - timedelta(days=7)).isoformat()
+        # Supabase postgrest: delete where created_at < cutoff
+        db.table("api_error_logs").delete().lt("created_at", cutoff).execute()
+        return {"status": "ok", "detail": "Old errors cleaned"}
+    except Exception as e:
+        logger.exception("Failed to cleanup old errors")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.get("/stats/overview")
 @limiter.limit(_READ_LIMIT)
 async def stats_overview(request: Request, claims: dict = Depends(admin_required)):

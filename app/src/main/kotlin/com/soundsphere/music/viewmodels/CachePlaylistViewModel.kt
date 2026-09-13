@@ -9,6 +9,7 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.datasource.cache.Cache
+import androidx.media3.datasource.cache.ContentMetadata
 import com.soundsphere.music.constants.HideExplicitKey
 import com.soundsphere.music.constants.HideVideoSongsKey
 import com.soundsphere.music.db.MusicDatabase
@@ -65,7 +66,7 @@ class CachePlaylistViewModel
                     val stillValid = mutableListOf<Song>()
 
                     for (song in flagged) {
-                        val contentLength = song.format?.contentLength
+                        val contentLength = cachedContentLength(song)
                         val stillCached =
                             song.song.isDownloaded ||
                                 (
@@ -93,7 +94,26 @@ class CachePlaylistViewModel
             }
         }
 
-        fun removeSongFromCache(songId: String) {
-            playerCache.removeResource(songId)
+        fun removeSongFromCache(songId: String) = removeSongsFromCache(listOf(songId))
+
+        fun removeSongsFromCache(songIds: Collection<String>) {
+            songIds.forEach(playerCache::removeResource)
+
+            // Dropping the bytes does not touch the database, so clear the flags
+            // explicitly instead of waiting for the polling loop to self-heal.
+            database.query {
+                songIds.forEach { songId ->
+                    getSongByIdBlocking(songId)?.let { update(it.song.copy(dateDownload = null)) }
+                }
+            }
         }
+
+        private fun cachedContentLength(song: Song): Long? =
+            song.format?.contentLength
+                ?: ContentMetadata
+                    .getContentLength(playerCache.getContentMetadata(song.id))
+                    .takeIf { it > 0L }
+                    ?: ContentMetadata
+                        .getContentLength(downloadCache.getContentMetadata(song.id))
+                        .takeIf { it > 0L }
     }

@@ -232,7 +232,7 @@ class ListenTogetherClient
             private const val MAX_RECONNECT_ATTEMPTS = 15 // Increased from 5 to 15
             private const val INITIAL_RECONNECT_DELAY_MS = 1000L // Start at 1 second
             private const val MAX_RECONNECT_DELAY_MS = 120000L // Cap at 2 minutes
-            private const val PING_INTERVAL_MS = 25000L
+            private const val PING_INTERVAL_MS = 5000L
             private const val INITIAL_PING_INTERVAL_MS = 250L
             private const val MAX_LOG_ENTRIES = 500
             private const val SESSION_GRACE_PERIOD_MS = 10 * 60 * 1000L // 10 minutes
@@ -842,7 +842,7 @@ class ListenTogetherClient
             position: Long,
             effectiveAtServerTime: Long?,
             isPlaying: Boolean,
-        ): Long = serverClock.positionAt(position, effectiveAtServerTime, isPlaying)
+        ): Long? = serverClock.positionAt(position, effectiveAtServerTime, isPlaying)
 
         private fun acceptPlaybackRevision(revision: Long): Boolean {
             if (revision <= 0L) return true

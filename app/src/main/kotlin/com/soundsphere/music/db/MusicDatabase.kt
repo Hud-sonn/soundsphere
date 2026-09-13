@@ -19,6 +19,7 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import androidx.room.migration.AutoMigrationSpec
 import androidx.room.migration.Migration
+import androidx.room.withTransaction
 import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.sqlite.db.SupportSQLiteOpenHelper
 import com.soundsphere.music.db.daos.SpeedDialDao
@@ -32,6 +33,7 @@ import com.soundsphere.music.db.entities.PlayCountEntity
 import com.soundsphere.music.db.entities.PlaylistEntity
 import com.soundsphere.music.db.entities.PlaylistSongMap
 import com.soundsphere.music.db.entities.PlaylistSongMapPreview
+import com.soundsphere.music.db.entities.RecentlyPlayedEntity
 import com.soundsphere.music.db.entities.PodcastEntity
 import com.soundsphere.music.db.entities.RecognitionHistory
 import com.soundsphere.music.db.entities.RelatedSongMap
@@ -79,14 +81,8 @@ class MusicDatabase(
         }
 
     suspend fun withTransaction(block: suspend MusicDatabase.() -> Unit) =
-        with(delegate) {
-            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-                runInTransaction {
-                    kotlinx.coroutines.runBlocking {
-                        block(this@MusicDatabase)
-                    }
-                }
-            }
+        delegate.withTransaction {
+            block(this@MusicDatabase)
         }
 
     fun close() = delegate.close()
@@ -112,13 +108,14 @@ class MusicDatabase(
         RecognitionHistory::class,
         SpeedDialItem::class,
         PodcastEntity::class,
+        RecentlyPlayedEntity::class,
     ],
     views = [
         SortedSongArtistMap::class,
         SortedSongAlbumMap::class,
         PlaylistSongMapPreview::class,
     ],
-    version = 38,
+    version = 40,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 2, to = 3),
@@ -157,6 +154,8 @@ class MusicDatabase(
         AutoMigration(from = 35, to = 36, spec = Migration35To36::class),
         AutoMigration(from = 36, to = 37),
         AutoMigration(from = 37, to = 38),
+        AutoMigration(from = 38, to = 39),
+        AutoMigration(from = 39, to = 40),
     ],
 )
 @TypeConverters(Converters::class)
