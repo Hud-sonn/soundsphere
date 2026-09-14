@@ -546,6 +546,7 @@ fun SongListItem(
     isPlaying: Boolean = false,
     isSwipeable: Boolean = true,
     trailingContent: @Composable RowScope.() -> Unit = {},
+    thumbnailShape: Shape = RoundedCornerShape(thumbnailCornerRadius()),
 ) {
     val swipeEnabled by rememberPreference(SwipeToSongKey, defaultValue = false)
 
@@ -585,7 +586,7 @@ fun SongListItem(
                      isSelected = isSelected,
                      isActive = isActive,
                      isPlaying = isPlaying,
-                     shape = RoundedCornerShape(thumbnailCornerRadius()),
+                     shape = thumbnailShape,
                      modifier = Modifier.size(ListThumbnailSize)
                  )
              },
@@ -1123,7 +1124,7 @@ fun PlaylistGridItem(
                     }
                 }
             },
-            shape = RoundedCornerShape(thumbnailCornerRadius())
+            shape = MaterialTheme.shapes.large
         )
     },
     fillMaxWidth = fillMaxWidth,

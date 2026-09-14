@@ -1943,8 +1943,8 @@ class MainActivity : ComponentActivity() {
         // https://soundsphere.name.ng/p.html?token=... Shared playlists are
         // deferred via pendingShareRoute so they survive the auth gate when
         // the user is logged out.
-        if (uri.scheme == "soundsphere" || uri.host == "soundsphere.name.ng") {
-            val isWebFallback = uri.host == "soundsphere.name.ng"
+        if (uri.scheme == "soundsphere" || uri.host == "soundsphere.name.ng" || uri.host == "share.soundsphere.name.ng") {
+            val isWebFallback = uri.host == "soundsphere.name.ng" || uri.host == "share.soundsphere.name.ng"
             val host = uri.host ?: ""
             val segments = uri.pathSegments
             val token =

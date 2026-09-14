@@ -55,10 +55,10 @@
     <string name="share_card_design_gradient">Gradient</string>
     <string name="share_card_design_minimal">Minimal</string>
     <string name="share_card_design_framed">Framed</string>
-    <string name="share_card_text">Listening to %1$s — %2$s on Soundsphere\nhttps://api.soundsphere.name.ng/s/%3$s\nGet the app: https://soundsphere.name.ng/</string>
+    <string name="share_card_text">Listening to %1$s — %2$s on Soundsphere\nhttps://share.soundsphere.name.ng/s/%3$s\nGet the app: https://soundsphere.name.ng/</string>
     <!-- Shared links -->
-    <string name="share_playlist_message">Check out my playlist “%1$s” on Soundsphere — %2$d songs\nhttps://api.soundsphere.name.ng/p/%3$s\nsoundsphere://p/%3$s</string>
-    <string name="share_song_message">Now playing: %1$s — %2$s on Soundsphere\nhttps://api.soundsphere.name.ng/s/%3$s</string>
+    <string name="share_playlist_message">Check out my playlist "%1$s" on Soundsphere — %2$d songs\nhttps://share.soundsphere.name.ng/p/%3$s\nsoundsphere://p/%3$s</string>
+    <string name="share_song_message">Now playing: %1$s — %2$s on Soundsphere\nhttps://share.soundsphere.name.ng/s/%3$s</string>
     <string name="share_unavailable">Sharing isn’t available yet — sign in to your Soundsphere account first</string>
     <string name="shared_playlist_screen_title">Shared playlist</string>
     <string name="shared_playlist_load_error">Couldn’t load this playlist. Check your connection and try again.</string>

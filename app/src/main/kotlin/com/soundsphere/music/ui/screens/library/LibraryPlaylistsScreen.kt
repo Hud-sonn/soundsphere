@@ -855,7 +855,7 @@ private fun CreateBlendTile(
         Box(
             modifier = Modifier
                 .size(56.dp)
-                .clip(androidx.compose.foundation.shape.RoundedCornerShape(8.dp))
+                .clip(MaterialTheme.shapes.small)
                 .background(MaterialTheme.colorScheme.secondaryContainer),
             contentAlignment = Alignment.Center,
         ) {
