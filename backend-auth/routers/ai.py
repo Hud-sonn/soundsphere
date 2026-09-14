@@ -15,6 +15,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from auth.jwt import get_current_user
 from db.supabase import get_supabase
 from models.schemas import AiPlaylistRequest, ArtistDetectRequest
+from routers.billing import get_cap
 from services import ai_playlist
 from services.limiter import limiter
 
@@ -127,12 +128,13 @@ async def generate_playlist(
         )
 
     # Account-level daily budget (survives app cache clears: keyed on user_id
-    # in Supabase, never on the device). Checked before any Groq call.
-    if _generation_count(db, user_id) >= _DAILY_GENERATION_LIMIT:
+    # in Supabase, never on the device). Tier-aware: 2 free, 10 premium.
+    daily_limit = get_cap(db, user_id, "ai_daily")
+    if daily_limit is not None and _generation_count(db, user_id) >= daily_limit:
         raise HTTPException(
             status_code=429,
             detail=(
-                f"Daily AI playlist limit reached ({_DAILY_GENERATION_LIMIT} "
+                f"Daily AI playlist limit reached ({daily_limit} "
                 "per day). Try again tomorrow."
             ),
         )

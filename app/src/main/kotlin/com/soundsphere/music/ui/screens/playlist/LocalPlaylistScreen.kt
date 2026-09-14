@@ -23,6 +23,7 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -44,6 +45,8 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -79,6 +82,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -716,6 +720,8 @@ fun LocalPlaylistScreen(
                             isActive = song.song.id == mediaMetadata?.id,
                             isPlaying = isPlaying,
                             showInLibraryIcon = true,
+                            // Mock track rows (rounded-lg) via the theme token.
+                            thumbnailShape = MaterialTheme.shapes.small,
                             trailingContent = {
                                 if (inSelectMode) {
                                     Checkbox(
@@ -1246,10 +1252,65 @@ fun LocalPlaylistHeader(
                         .background(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.35f)),
                 )
             }
+            // Firelight ambience (mock hero) — token radial gradients, no blur API.
+            Box(
+                modifier = Modifier
+                    .size(300.dp)
+                    .clip(CircleShape)
+                    .background(
+                        Brush.radialGradient(
+                            listOf(
+                                MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f),
+                                Color.Transparent,
+                            ),
+                        ),
+                    ),
+            )
+            Box(
+                modifier = Modifier
+                    .size(200.dp)
+                    .clip(CircleShape)
+                    .background(
+                        Brush.radialGradient(
+                            listOf(
+                                MaterialTheme.colorScheme.secondary.copy(alpha = 0.15f),
+                                Color.Transparent,
+                            ),
+                        ),
+                    ),
+            )
+            // Metallic sleeve (mock vinyl sleeve) — token diagonal gradient + sheen.
+            Box(
+                modifier = Modifier
+                    .size(252.dp)
+                    .clip(MaterialTheme.shapes.medium)
+                    .background(
+                        Brush.linearGradient(
+                            listOf(
+                                MaterialTheme.colorScheme.surfaceContainerLowest,
+                                MaterialTheme.colorScheme.surfaceContainerHigh,
+                                MaterialTheme.colorScheme.surfaceContainerLowest,
+                            ),
+                        ),
+                    ),
+            )
+            Box(
+                modifier = Modifier
+                    .size(252.dp)
+                    .clip(MaterialTheme.shapes.medium)
+                    .background(
+                        Brush.radialGradient(
+                            listOf(
+                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
+                                Color.Transparent,
+                            ),
+                        ),
+                    ),
+            )
             when (playlist.thumbnails.size) {
                 0 -> {
-                    // Blends use the card radius from the mock; regular playlists unchanged.
-                    val artShape = if (playlist.playlist.isCollaborative) RoundedCornerShape(12.dp) else RoundedCornerShape(3.dp)
+                    // Sleeve radius from the mock (rounded-xl) via the theme token.
+                    val artShape = MaterialTheme.shapes.medium
                     Surface(
                         modifier =
                             Modifier
@@ -1283,7 +1344,7 @@ fun LocalPlaylistHeader(
                 }
 
                 1 -> {
-                    val artShape1 = if (playlist.playlist.isCollaborative) RoundedCornerShape(12.dp) else RoundedCornerShape(3.dp)
+                    val artShape1 = MaterialTheme.shapes.medium
                     Surface(
                         modifier =
                             Modifier
@@ -1359,10 +1420,10 @@ fun LocalPlaylistHeader(
                                 .size(240.dp)
                                 .shadow(
                                     elevation = 24.dp,
-                                    shape = RoundedCornerShape(3.dp),
+                                    shape = MaterialTheme.shapes.medium,
                                     spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
                                 ),
-                        shape = RoundedCornerShape(3.dp),
+                        shape = MaterialTheme.shapes.medium,
                     ) {
                         Box(modifier = Modifier.fillMaxSize()) {
                             listOf(
@@ -1719,8 +1780,8 @@ fun LocalPlaylistHeader(
                 }
             }
 
-            // Play Button - Larger primary circular button
-            Surface(
+            // Play pill (mock dual controller) — M3 secondary pill, icon + label.
+            Button(
                 onClick = {
                     playerConnection.playQueue(
                         ListQueue(
@@ -1731,21 +1792,24 @@ fun LocalPlaylistHeader(
                         ),
                     )
                 },
-                color = MaterialTheme.colorScheme.primary,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.secondary,
+                    contentColor = MaterialTheme.colorScheme.onSecondary,
+                ),
                 shape = CircleShape,
-                modifier = Modifier.size(72.dp),
+                contentPadding = PaddingValues(horizontal = 24.dp, vertical = 16.dp),
+                modifier = Modifier.height(56.dp),
             ) {
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier.fillMaxSize(),
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.play),
-                        contentDescription = stringResource(R.string.play),
-                        tint = MaterialTheme.colorScheme.onPrimary,
-                        modifier = Modifier.size(32.dp),
-                    )
-                }
+                Icon(
+                    painter = painterResource(R.drawable.play),
+                    contentDescription = null,
+                    modifier = Modifier.size(26.dp),
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = stringResource(R.string.play),
+                    style = MaterialTheme.typography.labelLarge,
+                )
             }
 
             // Menu Button - Smaller secondary button

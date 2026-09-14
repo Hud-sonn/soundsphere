@@ -18,6 +18,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 
 from auth.jwt import get_current_user
 from db.supabase import get_supabase
+from routers.billing import get_cap, check_cap, check_blend_creation_cap
 from models.schemas import (
     AddPlaylistTrackRequest,
     FollowAddRequest,
@@ -42,13 +43,6 @@ _WRITE_LIMIT = "300/hour"
 # Bulk playlist sync pushes one POST per track (a 100+ track playlist would
 # blow through _WRITE_LIMIT and fail the whole sync with 429s).
 _SYNC_WRITE_LIMIT = "600/hour"
-
-# Account-level sync caps (enforced before writes; grandfather existing rows).
-_PLAYLIST_SYNC_LIMIT = 20
-_HISTORY_KEEP = 500
-_FOLLOWED_ARTIST_LIMIT = 200
-_LIKED_LIMIT = 2000
-_PLAYLIST_TRACK_LIMIT = 500
 
 
 def _require_user(db, user_id: str) -> dict:
@@ -273,7 +267,7 @@ async def like_track(
 ):
     db = get_supabase()
     _require_user(db, user_id)
-    # Account-level cap: 2000 liked tracks.
+    # Account-level cap: liked tracks (tier-aware: 2000 free, unlimited premium).
     try:
         existing = (
             db.table("liked_tracks")
@@ -281,14 +275,11 @@ async def like_track(
             .eq("user_id", user_id)
             .execute()
         )
-        if (existing.count or len(existing.data)) >= _LIKED_LIMIT:
-            # Allow re-liking an already-liked track (idempotent upsert).
-            already = any(r.get("track_id") == track_id for r in existing.data)
-            if not already:
-                raise HTTPException(
-                    status_code=409,
-                    detail=f"Like limit reached ({_LIKED_LIMIT})",
-                )
+        current_count = existing.count or len(existing.data)
+        # Allow re-liking an already-liked track (idempotent upsert).
+        already = any(r.get("track_id") == track_id for r in existing.data)
+        if not already:
+            check_cap(db, user_id, "liked_tracks", current_count)
     except HTTPException:
         raise
     except Exception:
@@ -376,20 +367,19 @@ async def create_playlist(
 ):
     db = get_supabase()
     _require_user(db, user_id)
-    # Account-level cap: 20 synced playlists. Grandfathers existing over-limit rows.
+    # Account-level cap: synced playlists (tier-aware: 20 free, unlimited premium).
     try:
         existing = (
             db.table("playlists").select("id", count="exact").eq("user_id", user_id).execute()
         )
-        if (existing.count or len(existing.data)) >= _PLAYLIST_SYNC_LIMIT:
-            raise HTTPException(
-                status_code=409,
-                detail=f"Playlist sync limit reached ({_PLAYLIST_SYNC_LIMIT})",
-            )
+        check_cap(db, user_id, "playlists", existing.count or len(existing.data))
     except HTTPException:
         raise
     except Exception:
         logger.warning("playlist cap check failed", exc_info=True)
+    # Blend ownership cap: 3 free, 10 premium.
+    if body.is_collaborative:
+        check_blend_creation_cap(db, user_id)
     created = (
         db.table("playlists")
         .insert(
@@ -579,14 +569,10 @@ async def add_playlist_track(
     db = get_supabase()
     _require_user(db, user_id)
     playlist = _get_accessible_playlist(db, user_id, playlist_id)
-    # Per-playlist track cap: 500 (cheap guard; re-uses existing tracks data).
+    # Per-playlist track cap (tier-aware: 500 free, 1000 premium).
     try:
         track_count = len(playlist.get("playlist_tracks") or [])
-        if track_count >= _PLAYLIST_TRACK_LIMIT:
-            raise HTTPException(
-                status_code=409,
-                detail=f"Playlist track limit reached ({_PLAYLIST_TRACK_LIMIT})",
-            )
+        check_cap(db, user_id, "playlist_tracks", track_count)
     except HTTPException:
         raise
     except Exception:
@@ -714,14 +700,17 @@ async def add_history(
 
 
 def _prune_history(db, user_id: str) -> None:
-    """Keep only the most recent _HISTORY_KEEP rows for the user (FIFO)."""
+    """Keep only the most recent rows for the user (FIFO). Tier-aware: 500 free, unlimited premium."""
     try:
+        limit = get_cap(db, user_id, "history_rows")
+        if limit is None:
+            return  # unlimited — no pruning needed
         rows = (
             db.table("history")
             .select("id")
             .eq("user_id", user_id)
             .order("played_at", desc=True)
-            .range(_HISTORY_KEEP, _HISTORY_KEEP + 499)
+            .range(limit, limit + 499)
             .execute()
         )
         stale_ids = [row["id"] for row in rows.data]
@@ -837,7 +826,7 @@ async def follow_artist(
 ):
     db = get_supabase()
     _require_user(db, user_id)
-    # Account-level cap: 200 followed artists.
+    # Account-level cap: followed artists (tier-aware: 200 free, unlimited premium).
     try:
         existing = (
             db.table("followed_artists")
@@ -845,13 +834,10 @@ async def follow_artist(
             .eq("user_id", user_id)
             .execute()
         )
-        if (existing.count or len(existing.data)) >= _FOLLOWED_ARTIST_LIMIT:
-            already = any(r.get("artist_id") == artist_id for r in existing.data)
-            if not already:
-                raise HTTPException(
-                    status_code=409,
-                    detail=f"Follow limit reached ({_FOLLOWED_ARTIST_LIMIT})",
-                )
+        current_count = existing.count or len(existing.data)
+        already = any(r.get("artist_id") == artist_id for r in existing.data)
+        if not already:
+            check_cap(db, user_id, "followed_artists", current_count)
     except HTTPException:
         raise
     except Exception:
