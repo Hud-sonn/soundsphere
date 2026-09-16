@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -167,6 +168,8 @@ import com.soundsphere.music.utils.rememberEnumPreference
 import com.soundsphere.music.utils.rememberPreference
 import com.soundsphere.music.viewmodels.CommunityPlaylistItem
 import com.soundsphere.music.viewmodels.HomeViewModel
+import android.content.Intent
+import android.net.Uri
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -205,6 +208,10 @@ sealed class HomeSection(
     ) : HomeSection("home_page_section_$index", 10)
 
     data object MoodAndGenres : HomeSection("mood_and_genres", 5)
+
+    data object FeedReleases : HomeSection("feed_releases", 82)
+
+    data object FeedConcerts : HomeSection("feed_concerts", 81)
 }
 
 /** Maps a stored recency entry to the renderable YouTube item it refers to. */
@@ -689,6 +696,7 @@ fun HomeScreen(
     val haptic = LocalHapticFeedback.current
     val listenTogetherManager = LocalListenTogetherManager.current
     val isListenTogetherGuest = listenTogetherManager?.let { it.isInRoom && !it.isHost } ?: false
+    val context = LocalContext.current
 
     val isPlaying by playerConnection.isEffectivelyPlaying.collectAsStateWithLifecycle()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsStateWithLifecycle()
@@ -710,6 +718,10 @@ fun HomeScreen(
     val recentlyPlayed by viewModel.recentlyPlayed.collectAsStateWithLifecycle()
     val blendPlaylists by viewModel.blendPlaylists.collectAsStateWithLifecycle()
     val selectedChip by viewModel.selectedChip.collectAsStateWithLifecycle()
+
+    // Feed data (new releases + upcoming concerts from followed artists)
+    val feedReleases by viewModel.feedReleases.collectAsStateWithLifecycle()
+    val feedEvents by viewModel.feedEvents.collectAsStateWithLifecycle()
 
     // Official podcast API data
     val savedPodcastShows by viewModel.savedPodcastShows.collectAsStateWithLifecycle()
@@ -1077,6 +1089,8 @@ fun HomeScreen(
             similarRecommendations,
             homePage?.sections,
             explorePage?.moodAndGenres,
+            feedReleases,
+            feedEvents,
         ) {
             val list = mutableListOf<HomeSection>()
             val chipActive = selectedChip != null
@@ -1085,6 +1099,8 @@ fun HomeScreen(
             if (!chipActive && recentlyPlayed.isNotEmpty()) list.add(HomeSection.RecentlyPlayed)
             if (!chipActive && blendPlaylists.isNotEmpty()) list.add(HomeSection.BlendPlaylists)
             if (!chipActive && quickPicks?.isNotEmpty() == true) list.add(HomeSection.QuickPicks)
+            if (!chipActive && feedReleases.isNotEmpty()) list.add(HomeSection.FeedReleases)
+            if (!chipActive && feedEvents.isNotEmpty()) list.add(HomeSection.FeedConcerts)
             if (!chipActive && communityPlaylists?.isNotEmpty() == true) list.add(HomeSection.FromTheCommunity)
             if (!chipActive && dailyDiscover?.isNotEmpty() == true) list.add(HomeSection.DailyDiscover)
             if (!chipActive && keepListening?.isNotEmpty() == true) list.add(HomeSection.KeepListening)
@@ -1126,6 +1142,8 @@ fun HomeScreen(
                             HomeSection.AccountPlaylists,
                             HomeSection.ForgottenFavorites,
                             HomeSection.FromTheCommunity,
+                            HomeSection.FeedReleases,
+                            HomeSection.FeedConcerts,
                             -> 300
 
                             // Middle tier starts equal
@@ -1150,6 +1168,8 @@ fun HomeScreen(
                             HomeSection.AccountPlaylists,
                             HomeSection.ForgottenFavorites,
                             HomeSection.FromTheCommunity,
+                            HomeSection.FeedReleases,
+                            HomeSection.FeedConcerts,
                             -> sectionRandom.nextInt(-100, 400)
 
                             // Bottom tier: Standard variance
@@ -1163,6 +1183,8 @@ fun HomeScreen(
                             HomeSection.SpeedDial to 100,
                             HomeSection.RecentlyPlayed to 95,
                             HomeSection.QuickPicks to 90,
+                            HomeSection.FeedReleases to 88,
+                            HomeSection.FeedConcerts to 87,
                         HomeSection.FromTheCommunity to 80,
                         HomeSection.DailyDiscover to 70,
                         HomeSection.KeepListening to 60,
@@ -2592,6 +2614,318 @@ fun HomeScreen(
                                                 key = { "home_section_${section.index}_item_${it.id}" },
                                             ) { item ->
                                                 ytGridItem(item)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        HomeSection.FeedReleases -> {
+                            if (feedReleases.isEmpty()) return@forEach
+                            // New Release Radar: hero card for the most recent release
+                            val latest = feedReleases.first()
+                            item(key = "feed_releases_title") {
+                                NavigationTitle(
+                                    title = stringResource(R.string.new_release_radar),
+                                )
+                            }
+                            item(key = "feed_release_hero") {
+                                Card(
+                                    modifier =
+                                        Modifier
+                                            .fillMaxWidth()
+                                            .padding(horizontal = 16.dp, vertical = 4.dp),
+                                    shape = RoundedCornerShape(16.dp),
+                                    colors =
+                                        CardDefaults.cardColors(
+                                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                                        ),
+                                    onClick = {
+                                        latest.url?.let { url ->
+                                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                                            context.startActivity(intent)
+                                        }
+                                    },
+                                ) {
+                                    Row(
+                                        modifier =
+                                            Modifier
+                                                .fillMaxWidth()
+                                                .padding(12.dp),
+                                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                    ) {
+                                        AsyncImage(
+                                            model =
+                                                ImageRequest.Builder(LocalContext.current)
+                                                    .data(latest.artwork)
+                                                    .crossfade(true)
+                                                    .build(),
+                                            contentDescription = latest.title,
+                                            contentScale = ContentScale.Crop,
+                                            modifier =
+                                                Modifier
+                                                    .size(88.dp)
+                                                    .clip(RoundedCornerShape(12.dp)),
+                                        )
+                                        Column(
+                                            modifier = Modifier.weight(1f),
+                                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                                        ) {
+                                            Text(
+                                                text = latest.artistName,
+                                                style = MaterialTheme.typography.labelMedium,
+                                                color = MaterialTheme.colorScheme.primary,
+                                                maxLines = 1,
+                                            )
+                                            Text(
+                                                text = latest.title,
+                                                style = MaterialTheme.typography.titleMedium,
+                                                maxLines = 2,
+                                            )
+                                            Row(
+                                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                                verticalAlignment = Alignment.CenterVertically,
+                                            ) {
+                                                if (latest.albumType.isNotBlank()) {
+                                                    Text(
+                                                        text = latest.albumType.replaceFirstChar { it.uppercase() },
+                                                        style = MaterialTheme.typography.bodySmall,
+                                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                    )
+                                                }
+                                                if (latest.trackCount > 0) {
+                                                    Text(
+                                                        text = "${latest.trackCount} tracks",
+                                                        style = MaterialTheme.typography.bodySmall,
+                                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                    )
+                                                }
+                                            }
+                                            if (latest.releaseDate != null) {
+                                                Text(
+                                                    text = latest.releaseDate,
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            // Show remaining releases in a horizontal row
+                            if (feedReleases.size > 1) {
+                                item(key = "feed_releases_row") {
+                                    LazyRow(
+                                        contentPadding =
+                                            WindowInsets.systemBars
+                                                .only(WindowInsetsSides.Horizontal)
+                                                .asPaddingValues(),
+                                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                    ) {
+                                        items(feedReleases.drop(1).take(10), key = { "${it.source}:${it.sourceId}" }) { release ->
+                                            Column(
+                                                modifier =
+                                                    Modifier
+                                                        .width(140.dp)
+                                                        .padding(horizontal = 4.dp),
+                                                verticalArrangement = Arrangement.spacedBy(6.dp),
+                                            ) {
+                                                AsyncImage(
+                                                    model =
+                                                        ImageRequest.Builder(LocalContext.current)
+                                                            .data(release.artwork)
+                                                            .crossfade(true)
+                                                            .build(),
+                                                    contentDescription = release.title,
+                                                    contentScale = ContentScale.Crop,
+                                                    modifier =
+                                                        Modifier
+                                                            .fillMaxWidth()
+                                                            .aspectRatio(1f)
+                                                            .clip(RoundedCornerShape(8.dp)),
+                                                )
+                                                Text(
+                                                    text = release.title,
+                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    maxLines = 1,
+                                                )
+                                                Text(
+                                                    text = release.artistName,
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                    maxLines = 1,
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        HomeSection.FeedConcerts -> {
+                            if (feedEvents.isEmpty()) return@forEach
+                            // Upcoming Concerts: alert ribbon for nearest + horizontal scroll cards
+                            val nearest = feedEvents.first()
+                            item(key = "feed_concerts_title") {
+                                NavigationTitle(
+                                    title = stringResource(R.string.upcoming_concerts),
+                                    onClick = {
+                                        navController.navigate("events")
+                                    },
+                                )
+                            }
+                            // Nearest concert alert ribbon
+                            item(key = "feed_concert_alert") {
+                                Card(
+                                    modifier =
+                                        Modifier
+                                            .fillMaxWidth()
+                                            .padding(horizontal = 16.dp, vertical = 4.dp),
+                                    shape = RoundedCornerShape(16.dp),
+                                    colors =
+                                        CardDefaults.cardColors(
+                                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                        ),
+                                    onClick = {
+                                        nearest.ticketUrl?.let { url ->
+                                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                                            context.startActivity(intent)
+                                        }
+                                    },
+                                ) {
+                                    Row(
+                                        modifier =
+                                            Modifier
+                                                .fillMaxWidth()
+                                                .padding(12.dp),
+                                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                    ) {
+                                        // Concert image or placeholder
+                                        if (nearest.image != null) {
+                                            AsyncImage(
+                                                model =
+                                                    ImageRequest.Builder(LocalContext.current)
+                                                        .data(nearest.image)
+                                                        .crossfade(true)
+                                                        .build(),
+                                                contentDescription = nearest.title,
+                                                contentScale = ContentScale.Crop,
+                                                modifier =
+                                                    Modifier
+                                                        .size(56.dp)
+                                                        .clip(RoundedCornerShape(8.dp)),
+                                            )
+                                        }
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text(
+                                                text = nearest.title,
+                                                style = MaterialTheme.typography.titleSmall,
+                                                maxLines = 1,
+                                            )
+                                            val location =
+                                                listOfNotNull(nearest.venue, nearest.city, nearest.country)
+                                                    .joinToString(", ")
+                                            if (location.isNotBlank()) {
+                                                Text(
+                                                    text = location,
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                                    maxLines = 1,
+                                                )
+                                            }
+                                            if (nearest.startTime != null) {
+                                                Text(
+                                                    text = nearest.startTime.take(10),
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                                )
+                                            }
+                                        }
+                                        if (nearest.soldOut) {
+                                            Text(
+                                                text = stringResource(R.string.sold_out),
+                                                style = MaterialTheme.typography.labelSmall,
+                                                color = MaterialTheme.colorScheme.error,
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                            // Remaining concerts in horizontal scroll
+                            if (feedEvents.size > 1) {
+                                item(key = "feed_concerts_row") {
+                                    LazyRow(
+                                        contentPadding =
+                                            WindowInsets.systemBars
+                                                .only(WindowInsetsSides.Horizontal)
+                                                .asPaddingValues(),
+                                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                    ) {
+                                        items(feedEvents.drop(1).take(10), key = { "${it.source}:${it.sourceId}" }) { event ->
+                                            Card(
+                                                modifier = Modifier.width(200.dp),
+                                                shape = RoundedCornerShape(12.dp),
+                                                colors =
+                                                    CardDefaults.cardColors(
+                                                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                                                    ),
+                                                onClick = {
+                                                    event.ticketUrl?.let { url ->
+                                                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                                                        context.startActivity(intent)
+                                                    }
+                                                },
+                                            ) {
+                                                Column {
+                                                    if (event.image != null) {
+                                                        AsyncImage(
+                                                            model =
+                                                                ImageRequest.Builder(LocalContext.current)
+                                                                    .data(event.image)
+                                                                    .crossfade(true)
+                                                                    .build(),
+                                                            contentDescription = event.title,
+                                                            contentScale = ContentScale.Crop,
+                                                            modifier =
+                                                                Modifier
+                                                                    .fillMaxWidth()
+                                                                    .height(120.dp)
+                                                                    .clip(
+                                                                        RoundedCornerShape(
+                                                                            topStart = 12.dp,
+                                                                            topEnd = 12.dp,
+                                                                        ),
+                                                                    ),
+                                                        )
+                                                    }
+                                                    Column(modifier = Modifier.padding(10.dp)) {
+                                                        Text(
+                                                            text = event.title,
+                                                            style = MaterialTheme.typography.titleSmall,
+                                                            maxLines = 1,
+                                                        )
+                                                        val eventLocation =
+                                                            listOfNotNull(event.venue, event.city)
+                                                                .joinToString(", ")
+                                                        if (eventLocation.isNotBlank()) {
+                                                            Text(
+                                                                text = eventLocation,
+                                                                style = MaterialTheme.typography.bodySmall,
+                                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                                maxLines = 1,
+                                                            )
+                                                        }
+                                                        if (event.startTime != null) {
+                                                            Text(
+                                                                text = event.startTime.take(10),
+                                                                style = MaterialTheme.typography.bodySmall,
+                                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                            )
+                                                        }
+                                                    }
+                                                }
                                             }
                                         }
                                     }

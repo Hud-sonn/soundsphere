@@ -24,6 +24,7 @@ from routers.ai import router as ai_router
 from routers.admin import router as admin_router
 from routers.share import router as share_router
 from routers.web import router as web_router
+from routers.feed import router as feed_router
 from db.supabase import get_supabase
 
 REQUIRED = [
@@ -50,6 +51,7 @@ async def lifespan(app: FastAPI):
     # pool, keeps its Supabase DB connection warm. No user data is touched.
     blend_url = os.getenv("BLEND_BASE_URL", "https://soundsphere-blend.onrender.com").rstrip("/")
     keepalive_task = None
+    feed_refresh_task = None
     if blend_url:
         async def _keepalive_loop():
             # Wait for app to be fully up before first ping
@@ -67,6 +69,26 @@ async def lifespan(app: FastAPI):
                     await asyncio.sleep(300)  # 5 min
 
         keepalive_task = asyncio.create_task(_keepalive_loop())
+
+    # Feed cache refresh: runs every 12 hours.
+    # Populates artist_releases_cache + artist_events_cache from
+    # followed_artists → iTunes/Deezer/Bandsintown/tickethub.
+    async def _feed_refresh_loop():
+        # Wait 60s after startup before first refresh (let app settle)
+        await asyncio.sleep(60)
+        while True:
+            try:
+                from services.feed_refresh import refresh_feed
+                loop = asyncio.get_running_loop()
+                summary = await loop.run_in_executor(None, refresh_feed)
+                logger.info("Feed refresh (background): %s", summary)
+            except Exception as e:
+                logger.exception("Feed refresh failed: %s", e)
+            # Sleep 12 hours
+            await asyncio.sleep(12 * 60 * 60)
+
+    feed_refresh_task = asyncio.create_task(_feed_refresh_loop())
+
     try:
         yield
     finally:
@@ -74,6 +96,12 @@ async def lifespan(app: FastAPI):
             keepalive_task.cancel()
             try:
                 await keepalive_task
+            except asyncio.CancelledError:
+                pass
+        if feed_refresh_task:
+            feed_refresh_task.cancel()
+            try:
+                await feed_refresh_task
             except asyncio.CancelledError:
                 pass
 
@@ -129,6 +157,7 @@ app.include_router(ai_router)
 app.include_router(admin_router)
 app.include_router(share_router)
 app.include_router(web_router)
+app.include_router(feed_router)
 
 
 def _record_error_log(method: str, path: str, status_code: int, client_ip: str, detail: str = ""):

@@ -32,6 +32,10 @@ import com.soundsphere.music.constants.QuickPicks
 import com.soundsphere.music.constants.QuickPicksKey
 import com.soundsphere.music.constants.ShowWrappedCardKey
 import com.soundsphere.music.constants.WrappedSeenKey
+import com.soundsphere.music.api.FeedEvent
+import com.soundsphere.music.api.FeedRelease
+import com.soundsphere.music.api.SyncService
+import com.soundsphere.music.data.AuthRepository
 import com.soundsphere.music.db.MusicDatabase
 import com.soundsphere.music.db.entities.Album
 import com.soundsphere.music.db.entities.LocalItem
@@ -94,6 +98,7 @@ class HomeViewModel @Inject constructor(
     val syncUtils: SyncUtils,
     val wrappedManager: WrappedManager,
     private val wrappedAudioService: WrappedAudioService,
+    private val authRepository: AuthRepository,
 ) : ViewModel() {
     val isRefreshing = MutableStateFlow(false)
     val isLoading = MutableStateFlow(false)
@@ -120,6 +125,10 @@ class HomeViewModel @Inject constructor(
     // Official API data for podcast sections
     val savedPodcastShows = MutableStateFlow<List<com.soundsphere.innertube.models.PodcastItem>>(emptyList())
     val episodesForLater = MutableStateFlow<List<SongItem>>(emptyList())
+
+    // Feed data (new releases + upcoming concerts from followed artists)
+    val feedReleases = MutableStateFlow<List<FeedRelease>>(emptyList())
+    val feedEvents = MutableStateFlow<List<FeedEvent>>(emptyList())
 
     val allLocalItems = MutableStateFlow<List<LocalItem>>(emptyList())
     val allYtItems = MutableStateFlow<List<YTItem>>(emptyList())
@@ -526,6 +535,9 @@ class HomeViewModel @Inject constructor(
             }
         }
 
+        // Phase 1c: Feed data (releases + concerts) — quick API call, load in parallel.
+        viewModelScope.launch(Dispatchers.IO) { loadFeedData() }
+
         // Phase 2: Heavy multi-request operations — run in background without blocking the UI.
         viewModelScope.launch(Dispatchers.IO) { getDailyDiscover() }
 
@@ -698,6 +710,27 @@ class HomeViewModel @Inject constructor(
                 .filterYoutubeShorts(hideYoutubeShorts)
         }.onFailure {
             reportException(it)
+        }
+    }
+
+    private suspend fun loadFeedData() {
+        val token = authRepository.getToken() ?: return
+        // Fire both requests in parallel
+        coroutineScope {
+            launch(Dispatchers.IO) {
+                SyncService.getFeedReleases(token).onSuccess { releases ->
+                    feedReleases.value = releases
+                }.onFailure {
+                    reportException(it)
+                }
+            }
+            launch(Dispatchers.IO) {
+                SyncService.getFeedEvents(token).onSuccess { events ->
+                    feedEvents.value = events
+                }.onFailure {
+                    reportException(it)
+                }
+            }
         }
     }
 
