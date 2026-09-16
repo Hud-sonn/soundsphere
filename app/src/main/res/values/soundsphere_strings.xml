@@ -932,8 +932,19 @@
 
     <string name="speed_dial">Speed dial</string>
     <string name="recently_played">Recently played</string>
+
     <string name="pin_to_speed_dial">Pin to speed dial</string>
     <string name="unpin_from_speed_dial">Unpin from speed dial</string>
+    <string name="new_release_radar">New Release Radar</string>
+    <string name="upcoming_concerts">Upcoming Concerts</string>
+    <string name="sold_out">Sold Out</string>
+    <string name="events_live">Events</string>
+    <string name="from_artists_you_follow">From artists you follow</string>
+    <string name="discover_events">Discover</string>
+    <string name="book_tickets">Book tickets</string>
+    <string name="event_details">Event details</string>
+    <string name="no_upcoming_events">No upcoming concerts right now. Follow more artists to fill this space.</string>
+    <string name="error_loading_events">Couldn\'t load concerts. Check your connection and try again.</string>
     <string name="pin">Pin</string>
     <string name="unpin">Unpin</string>
     <string name="randomize_home_order">Randomize home screen order</string>

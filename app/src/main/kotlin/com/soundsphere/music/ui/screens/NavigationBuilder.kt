@@ -151,6 +151,10 @@ fun NavGraphBuilder.navigationBuilder(
         NewReleaseScreen(navController)
     }
 
+    composable("events") {
+        EventsScreen(navController)
+    }
+
     composable("charts_screen") {
         ChartsScreen(navController)
     }

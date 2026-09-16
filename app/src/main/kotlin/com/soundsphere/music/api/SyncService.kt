@@ -89,6 +89,37 @@ data class SharedPlaylist(
     val memberCount: Int = 1,
 )
 
+/** A new release from the feed cache. */
+data class FeedRelease(
+    val artistName: String,
+    val source: String,
+    val sourceId: String,
+    val title: String,
+    val releaseDate: String?,
+    val albumType: String,
+    val artwork: String?,
+    val url: String?,
+    val trackCount: Int,
+)
+
+/** An upcoming concert from the feed cache. */
+data class FeedEvent(
+    val source: String,
+    val sourceId: String,
+    val title: String,
+    val artistName: String?,
+    val url: String?,
+    val startTime: String?,
+    val endTime: String?,
+    val venue: String?,
+    val city: String?,
+    val country: String?,
+    val image: String?,
+    val ticketUrl: String?,
+    val soldOut: Boolean,
+    val description: String?,
+)
+
 /**
  * Client for the /user/ account-sync API. Every call requires the Bearer
  * token stored by [AuthRepository]. HTTP 401 surfaces as
@@ -651,4 +682,72 @@ object SyncService {
             ).takeIf { it.name.isNotBlank() }
         }
     }
-}
+
+    // ===== Feed (new releases + upcoming concerts) =====
+
+    suspend fun getFeedReleases(token: String): Result<List<FeedRelease>> {
+        val response = execute(token, "GET", "/feed/releases")
+        return response.mapCatching { body ->
+            val arr = JSONObject(body).optJSONArray("releases") ?: return@mapCatching emptyList()
+            buildList {
+                for (i in 0 until arr.length()) {
+                    val item = arr.optJSONObject(i) ?: continue
+                    add(
+                        FeedRelease(
+                            artistName = item.optString("artist_name"),
+                            source = item.optString("source"),
+                            sourceId = item.optString("source_id"),
+                            title = item.optString("title"),
+                            releaseDate = item.optString("release_date").ifBlank { null },
+                            albumType = item.optString("album_type"),
+                            artwork = item.optString("artwork").ifBlank { null },
+                            url = item.optString("url").ifBlank { null },
+                            trackCount = item.optInt("track_count", 0),
+                        ),
+                    )
+                }
+            }
+        }
+    }
+
+    suspend fun getFeedEvents(token: String): Result<List<FeedEvent>> {
+        val response = execute(token, "GET", "/feed/events")
+        return response.mapCatching { body ->
+            parseFeedEvents(body)
+        }
+    }
+
+    suspend fun getFeedDiscoverEvents(token: String): Result<List<FeedEvent>> {
+        val response = execute(token, "GET", "/feed/events/discover")
+        return response.mapCatching { body ->
+            parseFeedEvents(body)
+        }
+    }
+
+    private fun parseFeedEvents(body: String): List<FeedEvent> {
+        val arr = JSONObject(body).optJSONArray("events") ?: return emptyList()
+        return buildList {
+                for (i in 0 until arr.length()) {
+                    val item = arr.optJSONObject(i) ?: continue
+                    add(
+                        FeedEvent(
+                            source = item.optString("source"),
+                            sourceId = item.optString("source_id"),
+                            title = item.optString("title"),
+                            artistName = item.optString("artist_name").ifBlank { null },
+                            url = item.optString("url").ifBlank { null },
+                            startTime = item.optString("start_time").ifBlank { null },
+                            endTime = item.optString("end_time").ifBlank { null },
+                            venue = item.optString("venue").ifBlank { null },
+                            city = item.optString("city").ifBlank { null },
+                            country = item.optString("country").ifBlank { null },
+                            image = item.optString("image").ifBlank { null },
+                            ticketUrl = item.optString("ticket_url").ifBlank { null },
+                            soldOut = item.optBoolean("sold_out", false),
+                            description = item.optString("description").ifBlank { null },
+                        ),
+                    )
+                }
+            }
+        }
+    }
