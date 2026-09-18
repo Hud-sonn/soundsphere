@@ -128,7 +128,7 @@ Soundsphere has its own account system:
 - Log in, reset your password, and stay signed in with an encrypted local session
 - Your Soundsphere account is completely separate from your YouTube Music login
 
-The account backend lives in the [`backend-auth/`](backend-auth) directory of this repository.
+The account backend lives in the private [`Hud-sonn/soundsphere-backend`](https://github.com/Hud-sonn/soundsphere-backend) repository.
 
 </div>
 

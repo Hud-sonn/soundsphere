@@ -52,7 +52,7 @@ This check must be performed as a standard step whenever a new table is created,
 
 All usage caps MUST be enforced account-level (keyed by `user_id` on the backend, never by device, install, or app cache) so clearing app data / reinstalling / switching devices cannot reset them. Client-side checks are UX hints only; the backend is the real lock (same principle as premium gating — rooted clients bypass UI).
 
-Current caps (free tier) live in `backend-auth/routers/user.py` (`_PLAYLIST_SYNC_LIMIT = 20`, `_LIKED_LIMIT = 2000`, `_FOLLOWED_ARTIST_LIMIT = 200`, `_PLAYLIST_TRACK_LIMIT = 500`, history prune 500, AI generation 2/day):
+Current caps (free tier) live in `routers/user.py` in the private `Hud-sonn/soundsphere-backend` repo (`_PLAYLIST_SYNC_LIMIT = 20`, `_LIKED_LIMIT = 2000`, `_FOLLOWED_ARTIST_LIMIT = 200`, `_PLAYLIST_TRACK_LIMIT = 500`, history prune 500, AI generation 2/day):
 - **Blend (collaborative) playlists: 3 per user** on free. Count owned playlists with `is_collaborative = true`; reject creation above the cap with 409.
 - When Premium launches, EVERY cap gets a higher premium value (Blend 3 → 10; playlists, liked, follows, tracks, history, AI quota all raised). Tier source is the `subscriptions` table (`expires_at > now()`), never `users.role` (trigger-protected) and never anything the client asserts. Until billing ships, everyone is free tier — do not invent ad-hoc exceptions.
 

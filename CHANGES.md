@@ -9,6 +9,25 @@ recorded here before the task is marked done — a short, concrete bullet
 with the area, what changed, and push status (`pushed` / `local`).
 Newest date block goes on top.
 
+### 2026-09-17 — Backend docs moved to private repo (local, NOT pushed)
+- `chore(backend): planning docs moved to soundsphere-backend, refs fixed (local, NOT pushed)` — `CLOUDFLARE_WORKER_SETUP.md`, `SCRAPER_REWRITE_PLAN.md`, `PREMIUM_SCAFFOLD.md`, `PAYMENT_INTEGRATION_PLAN.md`, `share-redirect-worker.js` moved to private repo root (committed + pushed as `3b4b30f`); `supabase link` verified working from the new clone (`followed_artists` count 0). App repo: files `git rm`'d; `README.md` backend pointer, `AGENTS.md` caps path, `CloudinaryUploader.kt` comment updated to new repo (doc edits explicitly authorized). `HOME_SCREEN_MOCK.html` stays (app UI).
+
+### 2026-09-17 — Backend → private repo split (local, NOT pushed)
+- `chore(backend): soundsphere-backend private repo created with history (local, NOT pushed)` — `gh repo create Hud-sonn/soundsphere-backend --private`; `git subtree split -P backend-auth` (34 commits) pushed as `main`. Verified via API: private=true, root holds backend files only (main.py, routers incl. feed.py, services incl. feed_refresh.py, migrations 001-007, scrapers, db), no app files, no .env (template only). Local split branch deleted after push.
+- NOT DONE yet (needs human/dashboard): repoint Render `soundsphere-auth` + `soundsphere-blend` to new repo (rootDir `backend-auth` → empty); `supabase link` in fresh clone; move backend docs + fix AGENTS.md paths; remove `backend-auth/` from public repo only after new-repo deploy goes live.
+
+### 2026-09-17 — Artist-screen follow syncs to backend (local, NOT pushed)
+- `fix(feed): artist screen subscribe now writes followed_artists (local, NOT pushed)` — `ArtistViewModel.toggleChannelSubscription` only synced local DB + YouTube, so follows made from the artist header never reached the backend feed source. Now calls `SyncRepository.artistFollowChanged` (same as the artist-menu toggle), skipping blank names. Both subscribe paths write `followed_artists` when logged in.
+
+### 2026-09-17 — Launch video v2, full coverage (local, NOT pushed)
+- `feat(brag): 12-scene 56s launch video, verbatim copy only (local, NOT pushed)` — `brag-output/brag.mp4` (1280x720, 56.00s, h264 + AAC) + `brag.jpg` (frame 0) + `share-copy.txt` replace v1. 12 scenes ≤6s each, distinct layouts: hook (website H1), home, search (typed + ticks), Release Radar (Starrgirl/Dai Dai, live iTunes/Deezer data), concerts (3 real tickethub events + tap), followed/discover, Blend, Together, AI (typed prompt → result), Wrapped (Asake), sync + feature strip, outro (creator tagline). Every on-screen word verbatim from `website/index.html`, `soundsphere_strings.xml`, or live scraper output — zero invented copy. Three.js probed and rejected (headless-shell WebGL returns black frames); all 3D is GSAP CSS-3D. Check passed (0 errors). Plan/composition stay in /tmp; repo holds deliverables only.
+
+### 2026-09-17 — Launch video /brag (local, NOT pushed)
+- `feat(brag): 35s cinematic launch video (local, NOT pushed)` — `brag-output/brag.mp4` (1280x720, 35.00s, h264 + AAC) + `brag.jpg` poster (baked as frame 0) + `share-copy.txt`. Built with Hyperframes from real product material: home-screen mock UI (Release Radar hero, concert ribbon, tour cards), real copy (Book tickets, Blend, AI Curator), 3D CSS phone staging, music bed + 10 SFX, beat locks (8.74/13.11/17.47s) + subtle RMS-reactive glow. Check passed (0 errors, 22/22 contrast AA). Plan/brief/composition kept in /tmp (repo takes deliverables only).
+
+### 2026-09-16 — Sidebar Events entry (local, NOT pushed)
+- `feat(events): sidebar navigation item for Events screen (local, NOT pushed)` — `Sidebar.kt` gains an Events `DrawerItem` (calendar icon, `events_live` label) after Stats, navigating to the existing `events` route with selected-highlight support. `assembleFossDebug` BUILD SUCCESSFUL (constrained heaps, `gradle.properties` restored, no diff).
+
 ### 2026-09-16 — Events screen + discover pool + scraper fixes (pushed)
 - `feat(events): data-driven multi-artist Events screen (pushed)` — new `events` route (`EventsScreen.kt` + `EventsViewModel.kt`). Top: hero card for nearest followed-artist event + "From artists you follow" list. Bottom: "Discover" list from new `GET /feed/events/discover` via `SyncService.getFeedDiscoverEvents()`. Expandable date cards use real fields only (venue/city/country/date/description/ticket/soldout); ticket buttons open browser; imageless events get a venue-initial fallback tile. Home "Upcoming Concerts" title now navigates to `events`. New strings: events_live, from_artists_you_follow, discover_events, book_tickets, event_details, no_upcoming_events, error_loading_events.
 - `feat(feed): GET /feed/events/discover endpoint (pushed)` — serves upcoming events NOT tied to the user's follows: tickethub unmatched listings (artist_name NULL) + events cached for other users' artists, soonest first, limit 50.

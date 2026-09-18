@@ -20,7 +20,8 @@ import java.util.concurrent.TimeUnit
  * Uploads user avatar images to Cloudinary using an unsigned upload preset.
  * The cloud name and the upload preset name are public identifiers — no
  * account credentials are shipped in the app. Deletion of a replaced avatar is
- * handled server-side by the backend (see backend-auth/services/cloudinary.py).
+ * handled server-side by the backend (see services/cloudinary.py in the
+ * private Hud-sonn/soundsphere-backend repo).
  */
 object CloudinaryUploader {
 
