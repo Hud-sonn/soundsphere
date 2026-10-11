@@ -64,7 +64,7 @@ object AuthService {
             } catch (e: IOException) {
                 BackendEndpoint.markFailure()
                 try {
-                    executeOnce(BackendEndpoint.current(), build, parse)
+                    executeOnce(BackendEndpoint.fallback(), build, parse)
                 } catch (e2: IOException) {
                     Result.failure(e2)
                 }

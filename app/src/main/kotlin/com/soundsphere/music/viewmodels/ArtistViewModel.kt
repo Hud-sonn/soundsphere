@@ -25,6 +25,7 @@ import com.soundsphere.innertube.pages.ArtistPage
 import com.soundsphere.music.constants.HideExplicitKey
 import com.soundsphere.music.constants.HideVideoSongsKey
 import com.soundsphere.music.constants.HideYoutubeShortsKey
+import com.soundsphere.music.data.SyncRepository
 import com.soundsphere.music.db.MusicDatabase
 import com.soundsphere.music.db.entities.ArtistEntity
 import com.soundsphere.music.db.entities.deserializeArtistPage
@@ -60,6 +61,7 @@ class ArtistViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
     private val database: MusicDatabase,
     private val syncUtils: SyncUtils,
+    private val syncRepository: SyncRepository,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     val artistId = savedStateHandle.get<String>("artistId")!!
@@ -314,6 +316,16 @@ class ArtistViewModel @Inject constructor(
             Timber.d("[CHANNEL_TOGGLE] Calling syncUtils.subscribeChannel($channelId, $shouldBeSubscribed)")
             // Sync with YouTube (handles login check internally)
             syncUtils.subscribeChannel(channelId, shouldBeSubscribed)
+
+            // Sync to Soundsphere account so followed_artists (feed source for
+            // Release Radar + concert alerts) stays complete. The artist-menu
+            // toggle already does this; the screen header path did not.
+            // Blank names are skipped: an empty match string would match every event.
+            val followName = artist?.name?.takeIf { it.isNotBlank() }
+                ?: artistPage?.artist?.title?.takeIf { it.isNotBlank() }
+            if (followName != null) {
+                syncRepository.artistFollowChanged(artistId, followName, shouldBeSubscribed)
+            }
         }
     }
 }

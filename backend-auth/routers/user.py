@@ -13,10 +13,13 @@ into `tracks`. The app sends a TrackPayload for exactly this reason.
 import logging
 import secrets
 from datetime import datetime, timezone
+import logging
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 
 from auth.jwt import get_current_user
+
+logger = logging.getLogger("soundsphere-auth")
 from db.supabase import get_supabase
 from routers.billing import get_cap, check_cap, check_blend_creation_cap
 from models.schemas import (
@@ -607,16 +610,16 @@ async def add_playlist_track(
             notify_ids = {r["user_id"] for r in collabs.data} | ({owner_id} if owner_id else set())
             notify_ids.discard(user_id)
             for nid in notify_ids:
-                try:
-                    db.table("notifications").insert({
-                        "user_id": nid,
-                        "title": "Blend updated",
-                        "body": f"{username} added \"{body.track.title}\" to {playlist.get('name')}",
-                        "type": "blend_update",
-                        "data": {"playlist_id": playlist_id, "track_id": body.track.id},
-                    }).execute()
-                except Exception:
-                    pass
+    try:
+        db.table("notifications").insert({
+            "user_id": nid,
+            "title": "Blend updated",
+            "body": f"{username} added \"{body.track.title}\" to {playlist.get('name')}",
+            "type": "blend_update",
+            "data": {"playlist_id": playlist_id, "track_id": body.track.id},
+        }).execute()
+    except Exception as e:
+        logger.warning("Failed to send blend notification to user %s: %s", nid, e}
     except Exception:
         logger.warning("blend notification failed", exc_info=True)
     return {"status": "ok"}

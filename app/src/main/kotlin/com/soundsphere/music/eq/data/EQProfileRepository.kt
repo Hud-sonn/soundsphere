@@ -60,10 +60,17 @@ class EQProfileRepository @Inject constructor(
         private const val TAG = "EQProfileRepository"
         private const val KEY_PROFILES = "eq_profiles"
         private const val KEY_ACTIVE_PROFILE_ID = "active_profile_id"
+        private const val KEY_ROUTE_EQ_MAP = "eq_route_map"
     }
+
+    private val _routeEqMap = MutableStateFlow<Map<String, String>>(emptyMap())
+
+    /** Output-route → profile-id mapping for auto-switch. Missing route = keep global active. */
+    val routeEqMap: StateFlow<Map<String, String>> = _routeEqMap.asStateFlow()
 
     init {
         loadProfiles()
+        loadRouteMap()
     }
 
     /**
@@ -192,6 +199,32 @@ class EQProfileRepository @Inject constructor(
         return _activeProfile.value
     }
 
+    private fun loadRouteMap() {
+        try {
+            val raw = prefs.getString(KEY_ROUTE_EQ_MAP, null) ?: return
+            @Suppress("UNCHECKED_CAST")
+            val map = json.decodeFromString<Map<String, String?>>(raw)
+                .mapNotNull { (k, v) -> v?.let { k to it } }
+                .toMap()
+            _routeEqMap.value = map
+        } catch (e: Exception) {
+            Timber.tag(TAG).e(e, "Error loading route EQ map")
+        }
+    }
+
+    /**
+     * Map an output route to a profile (null clears the mapping — the route
+     * then keeps whatever profile is globally active).
+     */
+    suspend fun setRouteProfile(route: OutputRoute, profileId: String?) = withContext(Dispatchers.IO) {
+        val updated = _routeEqMap.value.toMutableMap()
+        if (profileId == null) updated.remove(route.name) else updated[route.name] = profileId
+        prefs.edit { putString(KEY_ROUTE_EQ_MAP, json.encodeToString(updated)) }
+        _routeEqMap.value = updated
+    }
+
+    fun routeProfileId(route: OutputRoute): String? = _routeEqMap.value[route.name]
+
     /**
      * Import a custom EQ profile from ParametricEQ data
      */
@@ -220,9 +253,12 @@ class EQProfileRepository @Inject constructor(
      * Within each group, sort by timestamp (newest first)
      */
     fun getSortedProfiles(): List<SavedEQProfile> {
-        // Only custom profiles are supported now
+        // AutoEQ profiles first (sorted by timestamp), then custom profiles.
+        // Both groups newest-first so the most recently added appears at the top.
         return _profiles.value
-            .filter { it.isCustom }
-            .sortedByDescending { it.addedTimestamp }
+            .sortedWith(
+                compareByDescending<SavedEQProfile> { it.isCustom }
+                    .thenByDescending { it.addedTimestamp }
+            )
     }
 }

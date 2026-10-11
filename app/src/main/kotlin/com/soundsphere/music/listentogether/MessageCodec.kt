@@ -163,6 +163,9 @@ class MessageCodec(
                 payload.trackInfo.let { builder.setTrackInfo(trackInfoToProto(it)) }
                 builder.build()
             }
+            is VoteSkipPayload -> Listentogether.VoteSkipPayload.newBuilder()
+                .setTrackId(payload.trackId)
+                .build()
             is ApproveSuggestionPayload -> Listentogether.ApproveSuggestionPayload.newBuilder()
                 .setSuggestionId(payload.suggestionId)
                 .build()
@@ -318,6 +321,10 @@ class MessageCodec(
             MessageTypes.SUGGESTION_REJECTED -> {
                 val pb = Listentogether.SuggestionRejectedPayload.parseFrom(payloadBytes)
                 SuggestionRejectedPayload(pb.suggestionId, pb.reason.takeIf { it.isNotEmpty() })
+            }
+            MessageTypes.SKIP_VOTES -> {
+                val pb = Listentogether.SkipVotesPayload.parseFrom(payloadBytes)
+                SkipVotesPayload(pb.trackId, pb.voterIdsList, pb.threshold)
             }
             else -> null
         }

@@ -26,7 +26,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -38,13 +41,13 @@ import com.soundsphere.music.R
 import com.soundsphere.music.constants.DisableScreenshotKey
 import com.soundsphere.music.constants.PauseListenHistoryKey
 import com.soundsphere.music.constants.PauseSearchHistoryKey
+import com.soundsphere.music.constants.UniquenessOptInKey
 import com.soundsphere.music.ui.component.DefaultDialog
 import com.soundsphere.music.ui.component.IconButton
 import com.soundsphere.music.ui.component.Material3SettingsGroup
 import com.soundsphere.music.ui.component.Material3SettingsItem
 import com.soundsphere.music.ui.utils.backToMain
 import com.soundsphere.music.utils.rememberPreference
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PrivacySettings(
@@ -63,6 +66,13 @@ fun PrivacySettings(
         key = DisableScreenshotKey,
         defaultValue = false
     )
+    val (uniquenessOptIn, onUniquenessOptInChange) = rememberPreference(
+        key = UniquenessOptInKey,
+        defaultValue = false
+    )
+    val syncRepository = com.soundsphere.music.LocalSyncRepository.current
+    val scope = rememberCoroutineScope()
+    var uniquenessBusy by remember { mutableStateOf(false) }
 
     var showClearListenHistoryDialog by remember {
         mutableStateOf(false)
@@ -241,6 +251,60 @@ fun PrivacySettings(
                         )
                     },
                     onClick = { onDisableScreenshotChange(!disableScreenshot) }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.stats),
+                    title = { Text(stringResource(R.string.uniqueness_opt_in)) },
+                    description = { Text(stringResource(R.string.uniqueness_opt_in_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = uniquenessOptIn,
+                            onCheckedChange = { enabled ->
+                                if (!uniquenessBusy) {
+                                    onUniquenessOptInChange(enabled)
+                                    uniquenessBusy = true
+                                    scope.launch(Dispatchers.IO) {
+                                        try {
+                                            if (enabled) {
+                                                syncRepository?.syncTasteProfile()
+                                            } else {
+                                                syncRepository?.deleteTasteProfile()
+                                            }
+                                        } finally {
+                                            uniquenessBusy = false
+                                        }
+                                    }
+                                }
+                            },
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (uniquenessOptIn) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(androidx.compose.material3.SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = {
+                        if (!uniquenessBusy) {
+                            val enabled = !uniquenessOptIn
+                            onUniquenessOptInChange(enabled)
+                            uniquenessBusy = true
+                            scope.launch(Dispatchers.IO) {
+                                try {
+                                    if (enabled) {
+                                        syncRepository?.syncTasteProfile()
+                                    } else {
+                                        syncRepository?.deleteTasteProfile()
+                                    }
+                                } finally {
+                                    uniquenessBusy = false
+                                }
+                            }
+                        }
+                    }
                 )
             )
         )

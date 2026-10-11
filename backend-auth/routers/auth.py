@@ -7,7 +7,7 @@ from services.limiter import limiter
 from services.activity import log_activity
 from auth.password import hash_password, verify_password
 
-logger = logging.getLogger("solus-rift")
+logger = logging.getLogger("soundsphere-auth")
 from auth.jwt import create_token, get_current_user_info
 from models.schemas import (
     RegisterRequest,
@@ -121,7 +121,7 @@ async def register(body: RegisterRequest, request: Request = None):
     try:
         _create_auth_user(email)
     except Exception as e:
-        print(f"Failed to prepare auth account: {e}")
+        logger.error(f"Failed to prepare auth account: {e}")
         raise HTTPException(
             status_code=500, detail="Could not send verification code. Please try again."
         )
@@ -141,7 +141,7 @@ async def register(body: RegisterRequest, request: Request = None):
         # free for a retry.
         db.table("pending_registrations").delete().eq("email", email).execute()
         _delete_auth_user(email)
-        print(f"Failed to send OTP email: {e}")
+        logger.error(f"Failed to send OTP email: {e}")
         raise HTTPException(
             status_code=500, detail="Could not send verification code. Please try again."
         )
@@ -213,7 +213,7 @@ async def resend_otp(body: ResendOtpRequest, request: Request = None):
     try:
         await asyncio.to_thread(send_otp_email, email)
     except Exception as e:
-        print(f"Failed to send OTP email: {e}")
+        logger.error(f"Failed to send OTP email: {e}")
         raise HTTPException(
             status_code=500, detail="Could not send a new code. Please try again."
         )
@@ -266,7 +266,7 @@ async def forgot_password(body: ForgotPasswordRequest, request: Request = None):
     except Exception as e:
         # Log the error but don't fail the request - the reset code is issued
         # by Supabase Auth, which keeps its own state for this flow.
-        print(f"Failed to send reset email: {e}")
+        logger.error(f"Failed to send reset email: {e}")
     _record_code_sent(db, user.data[0]["email"], "reset")
     return {"message": "If that email is registered, a reset code was sent"}
 

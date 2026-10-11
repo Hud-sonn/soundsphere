@@ -360,6 +360,15 @@ interface DatabaseDao {
     )
     fun mostPlayedSongsByArtist(artistId: String, fromTimeStamp: LocalDateTime, toTimeStamp: LocalDateTime): Flow<List<Song>>
 
+    /**
+     * Distinct play days, newest first, as `YYYY-MM-DD` strings. Feeds the
+     * listening-streak counter (see `utils/ListeningStats.kt`). Uses
+     * `substr` instead of `date()` so the day slice is exact regardless of
+     * how the `LocalDateTime` converter formats the separator.
+     */
+    @Query("SELECT DISTINCT substr(timestamp, 1, 10) FROM event ORDER BY 1 DESC")
+    fun playDatesDesc(): List<String>
+
     @Transaction
     @Query(
         "SELECT song.* FROM song_artist_map JOIN song ON song_artist_map.songId = song.id WHERE artistId = :artistId AND inLibrary IS NOT NULL LIMIT :previewSize",
@@ -1623,6 +1632,9 @@ interface DatabaseDao {
 
     @Query("UPDATE song SET totalPlayTime = totalPlayTime + :playTime WHERE id = :songId")
     fun incrementTotalPlayTime(songId: String, playTime: Long)
+
+    @Query("UPDATE song SET skipCount = skipCount + 1 WHERE id = :songId")
+    suspend fun incrementSkipCount(songId: String)
 
     @Query("UPDATE playCount SET count = count + 1 WHERE song = :songId AND year = :year AND month = :month")
     fun incrementPlayCount(songId: String, year: Int, month: Int)

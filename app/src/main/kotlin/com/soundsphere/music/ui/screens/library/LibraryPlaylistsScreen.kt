@@ -37,6 +37,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -69,6 +70,7 @@ import com.soundsphere.music.LocalSyncRepository
 import com.soundsphere.music.R
 import com.soundsphere.music.constants.AiPlaylistConsentKey
 import com.soundsphere.music.constants.AiPlaylistEnabledKey
+import com.soundsphere.music.constants.GroupByFolderKey
 import com.soundsphere.music.constants.CONTENT_TYPE_HEADER
 import com.soundsphere.music.constants.CONTENT_TYPE_PLAYLIST
 import com.soundsphere.music.constants.GridItemSize
@@ -106,6 +108,7 @@ import com.soundsphere.music.extensions.normalizeForSearch
 import com.soundsphere.music.utils.rememberEnumPreference
 import com.soundsphere.music.utils.rememberPreference
 import com.soundsphere.music.viewmodels.LibraryPlaylistsViewModel
+import com.soundsphere.music.viewmodels.PlaylistsViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -117,6 +120,12 @@ private data class VisiblePlaylistItem(
     val playlist: Playlist,
     val autoPlaylist: Boolean,
     val route: String? = null,
+)
+
+/** A run of playlists rendered under one folder header (title null = flat, no header). */
+private data class PlaylistFolderSection(
+    val title: String?,
+    val items: List<VisiblePlaylistItem>,
 )
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
@@ -152,6 +161,10 @@ fun LibraryPlaylistsScreen(
     val gridItemSize by rememberEnumPreference(GridItemsSizeKey, GridItemSize.BIG)
 
     val playlists by viewModel.allPlaylists.collectAsStateWithLifecycle()
+
+    val playlistsViewModel: PlaylistsViewModel = hiltViewModel()
+    val (groupByFolder, onGroupByFolderChange) = rememberPreference(GroupByFolderKey, false)
+    val folderMap by playlistsViewModel.folderMap.collectAsStateWithLifecycle()
 
     var isSearchActive by rememberSaveable { mutableStateOf(false) }
     val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
@@ -309,6 +322,32 @@ fun LibraryPlaylistsScreen(
 
     val lazyListState = rememberLazyListState()
     val lazyGridState = rememberLazyGridState()
+
+    // Folder grouping: auto playlists stay flat on top, real playlists get
+    // folder headers (alphabetical, Ungrouped last) when the toggle is on.
+    val folderSections =
+        remember(visibleResults, folderMap, groupByFolder) {
+            if (!groupByFolder) {
+                listOf(PlaylistFolderSection(title = null, items = visibleResults))
+            } else {
+                val (autoItems, realItems) = visibleResults.partition { it.autoPlaylist }
+                val grouped = realItems.groupBy { folderMap[it.playlist.id] ?: PlaylistsViewModel.UNGROUPED }
+                buildList {
+                    if (autoItems.isNotEmpty()) {
+                        add(PlaylistFolderSection(title = null, items = autoItems))
+                    }
+                    grouped
+                        .filterKeys { it != PlaylistsViewModel.UNGROUPED }
+                        .toSortedMap()
+                        .forEach { (title, items) ->
+                            add(PlaylistFolderSection(title = title, items = items))
+                        }
+                    grouped[PlaylistsViewModel.UNGROUPED]?.let { items ->
+                        add(PlaylistFolderSection(title = PlaylistsViewModel.UNGROUPED, items = items))
+                    }
+                }
+            }
+        }
 
     val backStackEntry by navController.currentBackStackEntryAsState()
     val scrollToTop =
@@ -536,6 +575,22 @@ fun LibraryPlaylistsScreen(
             )
 
             IconButton(
+                onClick = { onGroupByFolderChange(!groupByFolder) },
+                modifier = Modifier.padding(start = 8.dp).size(40.dp),
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.folder),
+                    contentDescription = stringResource(R.string.group_by_folder),
+                    tint =
+                        if (groupByFolder) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            LocalContentColor.current
+                        },
+                )
+            }
+
+            IconButton(
                 onClick = { isSearchActive = true },
                 modifier = Modifier.padding(start = 8.dp).size(40.dp),
             ) {
@@ -618,30 +673,44 @@ fun LibraryPlaylistsScreen(
                         }
                     }
 
-                    items(
-                        items = visibleResults,
-                        key = { it.key },
-                        contentType = { CONTENT_TYPE_PLAYLIST },
-                    ) { item ->
-                        if (item.autoPlaylist) {
-                            PlaylistListItem(
-                                playlist = item.playlist,
-                                autoPlaylist = true,
-                                modifier =
-                                    Modifier
-                                        .fillMaxWidth()
-                                        .clickable {
-                                            item.route?.let(navController::navigate)
-                                        }
-                                        .animateItem(),
-                            )
-                        } else {
-                            LibraryPlaylistListItem(
-                                menuState = menuState,
-                                coroutineScope = coroutineScope,
-                                playlist = item.playlist,
-                                modifier = Modifier.animateItem(),
-                            )
+                    folderSections.forEach { section ->
+                        section.title?.let { title ->
+                            item(
+                                key = "folder_header_$title",
+                                contentType = CONTENT_TYPE_HEADER,
+                            ) {
+                                FolderHeader(
+                                    title = title,
+                                    count = section.items.size,
+                                    modifier = Modifier.animateItem(),
+                                )
+                            }
+                        }
+                        items(
+                            items = section.items,
+                            key = { it.key },
+                            contentType = { CONTENT_TYPE_PLAYLIST },
+                        ) { item ->
+                            if (item.autoPlaylist) {
+                                PlaylistListItem(
+                                    playlist = item.playlist,
+                                    autoPlaylist = true,
+                                    modifier =
+                                        Modifier
+                                            .fillMaxWidth()
+                                            .clickable {
+                                                item.route?.let(navController::navigate)
+                                            }
+                                            .animateItem(),
+                                )
+                            } else {
+                                LibraryPlaylistListItem(
+                                    menuState = menuState,
+                                    coroutineScope = coroutineScope,
+                                    playlist = item.playlist,
+                                    modifier = Modifier.animateItem(),
+                                )
+                            }
                         }
                     }
                 }
@@ -693,33 +762,48 @@ fun LibraryPlaylistsScreen(
                         }
                     }
 
-                    items(
-                        items = visibleResults,
-                        key = { it.key },
-                        contentType = { CONTENT_TYPE_PLAYLIST },
-                    ) { item ->
-                        if (item.autoPlaylist) {
-                            PlaylistGridItem(
-                                playlist = item.playlist,
-                                fillMaxWidth = true,
-                                autoPlaylist = true,
-                                modifier =
-                                    Modifier
-                                        .fillMaxWidth()
-                                        .combinedClickable(
-                                            onClick = {
-                                                item.route?.let(navController::navigate)
-                                            },
-                                        )
-                                        .animateItem(),
-                            )
-                        } else {
-                            LibraryPlaylistGridItem(
-                                menuState = menuState,
-                                coroutineScope = coroutineScope,
-                                playlist = item.playlist,
-                                modifier = Modifier.animateItem(),
-                            )
+                    folderSections.forEach { section ->
+                        section.title?.let { title ->
+                            item(
+                                key = "folder_header_$title",
+                                span = { GridItemSpan(maxLineSpan) },
+                                contentType = CONTENT_TYPE_HEADER,
+                            ) {
+                                FolderHeader(
+                                    title = title,
+                                    count = section.items.size,
+                                    modifier = Modifier.animateItem(),
+                                )
+                            }
+                        }
+                        items(
+                            items = section.items,
+                            key = { it.key },
+                            contentType = { CONTENT_TYPE_PLAYLIST },
+                        ) { item ->
+                            if (item.autoPlaylist) {
+                                PlaylistGridItem(
+                                    playlist = item.playlist,
+                                    fillMaxWidth = true,
+                                    autoPlaylist = true,
+                                    modifier =
+                                        Modifier
+                                            .fillMaxWidth()
+                                            .combinedClickable(
+                                                onClick = {
+                                                    item.route?.let(navController::navigate)
+                                                },
+                                            )
+                                            .animateItem(),
+                                )
+                            } else {
+                                LibraryPlaylistGridItem(
+                                    menuState = menuState,
+                                    coroutineScope = coroutineScope,
+                                    playlist = item.playlist,
+                                    modifier = Modifier.animateItem(),
+                                )
+                            }
                         }
                     }
                 }
@@ -882,6 +966,40 @@ private fun CreateBlendTile(
             painter = painterResource(R.drawable.add),
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
+/** Folder section header — folder mark + name + playlist count. */
+@Composable
+private fun FolderHeader(
+    title: String,
+    count: Int,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+    ) {
+        Icon(
+            painter = painterResource(R.drawable.folder),
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.secondary,
+            modifier = Modifier.size(20.dp),
+        )
+        Spacer(Modifier.width(8.dp))
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleMedium,
+            maxLines = 1,
+            modifier = Modifier.weight(1f),
+        )
+        Text(
+            text = pluralStringResource(R.plurals.n_playlist, count, count),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }

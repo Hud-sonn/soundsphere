@@ -51,7 +51,25 @@ data class SyncPlaylist(
 data class SyncLikedEntry(
     val likedAt: String?,
     val track: SyncTrack,
-)data class SyncHistoryEntry(
+)
+
+/** Uniqueness score computed server-side from opt-in taste profiles. */
+data class SyncUniqueness(
+    val score: Int,
+    val rarity: String,
+    val minutesPercentile: Int,
+    val contributors: Int,
+)
+
+/** Subscription state read for unlocking premium right after checkout. */
+data class SyncSubscriptionStatus(
+    val tier: String,
+    val isPro: Boolean,
+    val expiresAt: String?,
+    val status: String,
+)
+
+data class SyncHistoryEntry(
     val playedAt: String?,
     val track: SyncTrack,
 )
@@ -221,7 +239,7 @@ object SyncService {
             } catch (e: IOException) {
                 BackendEndpoint.markFailure()
                 try {
-                    attempt(token, method, path, jsonBody, BackendEndpoint.current())
+                    attempt(token, method, path, jsonBody, BackendEndpoint.fallback())
                 } catch (e2: IOException) {
                     Result.failure(e2)
                 }
@@ -384,7 +402,7 @@ object SyncService {
             } catch (e: IOException) {
                 BackendEndpoint.markFailure()
                 try {
-                    fetchShared(shareToken, BackendEndpoint.current())
+                    fetchShared(shareToken, BackendEndpoint.fallback())
                 } catch (e2: IOException) {
                     Result.failure(e2)
                 }
@@ -580,8 +598,7 @@ object SyncService {
 
     // ===== Followed artists =====
 
-    data class SyncFollowedArtist(
-        val id: String,
+    data class SyncFollowedArtist(        val id: String,
         val name: String,
         val followedAt: String?,
     )
@@ -614,6 +631,83 @@ object SyncService {
     suspend fun unfollowArtist(token: String, artistId: String): Result<Unit> {
         val response = execute(token, "DELETE", "/user/follows/$artistId")
         return response.map { Unit }
+    }
+
+    // ===== Taste profile / uniqueness (opt-in) =====
+
+    suspend fun uploadTasteProfile(
+        token: String,
+        totalMinutes: Long,
+        uniqueArtists: Int,
+        topArtists: List<String>,
+    ): Result<Unit> {
+        val body =
+            JSONObject()
+                .put("total_minutes", totalMinutes)
+                .put("unique_artists", uniqueArtists)
+                .put("top_artists", JSONArray(topArtists))
+        val response = execute(token, "POST", "/stats/profile", body)
+        return response.map { Unit }
+    }
+
+    suspend fun getUniqueness(token: String): Result<SyncUniqueness> {
+        val response = execute(token, "GET", "/stats/uniqueness")
+        return response.mapCatching { body ->
+            val obj = JSONObject(body)
+            SyncUniqueness(
+                score = obj.optInt("score"),
+                rarity = obj.optString("rarity"),
+                minutesPercentile = obj.optInt("minutes_percentile"),
+                contributors = obj.optInt("contributors"),
+            )
+        }
+    }
+
+    suspend fun deleteTasteProfile(token: String): Result<Unit> {
+        val response = execute(token, "DELETE", "/stats/profile")
+        return response.map { Unit }
+    }
+
+    // ===== Paystack checkout =====
+
+    data class PaystackInit(
+        val authorizationUrl: String,
+        val reference: String,
+    )
+
+    suspend fun initializePaystack(token: String, planCode: String): Result<PaystackInit> {
+        val body = JSONObject().put("plan_code", planCode)
+        val response = execute(token, "POST", "/paystack/initialize", body)
+        return response.mapCatching { responseBody ->
+            val obj = JSONObject(responseBody)
+            PaystackInit(
+                authorizationUrl = obj.optString("authorization_url"),
+                reference = obj.optString("reference"),
+            ).takeIf { it.authorizationUrl.isNotBlank() && it.reference.isNotBlank() }
+                ?: throw Exception("Bad checkout response")
+        }
+    }
+
+    suspend fun verifyPaystack(token: String, reference: String): Result<Boolean> {
+        val body = JSONObject().put("reference", reference)
+        val response = execute(token, "POST", "/paystack/verify", body)
+        return response.mapCatching { responseBody ->
+            val obj = JSONObject(responseBody)
+            obj.optString("status") == "success" && obj.optString("tier") == "premium"
+        }
+    }
+
+    suspend fun getSubscriptionStatus(token: String): Result<SyncSubscriptionStatus> {
+        val response = execute(token, "GET", "/paystack/status")
+        return response.mapCatching { responseBody ->
+            val obj = JSONObject(responseBody)
+            SyncSubscriptionStatus(
+                tier = obj.optString("tier", "free"),
+                isPro = obj.optBoolean("is_pro", false),
+                expiresAt = obj.optString("expires_at").ifBlank { null },
+                status = obj.optString("status", "active"),
+            )
+        }
     }
 
     // ===== Settings =====

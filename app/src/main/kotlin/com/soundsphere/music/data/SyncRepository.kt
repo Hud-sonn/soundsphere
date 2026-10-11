@@ -13,8 +13,10 @@ import com.soundsphere.music.api.SyncHistoryEntry
 import com.soundsphere.music.api.SyncPlaylist
 import com.soundsphere.music.api.SyncService
 import com.soundsphere.music.api.SyncTrack
+import com.soundsphere.music.api.SyncUniqueness
 import com.soundsphere.music.api.UnauthorizedException
 import com.soundsphere.music.constants.AiPlaylistConsentKey
+import com.soundsphere.music.constants.FollowBackfillDoneKey
 import com.soundsphere.music.constants.DarkModeKey
 import com.soundsphere.music.constants.DynamicThemeKey
 import com.soundsphere.music.constants.HideExplicitKey
@@ -87,6 +89,26 @@ class SyncRepository @Inject constructor(
     private val _lastSyncError = MutableStateFlow<String?>(null)
     val lastSyncError: StateFlow<String?> = _lastSyncError.asStateFlow()
 
+    /**
+     * Premium subscription flag, refreshed at startup and after checkout.
+     * UI hint only — the server enforces caps, rooted clients bypass UI.
+     */
+    private val _isPremium = MutableStateFlow(false)
+    val isPremium: StateFlow<Boolean> = _isPremium.asStateFlow()
+
+    fun refreshPremiumStatus() {
+        scope.launch {
+            val token = authRepository.getToken()
+            if (token == null) {
+                _isPremium.value = false
+                return@launch
+            }
+            SyncService.getSubscriptionStatus(token)
+                .onSuccess { _isPremium.value = it.isPro }
+                .onFailure { /* keep last known; offline keeps working */ }
+        }
+    }
+
     private val _serverPlaylistIds = MutableStateFlow<Map<String, String>>(emptyMap())
     private val _deletedServerPlaylistIds = MutableStateFlow<Set<String>>(emptySet())
     private val _notifications = MutableStateFlow<List<SyncService.AppNotification>>(emptyList())
@@ -148,6 +170,16 @@ class SyncRepository @Inject constructor(
             val json = context.dataStore.data.first()[PENDING_PLAYLIST_TRACK_REMOVES_KEY]
             _pendingPlaylistTrackRemoves.value = parseIdSet(json)
         }
+        // Clear all sync state on logout so a new account never inherits
+        // the previous account's playlist mapping or pending operations.
+        scope.launch {
+            authRepository.isLoggedIn
+                .collect { loggedIn ->
+                    if (!loggedIn) {
+                        clearAllSyncState()
+                    }
+                }
+        }
         // Watch the key settings and push changes to the server (debounced).
         // The last-pushed snapshot is only recorded while signed in, so the
         // current values are re-pushed after a fresh login.
@@ -170,17 +202,7 @@ class SyncRepository @Inject constructor(
             authRepository.isLoggedIn
                 .collect { loggedIn ->
                     if (!loggedIn) {
-                        _serverPlaylistIds.value = emptyMap()
-                        _pendingLikePushes.value = emptySet()
-                        _deletedServerPlaylistIds.value = emptySet()
-                        _pendingPlaylistTrackRemoves.value = emptySet()
-                        _notifications.value = emptyList()
-                        context.safeDataStoreEdit { prefs ->
-                            prefs.remove(PLAYLIST_MAP_KEY)
-                            prefs.remove(PENDING_LIKES_KEY)
-                            prefs.remove(DELETED_PLAYLISTS_KEY)
-                            prefs.remove(PENDING_PLAYLIST_TRACK_REMOVES_KEY)
-                        }
+                        clearAllSyncState()
                     }
                 }
         }
@@ -832,6 +854,20 @@ class SyncRepository @Inject constructor(
         context.safeDataStoreEdit { it[PENDING_PLAYLIST_TRACK_REMOVES_KEY] = setIdToJson(updated) }
     }
 
+    private suspend fun clearAllSyncState() {
+        _serverPlaylistIds.value = emptyMap()
+        _pendingLikePushes.value = emptySet()
+        _deletedServerPlaylistIds.value = emptySet()
+        _pendingPlaylistTrackRemoves.value = emptySet()
+        _notifications.value = emptyList()
+        context.safeDataStoreEdit { prefs ->
+            prefs.remove(PLAYLIST_MAP_KEY)
+            prefs.remove(PENDING_LIKES_KEY)
+            prefs.remove(DELETED_PLAYLISTS_KEY)
+            prefs.remove(PENDING_PLAYLIST_TRACK_REMOVES_KEY)
+        }
+    }
+
     // ===== Helpers =====
 
     private suspend fun <T> retryNetwork(block: suspend () -> Result<T>): Result<T> {
@@ -936,8 +972,89 @@ class SyncRepository @Inject constructor(
         }
     }
 
-    private suspend fun pushArtistFollow(artistId: String, artistName: String, isFollowed: Boolean) {
+    /**
+     * One-time backfill: push locally-subscribed artists that predate the
+     * backend follow sync (the artist-screen subscribe path never wrote
+     * `followed_artists`, so the feed cron sees an empty table).
+     *
+     * Idempotent (server upserts on `user_id,artist_id`), runs once per
+     * install via [FollowBackfillDoneKey]. Skipped while logged out and
+     * retried next launch on transient failures; stops at the account cap.
+     */
+    suspend fun backfillFollows() {
+        if (context.dataStore.data.first()[FollowBackfillDoneKey] == true) return
         val token = authRepository.getToken() ?: return
+        val candidates =
+            database.artistsByNameAsc().first()
+                .filter {
+                    it.artist.bookmarkedAt != null &&
+                        !it.artist.isPodcastChannel &&
+                        it.artist.name.isNotBlank()
+                }
+        if (candidates.isEmpty()) {
+            context.safeDataStoreEdit { it[FollowBackfillDoneKey] = true }
+            return
+        }
+        var consecutiveFailures = 0
+        for (artist in candidates) {
+            val result = retryNetwork {
+                SyncService.followArtist(token, artist.artist.id, artist.artist.name)
+            }
+            if (result.isSuccess) {
+                consecutiveFailures = 0
+                continue
+            }
+            val err = result.exceptionOrNull()
+            if (handleFailure(err)) return // 401: session cleared, retry next launch
+            if (err?.message?.contains("limit reached", ignoreCase = true) == true) {
+                break // cap hit: keep what landed, stop pushing
+            }
+            consecutiveFailures++
+            if (consecutiveFailures >= 3) return // likely offline: retry next launch
+        }
+        context.safeDataStoreEdit { it[FollowBackfillDoneKey] = true }
+    }
+
+    // ===== Taste profile / uniqueness (opt-in) =====
+
+    suspend fun uploadTasteProfile(
+        totalMinutes: Long,
+        uniqueArtists: Int,
+        topArtists: List<String>,
+    ): Result<Unit> {
+        val token = authRepository.getToken() ?: return Result.failure(Exception("Not signed in"))
+        return SyncService.uploadTasteProfile(token, totalMinutes, uniqueArtists, topArtists)
+    }
+
+    suspend fun fetchUniqueness(): Result<SyncUniqueness> {
+        val token = authRepository.getToken() ?: return Result.failure(Exception("Not signed in"))
+        return SyncService.getUniqueness(token)
+    }
+
+    suspend fun deleteTasteProfile(): Result<Unit> {
+        val token = authRepository.getToken() ?: return Result.failure(Exception("Not signed in"))
+        return SyncService.deleteTasteProfile(token)
+    }
+
+    /**
+     * Compute aggregates from the local library and upload the taste profile.
+     * Only call when the user opted in ([UniquenessOptInKey]). Sends at most
+     * 10 artist names + minute totals — never track-level data.
+     */
+    suspend fun syncTasteProfile(): Result<Unit> {
+        val token = authRepository.getToken() ?: return Result.failure(Exception("Not signed in"))
+        val artists =
+            database.mostPlayedArtists(
+                fromTimeStamp = LocalDateTime.now().minusDays(365),
+                limit = 500,
+            ).first()
+        val top = artists.take(10).map { it.title }.filter { it.isNotBlank() }
+        if (top.isEmpty()) return Result.failure(Exception("Nothing to upload yet"))
+        val minutes = artists.sumOf { (it.timeListened ?: 0).toLong() } / 60000L
+        return SyncService.uploadTasteProfile(token, minutes, artists.size, top)
+    }
+
+    private suspend fun pushArtistFollow(artistId: String, artistName: String, isFollowed: Boolean) {        val token = authRepository.getToken() ?: return
         val result = retryNetwork {
             if (isFollowed) {
                 SyncService.followArtist(token, artistId, artistName)

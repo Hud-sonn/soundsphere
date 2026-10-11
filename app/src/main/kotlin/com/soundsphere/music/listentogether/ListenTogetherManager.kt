@@ -162,6 +162,24 @@ class ListenTogetherManager
         val isHost: Boolean get() = client.isHost
         val hasPersistedSession: Boolean get() = client.hasPersistedSession
 
+        /** Server-relayed skip-vote tally for the current track. */
+        val skipVotes = client.skipVotes
+
+        /**
+         * Guest taps skip: cast a vote (server relays the tally). Host taps
+         * skip: skip immediately like before. Host also auto-skips when votes
+         * reach majority — checked in [onSkipVotesUpdated].
+         */
+        fun voteOrRequestSkip() {
+            val connection = playerConnection ?: return
+            val trackId = connection.player.currentMediaItem?.mediaId ?: return
+            if (isHost) {
+                connection.seekToNext()
+            } else {
+                client.voteSkip(trackId)
+            }
+        }
+
         private val playerListener =
             object : Player.Listener {
                 override fun onPlayWhenReadyChanged(
@@ -556,6 +574,10 @@ class ListenTogetherManager
                     cleanup()
                 }
 
+                is ListenTogetherEvent.SkipVotesUpdated -> {
+                    onSkipVotesUpdated(event.votes)
+                }
+
                 is ListenTogetherEvent.Disconnected -> {
                     Timber.tag(TAG).d("Disconnected from server")
                     // Don't cleanup on disconnect - we might reconnect
@@ -702,6 +724,21 @@ class ListenTogetherManager
                 }
 
                 else -> { /* Other events handled by UI */ }
+            }
+        }
+
+        /**
+         * Democracy: host auto-skips when guest votes reach the server
+         * threshold (majority of connected members). Guests just watch the
+         * tally via [skipVotes]. Votes reset on every track change server-side.
+         */
+        private fun onSkipVotesUpdated(votes: SkipVotesPayload) {
+            if (!isHost || !isInRoom) return
+            val currentTrackId = playerConnection?.player?.currentMediaItem?.mediaId
+            if (currentTrackId == null || currentTrackId != votes.trackId) return
+            if (votes.voterIds.size >= votes.threshold.coerceAtLeast(1)) {
+                Timber.tag(TAG).d("Skip majority reached (${votes.voterIds.size}/${votes.threshold}) — skipping")
+                playerConnection?.seekToNext()
             }
         }
 

@@ -20,6 +20,12 @@ object ListenTogetherServers {
     private const val ServersJson = """
         [
           {
+            "name": "Soundsphere",
+            "url": "wss://listen.soundsphere.name.ng/ws",
+            "location": "Germany",
+            "operator": "Soundsphere"
+          },
+          {
             "name": "The Meowery",
             "url": "wss://metroserverx.meowery.eu/ws",
             "location": "Poland",

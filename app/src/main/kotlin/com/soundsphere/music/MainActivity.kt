@@ -489,6 +489,10 @@ class MainActivity : ComponentActivity() {
         // Initialize Listen Together manager
         listenTogetherManager.initialize()
 
+        // Fetch premium status early so paywalls/locks render correctly
+        // on first paint. Best-effort: failure keeps last known (free).
+        syncRepository.refreshPremiumStatus()
+
         handleUpdateChangelogIntent(intent)
         handleAnnouncementIntent(intent)
 

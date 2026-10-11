@@ -21,6 +21,8 @@ from services.activity import log_activity
 from routers.auth import router as auth_router
 from routers.user import router as user_router
 from routers.ai import router as ai_router
+from routers.paystack import router as paystack_router
+from routers.stats import router as stats_router
 from routers.admin import router as admin_router
 from routers.share import router as share_router
 from routers.web import router as web_router
@@ -154,6 +156,8 @@ app.add_middleware(
 app.include_router(auth_router)
 app.include_router(user_router)
 app.include_router(ai_router)
+app.include_router(paystack_router)
+app.include_router(stats_router)
 app.include_router(admin_router)
 app.include_router(share_router)
 app.include_router(web_router)

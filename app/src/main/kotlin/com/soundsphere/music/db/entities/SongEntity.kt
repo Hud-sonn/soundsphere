@@ -64,6 +64,8 @@ data class SongEntity(
     val uploadEntityId: String? = null,
     @ColumnInfo(name = "isCached", defaultValue = "0")
     val isCached: Boolean = false,
+    @ColumnInfo(name = "skipCount", defaultValue = "0")
+    val skipCount: Int = 0,
 ) {
     fun localToggleLike() =
         copy(
@@ -81,26 +83,14 @@ data class SongEntity(
             liked = !liked,
             likedDate = if (!liked) LocalDateTime.now() else null,
             inLibrary = if (!liked) inLibrary ?: LocalDateTime.now() else inLibrary,
-        ).also {
-            CoroutineScope(Dispatchers.IO).launch {
-                YouTube.likeVideo(id, !liked)
-            }
-        }
+        )
 
     fun toggleLibrary(syncToYouTube: Boolean = true) =
         copy(
             liked = if (inLibrary == null) liked else false,
             inLibrary = if (inLibrary == null) LocalDateTime.now() else null,
             likedDate = if (inLibrary == null) likedDate else null,
-        ).also {
-            if (syncToYouTube) {
-                CoroutineScope(Dispatchers.IO).launch {
-                    // Use the new reliable method that fetches fresh tokens
-                    val addToLibrary = inLibrary == null
-                    YouTube.toggleSongLibrary(id, addToLibrary)
-                }
-            }
-        }
+        )
 
     fun toggleUploaded() =
         copy(

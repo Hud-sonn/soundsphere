@@ -1,6 +1,7 @@
 import json
 import os
 import secrets
+import time
 import urllib.error
 import urllib.request
 
@@ -47,20 +48,25 @@ def _create_auth_user(email: str) -> None:
     """
     payload = {"email": email, "email_confirm": False, "password": secrets.token_urlsafe(48)}
     status, body = _request("POST", "/auth/v1/admin/users", payload)
-    if status in (200, 201):
-        return
-    if status in (409, 422) and "registered" in str(body.get("msg", "")).lower():
-        # A leftover row (e.g. from a failed attempt) blocks re-registration:
-        # delete it and retry once.
-        users = _request("GET", "/auth/v1/admin/users")[1].get("users", [])
-        for user in users:
-            if user.get("email") == email:
-                _request("DELETE", f"/auth/v1/admin/users/{user['id']}")
-                break
+    MAX_RETRIES = 3
+    for attempt in range(MAX_RETRIES):
         status, body = _request("POST", "/auth/v1/admin/users", payload)
         if status in (200, 201):
             return
-    raise RuntimeError(f"Supabase Auth user creation failed ({status}): {body.get('msg', body)}")
+        if status in (409, 422) and "registered" in str(body.get("msg", "")).lower():
+            # A leftover row (e.g. from a failed attempt) blocks re-registration:
+            # delete it and retry.
+            users = _request("GET", "/auth/v1/admin/users")[1].get("users", [])
+            for user in users:
+                if user.get("email") == email:
+                    _request("DELETE", f"/auth/v1/admin/users/{user['id']}")
+                    break
+            continue
+        if status >= 500 and attempt < MAX_RETRIES - 1:
+            time.sleep(2 ** attempt)  # exponential backoff for server errors
+            continue
+        raise RuntimeError(f"Supabase Auth user creation failed ({status}): {body.get('msg', body)}")
+    raise RuntimeError(f"Supabase Auth user creation failed after {MAX_RETRIES} attempts")
 
 
 def _delete_auth_user(email: str) -> None:

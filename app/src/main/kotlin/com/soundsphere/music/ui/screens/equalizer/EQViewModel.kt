@@ -53,6 +53,24 @@ class EQViewModel @Inject constructor(
                 }
             }
         }
+
+        // Observe per-output route mappings
+        viewModelScope.launch {
+            eqProfileRepository.routeEqMap.collect { routeMap ->
+                _state.update {
+                    it.copy(routeMap = routeMap)
+                }
+            }
+        }
+    }
+
+    /**
+     * Map an output route to a profile for auto-switch (null clears it).
+     */
+    fun setRouteProfile(route: com.soundsphere.music.eq.data.OutputRoute, profileId: String?) {
+        viewModelScope.launch {
+            eqProfileRepository.setRouteProfile(route, profileId)
+        }
     }
 
     /**

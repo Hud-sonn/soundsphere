@@ -191,6 +191,9 @@ import com.soundsphere.music.playback.queues.filterExplicit
 import com.soundsphere.music.playback.queues.filterVideoSongs
 import com.soundsphere.music.constants.LoudnessLevel
 import com.soundsphere.music.constants.LoudnessLevelKey
+import com.soundsphere.music.constants.SmartShuffleKey
+import com.soundsphere.music.eq.data.OutputRoute
+import com.soundsphere.music.eq.data.classifyOutputRoute
 import com.soundsphere.music.utils.CoilBitmapLoader
 import com.soundsphere.music.utils.NetworkConnectivityObserver
 import com.soundsphere.music.utils.ScrobbleManager
@@ -202,6 +205,7 @@ import com.soundsphere.music.utils.cipher.CipherDeobfuscator
 import com.soundsphere.music.utils.dataStore
 import com.soundsphere.music.utils.get
 import com.soundsphere.music.utils.reportException
+import com.soundsphere.music.utils.smartShuffle
 import com.soundsphere.music.widget.SoundsphereWidgetManager
 import com.soundsphere.music.widget.MusicWidgetReceiver
 import com.soundsphere.music.widget.PlaylistWidgetReceiver
@@ -209,6 +213,7 @@ import com.soundsphere.music.ui.utils.resize
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CancellationException
 import kotlin.coroutines.coroutineContext
+import kotlin.math.ln
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -551,8 +556,42 @@ class MusicService :
                         }
                     }
                 }
+                applyRouteEqProfile()
+            }
+
+            override fun onAudioDevicesRemoved(removedDevices: Array<out AudioDeviceInfo>?) {
+                super.onAudioDevicesRemoved(removedDevices)
+                applyRouteEqProfile()
             }
         }
+
+    /**
+     * Per-output EQ auto-switch: applies the profile mapped to the current
+     * output route, if any. Routes without a mapping keep the globally
+     * active profile untouched.
+     */
+    private fun applyRouteEqProfile() {
+        scope.launch(SilentHandler) {
+            try {
+                val current =
+                    audioManager
+                        .getDevices(AudioManager.GET_DEVICES_OUTPUTS)
+                        .firstOrNull { it.isSink }
+                        ?.type
+                        ?.let(::classifyOutputRoute)
+                        ?: return@launch
+                if (current == OutputRoute.OTHER) return@launch
+                val profileId = eqProfileRepository.routeProfileId(current) ?: return@launch
+                val profile = eqProfileRepository.getAllProfiles().find { it.id == profileId }
+                    ?: return@launch
+                equalizerService.applyProfile(profile)
+                    .onSuccess { eqProfileRepository.setActiveProfile(profileId) }
+                    .onFailure { reportException(it) }
+            } catch (e: Exception) {
+                reportException(e)
+            }
+        }
+    }
 
     override fun onCreate() {
         super.onCreate()
@@ -2352,6 +2391,7 @@ class MusicService :
     // onMediaItemTransition call, so we can decide whether IT finished
     // naturally (and is therefore safe to mark as fully cached).
     private var lastTransitionedMediaId: String? = null
+    private var lastTransitionElapsedMs: Long = 0L
     private var previousEpisodePosition: Long = 0L
 
     /**
@@ -2400,7 +2440,17 @@ class MusicService :
                 scope.launch(Dispatchers.IO) { markCachedIfFullyDownloaded(previousId) }
             }
         }
+        if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_SEEK &&
+            lastTransitionedMediaId != null &&
+            lastTransitionedMediaId != mediaItem?.mediaId
+        ) {
+            val playedMs = android.os.SystemClock.elapsedRealtime() - lastTransitionElapsedMs
+            if (playedMs in 1..29999) {
+                scope.launch(Dispatchers.IO) { database.incrementSkipCount(lastTransitionedMediaId!!) }
+            }
+        }
         lastTransitionedMediaId = mediaItem?.mediaId
+        if (mediaItem?.mediaId != null) lastTransitionElapsedMs = android.os.SystemClock.elapsedRealtime()
 
         previousEpisodeId?.let { episodeId ->
             if (previousEpisodePosition > 0) {
@@ -2671,6 +2721,9 @@ class MusicService :
     /**
      * Applies a new shuffle order to the player, maintaining the current item's position.
      * If `shufflePlaylistFirst` is true, it attempts to shuffle original items separately from added items.
+     * When Smart Shuffle is enabled, order is taste-weighted (playtime vs skips) via
+     * `smartShuffle`; otherwise uniform random. Falls back to uniform when no
+     * local stats exist. Runs off the main thread so DB reads never jank.
      */
     private fun applyShuffleOrder(
         currentIndex: Int,
@@ -2678,38 +2731,56 @@ class MusicService :
         shufflePlaylistFirst: Boolean,
     ) {
         if (totalCount == 0) return
+        scope.launch(SilentHandler) {
+            // Smart Shuffle is a premium feature: free users get uniform shuffle
+            // even if the (hidden) preference flag is on.
+            val smartEnabled = dataStore.get(SmartShuffleKey, true) && syncRepository.isPremium.value
 
-        if (shufflePlaylistFirst && originalQueueSize > 0 && originalQueueSize < totalCount) {
-            // Shuffle original items and added items separately
-            val originalIndices = (0 until originalQueueSize).filter { it != currentIndex }.toMutableList()
-            val addedIndices = (originalQueueSize until totalCount).filter { it != currentIndex }.toMutableList()
+            suspend fun weightForMediaId(mediaId: String): Double =
+                withContext(Dispatchers.IO) {
+                    val song = database.getSongByIdBlocking(mediaId)?.song
+                    if (song != null) ln(1.0 + song.totalPlayTime / 60000.0) / (1.0 + song.skipCount * 0.7)
+                    else 1.0
+                }
 
-            originalIndices.shuffle()
-            addedIndices.shuffle()
+            suspend fun weightedOrder(indices: List<Int>): List<Int> {
+                if (!smartEnabled || indices.isEmpty()) return indices.shuffled()
+                val weights = indices.map { idx ->
+                    val mediaId = player.getMediaItemAt(idx).mediaId
+                    weightForMediaId(mediaId)
+                }
+                val paired = indices.zip(weights)
+                val shuffled = smartShuffle(paired, weightOf = { it.second }, seed = System.currentTimeMillis())
+                return shuffled.map { it.first }
+            }
 
-            val shuffledIndices = IntArray(totalCount)
-            var pos = 0
-            shuffledIndices[pos++] = currentIndex
+            if (shufflePlaylistFirst && originalQueueSize > 0 && originalQueueSize < totalCount) {
+                val originalIndices = (0 until originalQueueSize).filter { it != currentIndex }
+                val addedIndices = (originalQueueSize until totalCount).filter { it != currentIndex }
 
-            if (currentIndex < originalQueueSize) {
-                originalIndices.forEach { shuffledIndices[pos++] = it }
-                addedIndices.forEach { shuffledIndices[pos++] = it }
+                val shuffledOriginal = weightedOrder(originalIndices)
+                val shuffledAdded = weightedOrder(addedIndices)
+
+                val shuffledIndices = IntArray(totalCount)
+                var pos = 0
+                shuffledIndices[pos++] = currentIndex
+
+                if (currentIndex < originalQueueSize) {
+                    shuffledOriginal.forEach { shuffledIndices[pos++] = it }
+                    shuffledAdded.forEach { shuffledIndices[pos++] = it }
+                } else {
+                    weightedOrder((0 until originalQueueSize).toList()).forEach { shuffledIndices[pos++] = it }
+                    shuffledAdded.forEach { shuffledIndices[pos++] = it }
+                }
+                player.setShuffleOrder(DefaultShuffleOrder(shuffledIndices, System.currentTimeMillis()))
             } else {
-                (0 until originalQueueSize).shuffled().forEach { shuffledIndices[pos++] = it }
-                addedIndices.forEach { shuffledIndices[pos++] = it }
+                val allIndices = (0 until totalCount).filter { it != currentIndex }
+                val shuffled = weightedOrder(allIndices).toMutableList()
+                val shuffledIndices = IntArray(totalCount)
+                shuffledIndices[0] = currentIndex
+                shuffled.forEachIndexed { i, idx -> shuffledIndices[i + 1] = idx }
+                player.setShuffleOrder(DefaultShuffleOrder(shuffledIndices, System.currentTimeMillis()))
             }
-            player.setShuffleOrder(DefaultShuffleOrder(shuffledIndices, System.currentTimeMillis()))
-        } else {
-            val shuffledIndices = IntArray(totalCount) { it }
-            shuffledIndices.shuffle()
-            // Ensure current item is first in the shuffle order
-            val currentItemIndexInShuffled = shuffledIndices.indexOf(currentIndex)
-            if (currentItemIndexInShuffled != -1) { // Should always be true if totalCount > 0
-                val temp = shuffledIndices[0]
-                shuffledIndices[0] = shuffledIndices[currentItemIndexInShuffled]
-                shuffledIndices[currentItemIndexInShuffled] = temp
-            }
-            player.setShuffleOrder(DefaultShuffleOrder(shuffledIndices, System.currentTimeMillis()))
         }
     }
 

@@ -46,7 +46,7 @@ import com.soundsphere.music.utils.rememberPreference
 /**
  * Navigation drawer — pure navigation only. Profile header at top (identity
  * context, not tappable), followed by navigation items: Profile, Stats,
- * Listen Together, App Settings, Integrations, Updates. Footer shows app version.
+ * Events, Listen Together, App Settings, Integrations, Updates. Footer shows app version.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -178,6 +178,12 @@ fun SoundsphereSidebar(
             label = R.string.stats,
             selected = currentRoute == "stats",
             onClick = { onNavigate("stats") },
+        )
+        DrawerItem(
+            icon = R.drawable.baseline_event_repeat_24,
+            label = R.string.events_live,
+            selected = currentRoute == "events",
+            onClick = { onNavigate("events") },
         )
         if (!listenTogetherInBottomNav) {
             DrawerItem(

@@ -10,14 +10,18 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -167,6 +171,8 @@ fun StatsScreen(
     val weeklyMostPlaylist by viewModel.weeklyMostPlaylist.collectAsStateWithLifecycle()
     val monthlyMostPlaylist by viewModel.monthlyMostPlaylist.collectAsStateWithLifecycle()
     val recapPlaylists by viewModel.recapPlaylists.collectAsStateWithLifecycle()
+    val crossDeviceWeek by viewModel.crossDeviceWeek.collectAsStateWithLifecycle()
+    val uniquenessOptIn by rememberPreference(com.soundsphere.music.constants.UniquenessOptInKey, false)
     val currentDate = LocalDateTime.now()
     val orderedMostPlayedSongs =
         remember(mostPlayedSongsStats, mostPlayedSongs) {
@@ -430,6 +436,120 @@ fun StatsScreen(
             }
 
             if (!isSearching) {
+                if (uniquenessOptIn) {
+                    item(key = "uniquenessScore") {
+                        val score by viewModel.uniqueness.collectAsStateWithLifecycle()
+                        LaunchedEffect(Unit) { viewModel.refreshUniqueness() }
+                        NavigationTitle(
+                            title = stringResource(R.string.uniqueness_title),
+                            modifier = Modifier.animateItem(),
+                        )
+                        Text(
+                            text =
+                                score?.let {
+                                    stringResource(
+                                        R.string.uniqueness_score,
+                                        it.score,
+                                        it.rarity,
+                                        it.contributors,
+                                    )
+                                } ?: stringResource(R.string.uniqueness_loading),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                        )
+                    }
+                }
+                if (crossDeviceWeek.isNotEmpty()) {
+                    item(key = "crossDeviceWeek") {
+                        val weekMinutes = crossDeviceWeek.sumOf { it.timeListened ?: 0L }
+                        NavigationTitle(
+                            title = stringResource(R.string.cross_device_title),
+                            modifier = Modifier.animateItem(),
+                        )
+                        Text(
+                            text =
+                                stringResource(
+                                    R.string.cross_device_summary,
+                                    crossDeviceWeek.size,
+                                    makeTimeString(weekMinutes),
+                                ),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                        )
+                        crossDeviceWeek.take(5).forEachIndexed { index, song ->
+                            Text(
+                                text = "${index + 1}. ${song.title} — ${song.artistName.orEmpty()}",
+                                style = MaterialTheme.typography.bodyMedium,
+                                maxLines = 1,
+                                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 2.dp),
+                            )
+                        }
+                    }
+                }
+                item(key = "libraryHealth") {
+                    val healthReport by viewModel.libraryHealth.collectAsStateWithLifecycle()
+                    LaunchedEffect(Unit) { viewModel.refreshLibraryHealth() }
+                    NavigationTitle(
+                        title = stringResource(R.string.library_health_title),
+                        modifier = Modifier.animateItem(),
+                    )
+                    val health = healthReport
+                    when {
+                        health == null -> {
+                            Text(
+                                text = stringResource(R.string.library_health_loading),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                            )
+                        }
+
+                        health.isClean -> {
+                            Text(
+                                text = stringResource(R.string.library_health_clean),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                            )
+                        }
+
+                        else -> {
+                            LibraryHealthRow(
+                                label =
+                                    stringResource(
+                                        R.string.library_health_duplicates,
+                                        health.duplicateCount,
+                                    ),
+                                hint = stringResource(R.string.library_health_duplicates_hint),
+                                entries =
+                                    health.duplicateGroups.map { group ->
+                                        "${group.first().song.title} ×${group.size}"
+                                    },
+                            )
+                            LibraryHealthRow(
+                                label =
+                                    stringResource(
+                                        R.string.library_health_missing_art,
+                                        health.missingArt.size,
+                                    ),
+                                hint = stringResource(R.string.library_health_missing_art_hint),
+                                entries = health.missingArt.map { it.song.title },
+                            )
+                            LibraryHealthRow(
+                                label =
+                                    stringResource(
+                                        R.string.library_health_dead_uploads,
+                                        health.deadUploads.size,
+                                    ),
+                                hint = stringResource(R.string.library_health_dead_uploads_hint),
+                                entries = health.deadUploads.map { it.song.title },
+                            )
+                        }
+                    }
+                }
                 item(key = "mostPlayedSongs") {
                     NavigationTitle(
                         title = "${mostPlayedSongsStats.size} ${stringResource(id = R.string.songs)}",
@@ -789,3 +909,50 @@ fun StatsScreen(
 }
 
 enum class OptionStats { WEEKS, MONTHS, YEARS, CONTINUOUS }
+
+/** One expandable library-health line: counts + hint, tap to reveal offending songs. */
+@Composable
+private fun LibraryHealthRow(
+    label: String,
+    hint: String,
+    entries: List<String>,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    Column(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .clickable { expanded = !expanded }
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyLarge,
+        )
+        Text(
+            text = hint,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        if (expanded) {
+            Spacer(modifier = Modifier.height(6.dp))
+            entries.take(10).forEach { entry ->
+                Text(
+                    text = "• $entry",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(vertical = 2.dp),
+                )
+            }
+            if (entries.size > 10) {
+                Text(
+                    text = "… +${entries.size - 10}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+    }
+}

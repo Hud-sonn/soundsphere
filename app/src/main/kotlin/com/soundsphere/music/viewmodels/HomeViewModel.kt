@@ -36,6 +36,7 @@ import com.soundsphere.music.api.FeedEvent
 import com.soundsphere.music.api.FeedRelease
 import com.soundsphere.music.api.SyncService
 import com.soundsphere.music.data.AuthRepository
+import com.soundsphere.music.data.SyncRepository
 import com.soundsphere.music.db.MusicDatabase
 import com.soundsphere.music.db.entities.Album
 import com.soundsphere.music.db.entities.LocalItem
@@ -99,6 +100,7 @@ class HomeViewModel @Inject constructor(
     val wrappedManager: WrappedManager,
     private val wrappedAudioService: WrappedAudioService,
     private val authRepository: AuthRepository,
+    private val syncRepository: SyncRepository,
 ) : ViewModel() {
     val isRefreshing = MutableStateFlow(false)
     val isLoading = MutableStateFlow(false)
@@ -781,6 +783,12 @@ class HomeViewModel @Inject constructor(
         // Run sync in separate coroutine with cooldown to avoid blocking UI
         viewModelScope.launch(Dispatchers.IO) {
             syncUtils.tryAutoSync()
+        }
+
+        // One-time backfill of pre-fix follows (artist-screen subscribes that
+        // never reached the backend). No-op after first successful pass.
+        viewModelScope.launch(Dispatchers.IO) {
+            syncRepository.backfillFollows()
         }
 
         // Prepare wrapped data in background

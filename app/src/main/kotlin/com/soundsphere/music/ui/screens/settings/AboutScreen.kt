@@ -231,7 +231,7 @@ private fun DeveloperSocials(
             Icon(painterResource(R.drawable.instagram), contentDescription = null)
         }
         FilledTonalButton(
-            onClick = { uriHandler.openUri("https://hudson-portfolio-pi.vercel.app") },
+            onClick = { uriHandler.openUri("https://dev.soundsphere.name.ng") },
             modifier = Modifier.weight(1f).height(48.dp)
         ) {
             Icon(painterResource(R.drawable.link), contentDescription = null)

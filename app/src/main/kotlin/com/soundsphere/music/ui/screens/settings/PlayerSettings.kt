@@ -17,6 +17,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
@@ -32,9 +33,11 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.soundsphere.music.BuildConfig
 import com.soundsphere.music.LocalPlayerAwareWindowInsets
+import com.soundsphere.music.LocalSyncRepository
 import com.soundsphere.music.R
 import com.soundsphere.music.constants.AudioNormalizationKey
 import com.soundsphere.music.constants.AudioOffload
@@ -63,6 +66,7 @@ import com.soundsphere.music.constants.RememberShuffleAndRepeatKey
 import com.soundsphere.music.constants.ResumeOnBluetoothConnectKey
 import com.soundsphere.music.constants.SeekExtraSeconds
 import com.soundsphere.music.constants.ShufflePlaylistFirstKey
+import com.soundsphere.music.constants.SmartShuffleKey
 import com.soundsphere.music.constants.SimilarContent
 import com.soundsphere.music.constants.SkipSilenceInstantKey
 import com.soundsphere.music.constants.SkipSilenceKey
@@ -198,6 +202,12 @@ fun PlayerSettings(
         ShufflePlaylistFirstKey,
         defaultValue = false
     )
+    val (smartShuffle, onSmartShuffleChange) = rememberPreference(
+        SmartShuffleKey,
+        defaultValue = true
+    )
+    val syncRepository = LocalSyncRepository.current
+    val isPremium by syncRepository.isPremium.collectAsStateWithLifecycle()
     val (preventDuplicateTracksInQueue, onPreventDuplicateTracksInQueueChange) = rememberPreference(
         PreventDuplicateTracksInQueueKey,
         defaultValue = false
@@ -955,6 +965,48 @@ fun PlayerSettings(
                         )
                     },
                     onClick = { onShufflePlaylistFirstChange(!shufflePlaylistFirst) }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.shuffle),
+                    title = { Text(stringResource(R.string.smart_shuffle)) },
+                    description = {
+                        Text(
+                            stringResource(
+                                if (isPremium) R.string.smart_shuffle_desc else R.string.smart_shuffle_pro_desc,
+                            ),
+                        )
+                    },
+                    trailingContent = {
+                        if (isPremium) {
+                            Switch(
+                                checked = smartShuffle,
+                                onCheckedChange = onSmartShuffleChange,
+                                thumbContent = {
+                                    Icon(
+                                        painter = painterResource(
+                                            id = if (smartShuffle) R.drawable.check else R.drawable.close
+                                        ),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(SwitchDefaults.IconSize)
+                                    )
+                                }
+                            )
+                        } else {
+                            Icon(
+                                painter = painterResource(R.drawable.lock),
+                                contentDescription = stringResource(R.string.premium_feature),
+                                tint = MaterialTheme.colorScheme.secondary,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                    },
+                    onClick = {
+                        if (isPremium) {
+                            onSmartShuffleChange(!smartShuffle)
+                        } else {
+                            navController.navigate("payment")
+                        }
+                    }
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.queue_music),

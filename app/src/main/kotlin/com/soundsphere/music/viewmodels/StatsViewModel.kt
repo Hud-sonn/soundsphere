@@ -18,10 +18,14 @@ import com.soundsphere.music.constants.LastWeeklyMostPlaylistSyncKey
 import com.soundsphere.music.constants.ShowMostStatsPlaylistsKey
 import com.soundsphere.music.constants.StatPeriod
 import com.soundsphere.music.constants.statToPeriod
+import com.soundsphere.music.data.SyncRepository
+import com.soundsphere.music.api.SyncUniqueness
 import com.soundsphere.music.db.MusicDatabase
 import com.soundsphere.music.db.entities.PlaylistEntity
 import com.soundsphere.music.ui.screens.OptionStats
 import com.soundsphere.music.utils.dataStore
+import com.soundsphere.music.utils.LibraryHealthReport
+import com.soundsphere.music.utils.buildHealthReport
 import com.soundsphere.music.utils.safeDataStoreEdit
 import com.soundsphere.music.utils.reportException
 import com.soundsphere.music.R
@@ -56,8 +60,31 @@ class StatsViewModel
 constructor(
     @ApplicationContext private val context: Context,
     val database: MusicDatabase,
+    private val syncRepository: SyncRepository,
 ) : ViewModel() {
     private val periodicMostPlaylistSyncMutex = Mutex()
+
+    /** Uniqueness score, loaded on demand when opted in. Null = not loaded. */
+    val uniqueness = MutableStateFlow<SyncUniqueness?>(null)
+
+    fun refreshUniqueness() {
+        viewModelScope.launch(Dispatchers.IO) {
+            syncRepository.fetchUniqueness()
+                .onSuccess { uniqueness.value = it }
+                .onFailure { uniqueness.value = null }
+        }
+    }
+
+    /** Library health report (duplicates / missing art / dead uploads). Null = not computed yet. */
+    val libraryHealth = MutableStateFlow<LibraryHealthReport?>(null)
+
+    fun refreshLibraryHealth() {
+        if (libraryHealth.value != null) return
+        viewModelScope.launch(Dispatchers.IO) {
+            val songs = database.songsByCreateDateAsc().first()
+            libraryHealth.value = buildHealthReport(songs)
+        }
+    }
     val selectedOption = MutableStateFlow(OptionStats.CONTINUOUS)
     val indexChips = MutableStateFlow(0)
     private val showMostStatsPlaylists =
@@ -152,6 +179,20 @@ constructor(
         database
             .firstEvent()
             .stateIn(viewModelScope, SharingStarted.Lazily, null)
+
+    /**
+     * Cross-device week: last 7 days across ALL devices. Remote plays land
+     * in the local `event` table via pullHistory union, so the existing
+     * period query already spans devices — this flow just fixes the window
+     * independent of the selected Stats period.
+     */
+    val crossDeviceWeek =
+        database
+            .mostPlayedSongsStats(
+                fromTimeStamp = LocalDateTime.now().minusDays(7),
+                limit = 5,
+                toTimeStamp = LocalDateTime.now(),
+            ).stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     val selectedArtists = mutableStateListOf<Artist>() // Current artist selection
 

@@ -197,6 +197,10 @@ sealed class ListenTogetherEvent {
         val action: PlaybackActionPayload,
     ) : ListenTogetherEvent()
 
+    data class SkipVotesUpdated(
+        val votes: SkipVotesPayload,
+    ) : ListenTogetherEvent()
+
     data class BufferWait(
         val trackId: String,
         val waitingFor: List<String>,
@@ -283,6 +287,10 @@ class ListenTogetherClient
         // Suggestions: pending items visible to host
         private val _pendingSuggestions = MutableStateFlow<List<SuggestionReceivedPayload>>(emptyList())
         val pendingSuggestions: StateFlow<List<SuggestionReceivedPayload>> = _pendingSuggestions.asStateFlow()
+
+        // Vote-skip tally for the current track (server-relayed, reset on track change)
+        private val _skipVotes = MutableStateFlow<SkipVotesPayload?>(null)
+        val skipVotes: StateFlow<SkipVotesPayload?> = _skipVotes.asStateFlow()
 
         // Blocked usernames (internal list for privacy)
         private val _blockedUsernames = MutableStateFlow<Set<String>>(emptySet())
@@ -1461,6 +1469,13 @@ class ListenTogetherClient
                         // For guests, optionally notify via events
                     }
 
+                    MessageTypes.SKIP_VOTES -> {
+                        val payload = codec.decodePayload(msgType, payloadBytes) as? SkipVotesPayload ?: return
+                        _skipVotes.value = payload
+                        log(LogLevel.INFO, "Skip votes updated", "${payload.voterIds.size}/${payload.threshold} for ${payload.trackId}")
+                        emitEvent(ListenTogetherEvent.SkipVotesUpdated(payload))
+                    }
+
                     MessageTypes.ERROR -> {
                         val payload = codec.decodePayload(msgType, payloadBytes) as? ErrorPayload ?: return
                         log(LogLevel.ERROR, "Server error", "${payload.code}: ${payload.message}")
@@ -1820,6 +1835,28 @@ class ListenTogetherClient
             scope.launch(Dispatchers.Main) {
                 Toast.makeText(context, context.getString(R.string.listen_together_suggestion_sent), Toast.LENGTH_SHORT).show()
             }
+        }
+
+        /**
+         * Vote to skip the current track (guest only; host skips directly).
+         * The server relays the running tally; the host auto-skips at majority.
+         */
+        fun voteSkip(trackId: String) {
+            if (!isInRoom) {
+                log(LogLevel.ERROR, "Cannot vote skip", "Not in room")
+                return
+            }
+            if (_role.value == RoomRole.HOST) {
+                log(LogLevel.WARNING, "Host should skip directly, not vote")
+                return
+            }
+            val id = trackId.trim()
+            if (id.isEmpty()) return
+            // One vote per track per client: skip if we already voted.
+            val current = _skipVotes.value
+            val self = _userId.value
+            if (current?.trackId == id && self != null && self in current.voterIds) return
+            sendMessage(MessageTypes.VOTE_SKIP, VoteSkipPayload(id))
         }
 
         /**

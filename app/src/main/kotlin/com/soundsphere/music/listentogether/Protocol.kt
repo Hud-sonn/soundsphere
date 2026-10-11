@@ -27,6 +27,7 @@ object MessageTypes {
     const val REQUEST_SYNC = "request_sync"
     const val RECONNECT = "reconnect"
     const val SUGGEST_TRACK = "suggest_track"
+    const val VOTE_SKIP = "vote_skip"
     const val APPROVE_SUGGESTION = "approve_suggestion"
     const val REJECT_SUGGESTION = "reject_suggestion"
 
@@ -49,6 +50,7 @@ object MessageTypes {
     const val USER_RECONNECTED = "user_reconnected"
     const val USER_DISCONNECTED = "user_disconnected"
     const val SUGGESTION_RECEIVED = "suggestion_received"
+    const val SKIP_VOTES = "skip_votes"
     const val SUGGESTION_APPROVED = "suggestion_approved"
     const val SUGGESTION_REJECTED = "suggestion_rejected"
 }
@@ -183,6 +185,18 @@ data class ChatPayload(
 @Serializable
 data class SuggestTrackPayload(
     @SerialName("track_info") val trackInfo: TrackInfo
+)
+
+@Serializable
+data class VoteSkipPayload(
+    @SerialName("track_id") val trackId: String
+)
+
+@Serializable
+data class SkipVotesPayload(
+    @SerialName("track_id") val trackId: String,
+    @SerialName("voter_ids") val voterIds: List<String> = emptyList(),
+    val threshold: Int = 0
 )
 
 @Serializable

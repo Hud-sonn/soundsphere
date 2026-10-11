@@ -8,22 +8,26 @@ from services.activity import maybe_touch_last_active, track_app_use
 ALGORITHM = "HS256"
 _bearer = HTTPBearer(auto_error=False)
 
+# Validate JWT secret at module load time so misconfiguration is caught early
+_jwt_secret = os.getenv("JWT_SECRET")
+if not _jwt_secret:
+    raise RuntimeError("JWT_SECRET environment variable must be set")
+
 
 def create_token(user_id: str, role: str = "user") -> str:
     """Create a JWT token with user_id (sub) and role claims."""
-    secret = os.getenv("JWT_SECRET")
     expire_minutes = int(os.getenv("JWT_EXPIRE_MINUTES", "10080"))
     payload = {
         "sub": user_id,
         "role": role,
         "exp": datetime.now(timezone.utc) + timedelta(minutes=expire_minutes),
     }
-    return jwt.encode(payload, secret, algorithm=ALGORITHM)  # type: ignore
+    return jwt.encode(payload, _jwt_secret, algorithm=ALGORITHM)  # type: ignore
 
 
 def decode_token(token: str) -> dict:
     """Decode a JWT token and return the payload as a dict."""
-    secret = os.getenv("JWT_SECRET")
+    secret = _jwt_secret
     try:
         payload = jwt.decode(token, secret, algorithms=[ALGORITHM])  # type: ignore
         return payload

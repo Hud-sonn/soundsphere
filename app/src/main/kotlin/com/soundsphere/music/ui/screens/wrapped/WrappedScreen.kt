@@ -21,7 +21,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.soundsphere.music.LocalDatabase
+import com.soundsphere.music.utils.currentStreak
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.time.LocalDate
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -176,6 +184,23 @@ fun WrappedScreenContent() {
     val pagerState = rememberPagerState(pageCount = { screens.size })
     val state by manager.state.collectAsStateWithLifecycle()
     val isMuted by audioService.isMuted.collectAsStateWithLifecycle()
+
+    // Listening streak for the share card (DB read off the main thread).
+    val database = LocalDatabase.current
+    var streakDays by remember { mutableStateOf(0) }
+    LaunchedEffect(Unit) {
+        withContext(Dispatchers.IO) {
+            try {
+                val dates =
+                    database.playDatesDesc().mapNotNull { raw ->
+                        runCatching { LocalDate.parse(raw) }.getOrNull()
+                    }
+                streakDays = currentStreak(dates)
+            } catch (_: Exception) {
+                // Streak stays 0 — share card still renders.
+            }
+        }
+    }
     val messagePair =
         rememberSaveable(state.totalMinutes, saver = messagePairSaver) {
             WrappedRepository.getMessage(state.totalMinutes)
@@ -310,7 +335,13 @@ fun WrappedScreenContent() {
                 }
 
                 is WrappedScreenType.Conclusion -> {
-                    ConclusionPage(onClose = onClose)
+                    ConclusionPage(
+                        onClose = onClose,
+                        topArtistName = state.topArtists.firstOrNull()?.artist?.name.orEmpty(),
+                        topSongs = state.topSongs.take(3).map { it.title to (it.artistName.orEmpty()) },
+                        totalMinutes = state.totalMinutes,
+                        streakDays = streakDays,
+                    )
                 }
             }
         }

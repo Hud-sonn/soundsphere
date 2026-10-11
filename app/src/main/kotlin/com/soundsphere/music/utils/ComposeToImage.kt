@@ -426,10 +426,65 @@ object ComposeToImage {
         }
 
     /**
-     * Classic design: blurred album-art background, rounded cover art, title
-     * and artist in the Soundsphere cream palette, a thin accent line and a
-     * corner wordmark.
+     * Generates a 1080x1920 Wrapped story card: dark Soundsphere background,
+     * "MY WRAPPED" header, top artist, top-3 songs, minutes + streak stats,
+     * and a corner wordmark. Same palette as the song share cards.
      */
+    suspend fun createWrappedCard(
+        context: Context,
+        topArtistName: String,
+        topSongs: List<Pair<String, String>>,
+        totalMinutes: Long,
+        streakDays: Int,
+    ): Bitmap =
+        withContext(Dispatchers.Default) {
+            val width = 1080
+            val height = 1920
+            val bitmap = createBitmap(width, height)
+            val canvas = Canvas(bitmap)
+            val pad = 96f
+
+            canvas.drawColor(0xFF17140F.toInt())
+
+            fun textPaint(color: Int, sizeSp: Float, bold: Boolean) =
+                TextPaint().apply {
+                    this.color = color
+                    textSize = sizeSp
+                    typeface = if (bold) Typeface.DEFAULT_BOLD else Typeface.DEFAULT
+                    isAntiAlias = true
+                }
+
+            fun drawLine(text: String, paint: TextPaint, y: Float, maxLines: Int = 2): Float {
+                val layout =
+                    StaticLayout.Builder
+                        .obtain(text, 0, text.length, paint, (width - 2 * pad).toInt())
+                        .setAlignment(Layout.Alignment.ALIGN_NORMAL)
+                        .setMaxLines(maxLines)
+                        .setEllipsize(android.text.TextUtils.TruncateAt.END)
+                        .build()
+                canvas.save()
+                canvas.translate(pad, y)
+                layout.draw(canvas)
+                canvas.restore()
+                return y + layout.height
+            }
+
+            var y = 200f
+            y = drawLine("MY WRAPPED", textPaint(0xFFC6AC8F.toInt(), 44f, true), y, 1) + 40f
+            y = drawLine(topArtistName, textPaint(0xFFEAE0D5.toInt(), 96f, true), y) + 24f
+
+            for ((index, song) in topSongs.take(3).withIndex()) {
+                y = drawLine("${index + 1}. ${song.first}", textPaint(0xFFEAE0D5.toInt(), 48f, true), y, 1) + 4f
+                y = drawLine(song.second, textPaint(0xFFC6AC8F.toInt(), 38f, false), y, 1) + 28f
+            }
+
+            y += 40f
+            y = drawLine("$totalMinutes minutes listened", textPaint(0xFFEAE0D5.toInt(), 52f, true), y, 1) + 16f
+            y = drawLine("$streakDays-day streak", textPaint(0xFFC6AC8F.toInt(), 44f, false), y, 1)
+
+            drawLine("SOUNDSPHERE", textPaint(0xFFC6AC8F.toInt(), 36f, true), height - pad - 60f, 1)
+            bitmap
+        }
     private fun drawClassicCard(
         canvas: Canvas,
         context: Context,

@@ -47,7 +47,9 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.soundsphere.music.LocalNavController
 import com.soundsphere.music.LocalPlayerAwareWindowInsets
+import com.soundsphere.music.LocalSyncRepository
 import com.soundsphere.music.R
+import com.soundsphere.music.eq.data.OutputRoute
 import com.soundsphere.music.eq.data.SavedEQProfile
 import timber.log.Timber
 
@@ -116,7 +118,9 @@ fun EqScreen(
         profiles = state.profiles,
         activeProfileId = state.activeProfileId,
         activeProfile = activeProfile,
+        routeMap = state.routeMap,
         onProfileSelected = { viewModel.selectProfile(it) },
+        onRouteProfileSelected = { route, profileId -> viewModel.setRouteProfile(route, profileId) },
         onNavigateBack = { navController.navigateUp() },
         showAddMenu = showAddMenu,
         onAddClicked = { showAddMenu = true },
@@ -175,7 +179,9 @@ private fun EqScreenContent(
     profiles: List<SavedEQProfile>,
     activeProfileId: String?,
     activeProfile: SavedEQProfile?,
+    routeMap: Map<String, String>,
     onProfileSelected: (String?) -> Unit,
+    onRouteProfileSelected: (OutputRoute, String?) -> Unit,
     onNavigateBack: () -> Unit,
     showAddMenu: Boolean,
     onAddClicked: () -> Unit,
@@ -255,6 +261,15 @@ private fun EqScreenContent(
                 NoEqualizationItem(
                     isSelected = activeProfileId == null,
                     onSelected = { onProfileSelected(null) }
+                )
+            }
+
+            // Per-output auto-switch: pick a profile per route (or keep global)
+            item {
+                RouteEqSection(
+                    profiles = profiles,
+                    routeMap = routeMap,
+                    onRouteProfileSelected = onRouteProfileSelected,
                 )
             }
 
@@ -405,5 +420,93 @@ private fun EQProfileItem(
                 }
             }
         )
+    }
+}
+
+private val ROUTE_ROWS =
+    listOf(
+        OutputRoute.BLUETOOTH to R.string.eq_route_bluetooth,
+        OutputRoute.SPEAKER to R.string.eq_route_speaker,
+        OutputRoute.WIRED to R.string.eq_route_wired,
+    )
+
+/**
+ * Per-output auto-switch rows: pick which profile activates when a given
+ * output route connects, or keep the globally active profile ("None" =
+ * unmapped). MusicService applies the mapping on device connect/disconnect.
+ */
+@Composable
+private fun RouteEqSection(
+    profiles: List<SavedEQProfile>,
+    routeMap: Map<String, String>,
+    onRouteProfileSelected: (OutputRoute, String?) -> Unit,
+) {
+    Column(modifier = Modifier.padding(horizontal = 8.dp)) {
+        Text(
+            text = stringResource(R.string.eq_route_section),
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+        )
+        val isPremium by LocalSyncRepository.current.isPremium.collectAsStateWithLifecycle()
+        if (isPremium) {
+            ROUTE_ROWS.forEach { (route, labelRes) ->
+                var expanded by remember { mutableStateOf(false) }
+                val selectedId = routeMap[route.name]
+                val selectedName =
+                    profiles.firstOrNull { it.id == selectedId }?.deviceModel
+                        ?: stringResource(R.string.eq_route_none)
+                ListItem(
+                    headlineContent = { Text(stringResource(labelRes)) },
+                    supportingContent = { Text(selectedName) },
+                    modifier = Modifier.clickable { expanded = true },
+                )
+                DropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false },
+                ) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.eq_route_none)) },
+                        onClick = {
+                            onRouteProfileSelected(route, null)
+                            expanded = false
+                        },
+                    )
+                    profiles.forEach { profile ->
+                        DropdownMenuItem(
+                            text = { Text(profile.deviceModel) },
+                            onClick = {
+                                onRouteProfileSelected(route, profile.id)
+                                expanded = false
+                            },
+                        )
+                    }
+                }
+            }
+            Text(
+                text = stringResource(R.string.eq_route_hint),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            )
+        } else {
+            val routeNavController = LocalNavController.current
+            ListItem(
+                headlineContent = { Text(stringResource(R.string.premium_feature)) },
+                supportingContent = { Text(stringResource(R.string.eq_route_pro_desc)) },
+                leadingContent = {
+                    Icon(
+                        painter = painterResource(R.drawable.lock),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.secondary,
+                    )
+                },
+                trailingContent = {
+                    Button(onClick = { routeNavController.navigate("payment") }) {
+                        Text(stringResource(R.string.premium_unlock))
+                    }
+                },
+            )
+        }
     }
 }

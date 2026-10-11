@@ -213,6 +213,8 @@
     <string name="show_most_stats_playlists_desc">Create and show stats-based Most playlists in Stats and Library</string>
     <string name="shuffle_playlist_first">Shuffle playlist or album first</string>
     <string name="shuffle_playlist_first_desc">When shuffling, play all songs from the current playlist or album before moving to similar content</string>
+    <string name="smart_shuffle">Smart Shuffle</string>
+    <string name="smart_shuffle_desc">Favorites you play surface, skips sink — taste-weighted shuffle using your listening history</string>
     <string name="prevent_duplicate_tracks_in_queue">Prevent duplicate tracks in queue</string>
     <string name="prevent_duplicate_tracks_in_queue_desc">When adding a track that\'s already in the queue, it will be moved from its previous position rather than added again</string>
     <string name="add_to_playlist_position">Add to playlist position</string>
@@ -581,6 +583,50 @@
     <string name="wrapped_thank_you">Thank you for listening!</string>
     <string name="wrapped_special_thanks">Special thanks to MO Agamy for creating the project Soundsphere is forked from</string>
     <string name="wrapped_close">Close Wrapped</string>
+    <string name="wrapped_share">Share Wrapped</string>
+    <string name="payment_title">Go Premium</string>
+    <string name="payment_plan_title">Soundsphere Premium</string>
+    <string name="payment_plan_body">Recurring monthly billing. Cancel anytime from settings.</string>
+    <string name="payment_pay_monthly">Pay monthly</string>
+    <string name="payment_verifying">Confirming your payment…</string>
+    <string name="payment_success_title">Welcome to Premium</string>
+    <string name="payment_success_body">Your payment is confirmed. Premium features are now unlocked on all your devices.</string>
+    <string name="payment_done">Done</string>
+    <string name="payment_failed_title">Payment not confirmed</string>
+    <string name="payment_retry">Try again</string>
+
+    <!-- Playlist folders -->
+    <string name="group_by_folder">Group by folder</string>
+    <string name="move_to_folder">Move to folder</string>
+    <string name="move_to_folder_desc">Organize this playlist into a folder</string>
+    <string name="folder_new_hint">New folder name</string>
+    <string name="folder_create">Create</string>
+    <string name="folder_ungrouped">Ungrouped</string>
+    <string name="folder_move_done">Moved to %1$s</string>
+
+    <!-- Library health -->
+    <string name="library_health_title">Library health</string>
+    <string name="library_health_loading">Checking your library…</string>
+    <string name="library_health_clean">Everything looks good — no issues found.</string>
+    <string name="library_health_duplicates">%1$d duplicate songs</string>
+    <string name="library_health_missing_art">%1$d songs missing artwork</string>
+    <string name="library_health_dead_uploads">%1$d broken uploads</string>
+    <string name="library_health_duplicates_hint">Extra copies of songs you already have</string>
+    <string name="library_health_missing_art_hint">Songs with no cover image</string>
+    <string name="library_health_dead_uploads_hint">Uploads whose files are gone</string>
+
+    <!-- Premium gating -->
+    <string name="premium_feature">Premium feature</string>
+    <string name="premium_unlock">Go Premium</string>
+    <string name="smart_shuffle_pro_desc">Smarter, tastier shuffles — unlock with Premium</string>
+    <string name="eq_route_pro_desc">Different EQ per output device — unlock with Premium</string>
+    <string name="uniqueness_opt_in">Taste uniqueness score</string>
+    <string name="uniqueness_opt_in_desc">Share top artists + minutes to compare taste rarity. No track data leaves the device. Delete anytime by switching off.</string>
+    <string name="uniqueness_title">Taste uniqueness</string>
+    <string name="uniqueness_score">%1$d/100 • %2$s • %3$d listeners compared</string>
+    <string name="uniqueness_loading">Calculating your score…</string>
+    <string name="cross_device_title">Across your devices</string>
+    <string name="cross_device_summary">%1$d songs • %2$s this week</string>
     <string name="wrapped_playlist_title">Your %s Wrapped</string>
     <string name="wrapped_create_playlist">Create playlist</string>
     <string name="wrapped_playlist_saved">Playlist saved</string>
@@ -609,6 +655,12 @@
     <string name="system_equalizer">System equalizer</string>
     <string name="system_equalizer_desc">Open Android\'s built-in equalizer</string>
     <string name="eq_disabled">Disabled</string>
+    <string name="eq_route_section">Auto-switch by output</string>
+    <string name="eq_route_bluetooth">Bluetooth output</string>
+    <string name="eq_route_speaker">Phone speaker</string>
+    <string name="eq_route_wired">Wired headphones</string>
+    <string name="eq_route_none">Keep current profile</string>
+    <string name="eq_route_hint">When a mapped output connects, its profile activates automatically.</string>
     <string name="eq_wizard">AutoEQ Wizard</string>
     <string name="eq_download_db">Download AutoEQ database (17 MB)</string>
     <string name="eq_downloading">Downloading…</string>
