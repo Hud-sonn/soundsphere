@@ -1016,6 +1016,28 @@ class ListenTogetherClient
             }
         }
 
+        /**
+         * Tells a guest what happened to their suggestion. Separate from the
+         * host's actionable notification, and separate ids so an approve/reject
+         * cannot cancel the wrong entry.
+         */
+        private fun showSuggestionResultNotification(notifId: Int, message: String) {
+            if (ActivityCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) !=
+                PackageManager.PERMISSION_GRANTED
+            ) {
+                return
+            }
+            val builder =
+                NotificationCompat
+                    .Builder(context, NOTIFICATION_CHANNEL_ID)
+                    .setSmallIcon(R.drawable.share)
+                    .setContentTitle(context.getString(R.string.listen_together))
+                    .setContentText(message)
+                    .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                    .setAutoCancel(true)
+            NotificationManagerCompat.from(context).notify(notifId, builder.build())
+        }
+
         private fun handleDisconnect() {
             pingJob?.cancel()
             pingJob = null
@@ -1454,7 +1476,17 @@ class ListenTogetherClient
                             NotificationManagerCompat.from(context).cancel(notifId)
                         }
 
-                        // For guests, optionally notify via events; UI can react if needed
+                        // Tell the guest their song made it, even when backgrounded.
+                        if (_role.value != RoomRole.HOST) {
+                            showSuggestionResultNotification(
+                                notifId = payload.suggestionId.hashCode() + 1_000_000,
+                                message =
+                                    context.getString(
+                                        R.string.listen_together_suggestion_added,
+                                        payload.trackInfo.title,
+                                    ),
+                            )
+                        }
                     }
 
                     MessageTypes.SUGGESTION_REJECTED -> {
@@ -1466,7 +1498,19 @@ class ListenTogetherClient
                             NotificationManagerCompat.from(context).cancel(notifId)
                         }
 
-                        // For guests, optionally notify via events
+                        // Let the guest know when the host declines, including why.
+                        if (_role.value != RoomRole.HOST) {
+                            val reason = payload.reason?.takeIf { it.isNotBlank() }
+                            showSuggestionResultNotification(
+                                notifId = payload.suggestionId.hashCode() + 2_000_000,
+                                message =
+                                    if (reason != null) {
+                                        context.getString(R.string.listen_together_suggestion_declined_reason, reason)
+                                    } else {
+                                        context.getString(R.string.listen_together_suggestion_declined)
+                                    },
+                            )
+                        }
                     }
 
                     MessageTypes.SKIP_VOTES -> {
@@ -1517,6 +1561,20 @@ class ListenTogetherClient
                             }
 
                             else -> {}
+                        }
+
+                        // Suggestion rejections are guest-facing: say what happened
+                        // instead of leaving the tap silent.
+                        val suggestionError =
+                            when (payload.code) {
+                                "duplicate_track" -> R.string.listen_together_suggestion_duplicate
+                                "suggestions_full" -> R.string.listen_together_suggestion_limit
+                                else -> null
+                            }
+                        if (suggestionError != null) {
+                            scope.launch(Dispatchers.Main) {
+                                Toast.makeText(context, context.getString(suggestionError), Toast.LENGTH_SHORT).show()
+                            }
                         }
 
                         emitEvent(ListenTogetherEvent.ServerError(payload.code, payload.message))

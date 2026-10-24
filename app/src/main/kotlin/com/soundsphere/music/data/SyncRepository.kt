@@ -59,6 +59,15 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
+ * Master switch for the paywall.
+ *
+ * While false, Pro features are unlocked for everyone and no purchase UI is
+ * offered; the server still enforces every real cap, so this only changes what
+ * the app shows. Flip to true once billing is live.
+ */
+const val PAYMENTS_ENABLED = false
+
+/**
  * Background account-data sync with the Soundsphere backend (/user endpoints).
  *
  * This is intentionally decoupled from the YouTube/Metrolist sync pipeline
@@ -99,6 +108,10 @@ class SyncRepository @Inject constructor(
     val isPremium: StateFlow<Boolean> = _isPremium.asStateFlow()
 
     fun refreshPremiumStatus() {
+        if (!PAYMENTS_ENABLED) {
+            _isPremium.value = false
+            return
+        }
         scope.launch {
             val token = authRepository.getToken()
             if (token == null) {

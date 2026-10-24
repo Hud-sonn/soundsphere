@@ -794,6 +794,11 @@
     <string name="listen_together_not_configured">Listen Together is not set up. Please configure the server URL in: Listen Together &gt; Settings &gt; Server URL</string>
     <string name="listen_together_suggestion_received">%1$s suggested %2$s</string>
     <string name="listen_together_suggestion_sent">Suggestion sent to host!</string>
+    <string name="listen_together_suggestion_added">%1$s was added to the queue</string>
+    <string name="listen_together_suggestion_declined">The host declined your suggestion</string>
+    <string name="listen_together_suggestion_declined_reason">Suggestion declined: %1$s</string>
+    <string name="listen_together_suggestion_duplicate">That track is already playing, queued, or suggested</string>
+    <string name="listen_together_suggestion_limit">You already have 3 suggestions waiting</string>
     <string name="listen_together_join_request_notification">%1$s wants to join the room</string>
     <string name="listen_together_notification_channel_name">Listen Together</string>
     <string name="listen_together_notification_channel_desc">Notifications for Listen Together events</string>

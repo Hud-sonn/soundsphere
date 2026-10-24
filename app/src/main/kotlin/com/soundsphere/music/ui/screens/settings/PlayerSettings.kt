@@ -40,6 +40,7 @@ import com.soundsphere.music.LocalPlayerAwareWindowInsets
 import com.soundsphere.music.LocalSyncRepository
 import com.soundsphere.music.R
 import com.soundsphere.music.constants.AudioNormalizationKey
+import com.soundsphere.music.data.PAYMENTS_ENABLED
 import com.soundsphere.music.constants.AudioOffload
 import com.soundsphere.music.constants.AudioTrackPlaybackParamsKey
 import com.soundsphere.music.constants.AudioQuality
@@ -208,6 +209,7 @@ fun PlayerSettings(
     )
     val syncRepository = LocalSyncRepository.current
     val isPremium by syncRepository.isPremium.collectAsStateWithLifecycle()
+    val premiumUnlocked = !PAYMENTS_ENABLED || isPremium
     val (preventDuplicateTracksInQueue, onPreventDuplicateTracksInQueueChange) = rememberPreference(
         PreventDuplicateTracksInQueueKey,
         defaultValue = false
@@ -972,12 +974,12 @@ fun PlayerSettings(
                     description = {
                         Text(
                             stringResource(
-                                if (isPremium) R.string.smart_shuffle_desc else R.string.smart_shuffle_pro_desc,
+                                if (premiumUnlocked) R.string.smart_shuffle_desc else R.string.smart_shuffle_pro_desc,
                             ),
                         )
                     },
                     trailingContent = {
-                        if (isPremium) {
+                        if (premiumUnlocked) {
                             Switch(
                                 checked = smartShuffle,
                                 onCheckedChange = onSmartShuffleChange,
@@ -1001,7 +1003,7 @@ fun PlayerSettings(
                         }
                     },
                     onClick = {
-                        if (isPremium) {
+                        if (premiumUnlocked) {
                             onSmartShuffleChange(!smartShuffle)
                         } else {
                             navController.navigate("payment")

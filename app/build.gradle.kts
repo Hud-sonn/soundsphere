@@ -84,27 +84,13 @@ abstract class GenerateProtoTask : DefaultTask() {
 
         logger.lifecycle("Generating protobuf files in $outputDir")
 
-        // The upstream metroproto submodule declares the upstream java_package;
-        // rewrite it so generated classes use the Soundsphere package.
-        val patchedDir = layout.buildDirectory.dir("generated/proto-patched").get().asFile
-        patchedDir.mkdirs()
-        val patchedFile = File(patchedDir, protoFile.name)
-        patchedFile.writeText(
-            protoFile
-                .readText()
-                .replace(
-                    "com.metrolist.music.listentogether.proto",
-                    "com.soundsphere.music.listentogether.proto",
-                ),
-        )
-
         execOperations.exec {
             executable = protocFile.absolutePath
             args(
                 "--java_out=lite:$outputDir",
                 "--kotlin_out=$outputDir",
-                "-I=$patchedDir",
-                patchedFile.absolutePath,
+                "-I=${protoFile.parentFile.absolutePath}",
+                protoFile.absolutePath,
             )
         }
         logger.lifecycle("Protobuf files generated successfully")
@@ -326,7 +312,7 @@ fun getProtocUrl(): String {
     return "https://repo1.maven.org/maven2/com/google/protobuf/protoc/$protocVersion/protoc-$protocVersion-$osName-$archName.exe"
 }
 
-val protoDir = rootProject.file("metroproto")
+val protoDir = rootProject.file("proto")
 val protoFile = protoDir.resolve("listentogether.proto")
 
 val generateProto = if (protoFile.exists()) {

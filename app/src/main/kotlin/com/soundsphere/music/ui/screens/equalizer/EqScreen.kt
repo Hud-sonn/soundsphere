@@ -49,6 +49,7 @@ import com.soundsphere.music.LocalNavController
 import com.soundsphere.music.LocalPlayerAwareWindowInsets
 import com.soundsphere.music.LocalSyncRepository
 import com.soundsphere.music.R
+import com.soundsphere.music.data.PAYMENTS_ENABLED
 import com.soundsphere.music.eq.data.OutputRoute
 import com.soundsphere.music.eq.data.SavedEQProfile
 import timber.log.Timber
@@ -449,7 +450,7 @@ private fun RouteEqSection(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
         )
         val isPremium by LocalSyncRepository.current.isPremium.collectAsStateWithLifecycle()
-        if (isPremium) {
+        if (!PAYMENTS_ENABLED || isPremium) {
             ROUTE_ROWS.forEach { (route, labelRes) ->
                 var expanded by remember { mutableStateOf(false) }
                 val selectedId = routeMap[route.name]
