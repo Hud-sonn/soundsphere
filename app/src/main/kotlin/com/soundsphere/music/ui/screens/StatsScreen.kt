@@ -436,6 +436,30 @@ fun StatsScreen(
             }
 
             if (!isSearching) {
+                item(key = "streak") {
+                    val streak by viewModel.streakDays.collectAsStateWithLifecycle()
+                    LaunchedEffect(Unit) { viewModel.refreshStreak() }
+                    NavigationTitle(
+                        title = stringResource(R.string.streak_title),
+                        modifier = Modifier.animateItem(),
+                    )
+                    Text(
+                        text =
+                            when {
+                                streak < 0 -> stringResource(R.string.library_health_loading)
+                                streak == 0 -> stringResource(R.string.streak_empty)
+                                else ->
+                                    pluralStringResource(
+                                        R.plurals.streak_days,
+                                        streak,
+                                        streak,
+                                    )
+                            },
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                    )
+                }
                 if (uniquenessOptIn) {
                     item(key = "uniquenessScore") {
                         val score by viewModel.uniqueness.collectAsStateWithLifecycle()

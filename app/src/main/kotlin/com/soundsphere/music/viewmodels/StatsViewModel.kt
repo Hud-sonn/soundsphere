@@ -26,6 +26,7 @@ import com.soundsphere.music.ui.screens.OptionStats
 import com.soundsphere.music.utils.dataStore
 import com.soundsphere.music.utils.LibraryHealthReport
 import com.soundsphere.music.utils.buildHealthReport
+import com.soundsphere.music.utils.currentStreak
 import com.soundsphere.music.utils.safeDataStoreEdit
 import com.soundsphere.music.utils.reportException
 import com.soundsphere.music.R
@@ -45,6 +46,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.Duration
 import java.time.Instant
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.ZoneOffset
@@ -83,6 +85,19 @@ constructor(
         viewModelScope.launch(Dispatchers.IO) {
             val songs = database.songsByCreateDateAsc().first()
             libraryHealth.value = buildHealthReport(songs)
+        }
+    }
+
+    /** Current listening streak in days. -1 = not computed yet. */
+    val streakDays = MutableStateFlow(-1)
+
+    fun refreshStreak() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val dates =
+                database.playDatesDesc().mapNotNull { raw ->
+                    runCatching { LocalDate.parse(raw.take(10)) }.getOrNull()
+                }
+            streakDays.value = currentStreak(dates)
         }
     }
     val selectedOption = MutableStateFlow(OptionStats.CONTINUOUS)

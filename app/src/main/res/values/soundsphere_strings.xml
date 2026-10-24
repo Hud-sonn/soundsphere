@@ -620,6 +620,14 @@
     <string name="premium_unlock">Go Premium</string>
     <string name="smart_shuffle_pro_desc">Smarter, tastier shuffles — unlock with Premium</string>
     <string name="eq_route_pro_desc">Different EQ per output device — unlock with Premium</string>
+
+    <!-- Listening streak -->
+    <string name="streak_title">Listening streak</string>
+    <string name="streak_empty">Play a song to start your streak</string>
+    <plurals name="streak_days">
+        <item quantity="one">%1$d day streak</item>
+        <item quantity="other">%1$d day streak</item>
+    </plurals>
     <string name="uniqueness_opt_in">Taste uniqueness score</string>
     <string name="uniqueness_opt_in_desc">Share top artists + minutes to compare taste rarity. No track data leaves the device. Delete anytime by switching off.</string>
     <string name="uniqueness_title">Taste uniqueness</string>
