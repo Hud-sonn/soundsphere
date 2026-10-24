@@ -31,6 +31,15 @@ object BackendEndpoint {
     /** The base URL to use for the next request. */
     fun current(): String = current
 
+    /**
+     * The host for the single retry after a network-level failure.
+     *
+     * Callers invoke [markFailure] first, so [current] is already the fallback
+     * by the time this is read; returning the fallback explicitly keeps the
+     * retry target obvious instead of depending on that ordering.
+     */
+    fun fallback(): String = BuildConfig.API_FALLBACK_BASE_URL
+
     /** Called when a request fails at the network layer (IOException). */
     fun markFailure() {
         if (current != BuildConfig.API_FALLBACK_BASE_URL) {

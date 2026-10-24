@@ -218,7 +218,7 @@ Yes. Logging in with your YouTube Music account is supported in addition to the 
 Soundsphere is a fork of [Metrolist](https://github.com/MetrolistGroup/Metrolist) (GPL-3.0). We thank the Metrolist team and every contributor to the open-source libraries that power this project, including:
 
 - [Better Lyrics](https://better-lyrics.boidu.dev) - time-synced lyrics with word-by-word highlighting
-- [metroserver](https://github.com/MetrolistGroup/metroserver) - listen-together real-time backend
+- [soundsphere-listen](https://github.com/Hud-sonn/soundsphere-listen) - Listen Together real-time backend, derived from [metroserver](https://github.com/MetrolistGroup/metroserver)
 - [MusicRecognizer](https://github.com/aleksey-saenko/MusicRecognizer) - music recognition feature
 - [zemer-cipher](https://github.com/ZemerTeam/zemer-cipher) - cipher deobfuscation and PoToken generation
 
