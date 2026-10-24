@@ -4,6 +4,7 @@ Why: user asked to keep the premium/payment discussion + remaining work + sessio
 
 Changelog:
 - 2026-10-11: corrected — blend cap IS enforced (`check_blend_creation_cap`, user.py:383); no backend cap gap. Flag wiring B1–B6 applied to app (uncompiled).
+- 2026-10-11: items 4/6/7 DONE. Streak card on Stats top (app local). Session fix shipped: `POST /auth/refresh` live on prod (verified 401-no-auth = new code serving); app auto-renews <48h via `refreshSessionIfExpiring` at startup (local). Double-submit guard live: 90s create dedupe (verified boot-test; prod dupes `alpha 2`/`Slayr` predate it).
 
 # Premium & Payment — status, split, remaining work
 
