@@ -6,8 +6,10 @@
 package com.soundsphere.music.data
 
 import android.content.Context
+import android.util.Base64
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.stringPreferencesKey
+import com.soundsphere.music.api.AuthService
 import com.soundsphere.music.api.SyncArtist
 import com.soundsphere.music.api.SyncHistoryEntry
 import com.soundsphere.music.api.SyncPlaylist
@@ -106,6 +108,47 @@ class SyncRepository @Inject constructor(
             SyncService.getSubscriptionStatus(token)
                 .onSuccess { _isPremium.value = it.isPro }
                 .onFailure { /* keep last known; offline keeps working */ }
+        }
+    }
+
+    /**
+     * Sliding session: swap the stored JWT for a fresh one well before it
+     * expires. The token lives 7 days; refreshing once it has <6 days left
+     * means any user who opens the app at least once a week stays signed in
+     * indefinitely instead of being logged out.
+     */
+    fun refreshSessionIfExpiring() {
+        scope.launch {
+            val token = authRepository.getToken() ?: return@launch
+            if (!tokenExpiringSoon(token)) return@launch
+            AuthService.refreshSession(token)
+                .onSuccess { authRepository.saveToken(it) }
+                .onFailure { /* keep old token until it truly dies */ }
+        }
+    }
+
+    private fun tokenExpiringSoon(token: String, thresholdHours: Long = 144): Boolean {
+        return try {
+            val parts = token.split(".")
+            if (parts.size != 3) return false
+            // JWT payloads are base64url without padding; pad it back up so the
+            // decoder can't reject the token and silently disable refreshing.
+            val payload = parts[1]
+            val padded = payload + "=".repeat((4 - payload.length % 4) % 4)
+            val json =
+                JSONObject(
+                    String(
+                        Base64.decode(padded, Base64.URL_SAFE or Base64.NO_WRAP),
+                        Charsets.UTF_8,
+                    ),
+                )
+            val expSec = json.optLong("exp", 0)
+            if (expSec == 0L) return false
+            val remainingMs = expSec * 1000 - System.currentTimeMillis()
+            remainingMs > 0 && remainingMs < thresholdHours * 3_600_000L
+        } catch (e: Exception) {
+            Timber.w(e, "Could not read JWT exp; skipping session refresh")
+            false
         }
     }
 
@@ -217,7 +260,11 @@ class SyncRepository @Inject constructor(
                     val token = authRepository.getToken()
                     if (token != null) {
                         val result = try { SyncService.getNotifications(token) } catch (e: Exception) { Result.failure(e) }
-                        if (result.isSuccess) _notifications.value = result.getOrNull() ?: emptyList()
+                        result.onSuccess { _notifications.value = it }
+                        // Without this a dead token was polled every 30s for hours
+                        // (prod logged 30+ consecutive 401s for one user) instead of
+                        // dropping the session on the first rejection.
+                        if (handleFailure(result.exceptionOrNull())) break
                     }
                     kotlinx.coroutines.delay(30_000)
                 }

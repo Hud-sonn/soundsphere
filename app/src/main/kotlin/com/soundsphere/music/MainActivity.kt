@@ -493,6 +493,10 @@ class MainActivity : ComponentActivity() {
         // on first paint. Best-effort: failure keeps last known (free).
         syncRepository.refreshPremiumStatus()
 
+        // Sliding session: renew the JWT when close to expiry so background
+        // syncs stop wiping the session every 7 days. No-op when fresh.
+        syncRepository.refreshSessionIfExpiring()
+
         handleUpdateChangelogIntent(intent)
         handleAnnouncementIntent(intent)
 

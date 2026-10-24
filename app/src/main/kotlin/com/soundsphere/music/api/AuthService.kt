@@ -198,6 +198,40 @@ object AuthService {
             },
         )
 
+    /**
+     * Sliding session: swaps a still-valid token for a fresh one before it
+     * expires. Returns the new raw token string. A 401 here means the token
+     * is already dead — the user must log in again.
+     */
+    suspend fun refreshSession(token: String): Result<String> =
+        withBackend(
+            build = { base ->
+                Request
+                    .Builder()
+                    .url("$base/auth/refresh")
+                    .header("Authorization", "Bearer $token")
+                    .post(ByteArray(0).toRequestBody(JSON))
+                    .build()
+            },
+            parse = { response ->
+                val body = response.body?.string()
+                if (response.isSuccessful) {
+                    try {
+                        Result.success(parseToken(body).token)
+                    } catch (e: Exception) {
+                        Result.failure(e)
+                    }
+                } else {
+                    val message = errorMessage(body, response.code)
+                    if (response.code == 401) {
+                        Result.failure(UnauthorizedException(message))
+                    } else {
+                        Result.failure(Exception(message))
+                    }
+                }
+            },
+        )
+
     suspend fun forgotPassword(email: String): Result<Unit> =
         withBackend(
             build = { base ->
